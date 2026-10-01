@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "looxis/laravel-sail-starter-kit",
+    "name": "looxis/customer-service-assist",
     "type": "project",
-    "description": "AI Coding Starter Kit — Laravel Sail Edition. Laravel + Sail/Docker + WSL2 base for new web apps, with Claude Code Skills for Requirements, Architecture, Development, QA, and Deployment.",
-    "keywords": ["laravel", "sail", "starter-kit"],
+    "description": "Customer Service Assist. Laravel + Sail/Docker + WSL2 app, built on the AI Coding Starter Kit (Laravel Sail Edition).",
+    "keywords": ["laravel", "sail", "customer-service"],
     "license": "MIT",
     "require": {
         "php": "^8.5",
