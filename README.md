@@ -1,6 +1,6 @@
-# AI Coding Starter Kit — Laravel Sail Edition
+# Customer Service Assist
 
-> Build production-ready Laravel apps faster with AI-powered Skills handling Requirements, Architecture, Development, QA, and Deployment — running entirely on Docker + Laravel Sail inside WSL2.
+> Basiert auf dem AI Coding Starter Kit — Laravel Sail Edition. Build production-ready Laravel apps faster with AI-powered Skills handling Requirements, Architecture, Development, QA, and Deployment — running entirely on Docker + Laravel Sail inside WSL2.
 
 Dieses Template nutzt [Claude Code](https://docs.anthropic.com/en/docs/claude-code) mit Skills, Rules und Sub-Agents für einen kompletten AI-unterstützten Entwicklungsworkflow — zugeschnitten auf den **Laravel / Blade / Tailwind / Alpine.js / MySQL / Pest**-Stack, lokal ausschließlich über **Docker + Laravel Sail + WSL2** betrieben. Siehe [AI-Powered Development Workflow](#ai-powered-development-workflow) unten.
 
@@ -36,8 +36,8 @@ Alle Befehle unten werden **im WSL2-/Ubuntu-Terminal** ausgeführt — **nicht**
 
 ```bash
 cd ~/code
-git clone https://github.com/looxis/laravel-sail-starter-kit.git your-project
-cd your-project
+git clone https://github.com/looxis/customerservice-assist.git customerservice-assist
+cd customerservice-assist
 cp .env.example .env
 ```
 
@@ -114,7 +114,7 @@ Falls mehrere Sail-Projekte parallel laufen sollen, in `.env` (und ggf. `.env.ex
 ## Täglicher Workflow
 
 ```bash
-cd ~/code/your-project
+cd ~/code/customerservice-assist
 ./vendor/bin/sail up -d
 ./vendor/bin/sail npm run dev
 ```

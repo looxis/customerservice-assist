@@ -1,7 +1,7 @@
 {
-  "name": "laravel-sail-starter-kit",
+  "name": "customer-service-assist",
   "version": "1.0.0",
-  "description": "AI Coding Starter Kit — Laravel Sail Edition (Laravel + Sail/Docker + WSL2 + Blade + Tailwind + Alpine).",
+  "description": "Customer Service Assist (Laravel + Sail/Docker + WSL2 + Blade + Tailwind + Alpine).",
   "private": true,
   "type": "module",
   "scripts": {

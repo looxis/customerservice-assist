@@ -1,6 +1,6 @@
-# AI Coding Starter Kit
+# Customer Service Assist
 
-> A Laravel template with an AI-powered development workflow using specialized skills for Requirements, Architecture, Frontend, Backend, QA, and Deployment.
+> A Laravel app, built on the AI Coding Starter Kit, with an AI-powered development workflow using specialized skills for Requirements, Architecture, Frontend, Backend, QA, and Deployment.
 
 ## Tech Stack
 
