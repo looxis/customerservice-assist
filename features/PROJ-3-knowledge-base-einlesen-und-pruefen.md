@@ -1,6 +1,6 @@
 # PROJ-3: Knowledge Base einlesen und prüfen
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -109,8 +109,8 @@ Grundlagen: `docs/KNOWLEDGE_BASE_DESIGN.md`, `docs/KNOWLEDGE_AUTHORING_GUIDE.md`
 
 ## Open Questions
 - [ ] Reicht `b2b` als Kundenart, oder brauchen Foto-Fachhändler/Reseller und LOOXIS-Pro eigene Werte? (übernommen aus PROJ-2; PROJ-3 prüft gegen die Werteliste, die Entscheidung fällt im Spec von PROJ-4)
-- [ ] Ab welcher Textlänge gilt ein Dokument als „zu groß"? Vorschlag: Warnung ab etwa 8.000 Zeichen; in `/architecture` festlegen.
-- [ ] Liegt auf dem Produktivserver ein Git-Repository vor? Wenn nicht, muss der Commit-Stand beim Deployment mitgegeben werden (wie die Versionsangabe aus PROJ-1). Zu klären in `/architecture` bzw. `/deploy`.
+- [x] Ab welcher Textlänge gilt ein Dokument als „zu groß"? → Warnung ab 8.000 Zeichen, als Konfigurationswert.
+- [x] Liegt auf dem Produktivserver ein Git-Repository vor? → Die App kommt mit beidem zurecht: Git wird gefragt, sonst gilt ein beim Deployment hinterlegter Wert, sonst „unbekannt". Welcher Fall zutrifft, klärt `/deploy`.
 
 ## Decision Log
 
@@ -133,12 +133,118 @@ Grundlagen: `docs/KNOWLEDGE_BASE_DESIGN.md`, `docs/KNOWLEDGE_AUTHORING_GUIDE.md`
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Reines Backend-Feature ohne Datenbank: Die Dateien werden bei Bedarf direkt von der Platte gelesen | Git und die Dateien sind die Quelle; eine Kopie in der Datenbank könnte veralten und bräuchte einen Abgleich. So ist eine eingefügte Datei sofort sichtbar | 2026-10-02 |
+| Gelesen wird einmal pro Seitenaufruf bzw. Befehl, ohne dauerhaften Zwischenspeicher | Bei wenigen hundert kleinen Dateien dauert das Lesen Millisekunden; ein Cache brächte nur das Risiko veralteter Stände | 2026-10-02 |
+| Eine zentrale Stelle („Knowledge-Bibliothek") stellt die Dokumente bereit; Auswahl, Analyse, Anzeige und Befehle fragen nur sie | Verhindert, dass mehrere Features Dateien unterschiedlich lesen oder prüfen | 2026-10-02 |
+| Eigener Bereich `app/Knowledge/` für diese Logik | Fachlich zusammengehörig und von mehreren Features genutzt; neuer Ordner unter `app/`, daher ausdrücklich freizugeben | 2026-10-02 |
+| Alle Wertelisten und Grenzwerte in einer Konfigurationsdatei (`config/knowledge.php`) | Typen mit Ordner und ID-Präfix, Status, Kundenarten, Kanäle, Kategorien, Pfad und Längengrenze stehen an genau einer Stelle; ein neuer Wert (z. B. weitere B2B-Gruppe) ist eine Zeile | 2026-10-02 |
+| YAML wird mit `symfony/yaml` gelesen, als direkte Abhängigkeit | Ausgereifter Standard im Laravel-Umfeld und bereits indirekt installiert, bisher aber nur für die Entwicklung; für den Produktivbetrieb muss das Paket ausdrücklich aufgenommen werden | 2026-10-02 |
+| Jede Prüfregel ist eine eigene kleine Einheit mit Schweregrad (Fehler oder Warnung) und deutscher Meldung | Regeln lassen sich einzeln testen, ergänzen und im Schweregrad ändern | 2026-10-02 |
+| Fingerabdruck = SHA-256 über den normalisierten Dateiinhalt (ohne BOM, einheitliche Zeilenenden) | Gleicher Inhalt ergibt denselben Wert, egal ob die Datei unter Windows oder Linux gespeichert wurde | 2026-10-02 |
+| Git-Stand wird zur Laufzeit bei Git erfragt; ist Git nicht verfügbar, gilt ein beim Deployment hinterlegter Wert, sonst „unbekannt" | Lokal und auf einem Server mit Repository stimmt der Stand automatisch; ohne Repository bleibt die App lauffähig (Antwort auf die offene Frage) | 2026-10-02 |
+| Zwei Befehle: `knowledge:check` (mit Option `--strict`) und `knowledge:overview` | Prüfen und Übersicht sind zwei Aufgaben mit unterschiedlicher Ausgabe; die Übersicht soll ohne Prüfmeldungen kopierbar sein | 2026-10-02 |
+| Warnung „Dokument zu groß" ab 8.000 Zeichen Text, als Konfigurationswert | Entspricht grob zwei Bildschirmseiten aus dem Guide; anpassbar, falls zu streng (Antwort auf die offene Frage) | 2026-10-02 |
+| Tests arbeiten mit eigenen Beispieldateien; zusätzlich prüft ein Test, dass die echte Knowledge Base fehlerfrei ist | Jede Prüfregel bekommt ein fehlerhaftes Beispiel; der Zusatztest schlägt an, wenn eine eingefügte Datei einen Fehler hat | 2026-10-02 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-3 ist ein reines Backend-Feature ohne Oberfläche und ohne Datenbank. Es entsteht eine zentrale „Knowledge-Bibliothek", die die Markdown-Dateien liest, prüft und allen anderen Features bereitstellt, dazu zwei Terminal-Befehle. `/frontend` entfällt; gebaut wird mit `/backend`.
+
+### A) Bausteine
+
+```
+Knowledge-Bibliothek (zentrale Anlaufstelle)
++-- Datei-Leser
+|   +-- findet alle Markdown-Dateien in den Typ-Ordnern
+|   +-- überspringt README, templates/, Nicht-Markdown-Dateien
+|   +-- trennt Frontmatter und Text, liest das YAML
++-- Dokument (ein Objekt je Datei)
+|   +-- ID, Titel, Typ, Status
+|   +-- Listen: Produkte, Kategorien, Themen, Kundenarten, Kanäle, Verweise
+|   +-- Typ-Zusatzfelder (bei Permissions: Aktion, Erlaubnis, Wertgrenze, Rolle)
+|   +-- Text, Dateipfad, Fingerabdruck
++-- Prüfer
+|   +-- Regeln je Dokument (Pflichtfelder, Typ, Status, ID-Schema, Ordner, Wertelisten ...)
+|   +-- Regeln über alle Dokumente (doppelte IDs, Verweise, fehlende Produktdateien)
+|   +-- Ergebnis: Liste von Meldungen (Datei, Schweregrad, Text)
++-- Wissensstand
+|   +-- letzter Commit (Kurz-Hash, Datum)
+|   +-- Kennzeichen „mit uncommitteten Änderungen"
++-- Übersicht
+    +-- vergebene IDs und nächste freie ID je Typ
+    +-- verwendete Schlagwörter
+
+Befehle
++-- knowledge:check       Meldungen nach Datei, Summen, Erfolg/Fehlschlag (--strict)
++-- knowledge:overview    Sitzungsstart-Block für den Browser-Chat
+
+Konfiguration
++-- Pfad zur Knowledge Base, Typen mit Ordner und ID-Präfix, Status,
+    Kundenarten, Kanäle, Kategorien, Längengrenze, hinterlegter Commit-Stand
+```
+
+### B) Was die Bibliothek anderen Features anbietet
+
+| Frage | Antwort | Nutzer |
+|---|---|---|
+| Welche Dokumente sind verwendbar? | alle fehlerfreien mit Status `draft` oder `active` | PROJ-4, PROJ-9 |
+| Welche Dokumente gibt es überhaupt? | alle gelesenen, auch fehlerhafte und `deprecated` | PROJ-24 |
+| Welches Dokument hat die ID X? | Dokument mit Titel, Text, Status | PROJ-10 (Quellen einsehen) |
+| Welche Fehler und Warnungen gibt es? | Meldungen je Datei | Befehl, PROJ-24 |
+| Wie ist der Wissensstand? | Commit, Kennzeichen, Fingerabdruck je Dokument | PROJ-11 (Protokoll) |
+| Wie lautet die ID-Übersicht? | Text im Format des Guides | Befehl, PROJ-24 |
+
+### C) Daten
+Es wird nichts gespeichert. Die Bibliothek liest bei jedem Seitenaufruf bzw. Befehl frisch von der Platte; innerhalb eines Aufrufs nur einmal.
+
+Ein Dokument besteht aus:
+- Kennung: ID, Titel, Typ, Status
+- Geltungsbereich und Schlagwörter: sechs Listen (leer heißt „gilt für alle")
+- Zusatzfelder des Typs
+- Text
+- Herkunft: Dateipfad, Fingerabdruck des Inhalts
+
+Eine Meldung besteht aus: Dateipfad, Schweregrad (Fehler oder Warnung), deutscher Text.
+
+### D) Ablauf beim Einlesen
+
+```
+Dateien finden
+-> je Datei: lesen, Frontmatter abtrennen, YAML lesen
+   -> nicht lesbar: Fehler-Meldung, Datei bleibt in der Gesamtliste als „fehlerhaft"
+-> Regeln je Dokument anwenden
+-> Regeln über alle Dokumente anwenden (doppelte IDs, Verweise)
+-> Ergebnis: Dokumente + Meldungen
+   verwendbar = ohne Fehler und nicht deprecated
+```
+
+### E) Wichtigste Entscheidungen in Kürze
+- **Keine Datenbank, kein Zwischenspeicher.** Die Dateien sind klein und wenige; frisches Lesen ist schnell und kann nicht veralten.
+- **Eine Anlaufstelle für alle.** Kein anderes Feature liest selbst Knowledge-Dateien.
+- **Wertelisten an einer Stelle.** Eine weitere Kundenart oder Kategorie ist eine Zeile in der Konfiguration.
+- **Git-Stand mit Rückfallebene.** Erst Git fragen, sonst den beim Deployment hinterlegten Wert nehmen, sonst „unbekannt". Die Fingerabdrücke funktionieren immer.
+- **Die echte Knowledge Base wird mitgetestet.** Ein fehlerhaft eingefügtes Dokument lässt die Test-Suite fehlschlagen.
+
+### F) Automatische Tests (Umfang für `/qa`)
+- Je Prüfregel ein fehlerhaftes und ein korrektes Beispiel (eigene Beispieldateien nur für Tests).
+- Randfälle: Windows-Zeilenenden, BOM, fehlendes Frontmatter-Ende, `---` im Text, einzelner Wert statt Liste, Unterordner, leerer oder fehlender Knowledge-Ordner.
+- Fingerabdruck: gleich bei gleichem Inhalt, anders bei Änderung, unabhängig von Zeilenenden.
+- Wissensstand: mit Git, mit uncommitteten Änderungen, ohne Git.
+- Befehle: Ausgabe und Rückgabewert bei fehlerfrei, Warnungen, Fehlern, `--strict`; Übersicht mit und ohne Dokumente.
+- Die echte Knowledge Base ergibt keine Fehler.
+
+### G) Abhängigkeiten
+- `symfony/yaml` – liest das YAML-Frontmatter (neu als direkte Abhängigkeit; bereits indirekt installiert)
+
+### H) Übergaben an andere Features
+- **PROJ-4** wählt aus den verwendbaren Dokumenten aus und entscheidet über die Werte für Kundenarten.
+- **PROJ-24** zeigt Dokumente, Meldungen und Übersicht in der App.
+- **PROJ-11** speichert Commit, Kennzeichen und Fingerabdrücke zur Analyse.
+- **`/deploy`** hinterlegt den Commit-Stand, falls auf dem Server kein Git-Repository liegt, und kann `knowledge:check --strict` vor der Auslieferung laufen lassen.
 
 ## QA Test Results
 _To be added by /qa_
