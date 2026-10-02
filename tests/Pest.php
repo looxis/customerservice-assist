@@ -1,6 +1,10 @@
 <?php
 
+use App\Knowledge\KnowledgeIssue;
+use App\Knowledge\KnowledgeLibrary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Symfony\Component\Yaml\Yaml;
 use Tests\TestCase;
 
 /*
@@ -44,7 +48,53 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Build a throwaway knowledge base and return the library reading it.
+ *
+ * @param  array<string, string>  $files  Relative path => file content.
+ */
+function knowledgeBase(array $files): KnowledgeLibrary
 {
-    // ..
+    $root = sys_get_temp_dir().'/knowledge-test-'.bin2hex(random_bytes(6));
+
+    File::ensureDirectoryExists($root);
+
+    foreach ($files as $path => $content) {
+        File::ensureDirectoryExists(dirname("{$root}/{$path}"));
+        File::put("{$root}/{$path}", $content);
+    }
+
+    config(['knowledge.path' => $root]);
+    app()->forgetScopedInstances();
+
+    return app(KnowledgeLibrary::class);
+}
+
+/**
+ * A valid knowledge file; overrides change or remove (null) frontmatter fields.
+ *
+ * @param  array<string, mixed>  $overrides
+ */
+function knowledgeDoc(array $overrides = [], string $body = "Gilt für alle Kundenarten.\n\n# Regel\n\nEin Satz."): string
+{
+    $frontmatter = array_merge(['id' => 'POLICY-001', 'title' => 'Titel', 'type' => 'policy', 'status' => 'draft'], $overrides);
+
+    return "---\n".Yaml::dump($frontmatter)."---\n\n".$body."\n";
+}
+
+function messagesOf(KnowledgeLibrary $library, string $severity): string
+{
+    return ($severity === 'error' ? $library->errors() : $library->warnings())
+        ->map(fn (KnowledgeIssue $issue): string => "{$issue->path}: {$issue->message}")
+        ->implode("\n");
+}
+
+/**
+ * Remove the throwaway knowledge bases created by knowledgeBase().
+ */
+function cleanUpKnowledgeBases(): void
+{
+    foreach (File::glob(sys_get_temp_dir().'/knowledge-test-*') as $directory) {
+        File::deleteDirectory($directory);
+    }
 }

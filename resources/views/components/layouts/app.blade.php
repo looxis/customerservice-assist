@@ -25,6 +25,7 @@
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Hauptnavigation">
             <x-nav-item :href="route('tickets.analyze')" icon="sparkle" :active="request()->routeIs('tickets.*')">Ticket analysieren</x-nav-item>
+            <x-nav-item :href="route('knowledge.index')" icon="layers" :active="request()->routeIs('knowledge.*')">Knowledge</x-nav-item>
         </nav>
 
         <div class="shrink-0 border-t border-slate-200 p-4 font-mono text-xs text-slate-400">

@@ -1,6 +1,6 @@
 # PROJ-24: Knowledge-Übersicht
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -238,6 +238,29 @@ Keine neuen Pakete. `league/commonmark` ist Bestandteil von Laravel.
 - **PROJ-10** verlinkt für „Quelle einsehen" auf die Dokumentansicht und nutzt Status-Badge und Dokumenttext.
 - **PROJ-23** ergänzt in der Dokumentansicht den Klick zum Bestätigen eines Entwurfs.
 - **PROJ-15** kann den technischen Bereich auf Admins beschränken.
+
+## Implementation Notes
+**Stand:** 2026-10-02 – Frontend und Backend-Anteil umgesetzt; Browser-Abnahme durch den Nutzer steht aus.
+
+**Gebaut:**
+- Routen `knowledge.index` (`/knowledge`) und `knowledge.show` (`/knowledge/dokument/{path}`), `KnowledgeController`, `KnowledgeIndexRequest` für die Filterwerte.
+- `App\Knowledge\KnowledgeMarkdown`: wandelt den Dokumenttext sicher in HTML um (HTML maskiert, unsichere Links entfernt, Bilder durch Alternativtext ersetzt, externe Links in neuem Tab ohne Rückbezug, Überschriften eine Ebene tiefer, vorhandene Knowledge-IDs als Links).
+- Seiten `knowledge/index.blade.php` und `knowledge/show.blade.php`.
+- Neue Bausteine: `collapsible`, `copy-field`, `knowledge/status-badge`, `knowledge/scope`, `knowledge/text`; Textstile `.knowledge-text` in `resources/css/app.css`.
+- Zweiter Navigationspunkt „Knowledge" im Layout; der PROJ-1-Test zur Navigation ist angepasst.
+- `config/knowledge.php`: deutsche Bezeichnung je Typ (`label`).
+- Die gemeinsamen Test-Helfer (`knowledgeBase`, `knowledgeDoc`, `messagesOf`, `cleanUpKnowledgeBases`) liegen jetzt in `tests/Pest.php`.
+
+**Abweichungen vom Spec:**
+- Einklappbare Bereiche funktionieren auch ohne JavaScript (eingebautes Aufklapp-Element), wie im Tech Design festgehalten.
+- Ungültige Filterwerte führen zurück zur ungefilterten Übersicht mit einem Hinweis.
+- Das Filterformular hat kein `@csrf`: Es ist ein GET-Formular ohne Datenänderung; ein Token würde in der Adresszeile landen.
+- Dokumente, deren Typ fehlt oder unbekannt ist, erscheinen im Abschnitt ihres Ordners; liegt die Datei in keinem Typ-Ordner, unter „Nicht zugeordnet".
+- Die Meldung zu einem Dokument verlinkt auch dann auf seine Ansicht, wenn das Frontmatter nicht lesbar ist (die Ansicht zeigt dann Pfad und Fehler).
+
+**Geprüft:** 57 Pest-Tests (`tests/Feature/PROJ-24-KnowledgeOverviewTest.php`), gesamte Suite 305 grün. Seiten per Abruf gegen die echte Knowledge Base geprüft (Übersicht, Filter, Dokumentansichten, unbekannter Pfad, Pfad mit `..`). Übersicht mit 200 Dokumenten rendert unter einer Sekunde.
+
+**Nicht geprüft:** Darstellung im Browser, Lesbarkeit des Dokumenttexts, Kopier-Button mit und ohne HTTPS, Verhalten bei 768 und 1440 px.
 
 ## QA Test Results
 _To be added by /qa_

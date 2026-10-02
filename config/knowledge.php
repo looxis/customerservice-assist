@@ -36,20 +36,21 @@ return [
     |--------------------------------------------------------------------------
     |
     | Every type lives in exactly one folder and has its own ID prefix
-    | (e.g. POLICY-001). See docs/KNOWLEDGE_BASE_DESIGN.md.
+    | (e.g. POLICY-001). The order is the precedence of the knowledge base and
+    | the order of the overview page. See docs/KNOWLEDGE_BASE_DESIGN.md.
     |
     */
 
     'types' => [
-        'policy' => ['folder' => 'policies', 'prefix' => 'POLICY'],
-        'permission' => ['folder' => 'permissions', 'prefix' => 'PERMISSION'],
-        'product' => ['folder' => 'products', 'prefix' => 'PRODUCT'],
-        'process' => ['folder' => 'processes', 'prefix' => 'PROCESS'],
-        'playbook' => ['folder' => 'playbooks', 'prefix' => 'PLAYBOOK'],
-        'tone' => ['folder' => 'tone', 'prefix' => 'TONE'],
-        'glossary' => ['folder' => 'glossary', 'prefix' => 'GLOSSARY'],
-        'example-good' => ['folder' => 'examples/good', 'prefix' => 'EXAMPLE-GOOD'],
-        'example-bad' => ['folder' => 'examples/bad', 'prefix' => 'EXAMPLE-BAD'],
+        'policy' => ['folder' => 'policies', 'prefix' => 'POLICY', 'label' => 'Policies'],
+        'permission' => ['folder' => 'permissions', 'prefix' => 'PERMISSION', 'label' => 'Permissions'],
+        'product' => ['folder' => 'products', 'prefix' => 'PRODUCT', 'label' => 'Produkte'],
+        'process' => ['folder' => 'processes', 'prefix' => 'PROCESS', 'label' => 'Prozesse'],
+        'playbook' => ['folder' => 'playbooks', 'prefix' => 'PLAYBOOK', 'label' => 'Playbooks'],
+        'tone' => ['folder' => 'tone', 'prefix' => 'TONE', 'label' => 'Ton'],
+        'glossary' => ['folder' => 'glossary', 'prefix' => 'GLOSSARY', 'label' => 'Glossar'],
+        'example-good' => ['folder' => 'examples/good', 'prefix' => 'EXAMPLE-GOOD', 'label' => 'Gute Beispiele'],
+        'example-bad' => ['folder' => 'examples/bad', 'prefix' => 'EXAMPLE-BAD', 'label' => 'Schlechte Beispiele'],
     ],
 
     /*

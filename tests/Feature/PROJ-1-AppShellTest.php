@@ -23,13 +23,15 @@ describe('layout shell', function () {
             ->assertDontSeeText('Laravel');
     });
 
-    test('the sidebar contains exactly one navigation item and it is marked active', function () {
+    test('the sidebar lists the navigation items and marks the current one active', function () {
         $html = $this->get('/')->assertOk()->getContent();
 
         preg_match('/<nav\b.*?<\/nav>/s', $html, $nav);
 
         expect($nav)->not->toBeEmpty()
-            ->and(substr_count($nav[0], '<a'))->toBe(1)
+            ->and(substr_count($nav[0], '<a'))->toBe(2)
+            ->and(substr_count($nav[0], 'aria-current="page"'))->toBe(1)
+            ->and($nav[0])->toContain('Knowledge')
             ->and($nav[0])->toContain('Ticket analysieren')
             ->toContain('aria-current="page"')
             ->toContain('bg-brand-tint')

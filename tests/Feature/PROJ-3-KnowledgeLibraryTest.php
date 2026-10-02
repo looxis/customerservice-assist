@@ -1,52 +1,9 @@
 <?php
 
-use App\Knowledge\KnowledgeIssue;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeState;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
-use Symfony\Component\Yaml\Yaml;
-
-/**
- * Build a throwaway knowledge base and return the library reading it.
- *
- * @param  array<string, string>  $files  Relative path => file content.
- */
-function knowledgeBase(array $files): KnowledgeLibrary
-{
-    $root = sys_get_temp_dir().'/knowledge-test-'.bin2hex(random_bytes(6));
-
-    File::ensureDirectoryExists($root);
-
-    foreach ($files as $path => $content) {
-        File::ensureDirectoryExists(dirname("{$root}/{$path}"));
-        File::put("{$root}/{$path}", $content);
-    }
-
-    config(['knowledge.path' => $root]);
-    app()->forgetScopedInstances();
-
-    return app(KnowledgeLibrary::class);
-}
-
-/**
- * A valid knowledge file; overrides change or remove (null) frontmatter fields.
- *
- * @param  array<string, mixed>  $overrides
- */
-function knowledgeDoc(array $overrides = [], string $body = "Gilt für alle Kundenarten.\n\n# Regel\n\nEin Satz."): string
-{
-    $frontmatter = array_merge(['id' => 'POLICY-001', 'title' => 'Titel', 'type' => 'policy', 'status' => 'draft'], $overrides);
-
-    return "---\n".Yaml::dump($frontmatter)."---\n\n".$body."\n";
-}
-
-function messagesOf(KnowledgeLibrary $library, string $severity): string
-{
-    return ($severity === 'error' ? $library->errors() : $library->warnings())
-        ->map(fn (KnowledgeIssue $issue): string => "{$issue->path}: {$issue->message}")
-        ->implode("\n");
-}
 
 afterEach(function () {
     foreach (File::glob(sys_get_temp_dir().'/knowledge-test-*') as $directory) {
