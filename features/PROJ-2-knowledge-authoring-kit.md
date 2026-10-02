@@ -1,6 +1,6 @@
 # PROJ-2: Knowledge-Authoring-Kit
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -96,12 +96,97 @@ Grundlagen: `docs/KNOWLEDGE_BASE_DESIGN.md` (feste Vorgabe für Struktur und Dok
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Kein App-Code: PROJ-2 besteht nur aus Dateien (Ordner, Markdown, Skill-Definition) | Das Feature liefert Arbeitsmaterial für den Autor; die App liest Knowledge erst ab PROJ-3 | 2026-10-02 |
+| Leere Ordner bleiben über eine Platzhalterdatei im Repository erhalten | Git speichert keine leeren Ordner; ohne Platzhalter fehlte die Struktur nach dem Auschecken | 2026-10-02 |
+| Vorlagen heißen wie ihr Typ (`policy.md`, `example-good.md` …) | Eindeutig auffindbar, für Mensch, Chat und Skill | 2026-10-02 |
+| Vorlagen tragen die reservierte Nummer 000 (z. B. `POLICY-000`) und einen Vorlagen-Hinweis als Kommentar im Frontmatter | Die Nummer 000 wird nie für echtes Wissen vergeben, so ist eine versehentlich kopierte, unbearbeitete Vorlage sofort erkennbar; der Hinweis im Frontmatter hält die Datei syntaktisch gültig | 2026-10-02 |
+| Der Skill heißt `/knowledge` und liegt bei den übrigen Projekt-Skills | Gleicher Aufruf und gleiche Ablage wie `/write-spec`, `/qa` usw. | 2026-10-02 |
+| Der Skill enthält keine eigenen Verfassensregeln, sondern liest Guide, Design-Dokument und Vorlagen bei jedem Start | Eine einzige Quelle für die Regeln; Browser-Chat und Skill können nicht auseinanderlaufen | 2026-10-02 |
+| Der Skill ermittelt IDs und Schlagwörter durch Lesen der Dateien, ohne eigenes Programm | Reicht für den Ausweichweg und braucht nichts aus PROJ-3; sobald die automatische Übersicht aus PROJ-3 existiert, kann der Skill sie nutzen | 2026-10-02 |
+| Der Skill schreibt nur in `knowledge/`, nie in `knowledge/templates/`, und committet nicht selbst | Vorlagen und Git-Historie bleiben in der Hand des Autors | 2026-10-02 |
+| Der Guide bleibt in `docs/`, die Einstiegsseite im Knowledge-Ordner verlinkt ihn | Der Browser-Chat bekommt weiter genau zwei Dateien aus `docs/`; im Knowledge-Ordner liegt nichts, was später versehentlich als Wissen gelesen wird | 2026-10-02 |
+| Ein kleiner automatischer Strukturtest sichert Ordner und Vorlagen ab | Verhindert, dass eine Vorlage oder ein Ordner unbemerkt verschwindet oder ein Pflichtfeld verliert | 2026-10-02 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-2 ändert nichts an der laufenden App. Es entstehen Ordner, eine Einstiegsseite, neun Vorlagen und eine Skill-Definition. Weder `/frontend` noch `/backend` sind nötig; die Dateien werden direkt angelegt und anschließend mit `/qa` geprüft.
+
+### A) Was entsteht
+
+```
+knowledge/
++-- README.md                 Einstiegsseite (neu)
++-- policies/                 6 Dateien vorhanden, bleiben unverändert
++-- permissions/              2 Dateien vorhanden, bleiben unverändert
++-- products/                 neu, leer
++-- processes/                neu, leer
++-- playbooks/                neu, leer
++-- tone/                     neu, leer
++-- glossary/                 neu, leer
++-- examples/
+|   +-- good/                 neu, leer
+|   +-- bad/                  neu, leer
++-- templates/                neu
+    +-- policy.md
+    +-- permission.md
+    +-- product.md
+    +-- process.md
+    +-- playbook.md
+    +-- tone.md
+    +-- glossary.md
+    +-- example-good.md
+    +-- example-bad.md
+
+Skill „/knowledge" (bei den übrigen Projekt-Skills)
++-- Ablauf: lesen -> Typ klären -> befragen -> Entwurf zeigen -> schreiben -> berichten
+
+docs/KNOWLEDGE_AUTHORING_GUIDE.md   vorhanden, wird um den Verweis auf die Vorlagen ergänzt
+```
+
+### B) Aufbau einer Vorlage
+Jede Vorlage hat zwei Teile:
+
+- **Kopf (Frontmatter):** Vorlagen-Hinweis, dann die Felder des Typs. Pflichtfelder sind vorbelegt, soweit sie feststehen (Typ, Status `draft`, Platzhalter-ID mit der Nummer 000); alle übrigen Felder sind leer. Jede Vorlage enthält die Felder für Kundenart, Vertriebskanal und Verweise auf andere Dokumente. Die Permission-Vorlage enthält zusätzlich Aktion, Erlaubnis, Wertgrenze und Freigabe-Rolle.
+- **Text:** eine Zeile für den Geltungsbereich, danach die Abschnittsüberschriften des Typs aus dem Design-Dokument, ohne Fülltext.
+
+### C) Ablauf des Skills
+
+```
+Start mit Thema oder Fall
++-- 1. Lesen: Guide, Design-Dokument, Vorlagen, alle vorhandenen Knowledge-Dateien
++-- 2. Bestand ermitteln: vergebene IDs je Typ, vorhandene Produkt-, Kategorie- und Themenwerte
+|       +-- doppelte ID gefunden -> melden und anhalten
++-- 3. Typ bestimmen
+|       +-- unklar oder mehrere Themen -> Aufteilung vorschlagen, Autor entscheidet
+|       +-- Regel steht schon in anderem Dokument -> Verweis statt Wiederholung vorschlagen
++-- 4. Befragen, eine Frage nach der anderen, entlang der Abschnitte der Vorlage
+|       +-- immer: Geltungsbereich (Kundenart, Kanal)
+|       +-- fehlende Angabe -> nachfragen, nie annehmen
++-- 5. Entwurf im Gespräch zeigen, Autor bestätigt oder korrigiert
++-- 6. Schreiben: Zielordner des Typs, Dateiname nach Guide, nächste freie ID, Status draft
+|       +-- Produktdatei existiert schon -> bestehende Datei ergänzen, Änderung vorher zeigen
++-- 7. Berichten: Pfad, ID, neu eingeführte Schlagwörter; kein Commit, kein „active"
+```
+
+### D) Daten
+Es wird nichts in der Datenbank gespeichert. Der einzige „Datenbestand" sind die Markdown-Dateien im Repository; Git ist ihre Historie.
+
+### E) Prüfung (Umfang für `/qa`)
+- Automatischer Strukturtest: alle Ordner vorhanden; genau neun Vorlagen; jede Vorlage hat die Pflichtfelder, Status `draft`, die Nummer 000, die Felder für Kundenart, Kanal und Verweise sowie die Abschnitte ihres Typs; die Permission-Vorlage hat ihre vier Zusatzfelder; die acht vorhandenen Knowledge-Dateien sind unverändert.
+- Von Hand: Einstiegsseite lesen; den Skill an einem Beispiel durchspielen (neue Policy, zweites Dokument desselben Typs, vorhandenes Produkt ergänzen) und prüfen, dass ID, Ordner, Dateiname und Status stimmen.
+
+Ob die Vorlagen fehlerfrei als YAML gelesen werden, kann erst der Leser aus PROJ-3 endgültig beweisen; bis dahin prüft der Strukturtest den Aufbau.
+
+### F) Abhängigkeiten
+Keine neuen Pakete.
+
+### G) Übergaben an andere Features
+- **PROJ-3** muss `knowledge/README.md` und `knowledge/templates/` vom Einlesen ausschließen und die Nummer 000 als ungültig für echtes Wissen behandeln.
+- **PROJ-3** liefert später die automatische Übersicht; der Skill kann dann darauf umgestellt werden.
 
 ## QA Test Results
 _To be added by /qa_

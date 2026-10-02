@@ -19,7 +19,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Priority | Feature | Status |
 |----------|---------|--------|
 | P0 (MVP) | App-Grundgerüst mit LOOXIS-Design (Layout, Basis-Komponenten) | Approved |
-| P0 (MVP) | Knowledge-Authoring-Kit (Ordnerstruktur, Vorlagen, Anleitung, KI-Skill) | Planned |
+| P0 (MVP) | Knowledge-Authoring-Kit (Ordnerstruktur, Vorlagen, Anleitung, KI-Skill) | Architected |
 | P0 (MVP) | Knowledge Base einlesen und prüfen (Frontmatter validieren, Prüfbefehl) | Roadmap |
 | P0 (MVP) | Deterministische Knowledge-Auswahl | Roadmap |
 | P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Roadmap |
