@@ -1,6 +1,6 @@
 # PROJ-3: Knowledge Base einlesen und prüfen
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -245,6 +245,28 @@ Dateien finden
 - **PROJ-24** zeigt Dokumente, Meldungen und Übersicht in der App.
 - **PROJ-11** speichert Commit, Kennzeichen und Fingerabdrücke zur Analyse.
 - **`/deploy`** hinterlegt den Commit-Stand, falls auf dem Server kein Git-Repository liegt, und kann `knowledge:check --strict` vor der Auslieferung laufen lassen.
+
+## Implementation Notes (Backend)
+**Stand:** 2026-10-02 – umgesetzt.
+
+**Gebaut:**
+- `config/knowledge.php`: Pfad, ausgeschlossene Dateien und Ordner, Typen mit Ordner und ID-Präfix, Status, Kundenarten, Kanäle, Kategorien, Längengrenze, hinterlegter Commit.
+- `app/Knowledge/`: `KnowledgeLibrary` (zentrale Anlaufstelle, pro Request einmal gebunden), `KnowledgeReader`, `KnowledgeDocument`, `KnowledgeValidator`, `KnowledgeIssue`, `Severity`, `KnowledgeState`, `KnowledgeOverview`.
+- Befehle: `knowledge:check` (Option `--strict`) und `knowledge:overview`.
+- Neue direkte Abhängigkeit `symfony/yaml` (freigegeben).
+- Guide und `knowledge/README.md` verweisen auf die beiden Befehle.
+
+**Verwendung für Folge-Features:** `app(KnowledgeLibrary::class)` bzw. per Typ-Hinweis einfügen lassen. `usable()` liefert die verwendbaren Dokumente, `all()` alle gelesenen, `find($id)` ein fehlerfreies Dokument, `issues()`/`errors()`/`warnings()`/`issuesFor()` die Meldungen, `state()` den Wissensstand, `overview()` den Text für den Chat. Jedes Dokument trägt `fingerprint`.
+
+**Abweichungen vom Spec:**
+- Fehlender Knowledge-Ordner wird als Fehler gemeldet (Pfad `.`), ein leerer Ordner als Warnung. Das Spec verlangt nur „eine eindeutige Meldung".
+- Die ID-Übersicht nennt die nächste freie ID in der Zeile des jeweiligen Typs und ergänzt den Sitzungsstart-Block des Guides um drei Zeilen für Kategorien, Kundenarten und Kanäle.
+- Zusätzlicher Fehler „Feld muss eine einfache Liste sein" für verschachtelte Listenfelder.
+- Hinweis auf personenbezogene Daten: E-Mail-Muster oder Ziffernfolge ab sieben Stellen.
+
+**Geprüft:** 71 Pest-Tests (`tests/Feature/PROJ-3-KnowledgeLibraryTest.php`), gesamte Suite 218 grün. Beide Befehle gegen die echte Knowledge Base ausgeführt: 8 Dokumente, 8 verwendbar, keine Fehler, keine Warnungen. 200 Dokumente werden in unter einer Sekunde gelesen und geprüft.
+
+**Offen für den Nutzer:** `KNOWLEDGE_COMMIT=` in `.env.example` dokumentieren (Datei ist für den Assistenten gesperrt). Der Wert bleibt leer, solange ein Git-Repository vorhanden ist.
 
 ## QA Test Results
 _To be added by /qa_

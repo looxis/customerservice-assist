@@ -43,9 +43,9 @@ Neue Dateien entstehen immer als `draft`. Auf `active` stellt nur der Autor um.
 
 1. Thema oder echten Fall wählen. Nicht alles dokumentieren, sondern entlang echter Fälle vorgehen.
 2. Mit KI-Hilfe verfassen, auf einem von zwei Wegen:
-   - **Browser-Chat:** dem Chat `docs/KNOWLEDGE_AUTHORING_GUIDE.md` und `docs/KNOWLEDGE_BASE_DESIGN.md` geben, Ergebnis unter dem genannten Pfad speichern.
+   - **Browser-Chat:** dem Chat `docs/KNOWLEDGE_AUTHORING_GUIDE.md` und `docs/KNOWLEDGE_BASE_DESIGN.md` geben, dazu die Ausgabe von `./vendor/bin/sail artisan knowledge:overview` (vergebene IDs und Schlagwörter). Ergebnis unter dem genannten Pfad speichern.
    - **Im Repository:** `/knowledge <Thema>` in Claude Code aufrufen. Der Skill befragt dich, vergibt die nächste freie ID und legt die Datei ab.
-3. Datei lesen und fachlich prüfen.
+3. Datei lesen und fachlich prüfen; mit `./vendor/bin/sail artisan knowledge:check` den Aufbau prüfen lassen.
 4. Committen und pushen.
 5. Am Fall in der App testen, nachschärfen, danach `status: active` setzen.
 

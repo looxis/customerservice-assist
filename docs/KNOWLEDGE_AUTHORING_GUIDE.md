@@ -159,6 +159,8 @@ Nicht das ganze Unternehmen dokumentieren, sondern entlang echter Fälle vorgehe
 
 ## Sitzungsstart – das gibt dir der Autor
 
+Der Autor erzeugt diesen Block im Repository mit `./vendor/bin/sail artisan knowledge:overview` und fügt die Ausgabe ein. Sie enthält zusätzlich die nächste freie ID je Typ und die verwendeten Werte für Kategorien, Kundenarten und Kanäle. Das Grundgerüst:
+
 ```text
 Vergebene IDs:
 (Liste oder „noch keine")
