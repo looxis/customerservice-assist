@@ -35,6 +35,10 @@ Gib jede Datei so aus, dass sie unverändert gespeichert werden kann:
 
 Mehrere Dateien: jede mit eigenem Pfad und eigenem Codeblock.
 
+## Vorlagen
+
+Für jeden Dokumenttyp gibt es im Repository eine Vorlage unter `knowledge/templates/<typ>.md` (z. B. `policy.md`, `example-good.md`). Sie entspricht der Struktur aus dem Design-Dokument, ergänzt um `customer_types`, `sales_channels` und `related_knowledge` sowie eine Zeile für den Geltungsbereich am Textanfang. Vorlagen tragen die Nummer 000 (`POLICY-000`); diese Nummer wird nie für echtes Wissen vergeben. Die beiden Hinweiszeilen am Anfang einer Vorlage gehören nicht in eine fertige Datei.
+
 ## Dateinamen und Ablage
 
 | Typ | Ordner | Dateiname |
@@ -63,7 +67,7 @@ Dateinamen: nur Kleinbuchstaben, Ziffern und Bindestriche; Umlaute ausschreiben 
 Pflicht in jeder Datei: `id`, `title`, `type`, `status`.
 
 - `type`: genau einer von `policy`, `permission`, `product`, `process`, `playbook`, `tone`, `glossary`, `example-good`, `example-bad`
-- `status`: neue Dateien immer `draft`. Auf `active` setzt sie nur der Autor nach fachlicher Prüfung; nur `active` wird von der App verwendet.
+- `status`: neue Dateien immer `draft`. Auf `active` setzt sie nur der Autor nach fachlicher Prüfung; `draft` wird von der App mitverwendet und als Entwurfs-Wissen gekennzeichnet, `deprecated` nie.
 - `last_reviewed`: Datum im Format `JJJJ-MM-TT`, nur wenn der Autor den Inhalt wirklich geprüft hat.
 - Listen als YAML-Listen, auch bei nur einem Eintrag. Leere Felder leer lassen, nicht mit Platzhaltern füllen.
 - Titel mit Doppelpunkt oder Anführungszeichen in Anführungszeichen setzen.

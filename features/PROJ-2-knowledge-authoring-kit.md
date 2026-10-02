@@ -1,6 +1,6 @@
 # PROJ-2: Knowledge-Authoring-Kit
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -187,6 +187,22 @@ Keine neuen Pakete.
 ### G) Übergaben an andere Features
 - **PROJ-3** muss `knowledge/README.md` und `knowledge/templates/` vom Einlesen ausschließen und die Nummer 000 als ungültig für echtes Wissen behandeln.
 - **PROJ-3** liefert später die automatische Übersicht; der Skill kann dann darauf umgestellt werden.
+
+## Implementation Notes
+**Stand:** 2026-10-02 – umgesetzt (ohne `/frontend`/`/backend`, da reine Dateien).
+
+**Angelegt:**
+- Ordner `products`, `processes`, `playbooks`, `tone`, `glossary`, `examples/good`, `examples/bad` (je mit `.gitkeep`) und `templates` unter `knowledge/`.
+- `knowledge/README.md` (Einstiegsseite).
+- Neun Vorlagen unter `knowledge/templates/`: `policy`, `permission`, `product`, `process`, `playbook`, `tone`, `glossary`, `example-good`, `example-bad`. ID jeweils `<TYP>-000`, Status `draft`, zwei Hinweiszeilen als YAML-Kommentar.
+- Skill `.claude/skills/knowledge/SKILL.md`, Aufruf `/knowledge <Thema>`.
+- Guide: neuer Abschnitt „Vorlagen"; die Aussage zum Status an das Entwurfs-Wissen angepasst.
+
+**Geprüft:** Das Frontmatter aller neun Vorlagen und der acht vorhandenen Knowledge-Dateien lässt sich als YAML lesen. Die acht vorhandenen Dateien sind unverändert.
+
+**Nicht geprüft:** Der Skill wurde noch nicht an einem Beispiel durchgespielt. Er ist erst in einer neuen Claude-Code-Sitzung als `/knowledge` verfügbar.
+
+**Abweichung vom Spec:** keine.
 
 ## QA Test Results
 _To be added by /qa_
