@@ -463,3 +463,60 @@ describe('scale', function () {
         }
     });
 });
+
+describe('qa: hostile input', function () {
+    test('link tricks in the text never produce an executable link or attribute', function () {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(body: "[a](JaVaScRiPt:alert(1)) [b](vbscript:x) <javascript:alert(1)> [c](https://x.example \"t\\\" onmouseover=\\\"alert(1)\")\n\n[d]: javascript:alert(2)\n\n[ref][d]")]);
+
+        $text = strstr($this->get(documentUrl('policies/policy-001-a.md'))->getContent(), 'knowledge-text');
+
+        expect($text)->not->toMatch('/href="\s*(javascript|vbscript|data):/i')
+            ->not->toContain('onmouseover="alert')
+            ->toContain('href="https://x.example"');
+    });
+
+    test('a title cannot break out of the copy field', function () {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['title' => '</textarea><script>alert(1)</script>'])]);
+
+        expect($this->get('/knowledge')->getContent())->not->toContain('</textarea><script>');
+    });
+
+    test('file names with spaces, umlauts and ampersands are linked and open', function () {
+        knowledgeBase(['products/3D Glas Ünïcode & Co.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Sonderzeichen'])]);
+
+        preg_match('/href="([^"]*dokument[^"]*)"/', $this->get('/knowledge')->getContent(), $match);
+
+        $this->get(html_entity_decode($match[1]))->assertOk()->assertSeeText('Sonderzeichen');
+    });
+
+    test('array values in filter parameters are rejected', function (string $query) {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
+
+        $this->get('/knowledge?'.$query)->assertRedirect(route('knowledge.index'));
+    })->with(['q[]=x', 'type[]=policy', 'status[a]=b', 'issues[]=1']);
+
+    test('unknown parameters are ignored and the overview only answers to GET', function () {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
+
+        $this->get('/knowledge?unbekannt=1&q=titel')->assertOk();
+        $this->post('/knowledge')->assertStatus(405);
+    });
+
+    test('deeply nested or pathological markdown renders quickly', function (string $body) {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(body: $body)]);
+
+        $start = microtime(true);
+
+        $this->get(documentUrl('policies/policy-001-a.md'))->assertOk();
+
+        expect(microtime(true) - $start)->toBeLessThan(1.0);
+    })->with([str_repeat('> ', 3000).'tief', str_repeat('*a **b ', 4000)]);
+
+    test('the knowledge pages carry the security headers', function () {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
+
+        foreach (['/knowledge', documentUrl('policies/policy-001-a.md')] as $url) {
+            $this->get($url)->assertHeader('X-Frame-Options', 'DENY')->assertHeader('X-Content-Type-Options', 'nosniff');
+        }
+    });
+});

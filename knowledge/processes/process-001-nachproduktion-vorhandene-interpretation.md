@@ -14,6 +14,8 @@ topics:
 - replacement
 customer_types:
 products:
+related_knowledge:
+- GLOSSARY-002
 ---
 
 Gilt für alle Kundenarten auf allen Kanälen außer Amazon; im aktuellen Kanalschema ist dies `shop`. Erfasst werden Produkte, deren Produktionsdatei durch einen Interpretationsvorgang erstellt wurde.
@@ -26,10 +28,14 @@ Bei einer Wiederholung des früheren Ergebnisses wird die vorhandene Interpretat
 
 Ein Kunde möchte ein früheres Ergebnis erneut erhalten oder eine Nachproduktion soll im Rahmen von Kulanz oder einer Reklamation auf der ursprünglichen Interpretation beruhen.
 
+# Bestellweg
+
+Die Nachbestellung mit Bezug zur vorhandenen Interpretation ist derzeit nur per E-Mail möglich. Der Kunde soll den ursprünglichen Auftrag benennen; der Kundenservice legt den Folgeauftrag nach diesem Prozess an. Eine eigenständige neue Shop-Konfiguration ist kein Ersatz für den Originalbezug.
+
 # Ablauf
 
 1. Den Originalauftrag intern zuordnen. Fehlt die Zuordnung, den Kunden um Angaben zum ursprünglichen Auftrag bitten.
-2. Feststellen, welche vorhandene Interpretation beziehungsweise Produktionsdatei wiederverwendet werden soll.
+2. Die ursprüngliche Konfigurations-ID und die zugehörige Interpretation beziehungsweise Produktionsdatei zuordnen. Die Begriffe und die Bedeutung von Dateiduplikaten sind in GLOSSARY-002 beschrieben.
 3. Den Folgeauftrag durch den Kundenservice anlegen und ausdrücklich mit dem Originalvorgang und der ursprünglichen Interpretation verknüpfen.
 4. Die Nachproduktion auf dieser Grundlage veranlassen; keinen neuen Interpretationsvorgang auslösen.
 

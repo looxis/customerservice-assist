@@ -1,6 +1,6 @@
 # PROJ-24: Knowledge-Übersicht
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -263,7 +263,151 @@ Keine neuen Pakete. `league/commonmark` ist Bestandteil von Laravel.
 **Nicht geprüft:** Darstellung im Browser, Lesbarkeit des Dokumenttexts, Kopier-Button mit und ohne HTTPS, Verhalten bei 768 und 1440 px.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-02
+**App URL:** http://localhost:8081/knowledge
+**Tester:** QA Engineer (AI)
+
+**Prüfmethode und Grenzen:** 68 Pest-Tests (57 aus der Umsetzung, 11 neue aus der QA), ein Erkundungslauf mit präparierten Links, Dateinamen, Abfrage-Parametern und überlangem Markdown, dazu Abrufe gegen die echte Knowledge Base (15 Dokumente). Der Tester hatte **keinen Browser**. Der Nutzer hat bestätigt, dass die Seiten gut aussehen. Nicht vom Tester geprüft: das tatsächliche Verhalten des Kopier-Buttons (mit und ohne HTTPS), Cross-Browser und die Breiten 375/768/1440 px.
+
+Legende: [x] bestanden · [~] umgesetzt laut Code, Verhalten nicht im Browser geprüft
+
+### Acceptance Criteria Status
+
+#### Navigation (2/2)
+- [x] Zweiter Navigationspunkt „Knowledge" mit Icon
+- [x] Auf Übersicht und Dokumentansicht aktiv, „Ticket analysieren" nicht
+
+#### Dokumentliste (8/8)
+- [x] Gruppiert nach Typ in Rangfolge, innerhalb nach ID
+- [x] Zeile mit ID, Titel, Status, Geltungsbereich; leerer Geltungsbereich als „alle"
+- [x] Badges „Entwurf", „Aktiv", „Veraltet"
+- [x] Veraltete Dokumente abgeschwächt und als „Wird nicht verwendet" gekennzeichnet
+- [x] Fehler-Badge bzw. Warn-Badge mit Anzahl
+- [x] Datei mit nicht lesbarem Frontmatter erscheint mit Dateipfad und Fehler-Badge
+- [x] Kein leerer Abschnitt für Typen ohne Dokumente
+- [x] Klick öffnet die Dokumentansicht
+
+#### Kennzahlen und Wissensstand (2/2)
+- [x] Anzahl gesamt, verwendbar, Entwurf, aktiv
+- [x] Wissensstand mit Hinweis auf uncommittete Änderungen bzw. „unbekannt"
+
+#### Filter (3/3)
+- [x] Typ, Status, „nur mit Meldungen"; Auswahl bleibt erhalten
+- [x] Suche in ID und Titel, unabhängig von Groß- und Kleinschreibung
+- [x] Leerzustand mit Zurücksetzen
+
+#### Prüfergebnis (5/5)
+- [x] Ohne Meldungen: Erfolgshinweis, Bereich eingeklappt
+- [x] Mit Fehlern: aufgeklappt, Summen, Meldungen je Datei, Fehler vor Warnungen
+- [x] Nur Warnungen: eingeklappt mit Anzahl
+- [x] Meldung verlinkt auf das Dokument
+- [x] Fehlender oder leerer Ordner: deutlicher Hinweis, Seite bleibt bedienbar
+
+#### ID-Übersicht (1/3)
+- [x] Text entspricht der Ausgabe von `knowledge:overview`
+- [~] „Kopieren" legt den Text in die Zwischenablage und bestätigt mit „Kopiert"
+- [~] Ohne Zugriff auf die Zwischenablage wird der Text markiert und ein Hinweis erscheint
+
+#### Dokumentansicht (10/10)
+- [x] Kopfdaten, Geltungsbereich, Themen, Dateipfad, Fingerabdruck
+- [x] Permission-Felder; leere Wertgrenze als „keine Wertgrenze"
+- [x] Formatierter Text statt Markdown-Quelltext
+- [x] Vorhandene IDs anklickbar, fehlende bleiben Text
+- [x] Hinweis bei Entwurf
+- [x] Hinweis bei veraltetem Dokument
+- [x] Meldungen über dem Text, Fehler vor Warnungen
+- [x] Nicht lesbares Frontmatter: Pfad und Fehler, kein Text
+- [x] Unbekannte ID oder Pfad: „Seite nicht gefunden"
+- [x] Link zurück zur Übersicht mit erhaltenen Filtern (mit Sicherheitsmangel, siehe BUG-1)
+
+#### Sicherheit der Darstellung (2/2)
+- [x] HTML und Skript-Code in Titel, Text und Frontmatter werden als Text gezeigt
+- [x] Links öffnen in neuem Tab ohne Rückbezug; `javascript:`, `vbscript:` und `data:` werden nie zu Links
+
+### Edge Cases Status
+- [x] Zwei Dateien mit derselben ID: beide gelistet, beide über den Pfad erreichbar
+- [x] Dokument ohne Titel oder ID: erscheint mit Dateipfad
+- [x] 200 Dokumente: Übersicht rendert unter einer Sekunde
+- [x] Gelöschte Datei: „Seite nicht gefunden"
+- [x] Sehr langes oder tief verschachteltes Markdown rendert schnell
+- [x] Bildverweis: Alternativtext, kein Abruf
+- [x] Verweis auf sich selbst oder auf ein Dokument mit Fehlern: kein Link
+- [x] Wissensstand unbekannt
+- [x] Suchbegriff mit Sonderzeichen
+- [x] Dateinamen mit Leerzeichen, Umlauten und `&`
+- [~] Sehr langer Titel oder Pfad: Kürzungs- und Umbruchklassen vorhanden
+- [~] JavaScript abgeschaltet: Liste, Filter, Aufklappen und Dokumentansicht sind serverseitig gerendert
+
+### Security Audit Results
+- [x] Pfad-Manipulation: `..`, kodierte Schrägstriche, absolute Pfade, README und Vorlagen ergeben „nicht gefunden"; der Pfad wird nie zum Öffnen einer Datei verwendet
+- [x] XSS: Titel, Frontmatter, Text, Suchbegriff und ID-Übersicht werden maskiert; kein Ausbruch aus dem Kopier-Feld
+- [x] Unsichere Links und Attribut-Tricks im Markdown werden nicht ausgeführt
+- [x] Keine Abrufe von fremden Servern, auch nicht durch Bilder in Dokumenten
+- [x] Filterwerte werden geprüft; Listen statt Text werden abgewiesen
+- [x] Die Seiten ändern nichts; `POST` auf die Übersicht wird abgewiesen
+- [x] Sicherheits-Header vorhanden
+- [x] CSRF: kein datenänderndes Formular; das GET-Filterformular hat bewusst kein Token
+- [ ] BUG-1: Der Zurück-Link übernimmt eine fremde Herkunftsadresse
+- Authentifizierung: bewusst keine (PRD). Jeder im Netz sieht Regeln, Dateipfade und den Commit-Stand.
+
+### Bugs Found
+
+#### BUG-1: Zurück-Link kann auf eine fremde Seite zeigen
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Von einer fremden Seite mit der Adresse `https://evil.example/knowledge` aus eine Dokumentansicht der App öffnen
+  2. In der Dokumentansicht auf „Zur Übersicht" klicken
+  3. Expected: Link führt zur Übersicht der App
+  4. Actual: Link führt zurück auf `https://evil.example/knowledge`. Geprüft wird nur der Pfad der Herkunftsadresse, nicht der Server.
+- **Folge:** Ein Angreifer kann eine täuschend echte Kopie der Übersicht unterschieben. Setzt voraus, dass ein Mitarbeiter über einen präparierten Link in die App kommt.
+- **Priority:** Fix before deployment
+
+#### BUG-2: Filter gehen verloren, wenn man von Dokument zu Dokument springt
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Übersicht filtern, ein Dokument öffnen, dort auf einen Verweis zu einem anderen Dokument klicken
+  2. „Zur Übersicht" klicken
+  3. Expected: gefilterte Übersicht
+  4. Actual: ungefilterte Übersicht
+- **Priority:** Nice to have
+
+#### BUG-3: HTML-Kommentare im Dokument erscheinen als Text
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. In einem Dokument `<!-- Notiz -->` schreiben
+  2. Expected: wird nicht angezeigt
+  3. Actual: erscheint wörtlich im Text. Folge der sicheren Umwandlung (alles HTML wird maskiert); die Vorlagen sind nicht betroffen, weil ihre Hinweise im Frontmatter stehen.
+- **Priority:** Nice to have
+
+#### BUG-4: Wertgrenze braucht die PHP-Erweiterung `intl`
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. App auf einem Server ohne `intl` betreiben und eine Permission mit Wertgrenze öffnen
+  2. Expected: Seite wird angezeigt
+  3. Actual (aus dem Code abgeleitet, lokal ist `intl` vorhanden): Fehlerseite
+- **Priority:** Fix before deployment (oder als Voraussetzung in `/deploy` festhalten)
+
+#### BUG-5: Abgewiesene Methoden zeigen eine englische Standardseite
+- **Severity:** Low
+- **Steps to Reproduce:** `POST /knowledge` → 405 mit Laravels englischer Seite. Bekannt aus PROJ-1 (dort BUG-4: weitere Fehlerseiten).
+- **Priority:** mit PROJ-1 BUG-4 erledigen
+
+### Beobachtungen (keine Bugs)
+- Die echte Knowledge Base meldet sechs Warnungen: unbekanntes Feld `limit_basis` in zwei Permissions, Verweise auf noch nicht vorhandene `GLOSSARY-001` und `PRODUCT-001`.
+- Ein Dokument mit ungültigem Status zeigt das Badge „Ohne Status"; der ungültige Wert steht in der Fehlermeldung.
+
+### Automatisierte Tests
+- `tests/Feature/PROJ-24-KnowledgeOverviewTest.php`: 68 Tests. Gesamte Suite: 316 bestanden, 0 fehlgeschlagen.
+- Keine Unit-Tests: Die Markdown-Umwandlung ist über die Dokumentansicht vollständig abgedeckt.
+- Regression: PROJ-1 (Navigationstest angepasst), PROJ-2 und PROJ-3 laufen grün.
+
+### Summary
+- **Acceptance Criteria:** 33/35 bestanden, 2 (Kopier-Button) nur im Code geprüft, 0 fehlgeschlagen
+- **Bugs Found:** 5 total (0 critical, 0 high, 1 medium, 4 low)
+- **Security:** Issues found (BUG-1)
+- **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; BUG-1 sollte vorher behoben werden
+- **Recommendation:** BUG-1 und BUG-4 beheben, den Kopier-Button einmal im Browser ausprobieren
 
 ## Deployment
 _To be added by /deploy_
