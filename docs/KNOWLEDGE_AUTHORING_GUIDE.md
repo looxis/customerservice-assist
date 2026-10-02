@@ -67,6 +67,10 @@ Pflicht in jeder Datei: `id`, `title`, `type`, `status`.
 - `last_reviewed`: Datum im Format `JJJJ-MM-TT`, nur wenn der Autor den Inhalt wirklich geprüft hat.
 - Listen als YAML-Listen, auch bei nur einem Eintrag. Leere Felder leer lassen, nicht mit Platzhaltern füllen.
 - Titel mit Doppelpunkt oder Anführungszeichen in Anführungszeichen setzen.
+- Titel und Text mit echten Umlauten und ß schreiben („Rücknahme", nicht „Ruecknahme"). Die Umschreibung gilt nur für Dateinamen.
+- `related_knowledge` ist in jedem Dokumenttyp erlaubt: eine Liste der IDs, auf die sich das Dokument stützt.
+- Abschnitte wie „Noch zu klären" sind nur im Status `draft` zulässig. Bevor ein Dokument `active` wird, sind die Punkte entschieden oder entfernt; die App liest sonst offene Fragen als geltenden Inhalt mit.
+- Der Text beschreibt, was fachlich gilt, und nimmt nicht auf die App Bezug („wenn die App empfiehlt …"). Eine Befugnis hängt von Sachverhalt und Betrag ab, nicht von einer Empfehlung der App.
 
 ### Schlagwörter: `products`, `categories`, `topics`
 

@@ -1,6 +1,6 @@
 ---
 id: POLICY-001
-title: Keine Ruecknahme personalisierter Ware allein wegen Nichtgefallen
+title: Keine Rücknahme personalisierter Ware allein wegen Nichtgefallen
 type: policy
 status: draft
 customer_types:

@@ -1,6 +1,6 @@
 ---
 id: POLICY-004
-title: Kundenart und Vertriebskanal vor der Entscheidung pruefen
+title: Kundenart und Vertriebskanal vor der Entscheidung prüfen
 type: policy
 status: draft
 customer_types:

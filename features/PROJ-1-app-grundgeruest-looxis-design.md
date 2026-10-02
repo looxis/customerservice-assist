@@ -374,4 +374,20 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - **Recommendation:** Die sieben Browser-Punkte kurz von Hand prüfen, BUG-1 vor dem ersten Deployment beheben, über BUG-2 entscheiden
 
 ## Deployment
-_To be added by /deploy_
+**Stand:** 2026-10-02 – Vorab-Prüfungen bestanden, noch nicht produktiv ausgeliefert (kein Produktivserver festgelegt).
+
+**Vorab-Prüfungen (lokal über Sail):**
+- [x] `npm run build` läuft durch
+- [x] `artisan optimize` läuft durch (Konfiguration, Routen, Views); Routen-Cache funktioniert, da keine Closure-Routen. Danach `optimize:clear`.
+- [x] Keine ausstehenden Migrationen
+- [x] QA freigegeben, keine Critical/High-Bugs
+- [x] `.env` ist nicht im Repository
+- [x] Sicherheits-Header per Middleware gesetzt
+- [ ] Code gepusht (Stand der Prüfung: `main` lokal vor `origin/main`)
+
+**Offen für die erste Auslieferung:**
+- Produktivserver festlegen (PHP 8.5, nur im internen Netz/VPN erreichbar).
+- Gemeinsames Passwort vor der App am Webserver einrichten (PRD, Constraints).
+- `APP_VERSION` beim Ausliefern setzen (Git-Kurz-Hash und Datum), `APP_ENV=production`, `APP_DEBUG=false`, eigener `APP_KEY`.
+- HTTPS am Server, damit `Strict-Transport-Security` greift.
+- Fehler-Tracking nach `docs/production/error-tracking.md`.

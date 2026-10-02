@@ -1,6 +1,6 @@
 ---
 id: POLICY-003
-title: Umgang mit Lieferverzoegerungen
+title: Umgang mit Lieferverzögerungen
 type: policy
 status: draft
 customer_types:
