@@ -1,6 +1,6 @@
 # PROJ-2: Knowledge-Authoring-Kit
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -205,7 +205,86 @@ Keine neuen Pakete.
 **Abweichung vom Spec:** keine.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-02
+**App URL:** nicht anwendbar (PROJ-2 ändert die laufende App nicht)
+**Tester:** QA Engineer (AI)
+
+**Prüfmethode und Grenzen:** Geprüft per Dateisystem, YAML-Parser, Vergleich mit dem Design-Dokument und 68 neuen Pest-Tests (`tests/Feature/PROJ-2-KnowledgeKitTest.php`). Browser-, Responsive- und Cross-Browser-Tests entfallen, weil es keine Oberfläche gibt. Das **Verhalten des Skills** (Befragen, ID vergeben, Datei schreiben) lässt sich nicht automatisch testen und wurde nicht an einem Beispiel durchgespielt; geprüft ist nur, dass die Skill-Definition die geforderten Regeln enthält und der Skill in der Sitzung als `/knowledge` registriert ist.
+
+Legende: [x] bestanden · [~] in der Skill-Definition vorgeschrieben, Verhalten nicht durchgespielt
+
+### Acceptance Criteria Status
+
+#### Ordnerstruktur
+- [x] Alle zehn Ordner existieren und bleiben in einem frischen Checkout erhalten (Platzhalterdatei bzw. Inhalte)
+- [x] Die acht vorhandenen Knowledge-Dateien sind unverändert (`git diff` gegen den Stand vor PROJ-2 ist leer)
+
+#### Einstiegsseite
+- [x] `knowledge/README.md` enthält Zweck, Ordner, Rangfolge, Status, Ablauf und Verweise
+- [x] Sie verweist auf den Guide, statt Regeln zu wiederholen; alle Verweise zeigen auf vorhandene Dateien
+
+#### Vorlagen
+- [x] Genau eine Vorlage je Dokumenttyp (neun)
+- [x] Frontmatter mit Pflichtfeldern, Typ-Feldern, `customer_types`, `sales_channels`, `related_knowledge`; Status `draft`
+- [x] Abschnittsüberschriften je Typ entsprechen dem Design-Dokument in Reihenfolge und Wortlaut; Zeile für den Geltungsbereich am Anfang
+- [x] Permission-Vorlage enthält `action`, `agent_allowed`, `max_value_eur`, `approval_role`
+- [x] Jede Vorlage ist syntaktisch gültiges YAML; leere Felder sind leer
+- [x] Vorlagen sind über die Nummer 000 und den Hinweis im Frontmatter gekennzeichnet
+
+#### KI-Skill im Repository
+- [~] Liest zuerst Guide, Design-Dokument und vorhandene Dateien
+- [~] Schlägt bei unklarem Typ oder vermischten Themen Typ bzw. Aufteilung vor
+- [~] Fragt bei fehlenden Angaben einzeln nach
+- [~] Vergibt die nächste freie ID, keine Wiederverwendung
+- [~] Verwendet vorhandene Schlagwörter oder nennt neue ausdrücklich
+- [~] Schreibt in den Typ-Ordner, Dateiname nach Guide, `status: draft`
+- [~] Aufbau wie die Vorlage, keine personenbezogenen Daten
+- [~] Ergänzt eine vorhandene Produktdatei und zeigt die Änderung vorher
+- [~] Nennt Pfad, ID und neue Schlagwörter; setzt nie `active`, committet nicht von selbst
+- [~] Berücksichtigt Dateien aus dem Browser-Chat, weil er von der Platte liest
+
+#### Guide
+- [x] Guide und Vorlagen stimmen in Typen, Ordnern und Geltungsbereichs-Feldern überein
+
+### Edge Cases Status
+- [~] Lücken in der ID-Folge, doppelte ID, `deprecated`-Thema, Regel je Kundenart/Kanal, bereits vorhandene Regel, echter Fall mit Namen: jeweils in der Skill-Definition geregelt, nicht durchgespielt
+- [x] Leere Ordner bleiben im Repository erhalten
+- [x] Vorlagen und README sind als Nicht-Wissen erkennbar; der Ausschluss beim Einlesen ist als Anforderung an PROJ-3 dokumentiert
+
+### Security Audit Results
+- [x] Keine neue Angriffsfläche: keine Route, kein Formular, keine Datenbankänderung
+- [x] Keine personenbezogenen Daten und keine Zugangsdaten in `knowledge/` (Suche nach langen Ziffernfolgen und E-Mail-Mustern ohne Treffer)
+- [x] Der Skill schreibt nur in `knowledge/`, nicht in `templates/`, und committet nicht selbst
+- Hinweis für PROJ-9: Knowledge-Dateien werden später an das Sprachmodell gegeben. Wer Schreibzugriff auf das Repository hat, steuert damit das Verhalten der App. Das ist gewollt, heißt aber: Schreibrechte auf das Repository sind sicherheitsrelevant.
+
+### Bugs Found
+
+#### BUG-1: Guide und README widersprechen dem Design-Dokument beim Status `draft`
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. `docs/KNOWLEDGE_BASE_DESIGN.md`, Abschnitt 9, lesen: „Nur `status: active` wird produktiv verwendet."
+  2. `docs/KNOWLEDGE_AUTHORING_GUIDE.md` und `knowledge/README.md` lesen: `draft` wird mitverwendet und als Entwurfs-Wissen gekennzeichnet.
+  3. Expected: eine eindeutige Aussage
+  4. Actual: Zwei widersprüchliche Aussagen; der Guide erklärt zudem, dass bei Widersprüchen das Design-Dokument gilt. Ein externer Chat, der beide Dateien erhält, kann das falsch auflösen.
+- **Hinweis:** Die Abweichung ist im PRD als bewusste Entscheidung vermerkt, im Guide aber nicht als solche benannt.
+- **Priority:** Fix in next sprint (ein Satz im Guide genügt)
+
+### Beobachtungen (keine Bugs)
+- Die acht vorhandenen Dateien enthalten nicht alle Felder der Vorlagen (`owner`, `last_reviewed`, meist `categories`). Die Felder sind optional; für die Auswahl nach Kategorie in PROJ-4 werden `categories` aber gebraucht.
+- Die Beispiel-Vorlagen starten mit `draft`; im Design-Dokument stehen Beispiele mit `active`. Das entspricht der Entscheidung im Spec.
+
+### Automatisierte Tests
+- `tests/Feature/PROJ-2-KnowledgeKitTest.php`: 68 Tests. Gesamte Suite: 147 bestanden, 0 fehlgeschlagen.
+- Keine Unit-Tests: PROJ-2 enthält keinen Programmcode.
+- Regression: Die 75 Tests von PROJ-1 laufen weiter grün.
+
+### Summary
+- **Acceptance Criteria:** 11/21 bestanden, 10 (Skill-Verhalten) nur über die Skill-Definition geprüft, 0 fehlgeschlagen
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass
+- **Production Ready:** YES – keine Critical/High-Bugs. Der Skill ist ein Ausweichweg; sein Verhalten sollte beim ersten echten Einsatz beobachtet werden.
+- **Recommendation:** BUG-1 mit einem Satz im Guide beheben; den Skill einmal an einem Beispiel durchspielen
 
 ## Deployment
 _To be added by /deploy_
