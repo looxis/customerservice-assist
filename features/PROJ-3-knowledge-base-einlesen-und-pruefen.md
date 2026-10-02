@@ -1,6 +1,6 @@
 # PROJ-3: Knowledge Base einlesen und prüfen
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -269,7 +269,166 @@ Dateien finden
 **Offen für den Nutzer:** `KNOWLEDGE_COMMIT=` in `.env.example` dokumentieren (Datei ist für den Assistenten gesperrt). Der Wert bleibt leer, solange ein Git-Repository vorhanden ist.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-02
+**App URL:** nicht anwendbar (PROJ-3 hat keine Oberfläche; geprüft über die Befehle und die Bibliothek)
+**Tester:** QA Engineer (AI)
+
+**Prüfmethode und Grenzen:** 79 Pest-Tests (71 aus der Umsetzung, 8 neue aus der QA), ein Erkundungslauf mit 22 absichtlich schiefen Eingaben und beide Befehle gegen die echte Knowledge Base. Browser-, Responsive- und Cross-Browser-Tests entfallen. Nicht geprüft: Datei ohne Leserechte und gleichzeitiges Einfügen während des Lesens (beide im Container nicht verlässlich herstellbar).
+
+### Acceptance Criteria Status
+
+#### Einlesen (6/6)
+- [x] Jede Markdown-Datei in einem Typ-Ordner wird als Dokument bereitgestellt
+- [x] README, `templates/` und Nicht-Markdown-Dateien werden ohne Meldung übergangen
+- [x] Status erkennbar; `draft` und `active` verwendbar, `deprecated` nicht
+- [x] Leere Listenfelder sind leere Listen
+- [x] Einzelner Wert zählt als Liste mit einem Eintrag
+- [x] Geänderte Dateien sind beim nächsten Lesen sichtbar
+
+#### Fehler (9/9)
+- [x] Fehlendes oder ungültiges Frontmatter
+- [x] Fehlende Pflichtfelder, je Feld eine Meldung
+- [x] Unbekannter Typ oder Status mit erlaubten Werten
+- [x] ID-Schema und Nummer 000
+- [x] Doppelte ID schließt beide Dokumente aus, Meldung nennt die andere Datei
+- [x] Typ passt nicht zum Ordner
+- [x] Werte außerhalb der festen Listen
+- [x] Permission-Felder
+- [x] Leerer Textteil
+
+#### Warnungen (9/9)
+- [x] Verweis auf fehlende oder `deprecated` ID (Frontmatter und Text)
+- [x] „Noch zu klären" in aktivem Dokument
+- [x] Playbook oder Process ohne Kategorie
+- [x] Dateiname passt nicht zu Schema oder ID
+- [x] Kein Slug in `products` oder `topics`
+- [x] Produktwert ohne Produktdatei
+- [x] Unbekanntes Feld
+- [x] Muster für personenbezogene Daten (mit Einschränkungen, siehe BUG-5)
+- [x] Befugnis ohne Wertgrenze erzeugt keine Warnung
+
+#### Verhalten für die App (3/3)
+- [x] Eine fehlerhafte Datei beeinträchtigt die übrigen nicht
+- [x] Fehlender oder leerer Ordner: leere Liste, eindeutige Meldung, kein Absturz
+- [x] Dokumente mit Warnungen bleiben verwendbar
+
+#### Prüfbefehl (4/4)
+- [x] Fehlerfrei: Zahlen je Typ und Status, „keine Fehler", Erfolg
+- [x] Meldungen nach Datei gruppiert, Fehler vor Warnungen, Summen
+- [x] Fehlschlag bei Fehlern, Erfolg bei reinen Warnungen
+- [x] `--strict` wertet Warnungen als Fehlschlag
+
+#### ID-Übersicht (3/4)
+- [x] Vergebene IDs mit Titel, nächste freie ID, alle Schlagwörter
+- [x] Typ ohne Dokumente: „noch keine", Nummer 001
+- [ ] BUG-1: Eine ID zählt nicht als vergeben, wenn das Frontmatter ihrer Datei nicht lesbar ist (bei `deprecated` und bei inhaltlichen Fehlern zählt sie korrekt)
+- [x] Format des Sitzungsstart-Blocks aus dem Guide
+
+#### Wissensstand (4/4)
+- [x] Kurz-Hash und Datum des letzten Commits (auch live gegen das Repository geprüft)
+- [x] Kennzeichen bei uncommitteten Änderungen im Knowledge-Ordner (live geprüft mit einer Probedatei)
+- [x] Fingerabdruck stabil und unabhängig von Zeilenenden und BOM, ändert sich bei jeder Änderung
+- [x] Ohne Git: hinterlegter Wert bzw. „unbekannt", nichts bricht ab
+
+### Edge Cases Status
+- [x] Windows-Zeilenenden und BOM
+- [x] Frontmatter ohne schließende Zeile
+- [x] `---` im Textteil
+- [x] Datum und Zahl im Frontmatter
+- [x] Titel mit Doppelpunkt: Fehler nennt die Zeile
+- [x] Datei außerhalb eines Typ-Ordners oder in unbekanntem Ordner
+- [x] Unterordner in einem Typ-Ordner (mit Ausnahme, siehe BUG-2)
+- [x] Gleiche ID, eine davon `deprecated`: Fehler für beide
+- [x] Sehr langes Dokument: Warnung
+- [x] Ungültige Zeichenkodierung: Fehler für diese Datei
+- [x] `:Zone.Identifier`-Dateien werden ignoriert
+- [x] Verweis im Fließtext ist nur eine Warnung
+- [ ] Datei ohne Leserechte: nicht geprüft
+- [ ] Gleichzeitiges Einfügen während des Lesens: nicht geprüft
+
+### Security Audit Results
+- [x] Keine neue Angriffsfläche von außen: keine Route, kein Formular, keine Datenbank
+- [x] YAML kann keine PHP-Objekte erzeugen und keine Konstanten auslesen (`!php/object`, `!php/const` getestet)
+- [x] Fehlermeldungen enthalten nie Dateiinhalt
+- [x] Die Befehle ändern keine Datei
+- [x] Git wird mit festen Argumenten aufgerufen; Dateinamen oder Inhalte fließen nicht in den Aufruf
+- [x] Keine Geheimnisse im Code; `KNOWLEDGE_COMMIT` ist kein Geheimnis
+- [ ] BUG-6: Verknüpfung auf eine Datei außerhalb des Knowledge-Ordners wird gelesen
+- Hinweis für PROJ-24 und PROJ-10: Titel und Text der Dokumente stammen aus Dateien und müssen bei der Anzeige maskiert werden.
+
+### Bugs Found
+
+#### BUG-1: ID einer Datei mit kaputtem Frontmatter gilt als frei
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. `knowledge/policies/policy-007-x.md` mit ungültigem YAML anlegen (z. B. Titel mit Doppelpunkt ohne Anführungszeichen), daneben eine gültige `POLICY-001`
+  2. `knowledge:overview` ausführen
+  3. Expected: `POLICY-007` gilt als vergeben, nächste freie ID ist `POLICY-008`
+  4. Actual: nächste freie ID ist `POLICY-002`; die kaputte Datei taucht in der Übersicht nicht auf
+- **Folge:** Der Chat vergibt eine ID, die nach der Reparatur der Datei doppelt ist. Dann fallen beide Dokumente aus.
+- **Priority:** Fix before deployment
+
+#### BUG-2: Manche Dateien werden kommentarlos übergangen
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Datei als `Policy-001-a.MD` oder `policy-001-a.markdown` speichern, oder in einen Unterordner namens `templates` legen (z. B. `products/lunchbox/templates/x.md`)
+  2. `knowledge:check` ausführen
+  3. Expected: Datei wird gelesen oder als Problem gemeldet
+  4. Actual: keine Meldung; die Datei fehlt einfach. Der Autor glaubt, die Regel sei im System.
+- **Priority:** Fix before deployment
+
+#### BUG-3: Leerzeile oder Code-Zaun vor dem Frontmatter schließt die Datei aus
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Datei aus dem Chat einfügen, dabei eine Leerzeile am Anfang oder die Zeile mit drei Backticks mitkopieren
+  2. Expected: Leerzeilen am Anfang werden toleriert; bei einem Code-Zaun nennt die Meldung die Ursache
+  3. Actual: Fehler „Das Frontmatter fehlt", Dokument wird nicht verwendet. Die Meldung ist verständlich, der Fehler bei Copy and Paste aber naheliegend.
+- **Priority:** Fix in next sprint
+
+#### BUG-4: Irreführende Meldungen bei einigen YAML-Problemen
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Feld doppelt angeben oder mit Tabulator einrücken → Meldung nennt als häufige Ursache den Doppelpunkt im Titel
+  2. Titel, der wie ein Datum aussieht (`title: 2026-10-01`) → Meldung „Pflichtfeld `title` fehlt oder ist leer"
+  3. Expected: Meldung nennt die tatsächliche Ursache
+- **Priority:** Nice to have
+
+#### BUG-5: Erkennung personenbezogener Daten ist lückenhaft
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Text mit „0171 123 456 78" oder mit Name und Anschrift → keine Warnung
+  2. Text mit einer EAN (13 Ziffern) → Warnung, obwohl keine Personendaten
+- **Hinweis:** Im Spec als unscharfe Mustererkennung beschrieben. Die Warnung ersetzt keine Durchsicht.
+- **Priority:** Nice to have
+
+#### BUG-6: Verknüpfung nach außen wird gelesen
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Im Knowledge-Ordner eine symbolische Verknüpfung `policies/x.md` auf eine Datei außerhalb anlegen
+  2. Expected: wird übergangen oder gemeldet
+  3. Actual: Die Zieldatei wird gelesen (und als fehlerhaft gemeldet, solange sie kein Frontmatter hat)
+- **Hinweis:** Setzt Schreibzugriff auf das Repository voraus; wer den hat, kann die App ohnehin steuern.
+- **Priority:** Nice to have
+
+#### BUG-7: Negative Wertgrenze und Zählwort
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. `max_value_eur: -5` wird akzeptiert
+  2. Summenzeile lautet „1 Warnungen" statt „1 Warnung"
+- **Priority:** Nice to have
+
+### Automatisierte Tests
+- `tests/Feature/PROJ-3-KnowledgeLibraryTest.php`: 79 Tests. Gesamte Suite: 226 bestanden, 0 fehlgeschlagen.
+- Keine eigenen Unit-Tests: Die Logik ist über die Bibliothek vollständig in den Feature-Tests abgedeckt.
+- Regression: Die Tests von PROJ-1 und PROJ-2 laufen weiter grün.
+
+### Summary
+- **Acceptance Criteria:** 38/39 bestanden, 1 teilweise fehlgeschlagen (BUG-1)
+- **Bugs Found:** 7 total (0 critical, 0 high, 2 medium, 5 low)
+- **Security:** Pass mit einem niedrigen Befund (BUG-6)
+- **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; BUG-1 und BUG-2 sollten vor der Nutzung mit dem Browser-Chat behoben werden
+- **Recommendation:** BUG-1 und BUG-2 jetzt beheben, BUG-3 mitnehmen, den Rest zurückstellen
 
 ## Deployment
 _To be added by /deploy_

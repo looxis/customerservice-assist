@@ -496,3 +496,34 @@ describe('id overview', function () {
             ->assertSuccessful();
     });
 });
+
+describe('qa: hostile and sloppy input', function () {
+    test('yaml tags never create php objects or read constants', function (string $title) {
+        $library = knowledgeBase(['policies/policy-001-a.md' => "---\nid: POLICY-001\ntitle: {$title}\ntype: policy\nstatus: draft\n---\n\nText."]);
+
+        $document = $library->all()->first();
+
+        expect($document->title)->toBeNull()
+            ->and($library->usable())->toBeEmpty()
+            ->and(json_encode($document->frontmatter))->not->toContain(PHP_VERSION);
+    })->with(["!php/object 'O:8:\"stdClass\":0:{}'", '!php/const PHP_VERSION']);
+
+    test('duplicate keys, tabs, wrong case and lowercase ids are rejected', function (string $content, string $expected) {
+        $library = knowledgeBase(['policies/policy-001-a.md' => $content]);
+
+        expect(messagesOf($library, 'error'))->toContain($expected)
+            ->and($library->usable())->toBeEmpty();
+    })->with([
+        'duplicate key' => ["---\nid: POLICY-001\ntitle: A\ntitle: B\ntype: policy\nstatus: draft\n---\n\nText.", 'kein gültiges YAML'],
+        'tab indentation' => ["---\nid: POLICY-001\ntitle: T\ntype: policy\nstatus: draft\ntopics:\n\t- refund\n---\n\nText.", 'kein gültiges YAML'],
+        'status in wrong case' => [knowledgeDoc(['status' => 'Active']), 'Unbekannter Status `Active`'],
+        'lowercase id' => [knowledgeDoc(['id' => 'policy-001']), 'passt nicht zum Schema POLICY-001'],
+        'yes instead of true' => ["---\nid: POLICY-001\ntitle: T\ntype: permission\nstatus: draft\naction: refund\nagent_allowed: yes\n---\n\nText.", '`agent_allowed` muss `true` oder `false` sein'],
+    ]);
+
+    test('file content never appears in an error message', function () {
+        $library = knowledgeBase(['policies/policy-001-a.md' => 'GEHEIMER-INHALT ohne Frontmatter']);
+
+        expect(messagesOf($library, 'error'))->not->toContain('GEHEIMER-INHALT');
+    });
+});
