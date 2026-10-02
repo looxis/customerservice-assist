@@ -15,7 +15,7 @@ final readonly class KnowledgeDocument
     /**
      * @param  string  $path  Path relative to the knowledge base folder.
      * @param  string|null  $folderType  Document type implied by the folder the file lives in.
-     * @param  array<string, mixed>  $frontmatter  Raw frontmatter; empty when it could not be read.
+     * @param  array<string, mixed>  $frontmatter  Raw frontmatter; when it could not be read, at most a guessed `id`.
      * @param  string  $fingerprint  SHA-256 of the normalised file content.
      */
     public function __construct(

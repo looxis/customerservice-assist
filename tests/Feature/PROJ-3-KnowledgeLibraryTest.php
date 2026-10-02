@@ -419,14 +419,14 @@ describe('check command', function () {
             ->expectsOutputToContain('policies/policy-001-a.md')
             ->expectsOutputToContain('Fehler: Unbekannter Status `final`')
             ->expectsOutputToContain('Warnung: Wert `Kein Slug`')
-            ->expectsOutputToContain('1 Fehler, 1 Warnungen')
+            ->expectsOutputToContain('1 Fehler, 1 Warnung')
             ->assertFailed();
     });
 
     test('warnings alone succeed, unless the strict option is given', function () {
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['topics' => ['Kein Slug']])]);
 
-        $this->artisan('knowledge:check')->expectsOutputToContain('0 Fehler, 1 Warnungen')->assertSuccessful();
+        $this->artisan('knowledge:check')->expectsOutputToContain('0 Fehler, 1 Warnung')->assertSuccessful();
         $this->artisan('knowledge:check --strict')->assertFailed();
     });
 
@@ -525,5 +525,109 @@ describe('qa: hostile and sloppy input', function () {
         $library = knowledgeBase(['policies/policy-001-a.md' => 'GEHEIMER-INHALT ohne Frontmatter']);
 
         expect(messagesOf($library, 'error'))->not->toContain('GEHEIMER-INHALT');
+    });
+});
+
+describe('qa fixes', function () {
+    test('the id of a file with unreadable frontmatter still counts as assigned', function (string $path, string $content) {
+        $library = knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(),
+            $path => $content,
+        ]);
+
+        expect($library->usable()->pluck('id')->all())->toBe(['POLICY-001'])
+            ->and($library->find('POLICY-007'))->toBeNull()
+            ->and($library->overview())
+            ->toContain('policy (nächste freie ID: POLICY-008):')
+            ->toContain('POLICY-007 – (Datei fehlerhaft, Titel nicht lesbar)');
+    })->with([
+        'id line readable' => ['policies/kaputt.md', "---\nid: POLICY-007\ntitle: A: b: c\ntype: policy\nstatus: draft\n---\n\nText."],
+        'id only in the file name' => ['policies/policy-007-kaputt.md', 'ohne Frontmatter'],
+    ]);
+
+    test('files with other spellings of the markdown extension are read and get a warning', function (string $path) {
+        $library = knowledgeBase([$path => knowledgeDoc()]);
+
+        expect($library->all())->toHaveCount(1)
+            ->and($library->usable())->toHaveCount(1)
+            ->and(messagesOf($library, 'warning'))->toContain('Die Dateiendung sollte `.md` sein');
+    })->with(['policies/policy-001-a.MD', 'policies/policy-001-a.markdown']);
+
+    test('only the top level templates folder is ignored', function () {
+        $library = knowledgeBase([
+            'templates/policy.md' => knowledgeDoc(['id' => 'POLICY-000']),
+            'products/lunchbox/templates/druck.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product']),
+        ]);
+
+        expect($library->usable()->pluck('id')->all())->toBe(['PRODUCT-001']);
+    });
+
+    test('blank lines before the frontmatter are tolerated', function (string $prefix) {
+        $library = knowledgeBase(['policies/policy-001-a.md' => $prefix.knowledgeDoc()]);
+
+        expect($library->issues())->toBeEmpty()
+            ->and($library->usable())->toHaveCount(1);
+    })->with(["\n", "\n\n  \n", '  ']);
+
+    test('a copied code fence is named as the cause', function () {
+        $library = knowledgeBase(['policies/policy-001-a.md' => "```markdown\n".knowledgeDoc()."```\n"]);
+
+        expect(messagesOf($library, 'error'))->toContain('beginnt mit einer Code-Markierung')
+            ->and($library->overview())->toContain('POLICY-001 – (Datei fehlerhaft');
+    });
+
+    test('yaml errors name their actual cause', function (string $content, string $expected) {
+        $library = knowledgeBase(['policies/policy-001-a.md' => $content]);
+
+        expect(messagesOf($library, 'error'))->toContain($expected);
+    })->with([
+        'duplicate key' => ["---\nid: POLICY-001\ntitle: A\ntitle: B\ntype: policy\nstatus: draft\n---\n\nText.", 'Ein Feld kommt doppelt vor.'],
+        'tab indentation' => ["---\nid: POLICY-001\ntitle: T\ntype: policy\nstatus: draft\ntopics:\n\t- refund\n---\n\nText.", 'Tabulatoren'],
+        'title looks like a date' => ["---\nid: POLICY-001\ntitle: 2026-10-01\ntype: policy\nstatus: draft\n---\n\nText.", 'Feld `title` muss ein einfacher Text sein'],
+        'title is a list' => [knowledgeDoc(['title' => ['a', 'b']]), 'Feld `title` muss ein einfacher Text sein'],
+    ]);
+
+    test('personal data hints name what was found', function (string $body, string $expected) {
+        $library = knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(body: $body)]);
+
+        expect(messagesOf($library, 'warning'))->toContain('Mögliche personenbezogene Daten: ')->toContain($expected);
+    })->with([
+        ['Ruf an: 0171 123 456 78.', 'Telefonnummer'],
+        ['Erreichbar unter +49 30 1234567.', 'Telefonnummer'],
+        ['Konto DE89 3704 0044 0532 0130 00.', 'IBAN'],
+        ['Schreib an service@example.com.', 'E-Mail-Adresse'],
+        ['Bestellung 4711000123.', 'lange Ziffernfolge'],
+    ]);
+
+    test('ordinary numbers, dates and amounts raise no personal data hint', function () {
+        $library = knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(body: 'Bis 35 Euro, 50 bis 80 Prozent, seit 02.10.2026, innerhalb von 24 Stunden, 0 bis 2 Tage, Stand 2026-10-02.')]);
+
+        expect($library->issues())->toBeEmpty();
+    });
+
+    test('a symbolic link is not read and reported as a warning', function () {
+        $library = knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
+        $outside = sys_get_temp_dir().'/knowledge-test-outside-'.bin2hex(random_bytes(4)).'.md';
+
+        File::put($outside, knowledgeDoc(['id' => 'POLICY-002']));
+        symlink($outside, config('knowledge.path').'/policies/policy-002-link.md');
+        $library->refresh();
+
+        expect($library->all()->pluck('id')->all())->toBe(['POLICY-001'])
+            ->and(messagesOf($library, 'warning'))->toContain('policies/policy-002-link.md: Symbolische Verknüpfung');
+
+        File::delete($outside);
+    });
+
+    test('a negative value limit is an error', function () {
+        $library = knowledgeBase(['permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => 'refund', 'agent_allowed' => true, 'max_value_eur' => -5])]);
+
+        expect(messagesOf($library, 'error'))->toContain('`max_value_eur` darf nicht negativ sein');
+    });
+
+    test('the summary uses singular and plural correctly', function () {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['topics' => ['Kein Slug', 'Auch Keiner']])]);
+
+        $this->artisan('knowledge:check')->expectsOutputToContain('0 Fehler, 2 Warnungen');
     });
 });

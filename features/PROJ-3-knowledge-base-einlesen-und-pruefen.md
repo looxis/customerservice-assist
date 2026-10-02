@@ -1,6 +1,6 @@
 # PROJ-3: Knowledge Base einlesen und prüfen
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -322,7 +322,7 @@ Dateien finden
 #### ID-Übersicht (3/4)
 - [x] Vergebene IDs mit Titel, nächste freie ID, alle Schlagwörter
 - [x] Typ ohne Dokumente: „noch keine", Nummer 001
-- [ ] BUG-1: Eine ID zählt nicht als vergeben, wenn das Frontmatter ihrer Datei nicht lesbar ist (bei `deprecated` und bei inhaltlichen Fehlern zählt sie korrekt)
+- [x] Eine ID zählt auch bei `deprecated` oder fehlerhafter Datei als vergeben (BUG-1, behoben)
 - [x] Format des Sitzungsstart-Blocks aus dem Guide
 
 #### Wissensstand (4/4)
@@ -354,12 +354,13 @@ Dateien finden
 - [x] Die Befehle ändern keine Datei
 - [x] Git wird mit festen Argumenten aufgerufen; Dateinamen oder Inhalte fließen nicht in den Aufruf
 - [x] Keine Geheimnisse im Code; `KNOWLEDGE_COMMIT` ist kein Geheimnis
-- [ ] BUG-6: Verknüpfung auf eine Datei außerhalb des Knowledge-Ordners wird gelesen
+- [x] Symbolische Verknüpfungen werden nicht gelesen (BUG-6, behoben)
 - Hinweis für PROJ-24 und PROJ-10: Titel und Text der Dokumente stammen aus Dateien und müssen bei der Anzeige maskiert werden.
 
 ### Bugs Found
 
-#### BUG-1: ID einer Datei mit kaputtem Frontmatter gilt als frei
+#### BUG-1: ID einer Datei mit kaputtem Frontmatter gilt als frei – BEHOBEN (2026-10-02)
+- **Fix:** Die ID wird bei nicht lesbarem Frontmatter aus der `id:`-Zeile oder dem Dateinamen ermittelt und zählt als vergeben; die Übersicht kennzeichnet die Datei als fehlerhaft.
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. `knowledge/policies/policy-007-x.md` mit ungültigem YAML anlegen (z. B. Titel mit Doppelpunkt ohne Anführungszeichen), daneben eine gültige `POLICY-001`
@@ -369,7 +370,8 @@ Dateien finden
 - **Folge:** Der Chat vergibt eine ID, die nach der Reparatur der Datei doppelt ist. Dann fallen beide Dokumente aus.
 - **Priority:** Fix before deployment
 
-#### BUG-2: Manche Dateien werden kommentarlos übergangen
+#### BUG-2: Manche Dateien werden kommentarlos übergangen – BEHOBEN (2026-10-02)
+- **Fix:** `.MD` und `.markdown` werden gelesen und erhalten eine Warnung zur Dateiendung; nur der Ordner `templates/` auf oberster Ebene wird ausgeschlossen.
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Datei als `Policy-001-a.MD` oder `policy-001-a.markdown` speichern, oder in einen Unterordner namens `templates` legen (z. B. `products/lunchbox/templates/x.md`)
@@ -378,7 +380,8 @@ Dateien finden
   4. Actual: keine Meldung; die Datei fehlt einfach. Der Autor glaubt, die Regel sei im System.
 - **Priority:** Fix before deployment
 
-#### BUG-3: Leerzeile oder Code-Zaun vor dem Frontmatter schließt die Datei aus
+#### BUG-3: Leerzeile oder Code-Zaun vor dem Frontmatter schließt die Datei aus – BEHOBEN (2026-10-02)
+- **Fix:** Leerzeilen und Leerzeichen vor dem Frontmatter werden toleriert; ein mitkopierter Code-Zaun wird in der Meldung als Ursache genannt.
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Datei aus dem Chat einfügen, dabei eine Leerzeile am Anfang oder die Zeile mit drei Backticks mitkopieren
@@ -386,7 +389,8 @@ Dateien finden
   3. Actual: Fehler „Das Frontmatter fehlt", Dokument wird nicht verwendet. Die Meldung ist verständlich, der Fehler bei Copy and Paste aber naheliegend.
 - **Priority:** Fix in next sprint
 
-#### BUG-4: Irreführende Meldungen bei einigen YAML-Problemen
+#### BUG-4: Irreführende Meldungen bei einigen YAML-Problemen – BEHOBEN (2026-10-02)
+- **Fix:** Eigene Meldungen für doppelte Felder und Tabulatoren; ein Pflichtfeld mit Datum, Liste oder Ja/Nein-Wert meldet „muss ein einfacher Text sein".
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Feld doppelt angeben oder mit Tabulator einrücken → Meldung nennt als häufige Ursache den Doppelpunkt im Titel
@@ -394,7 +398,8 @@ Dateien finden
   3. Expected: Meldung nennt die tatsächliche Ursache
 - **Priority:** Nice to have
 
-#### BUG-5: Erkennung personenbezogener Daten ist lückenhaft
+#### BUG-5: Erkennung personenbezogener Daten ist lückenhaft – BEHOBEN (2026-10-02)
+- **Fix:** Zusätzliche Muster für Telefonnummern mit Trennzeichen und IBAN; die Warnung nennt, was gefunden wurde. Namen und Anschriften bleiben unerkannt (steht in der Meldung), lange Artikelnummern lösen weiter einen Hinweis aus.
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Text mit „0171 123 456 78" oder mit Name und Anschrift → keine Warnung
@@ -402,7 +407,8 @@ Dateien finden
 - **Hinweis:** Im Spec als unscharfe Mustererkennung beschrieben. Die Warnung ersetzt keine Durchsicht.
 - **Priority:** Nice to have
 
-#### BUG-6: Verknüpfung nach außen wird gelesen
+#### BUG-6: Verknüpfung nach außen wird gelesen – BEHOBEN (2026-10-02)
+- **Fix:** Symbolische Verknüpfungen werden nicht gelesen und als Warnung gemeldet.
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Im Knowledge-Ordner eine symbolische Verknüpfung `policies/x.md` auf eine Datei außerhalb anlegen
@@ -411,7 +417,8 @@ Dateien finden
 - **Hinweis:** Setzt Schreibzugriff auf das Repository voraus; wer den hat, kann die App ohnehin steuern.
 - **Priority:** Nice to have
 
-#### BUG-7: Negative Wertgrenze und Zählwort
+#### BUG-7: Negative Wertgrenze und Zählwort – BEHOBEN (2026-10-02)
+- **Fix:** Negative Wertgrenze ist ein Fehler; die Summenzeile unterscheidet „Warnung" und „Warnungen".
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. `max_value_eur: -5` wird akzeptiert
@@ -419,16 +426,16 @@ Dateien finden
 - **Priority:** Nice to have
 
 ### Automatisierte Tests
-- `tests/Feature/PROJ-3-KnowledgeLibraryTest.php`: 79 Tests. Gesamte Suite: 226 bestanden, 0 fehlgeschlagen.
+- `tests/Feature/PROJ-3-KnowledgeLibraryTest.php`: 101 Tests (71 aus der Umsetzung, 8 aus der QA, 22 zu den Bugfixes). Gesamte Suite: 248 bestanden, 0 fehlgeschlagen.
 - Keine eigenen Unit-Tests: Die Logik ist über die Bibliothek vollständig in den Feature-Tests abgedeckt.
 - Regression: Die Tests von PROJ-1 und PROJ-2 laufen weiter grün.
 
 ### Summary
-- **Acceptance Criteria:** 38/39 bestanden, 1 teilweise fehlgeschlagen (BUG-1)
-- **Bugs Found:** 7 total (0 critical, 0 high, 2 medium, 5 low)
-- **Security:** Pass mit einem niedrigen Befund (BUG-6)
-- **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; BUG-1 und BUG-2 sollten vor der Nutzung mit dem Browser-Chat behoben werden
-- **Recommendation:** BUG-1 und BUG-2 jetzt beheben, BUG-3 mitnehmen, den Rest zurückstellen
+- **Acceptance Criteria:** 39/39 bestanden (nach Behebung von BUG-1)
+- **Bugs Found:** 7 total (0 critical, 0 high, 2 medium, 5 low); alle am 2026-10-02 behoben
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigegeben. Offen bleiben zwei ungeprüfte Randfälle (Datei ohne Leserechte, gleichzeitiges Einfügen während des Lesens).
 
 ## Deployment
 _To be added by /deploy_

@@ -69,7 +69,7 @@ class KnowledgeOverview
                 continue;
             }
 
-            $title = $document->title ?? '(ohne Titel)';
+            $title = $document->parsed ? ($document->title ?? '(ohne Titel)') : '(Datei fehlerhaft, Titel nicht lesbar)';
 
             $assigned[$document->id] = $document->status === 'deprecated' ? $title.' (deprecated)' : $title;
         }

@@ -36,14 +36,19 @@ class KnowledgeReader
         $files = Finder::create()
             ->files()
             ->in($this->config['path'])
-            ->name('*.md')
-            ->exclude($this->config['ignored_folders'])
+            ->name('/\.(md|markdown)$/i')
             ->sortByName();
 
         foreach ($files as $file) {
             $path = str_replace('\\', '/', $file->getRelativePathname());
 
-            if (in_array($path, $this->config['ignored_files'], true)) {
+            if (in_array($path, $this->config['ignored_files'], true) || $this->inIgnoredFolder($path)) {
+                continue;
+            }
+
+            if ($file->isLink()) {
+                $issues[] = KnowledgeIssue::warning($path, 'Symbolische Verknüpfung: Die Datei wird nicht gelesen. Knowledge-Dateien müssen direkt im Knowledge-Ordner liegen.');
+
                 continue;
             }
 
@@ -77,11 +82,18 @@ class KnowledgeReader
 
         $content = $this->normalise($raw);
 
-        if (! str_starts_with($content, "---\n")) {
+        // Blank lines before the frontmatter are a common copy-and-paste slip.
+        $text = ltrim($content);
+
+        if (str_starts_with($text, '```')) {
+            return $this->unreadable($path, $folderType, $content, 'Die Datei beginnt mit einer Code-Markierung (```), die beim Kopieren mitgekommen ist. Bitte die erste und die letzte Zeile mit den Backticks entfernen.');
+        }
+
+        if (! str_starts_with($text, "---\n")) {
             return $this->unreadable($path, $folderType, $content, 'Das Frontmatter fehlt: Die Datei muss mit einer Zeile "---" beginnen.');
         }
 
-        if (! preg_match('/\A---\n(.*?)^---[ \t]*$\n?(.*)\z/sm', $content, $matches)) {
+        if (! preg_match('/\A---\n(.*?)^---[ \t]*$\n?(.*)\z/sm', $text, $matches)) {
             return $this->unreadable($path, $folderType, $content, 'Das Frontmatter ist nicht abgeschlossen: Die schließende Zeile "---" fehlt.');
         }
 
@@ -90,7 +102,13 @@ class KnowledgeReader
         } catch (ParseException $exception) {
             $line = $exception->getParsedLine() > 0 ? ' (Zeile '.($exception->getParsedLine() + 1).')' : '';
 
-            return $this->unreadable($path, $folderType, $content, "Das Frontmatter ist kein gültiges YAML{$line}. Häufige Ursache: ein Doppelpunkt im Titel ohne Anführungszeichen.");
+            $reason = match (true) {
+                str_contains($exception->getMessage(), 'Duplicate key') => 'Ein Feld kommt doppelt vor.',
+                str_contains($exception->getMessage(), 'tabs') => 'Zum Einrücken werden Tabulatoren verwendet; YAML erlaubt nur Leerzeichen.',
+                default => 'Häufige Ursache: ein Doppelpunkt im Titel ohne Anführungszeichen.',
+            };
+
+            return $this->unreadable($path, $folderType, $content, "Das Frontmatter ist kein gültiges YAML{$line}. {$reason}");
         }
 
         if (! is_array($frontmatter) || array_is_list($frontmatter)) {
@@ -105,10 +123,42 @@ class KnowledgeReader
      */
     private function unreadable(string $path, ?string $folderType, string $content, string $message): array
     {
+        $id = $this->guessId($path, $content);
+
         return [
-            new KnowledgeDocument($path, $folderType, [], '', hash('sha256', $content), parsed: false),
+            new KnowledgeDocument($path, $folderType, $id === null ? [] : ['id' => $id], '', hash('sha256', $content), parsed: false),
             KnowledgeIssue::error($path, $message),
         ];
+    }
+
+    /**
+     * The ID of a file whose frontmatter cannot be read, taken from its "id:"
+     * line or its file name, so the ID still counts as assigned.
+     */
+    private function guessId(string $path, string $content): ?string
+    {
+        $prefixes = implode('|', array_map(
+            fn (array $definition): string => preg_quote($definition['prefix'], '/'),
+            $this->config['types'],
+        ));
+
+        if (preg_match('/^id:\s*["\']?((?:'.$prefixes.')-\d{3})(?!\d)/mi', $content, $matches)
+            || preg_match('/^((?:'.$prefixes.')-\d{3})(?!\d)/i', pathinfo($path, PATHINFO_FILENAME), $matches)) {
+            return strtoupper($matches[1]);
+        }
+
+        return null;
+    }
+
+    private function inIgnoredFolder(string $path): bool
+    {
+        foreach ($this->config['ignored_folders'] as $folder) {
+            if (str_starts_with($path, $folder.'/')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

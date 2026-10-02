@@ -78,7 +78,11 @@ class KnowledgeValidator
         $issues = [];
 
         foreach (['id', 'title', 'type', 'status'] as $field) {
-            if ($document->string($field) === null) {
+            $value = $document->frontmatter[$field] ?? null;
+
+            if ($value !== null && ! is_string($value) && ! is_int($value) && ! is_float($value)) {
+                $issues[] = KnowledgeIssue::error($document->path, "Feld `{$field}` muss ein einfacher Text sein. Sieht der Wert wie ein Datum, ein Ja/Nein-Wert oder eine Liste aus, bitte in Anführungszeichen setzen.");
+            } elseif ($document->string($field) === null) {
                 $issues[] = KnowledgeIssue::error($document->path, "Pflichtfeld `{$field}` fehlt oder ist leer.");
             }
         }
@@ -183,6 +187,8 @@ class KnowledgeValidator
 
         if ($limit !== null && ! is_int($limit) && ! is_float($limit)) {
             $issues[] = KnowledgeIssue::error($document->path, '`max_value_eur` muss eine Zahl ohne Währungszeichen sein oder leer bleiben.');
+        } elseif ($limit !== null && $limit < 0) {
+            $issues[] = KnowledgeIssue::error($document->path, '`max_value_eur` darf nicht negativ sein.');
         }
 
         return $issues;
@@ -227,6 +233,10 @@ class KnowledgeValidator
     /** @return list<KnowledgeIssue> */
     private function filename(KnowledgeDocument $document): array
     {
+        if (pathinfo($document->path, PATHINFO_EXTENSION) !== 'md') {
+            return [KnowledgeIssue::warning($document->path, 'Die Dateiendung sollte `.md` sein (klein geschrieben).')];
+        }
+
         if (! $this->hasKnownType($document)) {
             return [];
         }
@@ -286,11 +296,18 @@ class KnowledgeValidator
     {
         $text = $document->title.' '.$document->body;
 
-        if (preg_match('/[\w.+-]+@[\w-]+\.[\w.-]+/u', $text) || preg_match('/(?<![\w-])\d{7,}(?![\w-])/', $text)) {
-            return [KnowledgeIssue::warning($document->path, 'Mögliche personenbezogene Daten (E-Mail-Adresse oder lange Ziffernfolge). Bitte prüfen und entfernen.')];
+        $found = array_keys(array_filter([
+            'E-Mail-Adresse' => preg_match('/[\w.+-]+@[\w-]+\.[\w.-]+/u', $text),
+            'Telefonnummer' => preg_match('/(?<![\w.,-])(?:\+\d|0\d)(?:[ \/-]?\d){7,}(?![\w-])/', $text),
+            'IBAN' => preg_match('/\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){3,}/', $text),
+            'lange Ziffernfolge (z. B. Bestell- oder Kundennummer)' => preg_match('/(?<![\w-])\d{7,}(?![\w-])/', $text),
+        ]));
+
+        if ($found === []) {
+            return [];
         }
 
-        return [];
+        return [KnowledgeIssue::warning($document->path, 'Mögliche personenbezogene Daten: '.implode(', ', $found).'. Bitte prüfen. Namen und Anschriften erkennt die Prüfung nicht.')];
     }
 
     /**

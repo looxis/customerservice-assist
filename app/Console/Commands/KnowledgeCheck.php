@@ -56,7 +56,7 @@ class KnowledgeCheck extends Command
             return self::SUCCESS;
         }
 
-        $this->line("{$errors->count()} Fehler, {$warnings->count()} Warnungen");
+        $this->line("{$errors->count()} Fehler, {$warnings->count()} ".($warnings->count() === 1 ? 'Warnung' : 'Warnungen'));
 
         if ($errors->isNotEmpty()) {
             $this->line('Dokumente mit Fehlern werden von der App nicht verwendet.');
