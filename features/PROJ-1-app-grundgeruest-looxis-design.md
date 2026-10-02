@@ -1,6 +1,6 @@
 # PROJ-1: App-Grundgerüst mit LOOXIS-Design
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -370,7 +370,7 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - **Acceptance Criteria:** 19/26 automatisiert oder per Abruf bestanden, 7 umgesetzt, aber nicht im Browser geprüft, 0 fehlgeschlagen
 - **Bugs Found:** 5 total (0 critical, 0 high, 2 medium, 3 low); beide mittleren am 2026-10-02 behoben, BUG-3 und BUG-4 für PROJ-6 vorgemerkt, BUG-5 bewusst offen
 - **Security:** Pass nach Behebung von BUG-1
-- **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; die Browser-Prüfung der sieben offenen Kriterien steht aus
+- **Production Ready:** YES – keine Critical/High-Bugs. Freigabe durch den Nutzer am 2026-10-02: Sidebar verschwindet unter 768 px (bestätigt); die übrigen Browser-Punkte (Scrollen mit langem Inhalt, Schriften, Fokusring, Overlay bei Klick/Escape, Tab-Bedienung) wurden bewusst zurückgestellt und werden mit späteren Features nachgeprüft
 - **Recommendation:** Die sieben Browser-Punkte kurz von Hand prüfen, BUG-1 vor dem ersten Deployment beheben, über BUG-2 entscheiden
 
 ## Deployment
