@@ -40,3 +40,6 @@ yarn-error.log*
 
 # claude code personal settings
 .claude/settings.local.json
+
+# Windows download markers (WSL)
+*:Zone.Identifier
