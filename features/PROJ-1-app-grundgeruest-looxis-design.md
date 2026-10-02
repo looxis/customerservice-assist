@@ -1,6 +1,6 @@
 # PROJ-1: App-Grundgerüst mit LOOXIS-Design
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -242,7 +242,132 @@ Keine neuen PHP-Pakete. Alpine.js und Tailwind v4 sind bereits installiert.
 **Offen für den Nutzer:** `APP_VERSION` in `.env.example` dokumentieren und `APP_LOCALE=de` in `.env`/`.env.example` setzen (beide Dateien sind für den Assistenten gesperrt).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-02
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Prüfmethode und Grenzen:** Geprüft per HTTP-Abruf, gerenderten Blade-Bausteinen, Code-Review und 72 neuen Pest-Tests (`tests/Feature/PROJ-1-AppShellTest.php`). Der Tester hatte **keinen Browser**. Alles, was nur im Browser sichtbar ist (Darstellung, Schriften, Hover, Fokus, Scrollen, Fensterbreiten, Overlay-Verhalten), ist unten als „nicht im Browser geprüft" markiert. Der Nutzer hat bestätigt, dass Startseite, Komponenten-Übersicht und 404-Seite in seinem Browser richtig aussehen. Cross-Browser (Chrome, Edge, Firefox) und die Breiten 375/768/1440 px wurden nicht geprüft.
+
+Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt laut Code, nicht im Browser geprüft
+
+### Acceptance Criteria Status
+
+#### Layout-Shell
+- [x] `/` zeigt „Ticket analysieren" im Layout statt der Willkommensseite
+- [~] Sidebar 250 px, weiß, Trennlinie, App-Name in Display-Schrift (Klassen vorhanden; Optik vom Nutzer bestätigt)
+- [x] Genau ein Navigationspunkt „Ticket analysieren" mit Icon, aktiv hervorgehoben
+- [x] Versionsangabe im Sidebar-Fuß (Konfigurationswert, Standard „dev")
+- [x] Topbar mit Seitentitel links und freiem Bereich rechts (Slot `user`)
+- [~] Nur der Inhaltsbereich scrollt, Sidebar und Topbar bleiben sichtbar
+- [~] Unter 768 px Sidebar ausgeblendet, kein horizontales Scrollen
+- [x] Browser-Titel „<Seitentitel> – Customer Service Assist", Seite als deutsch ausgezeichnet
+
+#### Design-Tokens und Schriften
+- [x] Token-Klassen liefern die Werte des Design Systems (Theme-Werte und erzeugtes CSS geprüft; Standardpalette abgeschaltet)
+- [~] Überschriften, Fließtext und technische Werte in den drei Schriften
+- [x] Kein Abruf von fremden Servern (Seiten und Stylesheet geprüft; Schriften liegen als lokale Dateien im Build)
+- [~] Textmarkierung im hellen Brand-Ton, einzelner 2-px-Fokusring an Feldern
+
+#### Basis-Komponenten
+- [x] Komponenten-Übersicht zeigt alle neun Bausteine mit Varianten
+- [x] Button-Varianten `primary`, `secondary`, `danger` mit den Klassen des Design Systems (Hover nicht im Browser geprüft)
+- [x] Deaktivierter Button trägt `disabled` und die abgeschwächte Darstellung
+- [x] Label über dem Feld, Hinweis darunter
+- [x] Feld mit Fehler: roter Ring, Meldung darunter, Hinweis ausgeblendet; Fehler kommen auch automatisch aus der Validierung
+- [x] Pflichtfeld mit rotem Stern
+- [x] Badge und Alert im getönten Statusmuster (neutral, Info, Erfolg, Warnung, Fehler)
+- [x] Alle 27 Icons in 18 px, Farbe folgt dem Text, Größe und Strichstärke anpassbar
+- [~] Lade-Overlay bleibt bei Klick und Escape offen (kein Schließ-Mechanismus im Code; Screenreader-Auszeichnung vorhanden)
+
+#### Seiten
+- [x] Startseite zeigt Karte mit Platzhalterhinweis
+- [x] Komponenten-Übersicht lokal erreichbar
+- [x] Komponenten-Übersicht existiert in anderen Umgebungen nicht (Routenliste unter `APP_ENV=production` geprüft: nur `/`)
+- [x] Unbekannte Adresse: deutsche „Seite nicht gefunden" mit Link zur Startseite
+- [x] Serverfehler: deutsche Fehlerseite ohne technische Details
+
+### Edge Cases Status
+- [x] Unbekannter Icon-Name: Seite bricht nicht ab; lokal Marker, sonst keine Ausgabe
+- [~] Sehr langer Seitentitel wird gekürzt (Kürzungsklassen vorhanden)
+- [~] Schriftdatei lädt nicht: Ersatzschriften sind definiert
+- [~] Langer Text in Badge/Button einzeilig, Alert bricht um
+- [~] Langer Inhalt ohne Leerzeichen bricht in Karte und Alert um
+- [~] Grenze 768 px: Sidebar ab genau 768 px sichtbar
+- [~] Tastaturbedienung: Fokus-Stile für Navigationspunkt, Buttons und Felder vorhanden
+- [x] Ohne JavaScript: Layout und Bausteine sind serverseitig gerendert; das Overlay bleibt verborgen
+
+### Security Audit Results
+- [x] Authentifizierung/Autorisierung: nicht anwendbar, der MVP hat bewusst keinen Login (Netz/VPN plus gemeinsames Passwort, siehe PRD)
+- [x] CSRF: PROJ-1 enthält keine Formulare, die Daten absenden
+- [x] XSS: Label, Hinweis, Fehlermeldung, Feldwert, Session-Meldungen und Icon-Name werden maskiert (Tests vorhanden)
+- [x] Fehlerseite verrät keine technischen Details, wenn der Debug-Modus aus ist
+- [x] Komponenten-Übersicht ist außerhalb der lokalen Umgebung nicht registriert
+- [x] Keine Geheimnisse im ausgelieferten HTML
+- [ ] BUG-1: Sicherheits-Header fehlen
+- Rate Limiting: nicht geprüft; es gibt noch keine Aktion, die es bräuchte
+
+### Bugs Found
+
+#### BUG-1: Sicherheits-Header fehlen, PHP-Version wird preisgegeben
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. `curl -I http://localhost:8081/`
+  2. Expected: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Strict-Transport-Security` (Projektregel `.claude/rules/security.md`)
+  3. Actual: Keiner dieser Header ist gesetzt; stattdessen `X-Powered-By: PHP/8.5.11`
+- **Hinweis:** Betrifft die ganze App, nicht nur PROJ-1. Die Middleware-Änderung braucht laut Projektregel eine ausdrückliche Freigabe.
+- **Priority:** Fix before deployment
+
+#### BUG-2: Status-Texte auf getöntem Grund sind kontrastarm
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. `/styleguide` öffnen, Abschnitt „Alerts" und „Badges"
+  2. Expected: Text gut lesbar (üblich: mindestens 4,5:1)
+  3. Actual (rechnerisch geschätzt, nicht gemessen): Warnung ca. 1,9:1, Erfolg ca. 2,9:1, Fehler ca. 3,9:1; Info ist unkritisch. Ebenso `slate-400` für Versionsangabe und Abschnitts-Labels (ca. 2,9:1).
+- **Hinweis:** Unverändert aus dem Design System übernommen. Warn-Alerts tragen später fachlich wichtige Meldungen (z. B. „Bestellung nicht erkannt").
+- **Priority:** Entscheidung des Nutzers; empfohlen vor PROJ-6
+
+#### BUG-3: Lade-Overlay sperrt die Tastatur nicht
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Overlay auslösen
+  2. Tab drücken
+  3. Expected: Bedienelemente hinter dem Overlay sind nicht erreichbar
+  4. Actual (aus dem Code abgeleitet, nicht im Browser geprüft): Der Fokus bleibt auf der Seite dahinter; ein Button könnte per Enter erneut ausgelöst werden
+- **Priority:** Fix in next sprint (relevant ab PROJ-9, Doppel-Absenden einer Analyse)
+
+#### BUG-4: Weitere Fehlerseiten sind englisch
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Einen Zustand 419 (abgelaufene Seite), 403 oder 503 (Wartungsmodus) auslösen
+  2. Expected: deutsche Seite im LOOXIS-Design
+  3. Actual: Laravels englische Standardseite. Das Spec verlangt nur 404 und 500.
+- **Priority:** Fix in next sprint (419 wird mit dem ersten Formular in PROJ-6 relevant)
+
+#### BUG-5: Optische Größe der Display-Schrift fehlt
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Überschrift mit dem Content Studio vergleichen
+  2. Expected: Bricolage Grotesque mit optischer Größe (Achse `opsz` 12–96, laut Design System)
+  3. Actual: Es wird nur die Gewichts-Achse geladen; die Buchstabenformen können bei 18 px leicht abweichen
+- **Priority:** Nice to have
+
+### Beobachtungen (keine Bugs)
+- Die App-Sprache steht auf `de`, es gibt aber noch keine deutschen Sprachdateien. Validierungsmeldungen erscheinen englisch, sobald das erste Formular kommt (PROJ-6).
+- Eine verwaiste Datei `public/hot` führt zu einer komplett ungestylten Seite (während der Abnahme aufgetreten). Ursache ist der Entwicklungsablauf, nicht der Code.
+- Unter 768 px gibt es keine Navigation (bewusste Entscheidung im Spec).
+
+### Automatisierte Tests
+- `tests/Feature/PROJ-1-AppShellTest.php`: 72 Tests. Gesamte Suite: 74 bestanden, 0 fehlgeschlagen.
+- Keine Unit-Tests: PROJ-1 enthält keine Service- oder Model-Logik.
+- Regression: Es gibt keine früheren Features; der vorhandene Beispieltest läuft weiter grün.
+
+### Summary
+- **Acceptance Criteria:** 19/26 automatisiert oder per Abruf bestanden, 7 umgesetzt, aber nicht im Browser geprüft, 0 fehlgeschlagen
+- **Bugs Found:** 5 total (0 critical, 0 high, 2 medium, 3 low)
+- **Security:** Issues found (BUG-1)
+- **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; die Browser-Prüfung der sieben offenen Kriterien steht aus
+- **Recommendation:** Die sieben Browser-Punkte kurz von Hand prüfen, BUG-1 vor dem ersten Deployment beheben, über BUG-2 entscheiden
 
 ## Deployment
 _To be added by /deploy_
