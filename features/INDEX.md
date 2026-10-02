@@ -13,13 +13,13 @@
 
 ## Features
 
-The ID order is the recommended build order. No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
+The ID order is the recommended build order (exception: PROJ-24 was added later and should be built right after PROJ-3). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
 
 | ID | Feature | Description | Priority | Dependencies | Status | Spec | Created |
 |----|---------|-------------|----------|--------------|--------|------|---------|
 | PROJ-1 | App-Grundgerüst mit LOOXIS-Design | Layout-Shell, Design-Tokens und Basis-Komponenten nach `docs/design-system.md` | P0 | None | Approved | [Spec](PROJ-1-app-grundgeruest-looxis-design.md) | 2026-10-02 |
 | PROJ-2 | Knowledge-Authoring-Kit | Ordnerstruktur `knowledge/`, Einstiegsseite, Vorlagen je Dokumenttyp, Anleitung (`docs/KNOWLEDGE_AUTHORING_GUIDE.md`), KI-Skill im Repo als Ausweichweg | P0 | None | Approved | [Spec](PROJ-2-knowledge-authoring-kit.md) | 2026-10-02 |
-| PROJ-3 | Knowledge Base einlesen und prüfen | Markdown-Dateien lesen, Frontmatter validieren, Status `draft`/`active`/`deprecated` erkennen, Git-Stand erfassen, Prüfbefehl mit Fehlerliste, automatische Übersicht vergebener IDs und Schlagwörter | P0 | PROJ-2 | Roadmap | – | 2026-10-02 |
+| PROJ-3 | Knowledge Base einlesen und prüfen | Markdown-Dateien lesen, Frontmatter validieren, Status `draft`/`active`/`deprecated` erkennen, Git-Stand erfassen, Prüfbefehl mit Fehlern und Warnungen, automatische Übersicht vergebener IDs und Schlagwörter, Fingerabdruck je Dokument | P0 | PROJ-2 | Planned | [Spec](PROJ-3-knowledge-base-einlesen-und-pruefen.md) | 2026-10-02 |
 | PROJ-4 | Knowledge-Auswahl | Relevante Dokumente deterministisch nach Typ, Produkt, Kategorie, Thema sowie Kundenart und Vertriebskanal (`customer_types`, `sales_channels`) auswählen; `draft`-Dokumente werden mitverwendet und als Entwurfs-Wissen gekennzeichnet | P0 | PROJ-3 | Roadmap | – | 2026-10-02 |
 | PROJ-5 | Nutzerauswahl | Dropdown mit fester Namensliste, Auswahl einmal pro Browser, Nutzer dauerhaft sichtbar | P0 | PROJ-1 | Roadmap | – | 2026-10-02 |
 | PROJ-6 | Zammad-Ticket laden | Ticketnummer eingeben, Ticket und Verlauf laden und anzeigen, Fehlerzustände behandeln | P0 | PROJ-1 | Roadmap | – | 2026-10-02 |
@@ -40,7 +40,8 @@ The ID order is the recommended build order. No authentication in the MVP (see `
 | PROJ-21 | Bildanalyse | Reklamationsfotos vom LLM mitbewerten lassen | P2 | PROJ-9 | Roadmap | – | 2026-10-02 |
 | PROJ-22 | Semantisches Retrieval | Knowledge-Auswahl um Embeddings ergänzen | P2 | PROJ-4 | Roadmap | – | 2026-10-02 |
 | PROJ-23 | Entwurfs-Wissen bestätigen | Ein Admin stellt ein `draft`-Dokument nach guten Testergebnissen per Klick auf `active` | P1 | PROJ-3, PROJ-10 | Roadmap | – | 2026-10-02 |
+| PROJ-24 | Knowledge-Übersicht | Seite in der App: alle Dokumente mit ID, Typ, Status und Geltungsbereich, Fehler und Warnungen je Datei, Kopier-Button für die ID-Übersicht | P0 | PROJ-1, PROJ-3 | Roadmap | – | 2026-10-02 |
 
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-24
+## Next Available ID: PROJ-25
