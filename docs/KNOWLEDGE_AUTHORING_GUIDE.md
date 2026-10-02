@@ -2,7 +2,7 @@
 
 > Diese Datei wird zusammen mit `KNOWLEDGE_BASE_DESIGN.md` in einen KI-Chat gegeben (z. B. ChatGPT im Browser), der beim Schreiben der Knowledge Base hilft. Sie ergänzt das Design-Dokument um die Punkte, die dort offen sind und ohne die die Dateien in der App nicht zuverlässig gefunden werden.
 >
-> Bei Widersprüchen gilt `KNOWLEDGE_BASE_DESIGN.md`.
+> Bei Widersprüchen gilt `KNOWLEDGE_BASE_DESIGN.md`, mit einer bewussten Ausnahme: Das Design-Dokument sagt, nur `status: active` werde produktiv verwendet. Für diese App gilt stattdessen, dass auch `draft`-Dokumente verwendet und im Ergebnis als Entwurfs-Wissen gekennzeichnet werden, damit neues Wissen an Fällen getestet werden kann. `deprecated` wird nie verwendet. An der Arbeitsweise ändert das nichts: Neue Dateien entstehen als `draft`.
 
 ## Deine Aufgabe
 
@@ -92,6 +92,14 @@ Die App wählt Dokumente über **exakte Übereinstimmung** dieser Werte aus. `3d
 | `product-question` | Frage zum Produkt |
 | `order-process-question` | Frage zum Bestell- oder Produktionsablauf |
 
+So wird `categories` gesetzt:
+
+- **Das Feld steht in jeder Datei**, auch wenn es leer bleibt. So ist erkennbar, dass die Frage bedacht wurde.
+- **Leer heißt: gilt für alle Falltypen.** Das ist richtig für Dokumente, die bei jedem Fall gebraucht werden: Permissions, allgemeine Tonalität, Glossar und übergreifende Policies (z. B. „Kundenart und Kanal vor der Entscheidung prüfen").
+- **Gefüllt wird es, wenn das Dokument nur bei bestimmten Falltypen eine Rolle spielt.** Eine Policy zu Ersatz und Erstattung bei Mängeln bekommt `complaint`. Passt ein Dokument zu zwei Falltypen, stehen beide Werte in der Liste (eine Lieferverzögerung kann als Reklamation oder als Frage zum Ablauf eintreffen).
+- **Playbooks und Processes bekommen immer mindestens einen Wert.** Sie beschreiben ein konkretes Fallmuster; ohne Kategorie kann die App sie keinem Falltyp zuordnen.
+- Frage beim Erfassen: „Bei welcher Art von Anfrage wird dieses Dokument gebraucht: Reklamation, Produktfrage, Frage zum Ablauf, oder bei allen?"
+
 `products`: ein Slug pro Produkt, identisch mit dem Dateinamen in `knowledge/products/`. Gilt ein Dokument für alle Produkte, bleibt `products` leer.
 
 `topics`: frei, aber sparsam. Zwei bis vier Werte pro Dokument, die das Fallmuster benennen (z. B. `customer-configuration`, `photo-quality`, `replacement`, `refund`).
@@ -172,6 +180,7 @@ Heute möchte ich erfassen:
 - `status: draft`.
 - Alle Schlagwörter sind vorhandene Werte oder ausdrücklich als neu genannt.
 - `customer_types` und `sales_channels` sind gesetzt, wenn das Dokument eingeschränkt gilt, sonst leer; der Text nennt denselben Geltungsbereich.
+- `categories` ist vorhanden; bei Playbooks und Processes ist mindestens ein Wert gesetzt.
 - Jede Aussage stammt vom Autor; nichts ist ergänzt oder geschätzt.
 - Keine personenbezogenen Daten.
 - Verweise zeigen nur auf bekannte IDs.

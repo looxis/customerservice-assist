@@ -93,7 +93,7 @@ describe('templates', function () {
         expect($frontmatter['id'])->toBe($id)
             ->and($frontmatter['type'])->toBe($type)
             ->and($frontmatter['status'])->toBe('draft')
-            ->and($frontmatter)->toHaveKeys(['title', 'customer_types', 'sales_channels', 'related_knowledge', 'topics']);
+            ->and($frontmatter)->toHaveKeys(['title', 'customer_types', 'sales_channels', 'related_knowledge', 'categories', 'topics']);
     })->with('templates');
 
     test('empty fields are really empty, not placeholder text', function (string $type) {

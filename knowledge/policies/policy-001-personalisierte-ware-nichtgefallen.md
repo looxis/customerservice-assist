@@ -7,6 +7,8 @@ customer_types:
   - b2c
 sales_channels:
 products:
+categories:
+  - complaint
 topics:
   - personalized-products
   - withdrawal

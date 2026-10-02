@@ -8,6 +8,8 @@ customer_types:
 sales_channels:
   - shop
 products:
+categories:
+  - complaint
 topics:
   - customer-configuration
   - goodwill

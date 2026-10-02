@@ -15,6 +15,7 @@ max_value_eur:
 approval_role:
 
 products:
+categories:
 topics:
 
 owner:

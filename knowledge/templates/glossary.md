@@ -9,6 +9,7 @@ status: draft
 customer_types:
 sales_channels:
 
+categories:
 topics:
 
 owner:

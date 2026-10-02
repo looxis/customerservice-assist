@@ -7,6 +7,9 @@ customer_types:
   - b2c
 sales_channels:
 products:
+categories:
+  - complaint
+  - order-process-question
 topics:
   - delivery-delay
   - replacement

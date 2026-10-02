@@ -260,8 +260,9 @@ Legende: [x] bestanden · [~] in der Skill-Definition vorgeschrieben, Verhalten 
 
 ### Bugs Found
 
-#### BUG-1: Guide und README widersprechen dem Design-Dokument beim Status `draft`
+#### BUG-1: Guide und README widersprechen dem Design-Dokument beim Status `draft` – BEHOBEN (2026-10-02)
 - **Severity:** Low
+- **Fix:** Der Guide benennt die Abweichung jetzt ausdrücklich als bewusste Ausnahme von der Vorrangregel; das Design-Dokument bleibt unverändert.
 - **Steps to Reproduce:**
   1. `docs/KNOWLEDGE_BASE_DESIGN.md`, Abschnitt 9, lesen: „Nur `status: active` wird produktiv verwendet."
   2. `docs/KNOWLEDGE_AUTHORING_GUIDE.md` und `knowledge/README.md` lesen: `draft` wird mitverwendet und als Entwurfs-Wissen gekennzeichnet.
@@ -271,7 +272,7 @@ Legende: [x] bestanden · [~] in der Skill-Definition vorgeschrieben, Verhalten 
 - **Priority:** Fix in next sprint (ein Satz im Guide genügt)
 
 ### Beobachtungen (keine Bugs)
-- Die acht vorhandenen Dateien enthalten nicht alle Felder der Vorlagen (`owner`, `last_reviewed`, meist `categories`). Die Felder sind optional; für die Auswahl nach Kategorie in PROJ-4 werden `categories` aber gebraucht.
+- Die acht vorhandenen Dateien enthalten nicht alle Felder der Vorlagen (`owner`, `last_reviewed`). Die Felder sind optional. `categories` wurde am 2026-10-02 in allen acht Dateien ergänzt (leer bei übergreifenden Dokumenten) und im Guide geregelt.
 - Die Beispiel-Vorlagen starten mit `draft`; im Design-Dokument stehen Beispiele mit `active`. Das entspricht der Entscheidung im Spec.
 
 ### Automatisierte Tests

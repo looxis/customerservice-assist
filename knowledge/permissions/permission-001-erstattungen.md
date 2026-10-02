@@ -10,6 +10,7 @@ agent_allowed: true
 max_value_eur: 35
 approval_role: managing-director
 products:
+categories:
 topics:
   - refund
 related_knowledge:

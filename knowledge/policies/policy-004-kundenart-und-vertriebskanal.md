@@ -6,6 +6,7 @@ status: draft
 customer_types:
 sales_channels:
 products:
+categories:
 topics:
   - sales-channel
   - customer-type

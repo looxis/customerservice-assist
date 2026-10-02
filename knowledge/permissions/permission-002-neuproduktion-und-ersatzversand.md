@@ -10,6 +10,7 @@ agent_allowed: true
 max_value_eur:
 approval_role:
 products:
+categories:
 topics:
   - replacement
 related_knowledge:
