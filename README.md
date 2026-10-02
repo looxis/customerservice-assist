@@ -62,7 +62,7 @@ Danach läuft alles über Sail:
 ./vendor/bin/sail npm run dev
 ```
 
-Die App ist danach erreichbar unter **http://localhost**.
+Die App ist danach erreichbar unter **http://localhost:8081**.
 
 ### Laravel Boost einrichten (einmalig)
 
