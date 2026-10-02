@@ -1,6 +1,6 @@
 # PROJ-1: App-Grundgerüst mit LOOXIS-Design
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -212,6 +212,34 @@ Keine neuen PHP-Pakete. Alpine.js und Tailwind v4 sind bereits installiert.
 - **PROJ-5** füllt den freien Bereich rechts in der Topbar.
 - **PROJ-6** ersetzt den Platzhalter der Startseite.
 - **`/deploy`** schreibt die Versionsangabe beim Ausliefern.
+
+## Implementation Notes (Frontend)
+**Stand:** 2026-10-02 – umgesetzt, Browser-Abnahme durch den Nutzer steht aus.
+
+**Gebaut:**
+- Design-Tokens im `@theme`-Block von `resources/css/app.css`; Tailwinds Standardfarben sind abgeschaltet (`--color-*: initial`), dazu die globalen Basis-Styles.
+- Schriften über `@fontsource-variable/*` (drei Pakete), im Build als lokale `woff2`-Dateien ausgeliefert.
+- Layouts: `components/layouts/app.blade.php` (Sidebar, Topbar, Inhaltsbereich, Meldungsbereich, Lade-Overlay) und `components/layouts/error.blade.php` (schlank, ohne Sidebar).
+- Bausteine in `resources/views/components/`: `card`, `button`, `field`, `input`, `textarea`, `select`, `badge`, `alert`, `icon`, `nav-item`, `loading-overlay`.
+- Seiten: `tickets/analyze.blade.php` (Startseite, Route `tickets.analyze`), `styleguide.blade.php` (Route `styleguide`, nur lokal registriert), `errors/404.blade.php`, `errors/500.blade.php`.
+- `config/app.php`: neuer Wert `app.version` (aus `APP_VERSION`, Standard „dev"), Standard-Locale `de`.
+- Die Laravel-Willkommensseite wurde entfernt.
+
+**Verwendung für Folge-Features:**
+- Seite: `<x-layouts.app title="…" width="3xl|5xl|6xl">`. Der Bereich rechts in der Topbar ist der benannte Slot `user` (für PROJ-5).
+- Meldungen: Session-Werte `success` und `error` erscheinen automatisch als Alert oben im Inhalt.
+- Felder: `<x-input name="…" label="…" hint="…" required>`; Fehler kommen automatisch aus der Validierung (`$errors`) oder über das Attribut `error`.
+- Lade-Overlay: `$dispatch('loading-start', { title, text })` und `$dispatch('loading-stop')`.
+
+**Abweichungen vom Spec / Design System:**
+- Badge hat zusätzlich den Ton `danger` (das Design System nennt nur vier Töne; das Kriterium verlangt „Fehler").
+- Buttons, Navigationspunkt und Links zeigen bei Tastaturfokus einen Brand-Umriss (im Design System nicht beschrieben, für das Kriterium „sichtbarer Fokus" nötig).
+- Die Sprache der Seite ist fest als `de` ausgezeichnet, unabhängig von `APP_LOCALE`.
+- Unbekannter Icon-Name: lokal ein roter Marker „?name", in allen anderen Umgebungen keine Ausgabe.
+
+**Geprüft:** Build läuft durch; `/` und `/styleguide` antworten mit 200, eine unbekannte Adresse mit der deutschen 404-Seite; keine Verweise auf fremde Server; bestehende Tests grün. Nicht geprüft: Darstellung im Browser, Verhalten bei 375/768/1440 px, 500-Seite, Verhalten in der Produktivumgebung.
+
+**Offen für den Nutzer:** `APP_VERSION` in `.env.example` dokumentieren und `APP_LOCALE=de` in `.env`/`.env.example` setzen (beide Dateien sind für den Assistenten gesperrt).
 
 ## QA Test Results
 _To be added by /qa_

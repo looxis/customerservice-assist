@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::view('/', 'tickets.analyze')->name('tickets.analyze');
+
+if (app()->isLocal()) {
+    Route::view('/styleguide', 'styleguide')->name('styleguide');
+}

@@ -1,13 +1,111 @@
 @import 'tailwindcss';
 
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/jetbrains-mono';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* LOOXIS Design System tokens — see docs/design-system.md.
+   Tailwind's default palette is switched off: only the tokens below exist. */
 @theme {
-    /* Add project-specific colors, fonts, and spacing here (Tailwind v4 design tokens).
-       Example:
-       --color-primary: #2563eb;
-       --color-primary-hover: #1d4ed8;
-       --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    */
+    --color-*: initial;
+
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    --color-brand-50: #fff5ef;
+    --color-brand-100: #ffe6d5;
+    --color-brand-200: #ffc9a8;
+    --color-brand-300: #ffa979;
+    --color-brand-400: #ff8b51;
+    --color-brand-500: #fe7437;
+    --color-brand-600: #e8612a;
+    --color-brand-700: #cf5421;
+    --color-brand-800: #a4421a;
+    --color-brand-900: #7a3214;
+    --color-brand: #fe7437;
+    --color-brand-hover: #e8612a;
+    --color-brand-press: #cf5421;
+    --color-brand-tint: #fff5ef;
+
+    --color-slate-50: #f8f9fb;
+    --color-slate-100: #f3f4f6;
+    --color-slate-200: #e3e6ea;
+    --color-slate-300: #c4c9d1;
+    --color-slate-400: #9098a3;
+    --color-slate-500: #8a8f9a;
+    --color-slate-600: #6a7080;
+    --color-slate-700: #4a4f59;
+    --color-slate-800: #2f343d;
+    --color-slate-900: #1d2026;
+
+    --color-ink-800: #1d2026;
+    --color-ink-900: #15191f;
+
+    --color-success-500: #2ea562;
+    --color-warning-500: #f6a623;
+    --color-danger-500: #e0394f;
+    --color-trust-500: #1b4ebd;
+
+    --color-sun-500: #ff9900;
+    --color-cream-100: #faf7f2;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 9999px;
+
+    --shadow-1: 0 1px 2px rgba(15, 17, 21, 0.05), 0 1px 1px rgba(15, 17, 21, 0.04);
+    --shadow-2: 0 10px 24px -8px rgba(15, 17, 21, 0.14);
+    --shadow-3: 0 24px 48px -12px rgba(15, 17, 21, 0.25);
+
+    --font-display: 'Bricolage Grotesque Variable', 'Manrope Variable', system-ui, sans-serif;
+    --font-body: 'Manrope Variable', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono Variable', monospace;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-100 font-body text-slate-900 antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-display tracking-tight;
+    }
+
+    ::selection {
+        @apply bg-brand-200 text-ink-900;
+    }
+
+    ::-webkit-scrollbar {
+        width: 11px;
+        height: 11px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply border-4 border-solid border-slate-100 bg-slate-300;
+        border-radius: 9px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-slate-400;
+    }
+
+    /* Fields show a Tailwind ring on focus; without this reset the native
+       browser outline would be drawn on top of it (double frame). */
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
 }

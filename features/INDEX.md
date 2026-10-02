@@ -17,7 +17,7 @@ The ID order is the recommended build order. No authentication in the MVP (see `
 
 | ID | Feature | Description | Priority | Dependencies | Status | Spec | Created |
 |----|---------|-------------|----------|--------------|--------|------|---------|
-| PROJ-1 | App-Grundgerüst mit LOOXIS-Design | Layout-Shell, Design-Tokens und Basis-Komponenten nach `docs/design-system.md` | P0 | None | Architected | [Spec](PROJ-1-app-grundgeruest-looxis-design.md) | 2026-10-02 |
+| PROJ-1 | App-Grundgerüst mit LOOXIS-Design | Layout-Shell, Design-Tokens und Basis-Komponenten nach `docs/design-system.md` | P0 | None | In Progress | [Spec](PROJ-1-app-grundgeruest-looxis-design.md) | 2026-10-02 |
 | PROJ-2 | Knowledge-Authoring-Kit | Ordnerstruktur `knowledge/`, Vorlagen je Dokumenttyp, Anleitung (`docs/KNOWLEDGE_AUTHORING_GUIDE.md`), KI-Skill zum Erfassen und Ablegen | P0 | None | Roadmap | – | 2026-10-02 |
 | PROJ-3 | Knowledge Base einlesen und prüfen | Markdown-Dateien lesen, Frontmatter validieren, nur `active` verwenden, Git-Stand erfassen, Prüfbefehl mit Fehlerliste | P0 | PROJ-2 | Roadmap | – | 2026-10-02 |
 | PROJ-4 | Knowledge-Auswahl | Relevante Dokumente deterministisch nach Typ, Produkt, Kategorie, Thema sowie Kundenart und Vertriebskanal (`customer_types`, `sales_channels`) auswählen | P0 | PROJ-3 | Roadmap | – | 2026-10-02 |
