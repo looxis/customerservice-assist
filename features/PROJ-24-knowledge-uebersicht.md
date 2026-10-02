@@ -1,6 +1,6 @@
 # PROJ-24: Knowledge-Übersicht
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -126,12 +126,118 @@ Die Seite zeigt nur an, was PROJ-3 bereitstellt. Sie liest selbst keine Dateien 
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Zwei Web-Routen mit einem Controller: Übersicht und Dokumentansicht | Beide liefern vollständige Seiten; ein Controller statt Closure-Routen, damit der Routen-Cache im Produktivbetrieb funktioniert | 2026-10-02 |
+| Keine Datenbank; der Controller fragt ausschließlich die Knowledge-Bibliothek aus PROJ-3 | Die Seite ist eine reine Anzeige; es gibt nur eine Stelle, die Dateien liest | 2026-10-02 |
+| Filter und Suche laufen über die Adresszeile (Abfrage-Parameter) und werden auf dem Server angewendet | Der Filter bleibt beim Neuladen erhalten, lässt sich als Link weitergeben und funktioniert ohne JavaScript | 2026-10-02 |
+| Filterwerte werden über eine Form-Request-Klasse geprüft | Projektregel: keine Validierung im Controller; unbekannte Werte werden abgewiesen statt durchgereicht | 2026-10-02 |
+| Die Dokumentansicht sucht den angefragten Pfad in der Liste der gelesenen Dokumente, nie direkt im Dateisystem | Ein manipulierter Pfad in der Adresse kann so keine Datei außerhalb der Knowledge Base erreichen | 2026-10-02 |
+| Markdown wird mit der in Laravel enthaltenen Bibliothek (`league/commonmark`) umgewandelt, im sicheren Modus | Kein neues Paket; HTML im Text wird maskiert, unsichere Links werden nicht erzeugt, Tabellen werden unterstützt | 2026-10-02 |
+| Bilder im Text werden durch ihren Alternativtext ersetzt; Links öffnen in neuem Tab ohne Rückbezug | Keine Abrufe von fremden Servern (PROJ-1); die Zielseite erhält keinen Zugriff auf die App | 2026-10-02 |
+| Eigene Textstile für den umgewandelten Dokumenttext mit den LOOXIS-Tokens, kein Typografie-Zusatzpaket | Wenige Regeln genügen (Überschriften, Listen, Tabellen, Zitate, Code); ein Zusatzpaket brächte eigene Farben mit, die abgeschaltet sind | 2026-10-02 |
+| Einklappbare Bereiche mit dem eingebauten Aufklapp-Element des Browsers | Funktioniert ohne JavaScript und ist für Tastatur und Screenreader bereits zugänglich; besser als im Spec angenommen (dort: ohne JavaScript dauerhaft aufgeklappt) | 2026-10-02 |
+| „Kopieren" als kleiner Alpine.js-Baustein mit Rückfall auf Markieren | Die Zwischenablage ist ohne HTTPS gesperrt; im internen Netz ist das wahrscheinlich, daher muss der Rückfall immer funktionieren | 2026-10-02 |
+| Neue wiederverwendbare Bausteine: Aufklapp-Bereich, Kopier-Feld, Status-Badge für Knowledge, Dokumenttext | PROJ-10 braucht Status-Badge und Dokumenttext für „Quelle einsehen" erneut | 2026-10-02 |
+| Zweiter Navigationspunkt wird im Layout aus PROJ-1 ergänzt; der dortige Test wird angepasst | Die Navigation ist an genau einer Stelle definiert | 2026-10-02 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-24 ist eine reine Anzeige ohne Datenbank. Es entstehen zwei Seiten, ein Controller, eine Prüfklasse für die Filterwerte und vier neue Bausteine. Alle Daten kommen aus der Knowledge-Bibliothek von PROJ-3. Gebaut wird mit `/frontend` und einem kleinen `/backend`-Anteil (Controller, Routen, Markdown-Umwandlung); beides lässt sich in einem Durchgang erledigen.
+
+### A) Aufbau der Oberfläche
+
+```
+Seitenlayout (aus PROJ-1)
++-- Sidebar
+|   +-- „Ticket analysieren"
+|   +-- „Knowledge" (neu)
+
+Seite „Knowledge" (Übersicht)
++-- Kopfkarte
+|   +-- Kennzahlen: gesamt, verwendbar, Entwurf, aktiv
+|   +-- Wissensstand (Commit, Datum, ggf. „mit uncommitteten Änderungen")
++-- Hinweis, falls der Knowledge-Ordner fehlt oder leer ist
++-- Filterleiste (Formular)
+|   +-- Suche (ID oder Titel)
+|   +-- Typ, Status
+|   +-- „nur mit Meldungen"
+|   +-- Zurücksetzen
++-- Dokumentliste, je Typ ein Abschnitt in Rangfolge
+|   +-- Zeile: ID, Titel, Status-Badge, Geltungsbereich, Meldungs-Badge
+|   +-- Leerzustand „Keine Dokumente gefunden" mit Zurücksetzen
++-- Aufklapp-Bereich „Prüfergebnis" (bei Fehlern offen)
+|   +-- Summen, Meldungen je Datei (Fehler vor Warnungen), Link zum Dokument
++-- Aufklapp-Bereich „Für den KI-Chat"
+    +-- ID-Übersicht als Text
+    +-- Button „Kopieren" mit Bestätigung bzw. Rückfall
+
+Seite „Dokument"
++-- Link zurück zur Übersicht (Filter bleiben erhalten)
++-- Hinweis bei Entwurf bzw. veraltetem Dokument
++-- Meldungen zu dieser Datei
++-- Kopfkarte
+|   +-- ID, Titel, Typ, Status-Badge
+|   +-- Geltungsbereich, Themen, Verweise (anklickbar)
+|   +-- bei Permissions: Maßnahme, Erlaubnis, Wertgrenze, Rolle
+|   +-- Dateipfad, Fingerabdruck (kurz)
++-- Dokumenttext, formatiert
+```
+
+**Neue wiederverwendbare Bausteine:** Aufklapp-Bereich, Kopier-Feld, Knowledge-Status-Badge, Dokumenttext. Wiederverwendet aus PROJ-1: Layout, Navigationspunkt, Karte, Button, Input, Select, Badge, Alert, Icon.
+
+### B) Wie die Seiten erreichbar sind
+
+| Adresse | Seite |
+|---|---|
+| `/knowledge` | Übersicht, Filter als Abfrage-Parameter |
+| `/knowledge/dokument/<Dateipfad>` | Dokumentansicht |
+
+Der Dateipfad ist der Pfad innerhalb der Knowledge Base (z. B. `policies/policy-005-…md`). Er ist auch bei doppelter oder fehlender ID eindeutig.
+
+### C) Daten
+Es wird nichts gespeichert. Pro Seitenaufruf liest die Bibliothek die Dateien einmal; daraus entstehen Kennzahlen, Liste, Meldungen, Wissensstand und ID-Übersicht.
+
+Filterwerte: Suchbegriff (Text, begrenzte Länge), Typ (einer der neun), Status (einer der drei), „nur mit Meldungen" (ja/nein). Andere Werte werden abgewiesen.
+
+### D) Vom Markdown zum lesbaren Text
+
+```
+Text des Dokuments
+-> Umwandlung in HTML im sicheren Modus (HTML im Text wird maskiert)
+-> Bilder durch Alternativtext ersetzt
+-> Links: neuer Tab, kein Rückbezug; unsichere Links entfallen
+-> vorhandene Knowledge-IDs im Text werden zu Links auf das Dokument
+-> Darstellung mit eigenen Textstilen (LOOXIS-Tokens)
+```
+
+### E) Wichtigste Entscheidungen in Kürze
+- **Filter über die Adresszeile.** Sie überleben das Neuladen und funktionieren ohne JavaScript.
+- **Pfad wird nie direkt geöffnet.** Die Dokumentansicht sucht den Pfad in der Liste der gelesenen Dokumente; alles andere ergibt „Seite nicht gefunden".
+- **Kein neues Paket.** Die Markdown-Bibliothek bringt Laravel mit; die Textstile entstehen selbst.
+- **Aufklappen mit Bordmitteln des Browsers.** Dadurch funktioniert das Ein- und Ausklappen auch ohne JavaScript. Das ist besser, als das Spec annimmt; nur „Kopieren" braucht JavaScript.
+- **Kopieren mit Rückfall.** Ohne HTTPS sperrt der Browser die Zwischenablage; dann wird der Text markiert.
+
+### F) Automatische Tests (Umfang für `/qa`)
+- Übersicht: Gruppierung und Reihenfolge, Badges je Status, Fehler- und Warn-Badge, Datei mit kaputtem Frontmatter, Kennzahlen, Wissensstand, leerer und fehlender Ordner.
+- Filter: Typ, Status, Meldungen, Suche, Kombination, Leerzustand, ungültige Filterwerte.
+- Prüfbereich: offen bei Fehlern, zu bei Warnungen, Erfolgshinweis ohne Meldungen.
+- ID-Übersicht: Text entspricht dem Befehl.
+- Dokumentansicht: Kopfdaten, Permission-Felder, formatierter Text, anklickbare Verweise, Hinweise bei Entwurf und veraltet, Meldungen, kaputte Datei, unbekannter Pfad, Pfad mit `..`.
+- Sicherheit: Skript-Code in Titel, Text und Frontmatter wird maskiert; `javascript:`-Link wird kein Link; Bild wird nicht geladen.
+- Navigation: zweiter Punkt, aktiv auf beiden Seiten; angepasster PROJ-1-Test.
+
+Im Browser zu prüfen: Lesbarkeit des Dokumenttexts, Verhalten des Kopier-Buttons mit und ohne HTTPS, Darstellung bei 768 und 1440 px.
+
+### G) Abhängigkeiten
+Keine neuen Pakete. `league/commonmark` ist Bestandteil von Laravel.
+
+### H) Übergaben an andere Features
+- **PROJ-10** verlinkt für „Quelle einsehen" auf die Dokumentansicht und nutzt Status-Badge und Dokumenttext.
+- **PROJ-23** ergänzt in der Dokumentansicht den Klick zum Bestätigen eines Entwurfs.
+- **PROJ-15** kann den technischen Bereich auf Admins beschränken.
 
 ## QA Test Results
 _To be added by /qa_
