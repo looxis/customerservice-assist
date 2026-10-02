@@ -1,6 +1,6 @@
 # PROJ-24: Knowledge-Übersicht
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -319,7 +319,7 @@ Legende: [x] bestanden · [~] umgesetzt laut Code, Verhalten nicht im Browser ge
 - [x] Meldungen über dem Text, Fehler vor Warnungen
 - [x] Nicht lesbares Frontmatter: Pfad und Fehler, kein Text
 - [x] Unbekannte ID oder Pfad: „Seite nicht gefunden"
-- [x] Link zurück zur Übersicht mit erhaltenen Filtern (mit Sicherheitsmangel, siehe BUG-1)
+- [x] Link zurück zur Übersicht mit erhaltenen Filtern
 
 #### Sicherheit der Darstellung (2/2)
 - [x] HTML und Skript-Code in Titel, Text und Frontmatter werden als Text gezeigt
@@ -348,12 +348,13 @@ Legende: [x] bestanden · [~] umgesetzt laut Code, Verhalten nicht im Browser ge
 - [x] Die Seiten ändern nichts; `POST` auf die Übersicht wird abgewiesen
 - [x] Sicherheits-Header vorhanden
 - [x] CSRF: kein datenänderndes Formular; das GET-Filterformular hat bewusst kein Token
-- [ ] BUG-1: Der Zurück-Link übernimmt eine fremde Herkunftsadresse
+- [x] Der Zurück-Link übernimmt keine fremde Herkunftsadresse (BUG-1, behoben)
 - Authentifizierung: bewusst keine (PRD). Jeder im Netz sieht Regeln, Dateipfade und den Commit-Stand.
 
 ### Bugs Found
 
-#### BUG-1: Zurück-Link kann auf eine fremde Seite zeigen
+#### BUG-1: Zurück-Link kann auf eine fremde Seite zeigen – BEHOBEN (2026-10-02)
+- **Fix:** Als Rückweg gilt nur noch die eigene Übersicht der App samt Filtern (vollständige Adresse inklusive Server wird verglichen); alles andere führt zur ungefilterten Übersicht.
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Von einer fremden Seite mit der Adresse `https://evil.example/knowledge` aus eine Dokumentansicht der App öffnen
@@ -380,7 +381,8 @@ Legende: [x] bestanden · [~] umgesetzt laut Code, Verhalten nicht im Browser ge
   3. Actual: erscheint wörtlich im Text. Folge der sicheren Umwandlung (alles HTML wird maskiert); die Vorlagen sind nicht betroffen, weil ihre Hinweise im Frontmatter stehen.
 - **Priority:** Nice to have
 
-#### BUG-4: Wertgrenze braucht die PHP-Erweiterung `intl`
+#### BUG-4: Wertgrenze braucht die PHP-Erweiterung `intl` – BEHOBEN (2026-10-02)
+- **Fix:** Die Wertgrenze wird ohne `intl` deutsch formatiert (35 €, 1.250 €, 49,90 €).
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. App auf einem Server ohne `intl` betreiben und eine Permission mit Wertgrenze öffnen
@@ -398,16 +400,16 @@ Legende: [x] bestanden · [~] umgesetzt laut Code, Verhalten nicht im Browser ge
 - Ein Dokument mit ungültigem Status zeigt das Badge „Ohne Status"; der ungültige Wert steht in der Fehlermeldung.
 
 ### Automatisierte Tests
-- `tests/Feature/PROJ-24-KnowledgeOverviewTest.php`: 68 Tests. Gesamte Suite: 316 bestanden, 0 fehlgeschlagen.
+- `tests/Feature/PROJ-24-KnowledgeOverviewTest.php`: 75 Tests (57 aus der Umsetzung, 11 aus der QA, 7 zu den Bugfixes). Gesamte Suite: 323 bestanden, 0 fehlgeschlagen.
 - Keine Unit-Tests: Die Markdown-Umwandlung ist über die Dokumentansicht vollständig abgedeckt.
 - Regression: PROJ-1 (Navigationstest angepasst), PROJ-2 und PROJ-3 laufen grün.
 
 ### Summary
 - **Acceptance Criteria:** 33/35 bestanden, 2 (Kopier-Button) nur im Code geprüft, 0 fehlgeschlagen
-- **Bugs Found:** 5 total (0 critical, 0 high, 1 medium, 4 low)
-- **Security:** Issues found (BUG-1)
-- **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; BUG-1 sollte vorher behoben werden
-- **Recommendation:** BUG-1 und BUG-4 beheben, den Kopier-Button einmal im Browser ausprobieren
+- **Bugs Found:** 5 total (0 critical, 0 high, 1 medium, 4 low); BUG-1 und BUG-4 am 2026-10-02 behoben, BUG-5 für PROJ-6 vorgemerkt, BUG-2 und BUG-3 bewusst offen
+- **Security:** Pass nach Behebung von BUG-1
+- **Production Ready:** YES
+- **Recommendation:** Freigegeben. Der Kopier-Button sollte einmal im Browser ausprobiert werden.
 
 ## Deployment
 _To be added by /deploy_

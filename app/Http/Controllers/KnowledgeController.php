@@ -59,6 +59,9 @@ class KnowledgeController extends Controller
             ])
             ->all();
 
+        // Only our own overview (with its filters) is accepted as the way back;
+        // the referer is user-controlled and must never become a foreign link.
+        $index = route('knowledge.index');
         $previous = url()->previous();
 
         return view('knowledge.show', [
@@ -68,9 +71,7 @@ class KnowledgeController extends Controller
             'html' => $document->parsed ? $markdown->render($document->body, $links) : null,
             'links' => $links,
             'typeLabel' => config("knowledge.types.{$document->type}.label"),
-            'backUrl' => parse_url($previous, PHP_URL_PATH) === parse_url(route('knowledge.index'), PHP_URL_PATH)
-                ? $previous
-                : route('knowledge.index'),
+            'backUrl' => $previous === $index || str_starts_with($previous, $index.'?') ? $previous : $index,
         ]);
     }
 

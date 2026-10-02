@@ -382,7 +382,6 @@ describe('document view', function () {
         $filtered = route('knowledge.index', ['type' => 'policy', 'q' => 'titel']);
 
         $this->from($filtered)->get(documentUrl('policies/policy-001-a.md'))->assertSee('href="'.e($filtered).'"', false);
-        $this->from('https://evil.example/knowledge')->get(documentUrl('policies/policy-001-a.md'))->assertSeeInOrder(['href="', 'Zur Übersicht'], false);
         $this->from('/')->get(documentUrl('policies/policy-001-a.md'))->assertSee('href="'.route('knowledge.index').'"', false);
     });
 });
@@ -519,4 +518,30 @@ describe('qa: hostile input', function () {
             $this->get($url)->assertHeader('X-Frame-Options', 'DENY')->assertHeader('X-Content-Type-Options', 'nosniff');
         }
     });
+});
+
+describe('qa fixes', function () {
+    test('the back link never points to a foreign site', function (string $referer) {
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
+
+        $html = $this->from($referer)->get(documentUrl('policies/policy-001-a.md'))->assertOk()->getContent();
+
+        preg_match('/<a href="([^"]+)"[^>]*>\s*<svg.*?<\/svg>\s*Zur Übersicht/s', $html, $match);
+
+        expect($match[1])->toBe(route('knowledge.index'))
+            ->and($html)->not->toContain('evil.example');
+    })->with([
+        'https://evil.example/knowledge',
+        'https://evil.example/knowledge?type=policy',
+        'http://localhost.evil.example/knowledge',
+        'javascript:alert(1)//knowledge',
+    ]);
+
+    test('the value limit is formatted the German way without relying on the intl extension', function (int|float $limit, string $expected) {
+        knowledgeBase(['permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => 'refund', 'agent_allowed' => true, 'max_value_eur' => $limit])]);
+
+        $this->get(documentUrl('permissions/permission-001-a.md'))->assertSeeText($expected);
+
+        expect(file_get_contents(resource_path('views/knowledge/show.blade.php')))->not->toContain('Number::');
+    })->with([[35, '35 €'], [1250, '1.250 €'], [49.9, '49,90 €']]);
 });

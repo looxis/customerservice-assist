@@ -84,8 +84,8 @@
                     <div>
                         <dt class="text-slate-400">Wertgrenze</dt>
                         <dd class="mt-1 font-semibold text-slate-900">
-                            @if (is_numeric($document->frontmatter['max_value_eur'] ?? null))
-                                {{ Number::format($document->frontmatter['max_value_eur'], locale: 'de') }} €
+                            @if (is_numeric($limit = $document->frontmatter['max_value_eur'] ?? null))
+                                {{ number_format($limit, fmod((float) $limit, 1.0) === 0.0 ? 0 : 2, ',', '.') }} €
                             @else
                                 keine Wertgrenze
                             @endif

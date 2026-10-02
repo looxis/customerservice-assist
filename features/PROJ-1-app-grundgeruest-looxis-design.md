@@ -341,6 +341,7 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - **Priority:** Fix in next sprint (relevant ab PROJ-9, Doppel-Absenden einer Analyse)
 
 #### BUG-4: Weitere Fehlerseiten sind englisch
+- **Ergänzung (2026-10-02, aus PROJ-24):** betrifft auch 405 (abgewiesene Methode, z. B. `POST /knowledge`).
 - **Severity:** Low
 - **Steps to Reproduce:**
   1. Einen Zustand 419 (abgelaufene Seite), 403 oder 503 (Wartungsmodus) auslösen
