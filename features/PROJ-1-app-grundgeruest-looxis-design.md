@@ -119,6 +119,8 @@ Grundlage ist `docs/design-system.md` (LOOXIS Design System). Alle Farb-, Schrif
 | Fehlerseiten nutzen ein eigenes, schlankes Layout ohne Sidebar | Eine Fehlerseite darf nicht von Teilen abhängen, die selbst den Fehler verursacht haben könnten | 2026-10-02 |
 | Versionsangabe = Git-Kurz-Hash und Datum, beim Deployment einmal ermittelt und als Konfigurationswert hinterlegt; lokal steht „dev" | Pflegefrei und eindeutig; kein Git-Aufruf bei jedem Seitenaufruf. Das Schreiben des Werts ist Aufgabe von `/deploy` | 2026-10-02 |
 | Sekundärtext, Feld-Hinweise und Tabellenköpfe in `slate-600` statt `slate-500` | `slate-500` erreicht nur ca. 3,2:1 Kontrast auf Weiß, `slate-600` ca. 4,9:1; Abweichung ist in `docs/design-system.md` vermerkt | 2026-10-02 |
+| Globale Middleware `SecurityHeaders` für alle Antworten; HSTS nur bei HTTPS | Projektregel; im internen Netz ohne HTTPS wäre HSTS wirkungslos, hinter HTTPS greift es automatisch | 2026-10-02 |
+| Eigene dunklere Text-Tokens `success-700`, `warning-700`, `danger-700` für Badges und Alerts | Die `-500`-Töne sind als Text auf der getönten Fläche zu kontrastarm (Warnung ca. 1,9:1); Fläche und Ring bleiben wie im Design System | 2026-10-02 |
 | App-Sprache auf Deutsch gestellt | Seitenauszeichnung, Fehlerseiten und spätere Validierungsmeldungen erscheinen deutsch | 2026-10-02 |
 
 ---
@@ -304,13 +306,14 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - [x] Fehlerseite verrät keine technischen Details, wenn der Debug-Modus aus ist
 - [x] Komponenten-Übersicht ist außerhalb der lokalen Umgebung nicht registriert
 - [x] Keine Geheimnisse im ausgelieferten HTML
-- [ ] BUG-1: Sicherheits-Header fehlen
+- [x] BUG-1: Sicherheits-Header fehlen – behoben
 - Rate Limiting: nicht geprüft; es gibt noch keine Aktion, die es bräuchte
 
 ### Bugs Found
 
-#### BUG-1: Sicherheits-Header fehlen, PHP-Version wird preisgegeben
+#### BUG-1: Sicherheits-Header fehlen, PHP-Version wird preisgegeben – BEHOBEN (2026-10-02)
 - **Severity:** Medium
+- **Fix:** Middleware `SecurityHeaders` global registriert (vom Nutzer freigegeben). Setzt `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: origin-when-cross-origin`, bei HTTPS zusätzlich `Strict-Transport-Security`; entfernt `X-Powered-By`. Per `curl -I` auf `/` und der 404-Seite nachgeprüft, drei Tests ergänzt.
 - **Steps to Reproduce:**
   1. `curl -I http://localhost:8081/`
   2. Expected: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Strict-Transport-Security` (Projektregel `.claude/rules/security.md`)
@@ -318,8 +321,9 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - **Hinweis:** Betrifft die ganze App, nicht nur PROJ-1. Die Middleware-Änderung braucht laut Projektregel eine ausdrückliche Freigabe.
 - **Priority:** Fix before deployment
 
-#### BUG-2: Status-Texte auf getöntem Grund sind kontrastarm
+#### BUG-2: Status-Texte auf getöntem Grund sind kontrastarm – BEHOBEN für Badges und Alerts (2026-10-02)
 - **Severity:** Medium
+- **Fix:** Badges und Alerts behalten Fläche und Ring, der Text nutzt die neuen Tokens `success-700`, `warning-700`, `danger-700` (rechnerisch jeweils über 4,5:1, nicht gemessen). Abweichung in `docs/design-system.md` vermerkt. Nicht geändert: `slate-400` für Versionsangabe und Abschnitts-Labels sowie die Feld-Fehlermeldung in `danger-500`.
 - **Steps to Reproduce:**
   1. `/styleguide` öffnen, Abschnitt „Alerts" und „Badges"
   2. Expected: Text gut lesbar (üblich: mindestens 4,5:1)
@@ -358,14 +362,14 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - Unter 768 px gibt es keine Navigation (bewusste Entscheidung im Spec).
 
 ### Automatisierte Tests
-- `tests/Feature/PROJ-1-AppShellTest.php`: 72 Tests. Gesamte Suite: 74 bestanden, 0 fehlgeschlagen.
+- `tests/Feature/PROJ-1-AppShellTest.php`: 75 Tests (72 aus der QA, 3 für die Sicherheits-Header). Gesamte Suite: 77 bestanden, 0 fehlgeschlagen.
 - Keine Unit-Tests: PROJ-1 enthält keine Service- oder Model-Logik.
 - Regression: Es gibt keine früheren Features; der vorhandene Beispieltest läuft weiter grün.
 
 ### Summary
 - **Acceptance Criteria:** 19/26 automatisiert oder per Abruf bestanden, 7 umgesetzt, aber nicht im Browser geprüft, 0 fehlgeschlagen
-- **Bugs Found:** 5 total (0 critical, 0 high, 2 medium, 3 low)
-- **Security:** Issues found (BUG-1)
+- **Bugs Found:** 5 total (0 critical, 0 high, 2 medium, 3 low); beide mittleren am 2026-10-02 behoben, BUG-3 und BUG-4 für PROJ-6 vorgemerkt, BUG-5 bewusst offen
+- **Security:** Pass nach Behebung von BUG-1
 - **Production Ready:** Nach der Regel „keine Critical/High-Bugs" ja; die Browser-Prüfung der sieben offenen Kriterien steht aus
 - **Recommendation:** Die sieben Browser-Punkte kurz von Hand prüfen, BUG-1 vor dem ersten Deployment beheben, über BUG-2 entscheiden
 

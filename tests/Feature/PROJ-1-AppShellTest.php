@@ -150,6 +150,21 @@ describe('pages', function () {
     });
 });
 
+describe('security headers', function () {
+    test('every response carries the required security headers', function (string $path) {
+        $this->get($path)
+            ->assertHeader('X-Frame-Options', 'DENY')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('Referrer-Policy', 'origin-when-cross-origin');
+    })->with(['/', '/gibt-es-nicht']);
+
+    test('strict transport security is sent on secure requests only', function () {
+        $this->get('/')->assertHeaderMissing('Strict-Transport-Security');
+
+        $this->get('https://localhost/')->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    });
+});
+
 describe('button', function () {
     test('each variant renders its design system classes', function (string $variant, string $expected) {
         $this->blade('<x-button :variant="$variant">Los</x-button>', ['variant' => $variant])
@@ -218,10 +233,10 @@ describe('badge and alert', function () {
             ->assertSee('rounded-pill', false);
     })->with([
         ['neutral', 'bg-slate-100 text-slate-600 ring-slate-300/40'],
-        ['success', 'bg-success-500/10 text-success-500 ring-success-500/20'],
+        ['success', 'bg-success-500/10 text-success-700 ring-success-500/20'],
         ['info', 'bg-trust-500/10 text-trust-500 ring-trust-500/20'],
-        ['warning', 'bg-warning-500/10 text-warning-500 ring-warning-500/20'],
-        ['danger', 'bg-danger-500/10 text-danger-500 ring-danger-500/20'],
+        ['warning', 'bg-warning-500/10 text-warning-700 ring-warning-500/20'],
+        ['danger', 'bg-danger-500/10 text-danger-700 ring-danger-500/20'],
     ]);
 
     test('alert types use the tinted status pattern', function (string $type, string $expected, string $role) {
@@ -230,9 +245,9 @@ describe('badge and alert', function () {
             ->assertSee('role="'.$role.'"', false);
     })->with([
         ['info', 'bg-trust-500/10 text-trust-500 ring-trust-500/20', 'status'],
-        ['success', 'bg-success-500/10 text-success-500 ring-success-500/20', 'status'],
-        ['warning', 'bg-warning-500/10 text-warning-500 ring-warning-500/20', 'alert'],
-        ['error', 'bg-danger-500/10 text-danger-500 ring-danger-500/20', 'alert'],
+        ['success', 'bg-success-500/10 text-success-700 ring-success-500/20', 'status'],
+        ['warning', 'bg-warning-500/10 text-warning-700 ring-warning-500/20', 'alert'],
+        ['error', 'bg-danger-500/10 text-danger-700 ring-danger-500/20', 'alert'],
     ]);
 });
 

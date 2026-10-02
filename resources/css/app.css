@@ -49,6 +49,12 @@
     --color-danger-500: #e0394f;
     --color-trust-500: #1b4ebd;
 
+    /* Darker status tones for text on tinted backgrounds (contrast >= 4.5:1).
+       Not part of the Content Studio palette — see docs/design-system.md. */
+    --color-success-700: #1c6e41;
+    --color-warning-700: #8a5a00;
+    --color-danger-700: #b02236;
+
     --color-sun-500: #ff9900;
     --color-cream-100: #faf7f2;
 

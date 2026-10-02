@@ -6,9 +6,10 @@ Design-Tokens, Typografie, Icon-Set und Komponenten-Patterns aus **LOOXIS Conten
 
 ## Abweichungen in Customer Service Assist
 
-Dieses Dokument ist unverändert aus dem Content Studio übernommen. Für diese App gelten drei Abweichungen (Entscheidungen aus PROJ-1):
+Dieses Dokument ist unverändert aus dem Content Studio übernommen. Für diese App gelten vier Abweichungen (Entscheidungen aus PROJ-1):
 
 - **Sekundärtext in `slate-600` statt `slate-500`.** Überall, wo unten `text-slate-500` für Sekundärtext, Feld-Hinweise oder Tabellenköpfe steht, verwendet diese App `text-slate-600` (Kontrast auf Weiß ca. 4,9:1 statt 3,2:1). Die Palette selbst bleibt gleich.
+- **Status-Text in dunklerem Ton.** Badges und Alerts behalten Fläche und Ring der Statusfarbe (`{farbe}-500/10`, `{farbe}-500/20`), der Text verwendet aber `success-700` (#1c6e41), `warning-700` (#8a5a00) bzw. `danger-700` (#b02236) statt `-500`. Die drei Tokens gibt es nur in dieser App. `trust-500` bleibt, es ist dunkel genug.
 - **Tailwind CSS v4.** Die Tokens werden als `@theme` in `resources/css/app.css` definiert, nicht über die unten gezeigte `tailwind.config`. Tailwinds Standardfarben sind abgeschaltet.
 - **Schriften selbst gehostet.** Kein `<link>` zu Google Fonts; die drei Schriften werden als Pakete mit der App ausgeliefert.
 
