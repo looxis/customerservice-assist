@@ -18,7 +18,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 
 | Priority | Feature | Status |
 |----------|---------|--------|
-| P0 (MVP) | App-Grundgerüst mit LOOXIS-Design (Layout, Basis-Komponenten) | Planned |
+| P0 (MVP) | App-Grundgerüst mit LOOXIS-Design (Layout, Basis-Komponenten) | Architected |
 | P0 (MVP) | Knowledge-Authoring-Kit (Ordnerstruktur, Vorlagen, Anleitung, KI-Skill) | Roadmap |
 | P0 (MVP) | Knowledge Base einlesen und prüfen (Frontmatter validieren, Prüfbefehl) | Roadmap |
 | P0 (MVP) | Deterministische Knowledge-Auswahl | Roadmap |
@@ -60,6 +60,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **Nutzererfassung im MVP:** fest hinterlegte Namensliste (Kerstin, Etienne, Nele, Cara, Johannes), Auswahl einmal pro Browser per Dropdown, gewählter Nutzer dauerhaft in der UI sichtbar. Die Liste wandert mit der Benutzerverwaltung in die Datenbank.
 - **LLM:** Start mit OpenAI per API. Die App bleibt anbieterneutral, Modell und Anbieter müssen austauschbar und vergleichbar sein. Ticketinhalte mit Kundendaten gehen an den Anbieter; ein Auftragsverarbeitungsvertrag ist Voraussetzung.
 - **Knowledge Base:** Struktur fest nach `docs/KNOWLEDGE_BASE_DESIGN.md`, Ablage in `knowledge/` als Markdown mit YAML-Frontmatter, Git als Versionshistorie. Gold-Testfälle liegen getrennt in `evaluation/` und dienen nie als Retrieval-Wissen. Fachliche Regeln stehen nicht im Prompt.
+- **Geltungsbereich von Knowledge:** Dokumente können über die Frontmatter-Felder `customer_types` (`b2c`, `b2b`) und `sales_channels` (`shop`, `amazon`) auf Kundenart und Vertriebskanal eingeschränkt sein; leer heißt „gilt für alle". Die Knowledge-Auswahl berücksichtigt beide Merkmale. Offen ist, woher die App Kundenart und Kanal eines Falls kennt (EOCS-Bestelldaten oder Angabe des Mitarbeiters); eine automatische Fachhändler-Erkennung bleibt Non-Goal. Zu klären im Spec der Knowledge-Auswahl.
 - **Design system: see `docs/design-system.md`** (LOOXIS Design System). Die Tokens sind für Tailwind v3 notiert und werden auf Tailwind v4 (`@theme` in `resources/css/app.css`) übertragen.
 - **Sprache:** Oberfläche deutsch, Antwortentwurf in der Sprache der Kundenanfrage.
 - **Offener Punkt:** Der Umfang der EOCS-API ist ungeklärt. Die Anbindung bleibt P0; das manuelle Ergänzen von Bestelldaten sichert den Termin ab.

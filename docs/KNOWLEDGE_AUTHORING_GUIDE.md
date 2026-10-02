@@ -88,6 +88,35 @@ Die App wählt Dokumente über **exakte Übereinstimmung** dieser Werte aus. `3d
 
 `topics`: frei, aber sparsam. Zwei bis vier Werte pro Dokument, die das Fallmuster benennen (z. B. `customer-configuration`, `photo-quality`, `replacement`, `refund`).
 
+### Geltungsbereich: `customer_types`, `sales_channels`
+
+Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das im Frontmatter. Die App berücksichtigt beide Felder bei der Auswahl, damit z. B. ein B2B-Fall von Anfang an die B2B-Regeln erhält und keine Regeln, die nur für Privatkunden gelten.
+
+`customer_types` – feste Werte:
+
+| Wert | Bedeutung |
+|---|---|
+| `b2c` | Privatkunde |
+| `b2b` | Geschäftskunde (Firmen, Fachhändler, Wiederverkäufer) |
+
+`sales_channels` – feste Werte:
+
+| Wert | Bedeutung |
+|---|---|
+| `shop` | eigener Online-Shop |
+| `amazon` | Amazon |
+
+Regeln:
+
+- **Leer heißt: gilt für alle.** Die Felder nur füllen, wenn das Dokument wirklich eingeschränkt ist. Ein Dokument für beide Kundenarten lässt `customer_types` leer, statt beide Werte aufzuzählen.
+- Beide Felder sind YAML-Listen und unabhängig voneinander: `customer_types: [b2b]` mit leerem `sales_channels` gilt für Geschäftskunden auf allen Kanälen.
+- Unterscheidet sich eine Regel je Kundenart oder Kanal deutlich, **zwei Dokumente** schreiben (eines je Geltungsbereich) statt eines Dokuments mit „bei B2B gilt abweichend …". Kleine Abweichungen dürfen als Ausnahme im Text bleiben; dann bleiben die Felder leer.
+- Der Geltungsbereich steht zusätzlich in einem Satz am Anfang des Textes (z. B. „Gilt nur für Geschäftskunden."), damit die Datei auch für Menschen eindeutig ist. Frontmatter und Text müssen dasselbe sagen.
+- Frage beim Erfassen jeder Policy, Permission und jedes Playbooks ausdrücklich: „Gilt das für alle Kunden und Kanäle, oder nur für bestimmte?"
+- Einen weiteren Kanal oder eine weitere Kundenart nicht selbst erfinden, sondern als neuen Wert vorschlagen.
+
+Bestehende Dokumente, die ihren Geltungsbereich bisher nur im Text nennen, erhalten die passenden Felder nachträglich; der Text bleibt.
+
 ### Permissions
 
 Kritische Grenzen gehören maschinenlesbar ins Frontmatter, nicht nur in den Text: `action`, `agent_allowed` (`true`/`false`), `max_value_eur` (Zahl ohne Währungszeichen), `approval_role`. Ist eine Grenze nicht bekannt, nachfragen.
@@ -134,6 +163,7 @@ Heute möchte ich erfassen:
 - `id` ist neu und folgt dem Schema.
 - `status: draft`.
 - Alle Schlagwörter sind vorhandene Werte oder ausdrücklich als neu genannt.
+- `customer_types` und `sales_channels` sind gesetzt, wenn das Dokument eingeschränkt gilt, sonst leer; der Text nennt denselben Geltungsbereich.
 - Jede Aussage stammt vom Autor; nichts ist ergänzt oder geschätzt.
 - Keine personenbezogenen Daten.
 - Verweise zeigen nur auf bekannte IDs.
