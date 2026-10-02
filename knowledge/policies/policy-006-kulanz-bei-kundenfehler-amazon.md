@@ -1,59 +1,53 @@
 ---
 id: POLICY-006
-title: Kulanz bei Kundenfehlern auf Amazon
+title: Kulanz-Nachbestellung bei Kundenfehlern auf Amazon
 type: policy
 status: draft
 customer_types:
-  - b2c
+- b2c
 sales_channels:
-  - amazon
-products:
+- amazon
 categories:
-  - complaint
+- complaint
+- order-process-question
 topics:
-  - customer-configuration
-  - goodwill
-  - reorder
+- customer-configuration
+- goodwill
+- reorder
 related_knowledge:
-  - POLICY-001
-  - POLICY-004
+- POLICY-007
+- POLICY-009
+- PERMISSION-003
+- PROCESS-002
+products:
 ---
 
 Gilt nur für Privatkunden auf Amazon.
 
 # Regel
 
-Auch bei einem eindeutigen Bestellfehler durch den Kunden bietet LOOXIS eine Kulanzlösung an: Der Kunde bestellt den Artikel erneut mit den korrekten Angaben und teilt dem Kundenservice die neue Bestellnummer mit. LOOXIS gewährt einen Rabatt auf diese Nachbestellung.
-
-Der Rabatt bezieht sich auf die neue Bestellung, nicht auf eine Erstattung der ursprünglichen Bestellung.
-
-# Gilt wenn
-
-Der Bestellfehler des Kunden ist anhand der Bestellung oder Kundenkonfiguration eindeutig festgestellt. Bei ungeklärter Ursache darf nicht allein aufgrund einer Vermutung ein Kundenfehler behauptet werden.
+Bei einem eindeutigen kundenverursachten Bestell- oder Dateifehler wird eine vergünstigte korrigierte Neuanfertigung über eine neue Kundenbestellung und eine anschließende Teilerstattung abgewickelt.
 
 # Vorgehen
 
-1. Kundenart und Vertriebskanal nach POLICY-004 feststellen.
-2. Den Kundenfehler anhand der Bestellung oder Konfiguration prüfen.
-3. Die korrekten Angaben für die Nachbestellung klären.
-4. Den Kunden bitten, korrekt neu zu bestellen und anschließend die neue Bestellnummer mitzuteilen.
-5. Die Nachbestellung zuordnen und den vereinbarten Rabatt nach dem noch zu bestätigenden Abwicklungsweg gewähren.
+1. Fehler und benötigte Korrektur feststellen; bei Farbe und Helligkeit PROCESS-002 anwenden.
+2. Bei notwendiger Bildkorrektur eine korrigierte Datei bereitstellen, beispielsweise aufgehellt oder mit angepasstem Farbstich.
+3. Den Kunden bitten, mit den korrekten Angaben und, falls eine Bildkorrektur nötig ist, mit dieser korrigierten Datei neu zu bestellen.
+4. Den Kunden bitten, anschließend die neue Bestellnummer mitzuteilen, und die Bestellung zuordnen.
+5. Den vereinbarten Preisnachlass nach POLICY-007 als Teilerstattung auf der neuen Bestellung abwickeln. Zeitpunkt und Zahlungsweg richten sich nach POLICY-009; die Freigabe richtet sich nach PERMISSION-003.
+
+# Fehler vermeiden
+
+Eine Neubestellung mit unveränderter beanstandeter Datei kann das bisherige Ergebnis wiederholen. Eine erforderliche Dateikorrektur darf deshalb nicht durch die bloße Zusage eines Rabatts ersetzt werden.
 
 # Abgrenzung
 
-Das Kulanzangebot ist keine Anerkennung eines eigenen Produktionsfehlers. Es ist keine Rücknahme gegen Erstattung wegen Nichtgefallen nach POLICY-001 und keine kostenlose Ersatzlieferung.
-
-Die Shop-Pauschale und der dort genannte Erfahrungswert von 50 bis 80 Prozent sind keine Grundlage für die Amazon-Rabatthöhe.
+Die Teilerstattung gehört zur neuen Bestellung. Sie ist keine Rückabwicklung der ursprünglichen Bestellung und keine kostenlose Ersatzlieferung aufgrund eines eigenen Produktionsfehlers.
 
 # Noch nicht entscheidbar
 
-Ist der Kundenfehler nicht eindeutig, die Bestellung intern prüfen. Fehlen Korrekturangaben oder die neue Bestellnummer, diese gezielt beim Kunden erfragen.
+Fehlen die korrigierten Angaben oder die neue Bestellnummer, diese gezielt beim Kunden erfragen. Ist die neue Ware noch nicht verschickt, ist eine Teilerstattung noch nicht möglich.
 
-Die Rabatthöhe, deren Freigabebefugnis und die technische Abwicklung sind noch nicht festgelegt. Ohne bestätigte Grundlage darf kein konkreter Rabattbetrag oder Prozentsatz zugesagt werden.
+# Offener Sonderfall
 
-# Noch zu klären
-
-- Höhe und Berechnung des Rabatts.
-- Befugnis zur Festlegung des Rabatts.
-- Technische Abwicklung; insbesondere ist offen, ob eine nachträgliche Erstattung auf der neuen Bestellung erforderlich ist.
-- Falls eine Erstattung zur Rabattabwicklung erfolgt: Verhältnis dieser Maßnahme zur Erstattungsbefugnis PERMISSION-001.
+Der Ablauf zur Wiederverwendung einer vorhandenen Interpretation auf Amazon ist nicht entschieden. Der Nicht-Amazon-Prozess PROCESS-001 darf nicht automatisch auf Amazon übertragen werden.

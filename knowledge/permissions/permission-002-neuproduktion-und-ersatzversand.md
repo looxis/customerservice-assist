@@ -3,42 +3,40 @@ id: PERMISSION-002
 title: Regelkonforme Neuproduktion und Ersatzversand ohne Wertgrenze
 type: permission
 status: draft
-customer_types:
-sales_channels:
 action: replacement
 agent_allowed: true
 max_value_eur:
 approval_role:
+topics:
+- replacement
+- goodwill
+related_knowledge:
+- POLICY-005
+- POLICY-007
+- POLICY-008
+- PROCESS-001
+customer_types:
+sales_channels:
 products:
 categories:
-topics:
-  - replacement
-related_knowledge:
-  - POLICY-002
-  - POLICY-003
-  - POLICY-004
-  - POLICY-005
-  - POLICY-006
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle.
 
 # Befugnis
 
-Der Kundenservice darf eine regelkonforme Neuproduktion und den zugehörigen Ersatzversand unabhängig vom Warenwert selbst zusagen. Eine Geschäftsführerfreigabe allein wegen des Warenwerts ist dafür nicht erforderlich.
+Der Kundenservice darf eine regelkonforme Neuproduktion und den zugehörigen Ersatzversand unabhängig vom ursprünglichen Produktpreis selbst zusagen. Eine Geschäftsführerfreigabe allein wegen des Produktpreises ist nicht erforderlich.
 
 # Grenzen
 
-Die Maßnahme muss durch eine für Kundenart und Vertriebskanal anwendbare fachliche Regel gedeckt sein. Diese Befugnis begründet keinen Anspruch auf kostenlosen Ersatz und darf kostenpflichtige Kulanzlösungen nicht in kostenlose Leistungen umwandeln.
+Die Maßnahme muss durch eine anwendbare fachliche Regel gedeckt sein. Diese Befugnis macht eine kostenpflichtige Kulanzlösung nicht kostenlos und hebt einen vorgeschriebenen Bestellweg nicht auf.
 
-Die Prüfung von Kundenart und Vertriebskanal richtet sich nach POLICY-004. Noch nicht bestätigte B2B-Regeln werden durch diese Befugnis nicht ergänzt.
-
-Die Befugnis umfasst keine eigenständige Festlegung von Rabatthöhen oder Kostenpauschalen für Kulanzlösungen nach POLICY-005 und POLICY-006; deren Berechnung und Freigabe sind noch zu klären.
+Der Kundenservice wählt die bestätigten Kulanzrabatte nach POLICY-007 beziehungsweise POLICY-008 innerhalb des dort genannten Rahmens nach Ermessen. Die Ausnahme für günstige Fachhändlerprodukte und der Vorrang von PROCESS-001 bleiben verbindlich.
 
 # Wertgrenze
 
-Es gibt ausdrücklich keine monetäre Obergrenze. Das leere Feld `max_value_eur` bedeutet in diesem Dokument keine Wertgrenze, nicht null Euro. Eine Anwendung darf daraus keine allgemeine Bedeutung leerer Grenzwerte für andere Permissions ableiten.
+Es gibt keine monetäre Obergrenze. Das leere Feld `max_value_eur` bezeichnet in dieser Datei eine ausdrücklich unbegrenzte Befugnis; es bezeichnet weder null Euro noch eine unbekannte Grenze.
 
 # Hinweise
 
-Erstattungen sind eine andere Maßnahme und richten sich nach PERMISSION-001. Der ausdrückliche Erstattungswunsch ist keine Voraussetzung für das Angebot einer passenden Ersatzlösung.
+Reguläre Erstattungen richten sich nach PERMISSION-001. Amazon-Teilerstattungen zur Abwicklung einer Kulanz-Nachbestellung richten sich nach PERMISSION-003. Das Angebot einer passenden Ersatzlösung setzt keinen Erstattungswunsch voraus.

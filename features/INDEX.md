@@ -40,7 +40,7 @@ The ID order is the recommended build order (exception: PROJ-24 was added later 
 | PROJ-21 | Bildanalyse | Reklamationsfotos vom LLM mitbewerten lassen | P2 | PROJ-9 | Roadmap | – | 2026-10-02 |
 | PROJ-22 | Semantisches Retrieval | Knowledge-Auswahl um Embeddings ergänzen | P2 | PROJ-4 | Roadmap | – | 2026-10-02 |
 | PROJ-23 | Entwurfs-Wissen bestätigen | Ein Admin stellt ein `draft`-Dokument nach guten Testergebnissen per Klick auf `active` | P1 | PROJ-3, PROJ-10 | Roadmap | – | 2026-10-02 |
-| PROJ-24 | Knowledge-Übersicht | Seite in der App: alle Dokumente mit ID, Typ, Status und Geltungsbereich, Fehler und Warnungen je Datei, Kopier-Button für die ID-Übersicht | P0 | PROJ-1, PROJ-3 | Roadmap | – | 2026-10-02 |
+| PROJ-24 | Knowledge-Übersicht | Seite in der App: alle Dokumente mit ID, Typ, Status und Geltungsbereich, Fehler und Warnungen je Datei, Kopier-Button für die ID-Übersicht | P0 | PROJ-1, PROJ-3 | Planned | [Spec](PROJ-24-knowledge-uebersicht.md) | 2026-10-02 |
 
 <!-- Add features above this line -->
 

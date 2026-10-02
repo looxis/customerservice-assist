@@ -1,59 +1,45 @@
 ---
 id: POLICY-005
-title: Kulanz bei Kundenfehlern im eigenen Onlineshop
+title: Kostenpflichtige Kulanz-Neuanfertigung für Privatkunden im Shop
 type: policy
 status: draft
 customer_types:
-  - b2c
+- b2c
 sales_channels:
-  - shop
-products:
+- shop
 categories:
-  - complaint
+- complaint
+- order-process-question
 topics:
-  - customer-configuration
-  - goodwill
-  - replacement
+- customer-configuration
+- goodwill
+- replacement
 related_knowledge:
-  - POLICY-001
-  - POLICY-004
-  - PERMISSION-002
+- POLICY-007
+- PERMISSION-002
+- PROCESS-001
+products:
 ---
 
 Gilt nur für Privatkunden im eigenen LOOXIS-Onlineshop.
 
 # Regel
 
-Auch bei einem eindeutigen Bestellfehler durch den Kunden bietet LOOXIS eine Kulanzlösung an: LOOXIS veranlasst die korrigierte Neuanfertigung gegen Zahlung einer Bearbeitungs- und Versandkostenpauschale. Der Kunde muss für diesen beschriebenen Weg keine neue Shop-Bestellung aufgeben.
+Bei einem eindeutigen kundenverursachten Bestell- oder Dateifehler bietet LOOXIS eine vergünstigte korrigierte Neuanfertigung an. Der Kundenservice legt den Auftrag an; eine eigenständige Neubestellung durch den Kunden ist für diesen Weg nicht erforderlich.
 
-Die Pauschale muss die eigenen Kosten der Neuanfertigung und des erneuten Versands decken. Sie liegt nach der bisherigen Erfahrung häufig bei 50 bis 80 Prozent des ursprünglichen Preises. Dies ist ein Erfahrungswert, keine feste Prozentregel, keine Obergrenze und keine Zusage für jeden Artikel.
+# Preis
 
-# Gilt wenn
-
-Der Bestellfehler des Kunden ist anhand der Bestellung oder Kundenkonfiguration eindeutig festgestellt. Bei ungeklärter Ursache darf nicht allein aufgrund einer Vermutung ein Kundenfehler behauptet werden.
+Der Preisnachlass richtet sich nach POLICY-007. Der frühere Erfahrungswert einer Pauschale von 50 bis 80 Prozent ist durch die dort bestätigte Rabattregel ersetzt.
 
 # Vorgehen
 
-1. Kundenart und Vertriebskanal nach POLICY-004 feststellen.
-2. Den Kundenfehler anhand der Bestellung oder Konfiguration prüfen.
-3. Die korrekten Angaben für die neue Fertigung klären.
-4. Die kostenpflichtige Neuanfertigung als Kulanzlösung anbieten.
-5. Vor einer verbindlichen Preiszusage die konkrete Pauschale anhand eines bestätigten Berechnungs- und Freigabewegs bestimmen.
+1. Kundenfehler und korrekte Angaben feststellen.
+2. Bei Farb- oder Helligkeitsbeanstandungen PROCESS-002 berücksichtigen.
+3. Preisnachlass nach POLICY-007 festlegen und den vergünstigten Auftrag anlegen.
+4. Soll eine vorhandene Interpretation reproduziert werden, PROCESS-001 anwenden.
 
-# Abgrenzung
+Eine Zahlungsanforderung kann per Mollie-Link erfolgen, wenn der Kunde direkt per E-Mail angeschrieben werden kann. Diese Policy legt keine konkrete Zahlungsfrist fest.
 
-Das Kulanzangebot ist keine Anerkennung eines eigenen Produktionsfehlers. Es ist keine Rücknahme gegen Erstattung wegen Nichtgefallen nach POLICY-001 und keine kostenlose Ersatzlieferung.
+# Abgrenzung und Befugnis
 
-Die Befugnis zur regelkonformen Neuproduktion richtet sich nach PERMISSION-002. Daraus folgt noch keine Befugnis, eine beliebige Kostenpauschale festzulegen.
-
-# Noch nicht entscheidbar
-
-Ist der Kundenfehler nicht eindeutig oder sind die korrekten Angaben unvollständig, die Bestellung intern prüfen und fehlende Korrekturangaben gezielt beim Kunden erfragen.
-
-Ohne bestätigte Kostenberechnung darf kein konkreter Betrag erfunden werden. Die zuständige Rolle für die Preisfestlegung ist noch zu klären.
-
-# Noch zu klären
-
-- Berechnungsgrundlage und Zuständigkeit für die Pauschale.
-- Freigabebefugnis für die Preisentscheidung.
-- Zahlungsablauf und Zeitpunkt der Neuproduktion.
+Das Kulanzangebot ist keine Anerkennung eines eigenen Produktionsfehlers und keine kostenlose Ersatzlieferung. Die Neuproduktionsbefugnis richtet sich nach PERMISSION-002.

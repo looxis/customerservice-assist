@@ -21,7 +21,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | App-Grundgerüst mit LOOXIS-Design (Layout, Basis-Komponenten) | Approved |
 | P0 (MVP) | Knowledge-Authoring-Kit (Ordnerstruktur, Vorlagen, Anleitung, KI-Skill) | Approved |
 | P0 (MVP) | Knowledge Base einlesen und prüfen (Frontmatter validieren, Prüfbefehl, ID-Übersicht) | Approved |
-| P0 (MVP) | Knowledge-Übersicht (Seite mit Dokumenten, Prüfergebnis, ID-Übersicht zum Kopieren) | Roadmap |
+| P0 (MVP) | Knowledge-Übersicht (Seite mit Dokumenten, Prüfergebnis, ID-Übersicht zum Kopieren) | Planned |
 | P0 (MVP) | Deterministische Knowledge-Auswahl | Roadmap |
 | P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Roadmap |
 | P0 (MVP) | Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Roadmap |
@@ -63,7 +63,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **LLM:** Start mit OpenAI per API. Die App bleibt anbieterneutral, Modell und Anbieter müssen austauschbar und vergleichbar sein. Ticketinhalte mit Kundendaten gehen an den Anbieter; ein Auftragsverarbeitungsvertrag ist Voraussetzung.
 - **Knowledge Base:** Struktur fest nach `docs/KNOWLEDGE_BASE_DESIGN.md`, Ablage in `knowledge/` als Markdown mit YAML-Frontmatter, Git als Versionshistorie. Gold-Testfälle liegen getrennt in `evaluation/` und dienen nie als Retrieval-Wissen. Fachliche Regeln stehen nicht im Prompt.
 - **Geltungsbereich von Knowledge:** Dokumente können über die Frontmatter-Felder `customer_types` (`b2c`, `b2b`) und `sales_channels` (`shop`, `amazon`) auf Kundenart und Vertriebskanal eingeschränkt sein; leer heißt „gilt für alle". Die Knowledge-Auswahl berücksichtigt beide Merkmale. Offen ist, woher die App Kundenart und Kanal eines Falls kennt (EOCS-Bestelldaten oder Angabe des Mitarbeiters); eine automatische Fachhändler-Erkennung bleibt Non-Goal. Zu klären im Spec der Knowledge-Auswahl.
-- **Entwurfs-Wissen:** Abweichend vom Design-Dokument („nur `active` wird produktiv verwendet") verwendet die App auch `draft`-Dokumente und kennzeichnet sie im Ergebnis als Entwurfs-Wissen. So lässt sich neues Wissen an fiktiven oder echten Fällen testen; was gute Ergebnisse liefert, bestätigt ein Admin per Klick als `active`. `deprecated` wird nie verwendet. Offen und in den Specs zu klären: wie der Klick die Datei im Git-Repository ändert, wer ohne Login als Admin gilt, und ob Entwurfs-Wissen im Alltag der Aushilfen ausgeblendet werden soll.
+- **Entwurfs-Wissen:** Abweichend vom Design-Dokument („nur `active` wird produktiv verwendet") verwendet die App auch `draft`-Dokumente und kennzeichnet sie im Ergebnis als Entwurfs-Wissen. So lässt sich neues Wissen an fiktiven oder echten Fällen testen; was gute Ergebnisse liefert, bestätigt ein Admin per Klick als `active`. `deprecated` wird nie verwendet. Entwurfs-Wissen ist bewusst für alle sichtbar, auch für Aushilfen: Ihr unvoreingenommener Blick soll Schwächen in Entwürfen aufdecken. Offen und in den Specs zu klären: wie der Klick die Datei im Git-Repository ändert und wer ohne Login als Admin gilt.
 - **Design system: see `docs/design-system.md`** (LOOXIS Design System). Die Tokens sind für Tailwind v3 notiert und werden auf Tailwind v4 (`@theme` in `resources/css/app.css`) übertragen.
 - **Sprache:** Oberfläche deutsch, Antwortentwurf in der Sprache der Kundenanfrage.
 - **Offener Punkt:** Der Umfang der EOCS-API ist ungeklärt. Die Anbindung bleibt P0; das manuelle Ergänzen von Bestelldaten sichert den Termin ab.

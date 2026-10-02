@@ -1,47 +1,45 @@
 ---
 id: PERMISSION-001
-title: Erstattungen durch den Kundenservice bis 35 Euro
+title: Reguläre Erstattungen bei ursprünglichem Produktpreis bis 35 Euro
 type: permission
 status: draft
-customer_types:
-sales_channels:
 action: refund
 agent_allowed: true
 max_value_eur: 35
+limit_basis: original-product-price
 approval_role: managing-director
+topics:
+- refund
+- sales-channel
+related_knowledge:
+- PERMISSION-003
+- POLICY-004
+customer_types:
+sales_channels:
 products:
 categories:
-topics:
-  - refund
-related_knowledge:
-  - POLICY-001
-  - POLICY-002
-  - POLICY-003
-  - POLICY-004
 ---
 
-Gilt für alle Kundenarten und Vertriebskanäle.
+Gilt für alle Kundenarten und Vertriebskanäle; die besondere Amazon-Kulanzbefugnis ist in PERMISSION-003 geregelt.
 
 # Befugnis
 
-Der Kundenservice darf eine regelkonforme Erstattung bis einschließlich 35 Euro selbst entscheiden, wenn der Kunde ausdrücklich eine Erstattung verlangt und die App diese aufgrund der anwendbaren Regeln empfiehlt.
+Der Kundenservice darf eine fachlich regelkonforme reguläre Erstattung selbst entscheiden, wenn der Kunde diese ausdrücklich verlangt und der ursprüngliche Produktpreis höchstens 35 Euro beträgt.
 
 # Grenzen
 
-Die Wertgrenze betrifft den Erstattungsbetrag, nicht automatisch den gesamten Bestellwert. Die Befugnis begründet keinen Anspruch auf Erstattung und ersetzt nicht die fachliche Prüfung.
+Die Grenze bezieht sich auf den ursprünglichen Produktpreis, nicht auf den ausgezahlten Erstattungsbetrag und nicht auf den gesamten Bestellwert. Eine kleine Teilerstattung für ein Produkt über 35 Euro liegt deshalb nicht automatisch innerhalb dieser Befugnis.
 
-Eine lediglich vermutete Erstattungsabsicht des Kunden genügt nicht. Gesetzliche Ansprüche bleiben unberührt; diese Befugnis regelt die interne Freigabe.
-
-Kundenart und Vertriebskanal sind nach POLICY-004 zu prüfen. Ohne anwendbare fachliche Regel darf die App allein aus dem Betrag keine Erstattungsfreigabe ableiten. Dies gilt auch bei B2B.
+Die Befugnis ersetzt nicht die fachliche Prüfung nach den für Kundenart und Kanal geltenden Regeln. Eine vermutete Erstattungsabsicht genügt nicht. Gesetzliche Ansprüche bleiben unberührt.
 
 # Freigabe erforderlich wenn
 
-Der Erstattungsbetrag über 35 Euro liegt. Vor der Freigabe darf der Kundenservice die Erstattung nicht verbindlich zusagen.
+Der ursprüngliche Produktpreis über 35 Euro liegt. Zuständig ist der Geschäftsführer. Eine freigabepflichtige Erstattung darf vorher nicht verbindlich zugesagt werden.
 
-# Zuständige Rolle
+# Ausnahme
 
-Geschäftsführer. Maschinenlesbarer Rollenwert: `managing-director`.
+Für die vereinbarte Amazon-Teilerstattung auf eine Kulanz-Nachbestellung gilt PERMISSION-003 statt dieser Wertgrenze.
 
 # Noch nicht entscheidbar
 
-Ohne feststehenden Erstattungsbetrag lässt sich die Freigabepflicht nicht bestimmen. Den zur Entscheidung stehenden Eurobetrag zuerst klären; unbekannte Beträge nicht als null behandeln.
+Ist der ursprüngliche Produktpreis unbekannt, ist er anhand der Originalbestellung intern festzustellen. Ein unbekannter Preis darf nicht als null behandelt werden.
