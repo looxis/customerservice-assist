@@ -1,6 +1,6 @@
 # PROJ-1: App-Grundgerüst mit LOOXIS-Design
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-02
 
@@ -84,8 +84,8 @@ Grundlage ist `docs/design-system.md` (LOOXIS Design System). Alle Farb-, Schrif
 - Die Tokens des Design Systems sind für Tailwind v3 notiert und werden auf Tailwind v4 übertragen (Projektvorgabe aus dem PRD).
 
 ## Open Questions
-- [ ] Woher kommt die Versionsangabe im Sidebar-Fuß (feste Nummer, Git-Stand, Datum des Deployments)? Zu klären in `/architecture`.
-- [ ] `slate-500` (#8a8f9a) auf Weiß erreicht für kleinen Sekundärtext nicht den üblichen Mindestkontrast. Wert unverändert aus dem Content Studio übernehmen oder für diese App nachschärfen?
+- [x] Woher kommt die Versionsangabe im Sidebar-Fuß? → Git-Stand beim Deployment (Kurz-Hash und Datum), siehe Technical Decisions.
+- [x] Kontrast von `slate-500` (#8a8f9a, ca. 3,2:1 auf Weiß)? → Sekundärtext verwendet in dieser App `slate-600` (ca. 4,9:1); die Palette bleibt unverändert.
 
 ## Decision Log
 
@@ -105,12 +105,113 @@ Grundlage ist `docs/design-system.md` (LOOXIS Design System). Alle Farb-, Schrif
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Reines Frontend-Feature: keine Datenbanktabelle, kein Controller mit Logik | Das Grundgerüst zeigt nur statische Seiten; Daten entstehen erst ab PROJ-5/PROJ-6 | 2026-10-02 |
+| Web-Routen, die direkt eine Blade-Ansicht zurückgeben | Beide Seiten sind vollständige HTML-Seiten ohne Eingaben; ein JSON-Client existiert nicht | 2026-10-02 |
+| Ein gemeinsames Seitenlayout als Blade-Komponente, Sidebar und Topbar als eigene Teile | Jede spätere Seite bekommt die Shell durch eine einzige Zeile; Änderungen an Navigation oder Topbar passieren an genau einer Stelle | 2026-10-02 |
+| Design-Tokens CSS-first im Tailwind-v4-Theme (`resources/css/app.css`), nicht in einer Konfigurationsdatei | Projektvorgabe; die v3-Notation aus `docs/design-system.md` wird einmalig übertragen | 2026-10-02 |
+| Tailwinds Standardfarben werden abgeschaltet, nur die LOOXIS-Palette ist verfügbar | Erzwingt „Tokens statt Hex-Werte": Eine Klasse wie `bg-indigo-600` existiert schlicht nicht und kann sich nicht einschleichen | 2026-10-02 |
+| Schriften als Fontsource-Pakete, vom Build-Werkzeug mit ausgeliefert | Selbst gehostet ohne Handarbeit mit Schriftdateien; Updates über die normale Paketverwaltung; kein Abruf bei Google | 2026-10-02 |
+| Icons als eine einzige Blade-Komponente mit eingebetteten SVG-Pfaden | Wie im Content Studio; keine Icon-Bibliothek, kein zusätzlicher Download, Farbe folgt dem Text | 2026-10-02 |
+| Formularfelder teilen sich eine gemeinsame Hülle für Label, Pflichtstern, Hinweis und Fehlermeldung | Input, Textarea und Select verhalten sich garantiert gleich; die Fehlerdarstellung wird einmal gebaut | 2026-10-02 |
+| Felder zeigen Validierungsfehler automatisch anhand ihres Feldnamens | Passt zu Laravel Form Requests (Projektkonvention): spätere Formulare brauchen keine eigene Fehlerlogik | 2026-10-02 |
+| Lade-Overlay als Alpine.js-Baustein, der über ein Seitenereignis ein- und ausgeschaltet wird | Jedes spätere Formular (Ticket laden, Analyse starten) kann es ohne eigene Kopie auslösen | 2026-10-02 |
+| Komponenten-Übersicht wird nur in der lokalen Umgebung als Route registriert | Produktiv existiert die Adresse nicht und liefert von selbst „Nicht gefunden"; kein Schalter, der vergessen werden kann | 2026-10-02 |
+| Fehlerseiten nutzen ein eigenes, schlankes Layout ohne Sidebar | Eine Fehlerseite darf nicht von Teilen abhängen, die selbst den Fehler verursacht haben könnten | 2026-10-02 |
+| Versionsangabe = Git-Kurz-Hash und Datum, beim Deployment einmal ermittelt und als Konfigurationswert hinterlegt; lokal steht „dev" | Pflegefrei und eindeutig; kein Git-Aufruf bei jedem Seitenaufruf. Das Schreiben des Werts ist Aufgabe von `/deploy` | 2026-10-02 |
+| Sekundärtext, Feld-Hinweise und Tabellenköpfe in `slate-600` statt `slate-500` | `slate-500` erreicht nur ca. 3,2:1 Kontrast auf Weiß, `slate-600` ca. 4,9:1; Abweichung ist in `docs/design-system.md` vermerkt | 2026-10-02 |
+| App-Sprache auf Deutsch gestellt | Seitenauszeichnung, Fehlerseiten und spätere Validierungsmeldungen erscheinen deutsch | 2026-10-02 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-1 ist ein reines Oberflächen-Feature. Es entstehen ein Seitenlayout, neun wiederverwendbare Bausteine, zwei Seiten und zwei Fehlerseiten. Es gibt keine Datenbank, keine Formularverarbeitung und keine Anbindung an andere Systeme. Ein `/backend`-Durchlauf ist für dieses Feature nicht nötig.
+
+### A) Aufbau der Oberfläche
+
+```
+Seitenlayout (für alle normalen Seiten)
++-- Sidebar (ab 768 px sichtbar)
+|   +-- Kopf: App-Name
+|   +-- Navigation
+|   |   +-- Navigationspunkt „Ticket analysieren" (aktiv hervorgehoben)
+|   +-- Fuß: Versionsangabe
++-- Hauptbereich
+    +-- Topbar
+    |   +-- Seitentitel (links, wird bei Überlänge gekürzt)
+    |   +-- Platz für Nutzeranzeige (rechts, leer bis PROJ-5)
+    +-- Inhaltsbereich (scrollt, zentriert, Breite je Seite wählbar)
+    |   +-- Meldungsbereich (Alerts nach Aktionen)
+    |   +-- Seiteninhalt
+    +-- Lade-Overlay (unsichtbar, bis es ausgelöst wird)
+
+Seite „Ticket analysieren" (Startseite)
++-- Karte mit Platzhalterhinweis
+
+Seite „Komponenten-Übersicht" (nur lokal)
++-- Abschnitt je Baustein mit allen Varianten und Zuständen
+    +-- Farben und Schriften
+    +-- Karte
+    +-- Buttons (primary, secondary, danger, deaktiviert, mit Icon)
+    +-- Formularfelder (normal, mit Hinweis, Pflichtfeld, Fehler)
+    +-- Badges (vier Töne, kompakt)
+    +-- Alerts (vier Typen)
+    +-- Icon-Set (alle 27)
+    +-- Lade-Overlay (Button zum Auslösen)
+
+Fehler-Layout (schlank, ohne Sidebar)
++-- Seite „Nicht gefunden" mit Link zur Startseite
++-- Seite „Fehler auf dem Server"
+```
+
+**Wiederverwendbare Bausteine:** Seitenlayout, Navigationspunkt, Karte, Button, Input, Textarea, Select, Feld-Hülle (Label, Pflichtstern, Hinweis, Fehlermeldung), Badge, Alert, Icon, Lade-Overlay.
+
+Im Repository existieren bisher keine Bausteine; nur die Laravel-Willkommensseite, die durch die Startseite ersetzt wird.
+
+### B) Daten
+Es wird nichts gespeichert. Die einzigen „Daten" sind zwei Konfigurationswerte:
+
+- **App-Name** – bereits vorhanden („Customer Service Assist"), erscheint in Sidebar und Browser-Titel.
+- **Versionsangabe** – Kurz-Hash und Datum des ausgelieferten Standes. Wird beim Deployment einmal gesetzt; in der lokalen Entwicklung steht dort „dev".
+
+### C) Wie die Seiten erreichbar sind
+
+| Adresse | Seite | Verfügbar |
+|---|---|---|
+| `/` | Ticket analysieren | immer |
+| `/styleguide` | Komponenten-Übersicht | nur lokale Entwicklung |
+| jede unbekannte Adresse | Nicht gefunden | immer |
+
+### D) Wichtigste Entscheidungen in Kürze
+- **Nur LOOXIS-Farben verfügbar.** Tailwinds eigene Farbpalette wird abgeschaltet. Wer versehentlich eine Standardfarbe verwendet, sieht sofort, dass sie nicht wirkt.
+- **Schriften kommen aus der App.** Sie werden als Pakete eingebunden und mit den übrigen Dateien ausgeliefert; es gibt keinen Abruf bei Google.
+- **Formularfelder kennen ihre Fehler selbst.** Schlägt später eine Validierung fehl, zeigt das Feld Ring und Meldung von allein an.
+- **Ein Lade-Overlay für alle.** Es sitzt im Layout und wird per Ereignis ausgelöst, statt in jedem Feature neu gebaut zu werden.
+- **Fehlerseiten stehen für sich.** Sie verwenden ein eigenes, minimales Layout, damit sie auch dann funktionieren, wenn im normalen Layout etwas kaputt ist.
+- **Sekundärtext ist eine Stufe dunkler** als im Content Studio (`slate-600`), wegen der Lesbarkeit.
+
+### E) Automatische Tests (Umfang für `/qa`)
+- Startseite antwortet, zeigt App-Name, Seitentitel und den aktiven Navigationspunkt; die Willkommensseite ist weg.
+- Komponenten-Übersicht ist lokal erreichbar und in der Produktivumgebung nicht.
+- Unbekannte Adresse liefert die deutsche „Nicht gefunden"-Seite mit Link zur Startseite.
+- Bausteine: Button-Varianten und deaktivierter Zustand, Feld mit Fehler (Meldung sichtbar, Hinweis ausgeblendet), Pflichtstern, Badge- und Alert-Töne, unbekannter Icon-Name bricht die Seite nicht ab.
+- Ausgelieferte Seite enthält keinen Verweis auf fremde Server.
+
+Darstellung, Schriften, Fokus-Ringe und das Verhalten bei 375/768/1440 px werden in `/qa` im Browser geprüft.
+
+### F) Abhängigkeiten (neue Pakete)
+- `@fontsource-variable/bricolage-grotesque` – Display-Schrift
+- `@fontsource-variable/manrope` – Fließtext-Schrift
+- `@fontsource-variable/jetbrains-mono` – Schrift für technische Werte
+
+Keine neuen PHP-Pakete. Alpine.js und Tailwind v4 sind bereits installiert.
+
+### G) Übergaben an andere Features
+- **PROJ-5** füllt den freien Bereich rechts in der Topbar.
+- **PROJ-6** ersetzt den Platzhalter der Startseite.
+- **`/deploy`** schreibt die Versionsangabe beim Ausliefern.
 
 ## QA Test Results
 _To be added by /qa_

@@ -4,6 +4,14 @@ Design-Tokens, Typografie, Icon-Set und Komponenten-Patterns aus **LOOXIS Conten
 
 **Referenz-Stack der Quelle:** Laravel + Blade, Tailwind CSS v3, Alpine.js. Die Tokens selbst sind stack-unabhängig (siehe [CSS-Variablen](#css-variablen-ohne-tailwind) für Projekte ohne Tailwind).
 
+## Abweichungen in Customer Service Assist
+
+Dieses Dokument ist unverändert aus dem Content Studio übernommen. Für diese App gelten drei Abweichungen (Entscheidungen aus PROJ-1):
+
+- **Sekundärtext in `slate-600` statt `slate-500`.** Überall, wo unten `text-slate-500` für Sekundärtext, Feld-Hinweise oder Tabellenköpfe steht, verwendet diese App `text-slate-600` (Kontrast auf Weiß ca. 4,9:1 statt 3,2:1). Die Palette selbst bleibt gleich.
+- **Tailwind CSS v4.** Die Tokens werden als `@theme` in `resources/css/app.css` definiert, nicht über die unten gezeigte `tailwind.config`. Tailwinds Standardfarben sind abgeschaltet.
+- **Schriften selbst gehostet.** Kein `<link>` zu Google Fonts; die drei Schriften werden als Pakete mit der App ausgeliefert.
+
 ## Inhalt
 
 1. [Grundprinzipien](#grundprinzipien)
