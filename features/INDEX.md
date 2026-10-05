@@ -13,7 +13,7 @@
 
 ## Features
 
-The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time; PROJ-28 is P0 and should be built right after PROJ-11). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
+The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time; PROJ-28 is P0 and should be built right after PROJ-11; PROJ-30 is P0 and is built after PROJ-10, its document type was built ahead). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
 
 | ID | Feature | Description | Priority | Dependencies | Status | Spec | Created |
 |----|---------|-------------|----------|--------------|--------|------|---------|
@@ -25,7 +25,7 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-6 | Zammad-Ticket laden | Ticketnummer eingeben, Ticket und Verlauf laden und anzeigen, Fehlerzustände behandeln | P0 | PROJ-1 | Approved | [Spec](PROJ-6-zammad-ticket-laden.md) | 2026-10-02 |
 | PROJ-7 | Bestellung aus EOCS laden | Bestellnummer im Ticket erkennen, EOCS abrufen, manuelle Bestellnummer, Bestelldaten anzeigen | P0 | PROJ-6 | Approved | [Spec](PROJ-7-bestellung-aus-eocs-laden.md) | 2026-10-02 |
 | PROJ-8 | Bestelldaten manuell ergänzen | Fehlende Bestell- und Konfigurationsdaten von Hand eintragen (Fallback) | P0 | PROJ-6 | Roadmap | – | 2026-10-02 |
-| PROJ-9 | Fallanalyse per LLM | Ticket, Bestelldaten, Mitarbeiterkontext und Knowledge an das LLM senden, feste Ergebnisstruktur validieren, „unklar" zulassen | P0 | PROJ-4, PROJ-6, PROJ-7, PROJ-8 | Roadmap | – | 2026-10-02 |
+| PROJ-9 | Fallanalyse per LLM | Ticket, Bestelldaten, Mitarbeiterkontext und Knowledge an das LLM senden, feste Ergebnisstruktur validieren (inkl. Fallkategorie und empfohlener Vorgänge aus der Vorgangsliste für PROJ-30), „unklar" zulassen | P0 | PROJ-4, PROJ-6, PROJ-7, PROJ-8 | Roadmap | – | 2026-10-02 |
 | PROJ-10 | Ergebnisansicht | Alle Ergebnisteile anzeigen, Antwortentwurf bearbeiten und kopieren, Knowledge-Quellen einsehen, Hinweis auf verwendetes Entwurfs-Wissen | P0 | PROJ-9 | Roadmap | – | 2026-10-02 |
 | PROJ-11 | Analyse-Protokoll und Verlauf | Jede Analyse reproduzierbar speichern, frühere Analysen je Ticket anzeigen, erneut analysieren | P0 | PROJ-5, PROJ-9 | Roadmap | – | 2026-10-02 |
 | PROJ-12 | Feedback und Wissenslücke | Vier-Stufen-Feedback mit optionalem Kommentar, Wissenslücke zur Analyse melden | P0 | PROJ-10, PROJ-11 | Roadmap | – | 2026-10-02 |
@@ -46,7 +46,8 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-27 | Einstellungen für die Mail-Anzeige | Seite „Einstellungen" in der App mit vier Listen, die die Ticketansicht (PROJ-6) statt der Konfiguration liest: zugelassene Adressen (je Eintrag „als Text anzeigen" oder „klickbar lassen"), unsere Signaturen in allen Varianten und Sprachen samt Syntax (werden bei unseren Nachrichten ausgeblendet; bisher gesammelte Varianten mit Namen in der PROJ-6-Spec) Textbausteine, ab denen der Rest einer Mail ausgeblendet wird, sowie die Formate der Bestellnummern je Kanal (Aufbau, Beispiel, Kanal; heute fest in `app/Orders/OrderNumberFormat.php`), mit Prüfung jedes Formats gegen Beispiele vor dem Speichern |  P1 | PROJ-6, PROJ-7 | Roadmap | – | 2026-10-05 |
 | PROJ-28 | Übersetzung von Nachrichten | Fremdsprachige Nachrichten (z. B. Italienisch, Französisch über Amazon) zusätzlich auf Deutsch anzeigen, Original bleibt; jede Übersetzung wird einmal erstellt und gespeichert, damit nicht bei jedem Aufruf neu KI-Kosten entstehen; Antwortentwurf weiter in der Sprache des Kunden; wie die Übersetzung in der Oberfläche erscheint, ist noch zu klären | P0 | PROJ-6, PROJ-9, PROJ-11 | Roadmap | – | 2026-10-05 |
 | PROJ-29 | Ticketbearbeitung in der App | Die App wird zur bevorzugten Arbeitsoberfläche neben Zammad: lesen, antworten, interne Notiz, Status und Zuständigkeit direkt aus der App nach Zammad, damit nur noch selten in Zammad gewechselt und nicht mehr hin und her kopiert werden muss; Zammad bleibt das führende System; berührt PROJ-19 und die Non-Goals im PRD | P2 | PROJ-6, PROJ-15, PROJ-19 | Roadmap | – | 2026-10-05 |
+| PROJ-30 | Interne Arbeitsabläufe zum Fall | Neuer Dokumenttyp `procedure` (Schritt-für-Schritt-Anleitung für Menschen); nach der Analyse passende Abläufe vorschlagen (Kundengruppe, Kanal, Produkt, Fallkategorie, Vorgang), manuell wählbar, abhakbar, kritische Hinweise hervorgehoben, getrennt vom Antwortentwurf; Dokumenttyp und Prüfung vorgezogen | P0 | PROJ-3, PROJ-4, PROJ-9, PROJ-10 | Planned | [Spec](PROJ-30-interne-arbeitsablaeufe.md) | 2026-10-05 |
 
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-30
+## Next Available ID: PROJ-31

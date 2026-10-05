@@ -11,7 +11,8 @@ Jede Datei ist Markdown mit einem YAML-Kopf (Frontmatter). Git ist die Versionsh
 | `policies/` | verbindliche allgemeine Regeln | Welche Regel gilt? |
 | `permissions/` | Befugnisse und Wertgrenzen | Darf der Kundenservice das selbst entscheiden? |
 | `products/` | Produktwissen, eine Datei pro Produkt | Wie entsteht das Produkt, wo liegen seine Grenzen? |
-| `processes/` | interne Abläufe | Was tun wir intern, in welcher Reihenfolge? |
+| `processes/` | interne Prüfabläufe | Was prüfen wir intern, in welcher Reihenfolge? |
+| `procedures/` | Arbeitsabläufe (Anleitungen für Menschen) | Wie setze ich den Vorgang in den Systemen um? |
 | `playbooks/` | wiederkehrende Fallmuster | Wie beurteilen wir diesen Falltyp? |
 | `tone/` | Tonalitätsregeln | Wie sagen wir es dem Kunden? |
 | `glossary/` | Begriffe | Was bedeutet das? |

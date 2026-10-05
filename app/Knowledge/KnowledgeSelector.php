@@ -74,7 +74,11 @@ class KnowledgeSelector
         $selected = [];
         $excluded = [];
 
-        foreach ($this->ordered($this->library->usable()) as $document) {
+        $usable = $this->library->usable()->reject(
+            fn (KnowledgeDocument $document): bool => in_array($document->type, $this->config['selection']['excluded_types'] ?? [], true),
+        );
+
+        foreach ($this->ordered($usable) as $document) {
             $reason = $context->customerGroup->exclusionReason($document) ?? $this->productExclusionReason($document, $products);
 
             if ($reason === null) {

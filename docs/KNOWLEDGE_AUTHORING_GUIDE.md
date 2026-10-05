@@ -18,7 +18,8 @@ Du schreibst nur, was der Autor dir sagt oder bestätigt. Fehlt eine Angabe (ein
    - Gilt immer und für alle Produkte: `policy`
    - Wer darf was bis zu welcher Grenze entscheiden: `permission`
    - Wie ein Produkt entsteht und wo seine Grenzen liegen: `product`
-   - Was intern in welcher Reihenfolge zu tun ist: `process`
+   - Was intern fachlich zu prüfen und zu entscheiden ist, in welcher Reihenfolge: `process`
+   - Wie ein Vorgang praktisch umgesetzt wird (Klick für Klick in EOCS, Zammad, Amazon …): `procedure`
    - Wie ein konkreter, wiederkehrender Falltyp beurteilt wird: `playbook`
    - Wie etwas formuliert wird: `tone`
    - Was ein Begriff bedeutet: `glossary`
@@ -47,6 +48,7 @@ Für jeden Dokumenttyp gibt es im Repository eine Vorlage unter `knowledge/templ
 | permission | `knowledge/permissions/` | `permission-001-kurzer-titel.md` |
 | product | `knowledge/products/` | `<produkt-slug>.md` (eine Datei pro Produkt) |
 | process | `knowledge/processes/` | `process-001-kurzer-titel.md` |
+| procedure | `knowledge/procedures/` | `procedure-001-kurzer-titel.md` |
 | playbook | `knowledge/playbooks/` | `playbook-001-kurzer-titel.md` |
 | tone | `knowledge/tone/` | `tone-001-kurzer-titel.md` |
 | glossary | `knowledge/glossary/` | `glossary-001-begriff.md` |
@@ -66,7 +68,7 @@ Dateinamen: nur Kleinbuchstaben, Ziffern und Bindestriche; Umlaute ausschreiben 
 
 Pflicht in jeder Datei: `id`, `title`, `type`, `status`.
 
-- `type`: genau einer von `policy`, `permission`, `product`, `process`, `playbook`, `tone`, `glossary`, `example-good`, `example-bad`
+- `type`: genau einer von `policy`, `permission`, `product`, `process`, `procedure`, `playbook`, `tone`, `glossary`, `example-good`, `example-bad`
 - `status`: neue Dateien immer `draft`. Auf `active` setzt sie nur der Autor nach fachlicher Prüfung; `draft` wird von der App mitverwendet und als Entwurfs-Wissen gekennzeichnet, `deprecated` nie.
 - `last_reviewed`: Datum im Format `JJJJ-MM-TT`, nur wenn der Autor den Inhalt wirklich geprüft hat.
 - Listen als YAML-Listen, auch bei nur einem Eintrag. Leere Felder leer lassen, nicht mit Platzhaltern füllen.
@@ -161,7 +163,57 @@ Bestehende Dokumente, die ihren Geltungsbereich bisher nur im Text nennen, erhal
 
 ### Permissions
 
-Kritische Grenzen gehören maschinenlesbar ins Frontmatter, nicht nur in den Text: `action`, `agent_allowed` (`true`/`false`), `max_value_eur` (Zahl ohne Währungszeichen), `approval_role`. Ist eine Grenze nicht bekannt, nachfragen.
+Kritische Grenzen gehören maschinenlesbar ins Frontmatter, nicht nur in den Text: `action`, `agent_allowed` (`true`/`false`), `max_value_eur` (Zahl ohne Währungszeichen), `approval_role`. Ist eine Grenze nicht bekannt, nachfragen. `action` ist ein Wert aus der Vorgangsliste (siehe Arbeitsabläufe); ein anderer Wert erzeugt eine Warnung.
+
+### Arbeitsabläufe (`procedure`)
+
+Ein Arbeitsablauf ist eine **Anleitung für Menschen**: wie ein Vorgang praktisch umgesetzt wird, z. B. „Neuversand in EOCS anlegen" oder „Retoure bei Amazon genehmigen". Die App zeigt ihn dem Mitarbeiter nach der Analyse passend zum Fall an, getrennt vom Antwortentwurf. An die KI geht er nicht.
+
+Abgrenzung:
+
+| Frage | Typ |
+|---|---|
+| Was ist fachlich richtig, was darf entschieden werden? | `policy`, `permission`, `playbook` |
+| Was prüfen wir intern, in welcher Reihenfolge? | `process` |
+| Wie setze ich die beschlossene Maßnahme in den Systemen um? | `procedure` |
+
+Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Euro"), gehört sie in die Policy oder Permission; der Ablauf nennt deren ID.
+
+`actions` (Pflicht): Für welche Vorgänge gilt der Ablauf? Eine Liste aus diesen Werten:
+
+| Wert | Vorgang |
+|---|---|
+| `return` | Retoure |
+| `reshipment` | Neuversand |
+| `reproduction` | Neuproduktion |
+| `refund` | Erstattung |
+| `partial-refund` | Teilerstattung / Kulanz |
+| `cancellation` | Storno |
+| `address-change` | Adressänderung |
+| `photo-request` | Foto anfordern |
+| `escalation` | Eskalation / Vier-Augen-Prüfung |
+
+Fehlt ein passender Vorgang, nicht selbst erfinden, sondern als neuen Wert vorschlagen. `customer_types`, `sales_channels`, `products` und `categories` funktionieren wie bei allen anderen Typen: Ein Ablauf nur für Amazon bekommt `sales_channels: [amazon]`.
+
+Feste Abschnitte (Überschriften der ersten Ebene, genau so geschrieben):
+
+- `# Zweck` – ein Satz: wann und wofür.
+- `# Voraussetzungen` – was vorher geklärt oder vorhanden sein muss (Freigabe, Bestellnummer, Foto …), als Liste.
+- `# Arbeitsschritte` – nummerierte Liste, ein Schritt pro Handgriff, mit dem System und dem genauen Namen von Knopf, Feld oder Status („In EOCS: Auftrag öffnen → „Neuversand" → Versandart „DHL Paket" wählen").
+- `# Kritische Hinweise` – was teuer schiefgehen kann; jede Zeile beginnt mit „Achtung:". Optional, aber fast immer sinnvoll.
+- `# Abschlusskontrolle` – Liste mit `- [ ]`: woran man erkennt, dass alles erledigt ist („Neuer Auftrag hat Status ‚In Produktion'", „Interne Notiz in Zammad gesetzt").
+
+Fehlt „Voraussetzungen", „Arbeitsschritte" oder „Abschlusskontrolle", warnt die Prüfung. Die App macht jeden Arbeitsschritt und jeden Kontrollpunkt abhakbar und hebt „Kritische Hinweise" und Zeilen mit „Achtung:" hervor.
+
+Fragen beim Erfassen eines Arbeitsablaufs, eine nach der anderen:
+
+1. Welcher Vorgang ist das, und für welche Kundengruppen, Kanäle und Produkte gilt er?
+2. Was muss vorher entschieden oder vorhanden sein (Befugnis, Freigabe, Daten)?
+3. In welchen Systemen wird gearbeitet, und wie heißen dort Knöpfe, Felder und Status genau?
+4. Welche Schritte, in welcher Reihenfolge? Gibt es Varianten je Kanal, die besser ein eigener Ablauf wären?
+5. Was geht in der Praxis häufig schief?
+6. Woran erkennt man am Ende, dass alles richtig erledigt ist?
+7. Wer wird informiert, was wird im Ticket dokumentiert?
 
 ## Inhaltliche Regeln
 
@@ -197,6 +249,9 @@ Vorhandene products-Slugs:
 Vorhandene topics-Werte:
 (Liste oder „noch keine")
 
+Erlaubte Vorgänge (actions):
+(Liste)
+
 Vergebene order_keywords je Produkt:
 (Liste oder „noch keine")
 
@@ -212,6 +267,7 @@ Heute möchte ich erfassen:
 - Alle Schlagwörter sind vorhandene Werte oder ausdrücklich als neu genannt.
 - `customer_types` und `sales_channels` sind gesetzt, wenn das Dokument eingeschränkt gilt, sonst leer; der Text nennt denselben Geltungsbereich.
 - `categories` ist vorhanden; bei Playbooks und Processes ist mindestens ein Wert gesetzt.
+- Arbeitsabläufe: `actions` aus der Vorgangsliste, Abschnitte Voraussetzungen, Arbeitsschritte, Abschlusskontrolle vorhanden, kritische Hinweise mit „Achtung:".
 - Produktdateien: nach `order_keywords` wurde gefragt; jedes Schlüsselwort hat mindestens drei Zeichen und ist bei keinem anderen Produkt vergeben.
 - Jede Aussage stammt vom Autor; nichts ist ergänzt oder geschätzt.
 - Keine personenbezogenen Daten.

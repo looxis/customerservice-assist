@@ -44,7 +44,8 @@ Use the argument as the starting point. If no argument was given, ask what the a
 - One question at a time, each with a recommended answer where you can give one.
 - Follow the sections of the template; they are your checklist.
 - Always ask for the scope: all customers and channels, or only some?
-- For permissions, ask for action, whether the agent may decide alone, the value limit and the approving role.
+- For permissions, ask for action (a value from the action list in the guide), whether the agent may decide alone, the value limit and the approving role.
+- For procedures (step-by-step instructions for people), follow the questions in the guide's section "Arbeitsabläufe": actions, prerequisites, exact system steps, critical notes ("Achtung: …"), final check.
 - For product files, ask for `order_keywords`: article numbers and article names as they appear on order lines, including older spellings. Propose candidates, keep only what the author confirms, at least three characters each and not used by another product.
 - If something is missing (a limit, an exception, a responsible role), ask. Never fill in a plausible assumption.
 - If the author describes an old case, ask whether the decision made then should still apply today.

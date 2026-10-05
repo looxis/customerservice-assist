@@ -6,7 +6,7 @@ class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords'];
+    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'actions'];
 
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
@@ -18,8 +18,10 @@ class KnowledgeValidator
 
     private const array PRODUCT_FIELDS = ['order_keywords'];
 
+    private const array PROCEDURE_FIELDS = ['actions'];
+
     /**
-     * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, retired_values: array<string, array<string, string>>, customer_groups: array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>, min_order_keyword_length: int, max_body_length: int}  $config
+     * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, actions: array<string, string>, procedure_sections: list<string>, retired_values: array<string, array<string, string>>, customer_groups: array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>, min_order_keyword_length: int, max_body_length: int}  $config
      */
     public function __construct(private readonly array $config) {}
 
@@ -44,6 +46,7 @@ class KnowledgeValidator
                 ...$this->listFields($document),
                 ...$this->fixedValues($document),
                 ...$this->permissionFields($document),
+                ...$this->procedureFields($document),
                 ...$this->orderKeywords($document),
                 ...$this->reachability($document),
                 ...$this->body($document),
@@ -183,6 +186,8 @@ class KnowledgeValidator
 
         if ($document->string('action') === null) {
             $issues[] = KnowledgeIssue::error($document->path, 'Permission ohne `action`: Bitte angeben, welche Maßnahme die Befugnis betrifft.');
+        } elseif (! array_key_exists($document->string('action'), $this->config['actions'])) {
+            $issues[] = KnowledgeIssue::warning($document->path, "Unbekannter Vorgang `{$document->string('action')}` in `action`. Bekannt: ".implode(', ', array_keys($this->config['actions'])).'.');
         }
 
         if (! is_bool($document->frontmatter['agent_allowed'] ?? null)) {
@@ -195,6 +200,37 @@ class KnowledgeValidator
             $issues[] = KnowledgeIssue::error($document->path, '`max_value_eur` muss eine Zahl ohne Währungszeichen sein oder leer bleiben.');
         } elseif ($limit !== null && $limit < 0) {
             $issues[] = KnowledgeIssue::error($document->path, '`max_value_eur` darf nicht negativ sein.');
+        }
+
+        return $issues;
+    }
+
+    /**
+     * A procedure names the actions it is for and has the fixed sections.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function procedureFields(KnowledgeDocument $document): array
+    {
+        if ($document->type !== 'procedure') {
+            return [];
+        }
+
+        $issues = [];
+        $allowed = implode(', ', array_keys($this->config['actions']));
+
+        if ($document->actions() === []) {
+            $issues[] = KnowledgeIssue::error($document->path, "Arbeitsablauf ohne `actions`: Bitte angeben, für welche Vorgänge er gilt. Erlaubt: {$allowed}.");
+        }
+
+        foreach (array_diff($document->actions(), array_keys($this->config['actions'])) as $action) {
+            $issues[] = KnowledgeIssue::error($document->path, "Unbekannter Vorgang `{$action}` in `actions`. Erlaubt: {$allowed}.");
+        }
+
+        foreach ($this->config['procedure_sections'] as $section) {
+            if (! preg_match('/^#[ \t]+'.preg_quote($section, '/').'[ \t]*$/mu', $document->body)) {
+                $issues[] = KnowledgeIssue::warning($document->path, "Abschnitt „# {$section}\" fehlt.");
+            }
         }
 
         return $issues;
@@ -330,6 +366,7 @@ class KnowledgeValidator
         $known = match ($document->type) {
             'permission' => [...self::KNOWN_FIELDS, ...self::PERMISSION_FIELDS],
             'product' => [...self::KNOWN_FIELDS, ...self::PRODUCT_FIELDS],
+            'procedure' => [...self::KNOWN_FIELDS, ...self::PROCEDURE_FIELDS],
             default => self::KNOWN_FIELDS,
         };
 

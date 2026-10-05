@@ -46,6 +46,7 @@ return [
         'permission' => ['folder' => 'permissions', 'prefix' => 'PERMISSION', 'label' => 'Permissions'],
         'product' => ['folder' => 'products', 'prefix' => 'PRODUCT', 'label' => 'Produkte'],
         'process' => ['folder' => 'processes', 'prefix' => 'PROCESS', 'label' => 'Prozesse'],
+        'procedure' => ['folder' => 'procedures', 'prefix' => 'PROCEDURE', 'label' => 'Arbeitsabläufe'],
         'playbook' => ['folder' => 'playbooks', 'prefix' => 'PLAYBOOK', 'label' => 'Playbooks'],
         'tone' => ['folder' => 'tone', 'prefix' => 'TONE', 'label' => 'Ton'],
         'glossary' => ['folder' => 'glossary', 'prefix' => 'GLOSSARY', 'label' => 'Glossar'],
@@ -72,6 +73,35 @@ return [
     'sales_channels' => ['looxis-de', 'amazon', 'fachhaendler', 'looxis-pro', 'masterpics'],
 
     'categories' => ['complaint', 'product-question', 'order-process-question'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Actions (Vorgänge)
+    |--------------------------------------------------------------------------
+    |
+    | The concrete measure a case is about. One list for procedures
+    | (`actions`), permissions (`action`) and the analysis result (PROJ-9,
+    | PROJ-30). New values can be added here without code changes.
+    |
+    */
+
+    'actions' => [
+        'return' => 'Retoure',
+        'reshipment' => 'Neuversand',
+        'reproduction' => 'Neuproduktion',
+        'refund' => 'Erstattung',
+        'partial-refund' => 'Teilerstattung / Kulanz',
+        'cancellation' => 'Storno',
+        'address-change' => 'Adressänderung',
+        'photo-request' => 'Foto anfordern',
+        'escalation' => 'Eskalation / Vier-Augen-Prüfung',
+    ],
+
+    /*
+    | Sections a procedure must have (level-one headings); missing ones warn.
+    */
+
+    'procedure_sections' => ['Voraussetzungen', 'Arbeitsschritte', 'Abschlusskontrolle'],
 
     /*
     |--------------------------------------------------------------------------
@@ -151,6 +181,9 @@ return [
     */
 
     'selection' => [
+        // Instructions for people, never sent to the language model (PROJ-30).
+        'excluded_types' => ['procedure'],
+
         'max_good_examples' => 3,
         'max_bad_examples' => 2,
         'max_characters' => 60000,

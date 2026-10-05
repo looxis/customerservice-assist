@@ -48,6 +48,9 @@ class KnowledgeOverview
             array_push($lines, '', $heading, $values === [] ? 'noch keine' : implode(', ', $values));
         }
 
+        $actions = array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys($this->config['actions'] ?? []), $this->config['actions'] ?? []);
+        array_push($lines, '', 'Erlaubte Vorgänge (actions):', $actions === [] ? 'keine' : implode(', ', $actions));
+
         $keywords = $this->orderKeywords($documents);
         array_push($lines, '', 'Vergebene order_keywords je Produkt:', ...($keywords === [] ? ['noch keine'] : $keywords));
 

@@ -106,6 +106,12 @@ final readonly class KnowledgeDocument
     }
 
     /** @return list<string> */
+    public function actions(): array
+    {
+        return $this->list('actions');
+    }
+
+    /** @return list<string> */
     public function orderKeywords(): array
     {
         return $this->list('order_keywords');

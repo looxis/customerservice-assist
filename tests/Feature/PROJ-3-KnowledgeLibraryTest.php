@@ -213,7 +213,7 @@ describe('warnings keep a document usable', function () {
     test('valid references, open questions in drafts and unlimited permissions raise nothing', function () {
         $library = knowledgeBase([
             'policies/policy-001-a.md' => knowledgeDoc(['related_knowledge' => ['PERMISSION-001'], 'products' => ['lunchbox']], "# Regel\n\nSiehe POLICY-001 und PERMISSION-001. Bis 35 Euro, 50 bis 80 Prozent.\n\n# Noch zu klären\n\n- Punkt"),
-            'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => 'replacement', 'agent_allowed' => true, 'max_value_eur' => null, 'approval_role' => null]),
+            'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => 'reproduction', 'agent_allowed' => true, 'max_value_eur' => null, 'approval_role' => null]),
             'products/lunchbox.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'products' => ['lunchbox']]),
         ]);
 

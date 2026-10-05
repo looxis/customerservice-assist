@@ -21,6 +21,7 @@ dataset('templates', [
     'permission' => ['permission', 'PERMISSION-000', ['Befugnis', 'Grenzen', 'Freigabe erforderlich wenn', 'Zuständige Rolle', 'Hinweise']],
     'product' => ['product', 'PRODUCT-000', ['Überblick', 'Kundeneingaben und Konfiguration', 'Interne Entscheidungen', 'Herstellungsprozess', 'Technische Grenzen', 'Qualitätsmerkmale', 'Häufige Kundenerwartungen', 'Häufige Missverständnisse', 'Typische Reklamationen', 'Prüfung', 'Konsequenz für den Kundenservice']],
     'process' => ['process', 'PROCESS-000', ['Ziel', 'Auslöser', 'Voraussetzungen', 'Ablauf', 'Ergebnis', 'Sonderfälle', 'Eskalation']],
+    'procedure' => ['procedure', 'PROCEDURE-000', ['Zweck', 'Voraussetzungen', 'Arbeitsschritte', 'Kritische Hinweise', 'Abschlusskontrolle']],
     'playbook' => ['playbook', 'PLAYBOOK-000', ['Fallmuster', 'Erkennungsmerkmale', 'Typische Ursache', 'Zu prüfen', 'Berechtigt wenn', 'Nicht berechtigt wenn', 'Noch nicht entscheidbar wenn', 'Fehlende Informationen', 'Empfohlene Maßnahme', 'Befugnis', 'Kommunikation', 'No-Gos', 'Beispiel']],
     'tone' => ['tone', 'TONE-000', ['Ziel', 'Grundton', 'Bevorzugte Formulierungen', 'Vermeiden', 'Reklamationen', 'Ablehnungen', 'Empathie']],
     'glossary' => ['glossary', 'GLOSSARY-000', ['Begriff', 'Bedeutung', 'Abgrenzung', 'Relevanz für den Kundenservice']],
@@ -84,7 +85,7 @@ describe('templates', function () {
         $names = array_map(fn (string $path) => basename($path, '.md'), glob(base_path('knowledge/templates/*.md')));
         sort($names);
 
-        expect($names)->toBe(['example-bad', 'example-good', 'glossary', 'permission', 'playbook', 'policy', 'process', 'product', 'tone']);
+        expect($names)->toBe(['example-bad', 'example-good', 'glossary', 'permission', 'playbook', 'policy', 'procedure', 'process', 'product', 'tone']);
     });
 
     test('the frontmatter is valid YAML with required fields, placeholder id and draft status', function (string $type, string $id) {
@@ -170,6 +171,7 @@ describe('guide', function () {
                 'permission' => 'permissions',
                 'product' => 'products',
                 'process' => 'processes',
+                'procedure' => 'procedures',
                 'playbook' => 'playbooks',
                 'example-good' => 'examples/good',
                 'example-bad' => 'examples/bad',
