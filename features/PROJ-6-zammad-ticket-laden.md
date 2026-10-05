@@ -213,6 +213,7 @@ Server
 - **`MessageBody`:** Zitat-Erkennung vor der Bereinigung (DOM: `blockquote`, Gmail-/Outlook-/Thunderbird-Marker, deutsche und englische Kopfzeilen; Text: `>` und Kopfzeilen), danach `symfony/html-sanitizer`. Erlaubt sind Text-Struktur und Links (`http`, `https`, `mailto`, neuer Tab, `noopener noreferrer nofollow`). Unbekannte Hüllen-Elemente werden entfernt, ihr Text bleibt. Skripte, Stile, Bilder, Frames und Formulare entfallen komplett. Keine Längenbegrenzung. Reiner Text wird escaped, Absätze und Zeilenumbrüche bleiben.
 - **Konfiguration:** `config/services.php` → `zammad.url`, `zammad.token`, `zammad.timeout` (Standard 10 s). **Noch offen:** `.env.example` um `ZAMMAD_URL=`, `ZAMMAD_TOKEN=`, `ZAMMAD_TIMEOUT=10` ergänzen. Die Datei ist für den Assistenten gesperrt, der Product Owner trägt sie ein.
 - **Neue Abhängigkeit:** `symfony/html-sanitizer` ^8.1 (freigegeben).
+- **Zammad-Zugang (eingerichtet 2026-10-05):** eigener Zammad-Nutzer „Customer Service Assist" (Rolle Agent, Gruppen nur „lesen"), persönlicher Zugriffstoken mit ausschließlich `ticket.agent`. **Der Token läuft am 31.12.2029 ab** und muss vorher im Profil dieses Nutzers neu erstellt und in `ZAMMAD_TOKEN` eingetragen werden. Nach Ablauf meldet die App „Die Verbindung zu Zammad ist nicht eingerichtet oder ungültig".
 - **Abweichungen und Hinweise:**
   - Status-Badge zeigt den deutschen Zammad-Status („Offen", „Neu", …); geschlossene und zusammengeführte Tickets gelten als geschlossen.
   - Der Knopf „Aktualisieren" ist ein Link auf dieselbe Adresse (normales Neuladen).
