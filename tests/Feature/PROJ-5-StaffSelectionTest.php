@@ -86,6 +86,16 @@ describe('choosing and remembering', function () {
             ->assertCookie('staff_name', 'Cara');
     });
 
+    test('a foreign origin is never used as the way back', function (string $referer) {
+        $this->post(route('staff.select'), ['name' => 'Cara'], ['Referer' => str_replace('{app}', url('/'), $referer)])
+            ->assertRedirect(route('tickets.analyze'));
+    })->with(['other site' => ['https://evil.example/phish'], 'own host as prefix' => ['{app}.evil.example/'], 'protocol relative' => ['//evil.example/']]);
+
+    test('an address of the app is used as the way back', function () {
+        $this->post(route('staff.select'), ['name' => 'Cara'], ['Referer' => route('knowledge.index').'?type=policy'])
+            ->assertRedirect(route('knowledge.index').'?type=policy');
+    });
+
     test('the cookie is encrypted', function () {
         $this->postJson(route('staff.select'), ['name' => 'Nele'])
             ->assertCookieNotExpired('staff_name')
@@ -158,6 +168,13 @@ describe('guard for later actions', function () {
             ->assertRedirect('/_test/form')
             ->assertSessionHas('error', EnsureStaffSelected::MESSAGE)
             ->assertSessionHasInput('context', 'Kundin schreibt …');
+    });
+
+    test('without a name a foreign origin is not used as the way back', function () {
+        $this->post('/_test/analysis', ['ticket' => '123'], ['Referer' => 'https://evil.example/phish'])
+            ->assertRedirect(route('tickets.analyze'))
+            ->assertSessionHas('error', EnsureStaffSelected::MESSAGE)
+            ->assertSessionHasInput('ticket', '123');
     });
 
     test('a name that is no longer listed is treated as no name', function () {

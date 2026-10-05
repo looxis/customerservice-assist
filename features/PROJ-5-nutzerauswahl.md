@@ -227,7 +227,7 @@ Geprüft über Pest (Feature-Tests inkl. Middleware an Test-Routen) und HTTP-Abr
 - [x] Schreibweise muss exakt stimmen (`nele` abgelehnt), Liste als Array, leerer Wert und `<script>` abgelehnt (422), kein Cookie gesetzt
 - [x] Nur POST; GET auf `/name` ergibt 405
 - [x] Namen werden im Alpine-Ausdruck sicher als JSON eingesetzt (`Js::from`), Anzeige per `x-text`
-- [ ] BUG-1: Rückleitung folgt einer fremden Herkunftsadresse (siehe unten)
+- [x] Rückleitung nur auf Adressen der App, sonst „Ticket analysieren" (BUG-1, behoben)
 
 ### Security Audit Results
 - [x] CSRF: ohne Token 419 (gegen die laufende App geprüft); beide Formulare tragen `@csrf`
@@ -235,7 +235,7 @@ Geprüft über Pest (Feature-Tests inkl. Middleware an Test-Routen) und HTTP-Abr
 - [x] Server prüft jeden Namen gegen die Liste (beim Speichern und beim Lesen)
 - [x] Keine sensiblen Daten in der JSON-Antwort (nur der Name), Sicherheits-Header gesetzt
 - [x] Keine Anmeldung im MVP (PRD); die Nutzerauswahl ist ausdrücklich keine Sicherheitsfunktion
-- [ ] BUG-1: Weiterleitung auf fremde Adresse über den Referer-Header
+- [x] Keine Weiterleitung auf fremde Adressen über den Referer-Header (BUG-1, behoben)
 - Hinweis: Kein Rate-Limit auf `POST /name`. Folgenlos, weil nur der eigene Cookie gesetzt wird (30 schnelle Anfragen: alle 200, keine Nebenwirkung).
 
 ### Regression
@@ -248,8 +248,9 @@ Geprüft über Pest (Feature-Tests inkl. Middleware an Test-Routen) und HTTP-Abr
 
 ### Bugs Found
 
-#### BUG-1: Rückleitung folgt einer fremden Herkunftsadresse
+#### BUG-1: Rückleitung folgt einer fremden Herkunftsadresse – BEHOBEN (2026-10-05)
 - **Severity:** Low
+- **Fix:** `App\Http\LocalRedirect` nutzt die Herkunftsadresse nur, wenn sie zur App gehört (gleiches Schema, Host und Port), sonst „Ticket analysieren". Verwendet in `StaffSelectionController` und `EnsureStaffSelected`; künftige Formulare sollen ebenfalls darüber zurückleiten. Tests für fremde Seite, eigenen Host als Präfix und protokollrelative Adresse; gegen die laufende App geprüft (302 auf die Startseite).
 - **Steps to Reproduce:**
   1. Gültige Sitzung mit CSRF-Token
   2. `POST /name` (ohne JavaScript, kein JSON) mit `Referer: https://evil.example/phish`
@@ -260,8 +261,8 @@ Geprüft über Pest (Feature-Tests inkl. Middleware an Test-Routen) und HTTP-Abr
 
 ### Summary
 - **Acceptance Criteria:** 18/18 passed
-- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
-- **Security:** Pass mit einem Low-Befund
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low); am 2026-10-05 behoben
+- **Security:** Pass
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; BUG-1 vor PROJ-9 beheben
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\LocalRedirect;
 use App\Http\Requests\SelectStaffRequest;
 use App\Staff\StaffDirectory;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +21,7 @@ class StaffSelectionController extends Controller
 
         $response = $request->expectsJson()
             ? response()->json(['name' => $name])
-            : redirect()->back(fallback: route('tickets.analyze'));
+            : LocalRedirect::back($request, route('tickets.analyze'));
 
         return $response->withCookie($cookie);
     }

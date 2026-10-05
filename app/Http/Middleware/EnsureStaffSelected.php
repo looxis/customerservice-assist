@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\LocalRedirect;
 use App\Staff\StaffDirectory;
 use Closure;
 use Illuminate\Http\Request;
@@ -30,6 +31,6 @@ class EnsureStaffSelected
             return response()->json(['message' => self::MESSAGE], 409);
         }
 
-        return redirect()->back()->withInput()->with('error', self::MESSAGE);
+        return LocalRedirect::back($request, route('tickets.analyze'))->withInput()->with('error', self::MESSAGE);
     }
 }
