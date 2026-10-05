@@ -139,6 +139,7 @@ If your context was compacted mid-task:
 - [ ] Responsive tested (375px, 768px, 1440px)
 - [ ] Security audit completed (CSRF, auth bypass, injection, data leaks)
 - [ ] Regression test on related features
+- [ ] About page (PROJ-25, `Über die App`): if this feature makes a step of the "So funktioniert es" flow usable, its "in Arbeit" hint is removed (or listed as a bug)
 - [ ] Every bug documented with severity + steps to reproduce
 - [ ] Screenshots added for visual bugs
 - [ ] Unit tests written for non-trivial service/model methods (`./vendor/bin/sail pest` passes)
