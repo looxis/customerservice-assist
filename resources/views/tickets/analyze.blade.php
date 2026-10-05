@@ -1,4 +1,6 @@
 <x-layouts.app title="Ticket analysieren">
+    <x-staff.hint :names="$staffNames" :current="$currentStaff" />
+
     <x-card>
         <div class="flex items-start gap-3">
             <x-icon name="sparkle" class="mt-0.5 text-brand" />

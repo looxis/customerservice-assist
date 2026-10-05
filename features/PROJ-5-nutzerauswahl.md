@@ -1,6 +1,6 @@
 # PROJ-5: Nutzerauswahl
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -161,6 +161,18 @@ Keine neuen Pakete (Alpine.js und Laravel-Cookies sind vorhanden).
 - Backend: `config/staff.php`, Dienst „Aktueller Mitarbeiter", Route zum Speichern (POST) mit Form Request, Cookie setzen, Middleware „Name erforderlich" samt Tests (an einer Test-Route, solange es PROJ-9 nicht gibt).
 - Tests: Anzeige mit und ohne Cookie, Wechsel, unbekannter oder entfernter Name, leere Liste, Ablehnung fremder Namen beim Speichern, CSRF, Middleware-Verhalten mit erhaltenen Eingaben.
 
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-05.** Frontend und Serverteil in einem Durchgang, weil die Auswahl ohne den Speicher-Endpunkt nicht funktioniert; `/backend` entfällt.
+
+- **Konfiguration:** `config/staff.php` mit `names` (Cara, Etienne, Johannes, Kerstin, Nele, Thomas), Cookie-Name `staff_name`, Laufzeit 5 Jahre.
+- **Server:** `App\Staff\StaffDirectory` (Liste alphabetisch und ohne Doppelte, Prüfung, aktueller Name aus dem Cookie), `POST /name` (`staff.select`) mit `StaffSelectionController` und `SelectStaffRequest` (nur Namen aus der Liste, exakte Schreibweise). Antwort JSON für das Aufklapp-Menü, sonst Rückleitung auf die Herkunftsseite. Cookie verschlüsselt, `HttpOnly`, `SameSite=Lax`.
+- **Middleware** `EnsureStaffSelected`, Alias `staff.selected` in `bootstrap/app.php` (vom Product Owner freigegeben). Ohne gültigen Namen: zurück mit Eingaben und Hinweis „Bitte wähle zuerst deinen Namen." (Session-Meldung `error`, im Layout als Alert); bei JSON-Anfragen 409. Noch an keiner echten Route angewendet, ab PROJ-9.
+- **Frontend:** Alpine-Store `staff` in `resources/js/app.js` (gemeinsamer Zustand, Speichern per `fetch` mit CSRF-Header). Komponenten `x-staff.picker` (Kopfleiste) und `x-staff.hint` („Ticket analysieren"). Ein View-Composer liefert `staffNames` und `currentStaff` an Layout und Analyse-Seite. Der Name wird serverseitig vorgerendert (kein Flackern); unter `md` nur das Initial im Kreis. Tippflächen mindestens 44 px, aktueller Name mit `aria-pressed` und Haken, Escape und Klick daneben schließen.
+- **Abweichung / Hinweis:** Der Server setzt 5 Jahre. Aktuelle Browser begrenzen Cookies jedoch auf höchstens 400 Tage. Wer ein gutes Jahr lang den Namen nicht wechselt, wird danach einmal neu gefragt.
+- **Geprüft gegen die laufende App:** ohne CSRF-Token 419, mit Token gespeichert; Kopfleiste zeigt danach „Angemeldet als Nele".
+- **Nicht im Browser geprüft:** Aufklappen, Fokusführung und das Aktualisieren ohne Neuladen (Alpine) konnten mangels Browser-Werkzeug nur am Markup geprüft werden.
+- **Tests:** `tests/Feature/PROJ-5-StaffSelectionTest.php` (21 Tests, mit Datensätzen 30 Fälle, inkl. Middleware an Test-Routen). Gesamte Suite: 427 Tests grün. Assets neu gebaut.
 
 ## QA Test Results
 _To be added by /qa_
