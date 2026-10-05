@@ -250,6 +250,17 @@ Server
   - Signaturen: Varianten im Team unterscheiden sich stark (Sprache, Kanal). Einheitliche Form ist organisatorisch zu klären (auf der About-Seite unter „Noch zu klären" vermerkt); Pflege der Varianten später in PROJ-27.
   - Eigene Textformatierung `.mail-text` statt `.knowledge-text`: Zeilen (`<div>`) ohne Zusatzabstand, nur Absätze mit Abstand. Vorher erzeugte der Absatzabstand der Knowledge-Seite zwischen jeder Mail-Zeile eine scheinbare Leerzeile.
 - **Gegen das echte Zammad bestätigt:** Suche mit `expand=true` liefert `state`, `group`, `customer_id` als erwartet; Nachrichten liefern `sender` (Customer/Agent), `type`, `internal`, `content_type` text/html. Zammad legt zu jeder eingehenden HTML-Mail eine Kopie `message.html` als Anhang ab (`content-alternative`/`original-format`); sie wird jetzt nicht als Anhang gelistet und nicht mitgezählt.
+- **Signatur-Varianten im Team (Stand 2026-10-05, gesammelt aus echten Tickets; Grundlage für die Klärung im Team und für PROJ-27):**
+
+  | Wer | Sprache / Kanal | Von Zammad markiert? | Aufbau (am Ende der Nachricht) | Fundstelle |
+  |---|---|---|---|---|
+  | Etienne Renaud | Englisch, E-Mail (Gruppe „allgemeine Kunden") | ja (`data-signature`, wird ausgeblendet) | „Best regards" / Etienne Renaud / LOOXIS GmbH / Magdeburger Str. 11 / 32423 Minden / Germany | Ticket#2132884 |
+  | n8n-Workflow (Absender Etienne Renaud) | Englisch, Versand-Info zu Amazon-Bestellung | nein (reiner Text) | „Kind regards" / LOOXIS Kundenservice | Ticket#2137635 |
+  | Amazon-Vorlage (laut Product Owner) | Deutsch, Amazon | nein | „Freundliche Grüße" / LOOXIS Kundenservice (in der Konfiguration hinterlegt, wird ausgeblendet) | – |
+  | Kerstin Schmeckpeper | Italienisch, Amazon | nein | „Cordiali saluti," / Kerstin Schmeckpeper / Looxis GmbH | Ticket#2137635 |
+  | Nele Gorka | Französisch, Amazon | nein | „Avec les salutations de l'équipe LOOXIS," / Nele Gorka | Ticket#2137945 |
+
+  Beobachtungen: Nur Etiennes Signatur kommt aus einer Zammad-Signaturvorlage (vermutlich die der Gruppe „allgemeine Kunden") und wird deshalb zuverlässig erkannt. Die übrigen sind von Hand geschrieben, unterscheiden sich in Grußformel, Firmenschreibweise („LOOXIS GmbH" / „Looxis GmbH") und Umfang (mit/ohne Adresse) und werden nicht ausgeblendet. Zu klären im Team: Signaturvorlagen je Gruppe und Sprache in Zammad, einheitliche Firmenschreibweise, ob Amazon-Antworten eine Signatur tragen sollen.
 - **Vor der Abnahme gegen das echte Zammad prüfen:** Feldnamen der Suche mit `expand=true` (`state`, `group`, `customer_id`), `sender`/`internal`/`type` der Nachrichten, Kennung eingebetteter Bilder, Ziel bei zusammengeführten Tickets, Länge der Ticketnummern.
 - **Tests:** `tests/Feature/PROJ-6-ZammadTicketTest.php` (51 Fälle, Zammad nachgestellt). PROJ-1-Test an den neuen Startseitentext angepasst. Gesamte Suite: 483 Tests grün.
 
