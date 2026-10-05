@@ -4,9 +4,9 @@ title: Kulanz bei Kundenfehlern von Foto-Fachhändlern
 type: policy
 status: draft
 customer_types:
-- b2b
+- b2b-reseller
 sales_channels:
-- shop
+- fachhaendler
 categories:
 - complaint
 - order-process-question
@@ -21,7 +21,7 @@ related_knowledge:
 products:
 ---
 
-Gilt für B2B-Foto-Fachhändler auf dem Nicht-Amazon-Bestellweg; im aktuellen Kanalschema ist dies `shop`. Die Regel gilt nicht für LOOXIS-Pro-Kunden und deren Handelswarenbestellungen.
+Gilt für Foto-Fachhändler, die über fachhaendler.looxis.de bestellen (Kanal `fachhaendler`). Die Regel gilt nicht für LOOXIS-Pro-Kunden und deren Handelswarenbestellungen.
 
 # Regel
 

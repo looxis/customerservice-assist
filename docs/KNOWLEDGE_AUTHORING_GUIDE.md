@@ -100,32 +100,51 @@ So wird `categories` gesetzt:
 - **Playbooks und Processes bekommen immer mindestens einen Wert.** Sie beschreiben ein konkretes Fallmuster; ohne Kategorie kann die App sie keinem Falltyp zuordnen.
 - Frage beim Erfassen: „Bei welcher Art von Anfrage wird dieses Dokument gebraucht: Reklamation, Produktfrage, Frage zum Ablauf, oder bei allen?"
 
-`products`: ein Slug pro Produkt, identisch mit dem Dateinamen in `knowledge/products/`. Gilt ein Dokument für alle Produkte, bleibt `products` leer.
+`products`: ein Slug pro Produkt, identisch mit dem Dateinamen in `knowledge/products/` (bei einem auf mehrere Dateien aufgeteilten Produkt: dem Namen des Unterordners). Gilt ein Dokument für alle Produkte, bleibt `products` leer. Dokumente mit `products` verwendet die App nur, wenn der Mitarbeiter eines dieser Produkte gewählt hat.
+
+`order_keywords` (nur in Produktdateien): Artikelnummern oder Bezeichnungen, an denen die App das Produkt in einer Bestellposition erkennt und es vorschlägt. Groß- und Kleinschreibung spielt keine Rolle; ein Schlüsselwort passt, wenn es irgendwo in Artikelnummer oder Bezeichnung vorkommt. Deshalb eindeutige Begriffe wählen (mindestens drei Zeichen) und denselben Begriff nicht bei zwei Produkten eintragen; die Prüfung warnt in beiden Fällen.
 
 `topics`: frei, aber sparsam. Zwei bis vier Werte pro Dokument, die das Fallmuster benennen (z. B. `customer-configuration`, `photo-quality`, `replacement`, `refund`).
 
 ### Geltungsbereich: `customer_types`, `sales_channels`
 
-Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das im Frontmatter. Die App berücksichtigt beide Felder bei der Auswahl, damit z. B. ein B2B-Fall von Anfang an die B2B-Regeln erhält und keine Regeln, die nur für Privatkunden gelten.
+Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das im Frontmatter. Die App berücksichtigt beide Felder bei der Auswahl, damit z. B. ein Fachhändler-Fall von Anfang an die Fachhändler-Regeln erhält und keine Regeln, die nur für Privatkunden gelten.
 
 `customer_types` – feste Werte:
 
 | Wert | Bedeutung |
 |---|---|
-| `b2c` | Privatkunde |
-| `b2b` | Geschäftskunde (Firmen, Fachhändler, Wiederverkäufer) |
+| `b2c` | Privatkunde (eigener Shop oder Amazon) |
+| `b2b-reseller` | Foto-Fachhändler / Reseller |
+| `b2b-pro` | LOOXIS-Pro: Geschäftskunde, der Rohware in größeren Mengen bezieht |
+
+Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 
 `sales_channels` – feste Werte:
 
 | Wert | Bedeutung |
 |---|---|
-| `shop` | eigener Online-Shop |
+| `shop` | eigener Online-Shop (Privatkunden) |
 | `amazon` | Amazon |
+| `fachhaendler` | Fachhändler-Shop fachhaendler.looxis.de |
+| `looxis-pro` | Bestellweg für LOOXIS-Pro |
 
 Regeln:
 
 - **Leer heißt: gilt für alle.** Die Felder nur füllen, wenn das Dokument wirklich eingeschränkt ist. Ein Dokument für beide Kundenarten lässt `customer_types` leer, statt beide Werte aufzuzählen.
-- Beide Felder sind YAML-Listen und unabhängig voneinander: `customer_types: [b2b]` mit leerem `sales_channels` gilt für Geschäftskunden auf allen Kanälen.
+- Beide Felder sind YAML-Listen. Die App wählt nach Kundengruppe aus; jede Gruppe hat genau eine Kundenart und einen Kanal:
+
+  | Kundengruppe | Kundenart | Kanal |
+  |---|---|---|
+  | Privatkunde, eigener Shop | `b2c` | `shop` |
+  | Privatkunde, Amazon | `b2c` | `amazon` |
+  | Foto-Fachhändler / Reseller | `b2b-reseller` | `fachhaendler` |
+  | LOOXIS-Pro | `b2b-pro` | `looxis-pro` |
+  | Noch unklar | – | – |
+
+  Ein Dokument gilt für eine Gruppe, wenn beide Felder leer sind oder den Wert der Gruppe enthalten. Beispiele: `customer_types: [b2c]` mit leerem Kanal gilt für Privatkunden im Shop und auf Amazon. `sales_channels: [shop]` mit leerer Kundenart gilt nur für Privatkunden im Shop, nicht für Fachhändler. Ist die Kundengruppe noch unklar, verwendet die App nur Dokumente, bei denen beide Felder leer sind.
+- Passt eine Kombination zu keiner Gruppe (z. B. `b2c` mit nur `looxis-pro`), warnt die Prüfung: Das Dokument würde nie verwendet.
+- Was ein Fallkontext laden würde, zeigt `./vendor/bin/sail artisan knowledge:select private-shop --product=<slug>`.
 - Unterscheidet sich eine Regel je Kundenart oder Kanal deutlich, **zwei Dokumente** schreiben (eines je Geltungsbereich) statt eines Dokuments mit „bei B2B gilt abweichend …". Kleine Abweichungen dürfen als Ausnahme im Text bleiben; dann bleiben die Felder leer.
 - Der Geltungsbereich steht zusätzlich in einem Satz am Anfang des Textes (z. B. „Gilt nur für Geschäftskunden."), damit die Datei auch für Menschen eindeutig ist. Frontmatter und Text müssen dasselbe sagen.
 - Frage beim Erfassen jeder Policy, Permission und jedes Playbooks ausdrücklich: „Gilt das für alle Kunden und Kanäle, oder nur für bestimmte?"

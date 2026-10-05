@@ -133,7 +133,7 @@ describe('errors exclude a document', function () {
         'type does not match the folder' => [['playbooks/policy-001-a.md' => knowledgeDoc()], 'gehören nach policies/'],
         'file outside a type folder' => [['policy-001-a.md' => knowledgeDoc()], 'liegt in keinem Typ-Ordner'],
         'file in an unknown folder' => [['rules/policy-001-a.md' => knowledgeDoc()], 'liegt in keinem Typ-Ordner'],
-        'unknown customer type' => [['policies/policy-001-a.md' => knowledgeDoc(['customer_types' => ['reseller']])], 'Unbekannter Wert `reseller` in `customer_types`. Erlaubt: b2c, b2b'],
+        'unknown customer type' => [['policies/policy-001-a.md' => knowledgeDoc(['customer_types' => ['reseller']])], 'Unbekannter Wert `reseller` in `customer_types`. Erlaubt: b2c, b2b-reseller, b2b-pro'],
         'unknown sales channel' => [['policies/policy-001-a.md' => knowledgeDoc(['sales_channels' => ['etsy']])], 'Unbekannter Wert `etsy` in `sales_channels`'],
         'unknown category' => [['policies/policy-001-a.md' => knowledgeDoc(['categories' => ['reklamation']])], 'Unbekannter Wert `reklamation` in `categories`'],
         'nested list' => [['policies/policy-001-a.md' => knowledgeDoc(['topics' => [['a' => 'b']]])], 'Feld `topics` muss eine einfache Liste'],

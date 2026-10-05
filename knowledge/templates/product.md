@@ -10,6 +10,7 @@ customer_types:
 sales_channels:
 
 products:
+order_keywords:
 categories:
 topics:
 

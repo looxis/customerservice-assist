@@ -1,6 +1,6 @@
 # PROJ-4: Knowledge-Auswahl
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -234,6 +234,21 @@ Keine neuen Pakete.
 - Es gibt keine Oberfläche; `/frontend` entfällt für PROJ-4.
 - Tests: Unit-Tests für Auswahlregel, Reihenfolge, Obergrenzen und Vorschläge mit Test-Knowledge-Ordnern (wie bei PROJ-3); Feature-Tests für den Terminal-Befehl.
 
+
+## Implementation Notes (Backend)
+**Gebaut am 2026-10-05.** Keine Oberfläche, keine Datenbank; `/frontend` entfällt.
+
+- **Konfiguration** (`config/knowledge.php`): neue Wertelisten, `retired_values` (Hinweis bei `b2b`), `customer_groups` (Schlüssel `private-shop`, `private-amazon`, `reseller`, `looxis-pro`, `unclear`), `order_channels` (EOCS-Bezeichnung → Kanal, ohne Beachtung der Groß- und Kleinschreibung), `selection` (3/2 Beispiele, 60.000 Zeichen), `min_order_keyword_length` (3).
+- **Bausteine** in `app/Knowledge/`: `CustomerGroup` (einzige Stelle der Kundengruppen-Regel), `CaseContext`, `KnowledgeSelector` (Wertelisten und Auswahl), `KnowledgeSelection` und `KnowledgeSelectionEntry` (Ergebnis), `KnowledgeSuggester` (Vorschläge aus Bestellpositionen und Kanal). `KnowledgeDocument` kennt jetzt `productSlug()`, `boundProducts()`, `orderKeywords()`, `isDraft()`, `length()`.
+- **Prüfung** (`KnowledgeValidator`): Hinweis bei `b2b`; `order_keywords` nur in Produktdateien bekannt; Warnungen bei Schlüsselwörtern unter 3 Zeichen, bei gleichem Schlüsselwort für verschiedene Produkte (nicht innerhalb eines aufgeteilten Produkts) und bei Geltungsbereichen ohne passende Kundengruppe. Die bestehende Warnung „keine Produktdatei" erkennt jetzt auch Unterordner-Produkte am Ordnernamen.
+- **Befehl** `knowledge:select {gruppe} {--product=*}`: Tabellen für ausgewählte und nicht ausgewählte Dokumente, Umfang, Warnungen. Unbekannte Gruppe oder unbekanntes Produkt → Liste der erlaubten Werte, Fehlschlag. Erlaubt sind nur Produkte mit verwendbarer Produktdatei.
+- **Präzisierungen gegenüber der Spec:**
+  - Ausschlussgründe lauten „nur für Kundenart …", „nur für Kanal …", „anderes Produkt: …", „Obergrenze für gute/schlechte Beispiele erreicht (n)" und „weggelassen, weil der Gesamtumfang die Obergrenze überschreitet".
+  - Bei Überschreitung des Umfangs werden Referenzfälle einzeln vom Ende der Rangfolge her weggelassen (schlechte vor guten), bis der Umfang passt – nicht alle auf einmal.
+  - Unbekannte Produkte (keine Produktdatei) werden für die Auswahl ignoriert; Produkte, deren Produktdateien alle unbrauchbar sind, gelten weiter für andere Dokumente und erscheinen als „ohne Produktwissen".
+  - Die Meldung „Knowledge-Ordner fehlt" aus PROJ-3 erscheint als Warnung im Auswahlergebnis.
+- **Knowledge-Inhalte:** `policy-008` auf `b2b-reseller` + `fachhaendler` umgestellt (Frontmatter und Geltungssatz). Guide (Wertelisten, Kundengruppen-Tabelle, `order_keywords`, Vorschau-Befehl) und Produkt-Vorlage ergänzt.
+- **Tests:** `tests/Feature/PROJ-4-KnowledgeSelectionTest.php` (44 Tests); PROJ-3-Test an die neue Werteliste angepasst. Gesamte Suite: 367 Tests grün.
 
 ## QA Test Results
 _To be added by /qa_

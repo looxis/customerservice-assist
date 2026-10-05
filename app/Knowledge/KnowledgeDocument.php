@@ -105,6 +105,49 @@ final readonly class KnowledgeDocument
         return $this->list('related_knowledge');
     }
 
+    /** @return list<string> */
+    public function orderKeywords(): array
+    {
+        return $this->list('order_keywords');
+    }
+
+    /**
+     * The product a product file describes: its file name, or the subfolder
+     * name when the product is split into several files. Null for other types.
+     */
+    public function productSlug(): ?string
+    {
+        if ($this->folderType !== 'product') {
+            return null;
+        }
+
+        $segments = explode('/', $this->path);
+
+        return count($segments) > 2 ? $segments[1] : pathinfo($this->path, PATHINFO_FILENAME);
+    }
+
+    /**
+     * Products a document is bound to; a product file is always bound to its own product.
+     *
+     * @return list<string>
+     */
+    public function boundProducts(): array
+    {
+        $slug = $this->productSlug();
+
+        return array_values(array_unique($slug === null ? $this->products() : [$slug, ...$this->products()]));
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function length(): int
+    {
+        return mb_strlen($this->body);
+    }
+
     public function filename(): string
     {
         return basename($this->path);

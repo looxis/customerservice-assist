@@ -6,7 +6,7 @@ class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge'];
+    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords'];
 
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
@@ -16,8 +16,10 @@ class KnowledgeValidator
 
     private const array PERMISSION_FIELDS = ['action', 'agent_allowed', 'max_value_eur', 'approval_role'];
 
+    private const array PRODUCT_FIELDS = ['order_keywords'];
+
     /**
-     * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, max_body_length: int}  $config
+     * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, retired_values: array<string, array<string, string>>, customer_groups: array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>, min_order_keyword_length: int, max_body_length: int}  $config
      */
     public function __construct(private readonly array $config) {}
 
@@ -42,6 +44,8 @@ class KnowledgeValidator
                 ...$this->listFields($document),
                 ...$this->fixedValues($document),
                 ...$this->permissionFields($document),
+                ...$this->orderKeywords($document),
+                ...$this->reachability($document),
                 ...$this->body($document),
                 ...$this->openQuestions($document),
                 ...$this->missingCategories($document),
@@ -57,6 +61,7 @@ class KnowledgeValidator
             ...$this->duplicateIds($parsed),
             ...$this->references($parsed),
             ...$this->productFiles($parsed),
+            ...$this->duplicateOrderKeywords($parsed),
         );
 
         return $issues;
@@ -159,7 +164,8 @@ class KnowledgeValidator
 
         foreach (['customer_types', 'sales_channels', 'categories'] as $field) {
             foreach (array_diff($document->list($field), $this->config[$field]) as $value) {
-                $issues[] = KnowledgeIssue::error($document->path, "Unbekannter Wert `{$value}` in `{$field}`. Erlaubt: ".implode(', ', $this->config[$field]).'.');
+                $hint = $this->config['retired_values'][$field][$value] ?? 'Erlaubt: '.implode(', ', $this->config[$field]).'.';
+                $issues[] = KnowledgeIssue::error($document->path, "Unbekannter Wert `{$value}` in `{$field}`. {$hint}");
             }
         }
 
@@ -192,6 +198,46 @@ class KnowledgeValidator
         }
 
         return $issues;
+    }
+
+    /** @return list<KnowledgeIssue> */
+    private function orderKeywords(KnowledgeDocument $document): array
+    {
+        if ($document->type !== 'product') {
+            return [];
+        }
+
+        $minimum = $this->config['min_order_keyword_length'];
+
+        return array_values(array_map(
+            fn (string $keyword): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Das Schlüsselwort `{$keyword}` in `order_keywords` ist kürzer als {$minimum} Zeichen und passt vermutlich auf viele Bestellpositionen."),
+            array_filter($document->orderKeywords(), fn (string $keyword): bool => mb_strlen($keyword) < $minimum),
+        ));
+    }
+
+    /**
+     * A document whose customer type and channel fit no customer group is never selected.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function reachability(KnowledgeDocument $document): array
+    {
+        $customerTypes = $document->customerTypes();
+        $salesChannels = $document->salesChannels();
+
+        if (($customerTypes === [] && $salesChannels === [])
+            || array_diff($customerTypes, $this->config['customer_types']) !== []
+            || array_diff($salesChannels, $this->config['sales_channels']) !== []) {
+            return [];
+        }
+
+        foreach (CustomerGroup::all($this->config['customer_groups']) as $group) {
+            if ($group->covers($document)) {
+                return [];
+            }
+        }
+
+        return [KnowledgeIssue::warning($document->path, 'Kundenart und Kanal passen zu keiner Kundengruppe (z. B. `b2c` nur zusammen mit Kanal `looxis-pro`). Das Dokument wird nie ausgewählt.')];
     }
 
     /** @return list<KnowledgeIssue> */
@@ -281,9 +327,11 @@ class KnowledgeValidator
     /** @return list<KnowledgeIssue> */
     private function unknownFields(KnowledgeDocument $document): array
     {
-        $known = $document->type === 'permission'
-            ? [...self::KNOWN_FIELDS, ...self::PERMISSION_FIELDS]
-            : self::KNOWN_FIELDS;
+        $known = match ($document->type) {
+            'permission' => [...self::KNOWN_FIELDS, ...self::PERMISSION_FIELDS],
+            'product' => [...self::KNOWN_FIELDS, ...self::PRODUCT_FIELDS],
+            default => self::KNOWN_FIELDS,
+        };
 
         return array_map(
             fn (string $field): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Unbekanntes Feld `{$field}` im Frontmatter (Tippfehler?)."),
@@ -391,8 +439,7 @@ class KnowledgeValidator
 
         foreach ($documents as $document) {
             if ($document->folderType === 'product') {
-                $known[] = pathinfo($document->path, PATHINFO_FILENAME);
-                array_push($known, ...$document->products());
+                array_push($known, ...$document->boundProducts());
             }
         }
 
@@ -405,6 +452,44 @@ class KnowledgeValidator
 
             foreach (array_diff($document->products(), $known) as $product) {
                 $issues[] = KnowledgeIssue::warning($document->path, "Für das Produkt `{$product}` gibt es keine Produktdatei in products/.");
+            }
+        }
+
+        return $issues;
+    }
+
+    /**
+     * The same order keyword in files of different products makes the product suggestion ambiguous.
+     *
+     * @param  list<KnowledgeDocument>  $documents
+     * @return list<KnowledgeIssue>
+     */
+    private function duplicateOrderKeywords(array $documents): array
+    {
+        $owners = [];
+
+        foreach ($documents as $document) {
+            if ($document->productSlug() === null) {
+                continue;
+            }
+
+            foreach (array_unique(array_map('mb_strtolower', $document->orderKeywords())) as $keyword) {
+                $owners[$keyword][] = $document;
+            }
+        }
+
+        $issues = [];
+
+        foreach ($owners as $keyword => $files) {
+            $products = array_unique(array_map(fn (KnowledgeDocument $document): string => $document->productSlug(), $files));
+
+            if (count($products) < 2) {
+                continue;
+            }
+
+            foreach ($files as $document) {
+                $others = implode(', ', array_diff($products, [$document->productSlug()]));
+                $issues[] = KnowledgeIssue::warning($document->path, "Das Schlüsselwort `{$keyword}` in `order_keywords` steht auch beim Produkt {$others}. Der Produktvorschlag ist dann nicht eindeutig.");
             }
         }
 
