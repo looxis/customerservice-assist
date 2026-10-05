@@ -53,6 +53,18 @@ describe('document type', function () {
         expect(knowledgeBase(['procedures/procedure-001-a.md' => procedureDoc(['actions' => ['gift-card']])])->issues())->toBeEmpty();
     });
 
+    test('a permission may name several actions as a list', function () {
+        $library = knowledgeBase(['permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => ['reproduction', 'reshipment'], 'agent_allowed' => true])]);
+
+        expect($library->issues())->toBeEmpty();
+    });
+
+    test('a permission without action is an error', function () {
+        $library = knowledgeBase(['permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => [], 'agent_allowed' => true])]);
+
+        expect(messagesOf($library, 'error'))->toContain('Permission ohne `action`');
+    });
+
     test('a permission action outside the list warns', function () {
         $library = knowledgeBase([
             'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => 'replacement', 'agent_allowed' => true]),

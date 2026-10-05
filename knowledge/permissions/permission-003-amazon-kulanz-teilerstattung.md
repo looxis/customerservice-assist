@@ -5,7 +5,7 @@ type: permission
 status: draft
 sales_channels:
 - amazon
-action: refund
+action: partial-refund
 agent_allowed: true
 max_value_eur: 100
 limit_basis: original-product-price

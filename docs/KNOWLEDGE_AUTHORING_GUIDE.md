@@ -163,7 +163,7 @@ Bestehende Dokumente, die ihren Geltungsbereich bisher nur im Text nennen, erhal
 
 ### Permissions
 
-Kritische Grenzen gehören maschinenlesbar ins Frontmatter, nicht nur in den Text: `action`, `agent_allowed` (`true`/`false`), `max_value_eur` (Zahl ohne Währungszeichen), `approval_role`. Ist eine Grenze nicht bekannt, nachfragen. `action` ist ein Wert aus der Vorgangsliste (siehe Arbeitsabläufe); ein anderer Wert erzeugt eine Warnung.
+Kritische Grenzen gehören maschinenlesbar ins Frontmatter, nicht nur in den Text: `action`, `agent_allowed` (`true`/`false`), `max_value_eur` (Zahl ohne Währungszeichen), `approval_role`. Ist eine Grenze nicht bekannt, nachfragen. `action` ist ein Wert aus der Vorgangsliste (siehe Arbeitsabläufe), bei einer Befugnis für mehrere Vorgänge eine Liste (z. B. `[reproduction, reshipment]` für Neuproduktion mit Ersatzversand); ein anderer Wert erzeugt eine Warnung.
 
 ### Arbeitsabläufe (`procedure`)
 

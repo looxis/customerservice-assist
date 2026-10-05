@@ -97,7 +97,7 @@
 - [x] Erste Abläufe definiert und verfasst der Product Owner mit dem KI-Chat nach dem Authoring Guide (Abschnitt „Arbeitsabläufe"); ein erster ist in Arbeit (2026-10-05).
 - [ ] Umzug von Teilen aus `processes/` nach `procedures/`: nur, wo es organisatorisch gegeben ist; Entscheidung im Einzelfall beim Erfassen, nicht vorab (2026-10-05).
 - [x] PROJ-9 liefert im Analyseergebnis Fallkategorie und empfohlene Vorgänge aus der Vorgangsliste (bestätigt 2026-10-05; in der PROJ-9-Spec festzuschreiben).
-- [ ] PERMISSION-002 nutzt `action: replacement` (Neuproduktion und Ersatzversand), PERMISSION-003 `refund` für eine Kulanz-Teilerstattung. Werte an die Vorgangsliste anpassen oder Liste erweitern?
+- [x] `permission.action` darf eine Liste sein; PERMISSION-002 → `[reproduction, reshipment]`, PERMISSION-003 → `partial-refund` (2026-10-05).
 
 ## Decision Log
 
@@ -111,6 +111,7 @@
 | Arbeitsschritte und Abschlusskontrolle abhakbar, nicht gespeichert | Hilfe beim Abarbeiten ohne Datenbank; Speichern ggf. mit PROJ-11 | 2026-10-05 |
 | Abläufe gehen nicht an die KI | Anleitungen für Menschen; hält den Prompt klein und trennt Entscheidung von Umsetzung | 2026-10-05 |
 | Kritische Hinweise hervorgehoben (eigener Abschnitt und Zeilen mit „Achtung:") | Teure Fehler vermeiden; einfache, merkbare Konvention für Autoren | 2026-10-05 |
+| `permission.action` darf ein Wert oder eine Liste sein | Eine Befugnis kann mehrere Vorgänge abdecken (Neuproduktion mit Ersatzversand), ohne einen Sammelbegriff, den die Arbeitsabläufe nicht kennen | 2026-10-05 |
 | Priorität P0, gebaut nach PROJ-10 | Wichtig für Aushilfen, setzt Analyseergebnis und Ergebnisansicht voraus | 2026-10-05 |
 
 ### Technical Decisions

@@ -73,7 +73,7 @@
                 <dl class="mt-6 grid gap-4 border-t border-slate-100 pt-4 text-sm sm:grid-cols-2 md:grid-cols-4">
                     <div>
                         <dt class="text-slate-400">Maßnahme</dt>
-                        <dd class="mt-1 font-mono text-slate-900">{{ $document->string('action') ?? '–' }}</dd>
+                        <dd class="mt-1 font-mono text-slate-900">{{ implode(', ', $document->list('action')) ?: '–' }}</dd>
                     </div>
                     <div>
                         <dt class="text-slate-400">Kundenservice entscheidet selbst</dt>
