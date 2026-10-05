@@ -350,10 +350,54 @@ describe('cleaning of mail html', function () {
             ->not->toContain('onclick')->not->toContain('<iframe')->not->toContain('<font')->not->toContain('javascript:')
             ->toContain('<p>Hallo <b>Welt</b></p>')
             ->toContain('<li>Eins</li>')
-            ->toContain('href="https://looxis.de"')
-            ->toContain('target="_blank"')
             ->toContain('Schrift');
     });
+
+    test('links are replaced, a describing link text stays in front', function (string $html, string $expected) {
+        $body = (string) app(MessageBody::class)->parse($html, 'text/html')['body'];
+
+        expect($body)->toBe($expected)
+            ->not->toContain('<a ')
+            ->not->toContain('drive.google');
+    })->with([
+        'describing text' => ['<p><a href="https://drive.google.com/file/d/x">Bildinformationen zur Bestellung</a></p>', '<p>Bildinformationen zur Bestellung [Link entfernt]</p>'],
+        'address as text' => ['<p>Siehe <a href="https://drive.google.com/x">https://drive.google.com/x</a></p>', '<p>Siehe [Link entfernt]</p>'],
+        'empty link' => ['<p>Hier<a href="https://evil.example"><img src="x"></a></p>', '<p>Hier[Link entfernt]</p>'],
+        'nested markup' => ['<p><a href="https://evil.example"><b>Jetzt</b> öffnen</a></p>', '<p>Jetzt öffnen [Link entfernt]</p>'],
+        'mailto' => ['<p><a href="mailto:a@example.org">Schreiben</a></p>', '<p>Schreiben [Link entfernt]</p>'],
+        'bare address in text' => ['<p>Bitte hier: https://drive.google.com/file?id=1&amp;x=2 ansehen</p>', '<p>Bitte hier: [Link entfernt] ansehen</p>'],
+        'www without scheme' => ['<div>www.evil.example/login</div>', '<div>[Link entfernt]</div>'],
+    ]);
+
+    test('bare addresses in plain text mails are replaced too', function () {
+        expect((string) app(MessageBody::class)->parse("Foto: https://drive.google.com/x\nDanke", 'text/plain')['body'])
+            ->toBe("<p>Foto: [Link entfernt]<br />\nDanke</p>");
+    });
+
+    test('links in the collapsed quote are replaced too', function () {
+        $parsed = app(MessageBody::class)->parse('<p>Neu</p><blockquote><a href="https://evil.example">Klick</a></blockquote>', 'text/html');
+
+        expect((string) $parsed['quote'])->toContain('Klick [Link entfernt]')->not->toContain('evil.example');
+    });
+
+    test('the ticket page shows no links from mails', function () {
+        fakeZammad([zammadArticle(['body' => '<p>Bitte prüfen: <a href="https://drive.google.com/x">Bilder</a> und www.evil.example</p>'])]);
+
+        $this->get('/tickets/2137942')
+            ->assertSeeText('Bitte prüfen: Bilder [Link entfernt] und [Link entfernt]')
+            ->assertDontSee('drive.google.com')
+            ->assertDontSee('evil.example');
+    });
+
+    test('blank lines are reduced to at most one', function (string $html, string $expected) {
+        expect((string) app(MessageBody::class)->parse($html, 'text/html')['body'])->toBe($expected);
+    })->with([
+        'many breaks in running text' => ['Hallo<br><br><br><br>Welt', 'Hallo<br /><br />Welt'],
+        'empty div lines' => ['<div>Hallo</div><div>&nbsp;</div><div><br></div><div> </div><div>Welt</div>', '<div>Hallo</div><br /><div>Welt</div>'],
+        'breaks at the end of a block' => ['<div>Hallo<br><br></div><div>Welt</div>', '<div>Hallo</div><div>Welt</div>'],
+        'blank start and end' => ['<br><br><div>&nbsp;</div>Hallo<br><br><br>', 'Hallo'],
+        'single blank line stays' => ['Hallo<br><br>Welt', 'Hallo<br /><br />Welt'],
+    ]);
 
     test('long mails are not cut off', function () {
         $long = str_repeat('Lorem ipsum dolor sit amet. ', 2000);

@@ -13,7 +13,7 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 /**
  * Turns the body of a Zammad message into safe HTML and splits off a quoted
  * earlier message at its end. Mail from outside is never trusted: only text
- * structure and links survive, nothing is loaded from elsewhere.
+ * structure survives, links are replaced and nothing is loaded from elsewhere.
  */
 class MessageBody
 {
@@ -29,6 +29,10 @@ class MessageBody
         .'|(?:Anfang der weitergeleiteten Nachricht|Begin forwarded message|Begin doorgestuurd bericht|Début du message réexpédié)\s*:'
         .'|(?:Von|From|Van|De)\s?:\s.{1,240}?(?:Gesendet|Sent|Datum|Date|Verzonden|Envoyé)\s?:'
         .')/isu';
+
+    private const string LINK_REMOVED = '[Link entfernt]';
+
+    private const string BARE_LINK = '/(?:\bhttps?:\/\/|\bwww\.)[^\s<>"\'\x{00A0}]+/iu';
 
     private const array QUOTE_MARKERS = ['js-signatureMarker', 'gmail_quote', 'moz-cite-prefix', 'divRplyFwdMsg', 'appendonsend', 'OutlookMessageHeader', 'yahoo_quoted'];
 
@@ -65,7 +69,66 @@ class MessageBody
 
     public function sanitize(string $html): string
     {
-        return trim($this->sanitizer()->sanitize($html));
+        return $this->tidyBlankLines($this->withoutBareLinks($this->sanitizer()->sanitize($this->withoutLinks($html))));
+    }
+
+    /**
+     * Links are never needed to handle a complaint and may lead to phishing:
+     * each one becomes "[Link entfernt]", a describing link text stays in front.
+     */
+    private function withoutLinks(string $html): string
+    {
+        return preg_replace_callback('/<a\b[^>]*>(.*?)<\/a\s*>/isu', function (array $match): string {
+            $text = trim(html_entity_decode(strip_tags($match[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'), " \t\n\r\0\x0B\u{00A0}");
+
+            return $text === '' || preg_match(self::BARE_LINK, $text) ? self::LINK_REMOVED : e($text).' '.self::LINK_REMOVED;
+        }, $html) ?? $html;
+    }
+
+    /**
+     * Web addresses written as plain text are replaced as well; tags are left alone.
+     */
+    private function withoutBareLinks(string $html): string
+    {
+        return implode('', array_map(
+            fn (string $part): string => str_starts_with($part, '<') ? $part : (preg_replace(self::BARE_LINK, self::LINK_REMOVED, $part) ?? $part),
+            preg_split('/(<[^>]+>)/u', $html, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [$html],
+        ));
+    }
+
+    /**
+     * Mails often carry many empty lines. Keep at most one blank line, drop
+     * empty lines at the start and end and line breaks at the end of a block.
+     */
+    private function tidyBlankLines(string $html): string
+    {
+        $space = '(?:\s|&nbsp;|\x{00A0})*';
+        $break = '<br\s*\/?>';
+        $block = '(?:div|p|h[1-6]|ul|ol|li|blockquote|pre|table)';
+
+        $rules = [
+            // Empty blocks become a single line break.
+            '/<(div|p)\b[^>]*>'.$space.'(?:'.$break.$space.')*<\/\1>/iu' => '<br />',
+            // Line breaks at the end of a block add nothing visible but space.
+            '/(?:'.$space.$break.')+'.$space.'(<\/'.$block.'>)/iu' => '$1',
+            // After a block, one line break is one blank line; more are collapsed.
+            '/(<\/'.$block.'>)'.$space.'(?:'.$break.$space.'){2,}/iu' => '$1<br />',
+            // In running text, at most one blank line.
+            '/(?:'.$break.$space.'){3,}/iu' => '<br /><br />',
+            // Nothing blank at the very start or end.
+            '/^(?:'.$space.$break.')+/iu' => '',
+            '/(?:'.$break.$space.')+$/iu' => '',
+        ];
+
+        do {
+            $before = $html;
+
+            foreach ($rules as $pattern => $replacement) {
+                $html = preg_replace($pattern, $replacement, $html) ?? $html;
+            }
+        } while ($html !== $before);
+
+        return trim($html);
     }
 
     /**
@@ -292,17 +355,11 @@ class MessageBody
 
         $config = (new HtmlSanitizerConfig)
             ->defaultAction(HtmlSanitizerAction::Block)
-            ->withMaxInputLength(-1)
-            ->allowLinkSchemes(['http', 'https', 'mailto'])
-            ->allowRelativeLinks(false)
-            ->forceAttribute('a', 'target', '_blank')
-            ->forceAttribute('a', 'rel', 'noopener noreferrer nofollow');
+            ->withMaxInputLength(-1);
 
         foreach (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u', 'blockquote', 'pre', 'code', 'hr', 'table', 'thead', 'tbody', 'tr', 'td', 'th'] as $element) {
             $config = $config->allowElement($element);
         }
-
-        $config = $config->allowElement('a', ['href']);
 
         foreach (['script', 'style', 'head', 'title', 'img', 'picture', 'svg', 'video', 'audio', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'select', 'textarea', 'noscript', 'template', 'meta', 'link', 'base'] as $element) {
             $config = $config->dropElement($element);

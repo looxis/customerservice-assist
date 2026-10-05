@@ -38,7 +38,7 @@
     <div class="mt-3">
         @if ($article->hasText())
             {{-- body and quote are sanitized by App\Zammad (symfony/html-sanitizer). --}}
-            <div class="knowledge-text">{{ $article->body }}</div>
+            <div class="mail-text">{{ $article->body }}</div>
         @else
             <p class="text-sm text-slate-600">(kein Text, nur Anhang)</p>
         @endif
@@ -50,7 +50,7 @@
                     <span class="group-open:hidden">Zitat anzeigen</span>
                     <span class="hidden group-open:inline">Zitat ausblenden</span>
                 </summary>
-                <div class="knowledge-text mt-2 border-l-2 border-slate-200 pl-4 text-slate-600">{{ $article->quote }}</div>
+                <div class="mail-text mt-2 border-l-2 border-slate-200 pl-4 text-slate-600">{{ $article->quote }}</div>
             </details>
         @endif
     </div>

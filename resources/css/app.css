@@ -190,6 +190,48 @@
         }
     }
 
+    /* Text of a Zammad message (see App\Zammad\MessageBody): mail lines are
+       often <div> elements, so only paragraphs get spacing. */
+    .mail-text {
+        @apply text-sm leading-relaxed text-slate-900 wrap-anywhere;
+
+        p {
+            @apply my-3 first:mt-0 last:mb-0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            @apply my-3 font-semibold first:mt-0;
+        }
+
+        ul {
+            @apply my-2 list-disc space-y-1 pl-5;
+        }
+
+        ol {
+            @apply my-2 list-decimal space-y-1 pl-5;
+        }
+
+        strong, b {
+            @apply font-semibold;
+        }
+
+        blockquote {
+            @apply my-2 border-l-2 border-slate-200 pl-4 text-slate-600;
+        }
+
+        pre {
+            @apply overflow-x-auto rounded-md bg-slate-100 p-3 font-mono text-xs;
+        }
+
+        table {
+            @apply block w-full overflow-x-auto text-left;
+        }
+
+        td, th {
+            @apply px-2 py-1 align-top;
+        }
+    }
+
     /* "[in Arbeit]" marker on the "Über die App" page (see App\Http\Controllers\AboutController). */
     .about-wip {
         @apply ml-1 inline-flex items-center whitespace-nowrap rounded-pill bg-warning-500/10 px-2 py-0.5 text-[11px] font-medium text-warning-700 ring-1 ring-warning-500/20 ring-inset;
