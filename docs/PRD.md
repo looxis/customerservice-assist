@@ -32,10 +32,10 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Ergebnisansicht mit bearbeitbarem Antwortentwurf, Kopieren und einsehbaren Quellen | Roadmap |
 | P0 (MVP) | Analyse-Protokoll und Verlauf je Ticket | Roadmap |
 | P0 (MVP) | Feedback und Wissenslücke melden | Roadmap |
+| P0 (MVP) | Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Roadmap |
 | P1 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
 | P1 | Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
 | P1 | Einstellungen für die Mail-Anzeige (zugelassene Links, Signaturen, Textbausteine) | Roadmap |
-| P1 | Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Roadmap |
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | P1 | Gesamtliste aller Analysen, Feedbacks und Wissenslücken mit Filter | Roadmap |
 | P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |

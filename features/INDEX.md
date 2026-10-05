@@ -13,7 +13,7 @@
 
 ## Features
 
-The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
+The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time; PROJ-28 is P0 and should be built right after PROJ-11). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
 
 | ID | Feature | Description | Priority | Dependencies | Status | Spec | Created |
 |----|---------|-------------|----------|--------------|--------|------|---------|
@@ -44,7 +44,7 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-25 | Über die App | Seite „Über die App“ unten in der Seitenleiste: Ziel, Ablauf mit Hinweis „in Arbeit“, Beispiel, Grenzen, Wissen ergänzen, Info-Kasten mit App- und Wissensstand, abgesetzter Entwicklerteil mit Tech Stack | P0 | PROJ-1, PROJ-3 | Approved | [Spec](PROJ-25-ueber-die-app.md) | 2026-10-05 |
 | PROJ-26 | Mobiles Menü | Burger-Symbol rechts in der Kopfleiste unter 768 px, Menüfläche mit denselben Einträgen wie die Seitenleiste, Schließen per Eintrag, Symbol, Tippen daneben oder Escape, Fokusführung | P1 | PROJ-1 | Planned | [Spec](PROJ-26-mobiles-menue.md) | 2026-10-05 |
 | PROJ-27 | Einstellungen für die Mail-Anzeige | Seite „Einstellungen" in der App mit drei Listen, die die Ticketansicht (PROJ-6) statt der Konfiguration liest: zugelassene Adressen (je Eintrag „als Text anzeigen" oder „klickbar lassen"), unsere Signaturen in allen Varianten und Sprachen samt Syntax (werden bei unseren Nachrichten ausgeblendet; bisher gesammelte Varianten mit Namen in der PROJ-6-Spec) und Textbausteine, ab denen der Rest einer Mail ausgeblendet wird | P1 | PROJ-6 | Roadmap | – | 2026-10-05 |
-| PROJ-28 | Übersetzung von Nachrichten | Fremdsprachige Nachrichten (z. B. Italienisch, Französisch über Amazon) zusätzlich auf Deutsch anzeigen, Original bleibt; jede Übersetzung wird einmal erstellt und gespeichert, damit nicht bei jedem Aufruf neu KI-Kosten entstehen; Antwortentwurf weiter in der Sprache des Kunden; wie die Übersetzung in der Oberfläche erscheint, ist noch zu klären | P1 | PROJ-6, PROJ-9, PROJ-11 | Roadmap | – | 2026-10-05 |
+| PROJ-28 | Übersetzung von Nachrichten | Fremdsprachige Nachrichten (z. B. Italienisch, Französisch über Amazon) zusätzlich auf Deutsch anzeigen, Original bleibt; jede Übersetzung wird einmal erstellt und gespeichert, damit nicht bei jedem Aufruf neu KI-Kosten entstehen; Antwortentwurf weiter in der Sprache des Kunden; wie die Übersetzung in der Oberfläche erscheint, ist noch zu klären | P0 | PROJ-6, PROJ-9, PROJ-11 | Roadmap | – | 2026-10-05 |
 | PROJ-29 | Ticketbearbeitung in der App | Die App wird zur bevorzugten Arbeitsoberfläche neben Zammad: lesen, antworten, interne Notiz, Status und Zuständigkeit direkt aus der App nach Zammad, damit nur noch selten in Zammad gewechselt und nicht mehr hin und her kopiert werden muss; Zammad bleibt das führende System; berührt PROJ-19 und die Non-Goals im PRD | P2 | PROJ-6, PROJ-15, PROJ-19 | Roadmap | – | 2026-10-05 |
 
 <!-- Add features above this line -->
