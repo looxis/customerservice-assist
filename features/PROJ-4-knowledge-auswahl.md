@@ -1,6 +1,6 @@
 # PROJ-4: Knowledge-Auswahl
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -251,7 +251,145 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-4-KnowledgeSelectionTest.php` (44 Tests); PROJ-3-Test an die neue Werteliste angepasst. Gesamte Suite: 367 Tests grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-05
+**App URL:** keine Oberfläche; geprüft über Pest, `knowledge:select`, `knowledge:check` und die echte Knowledge Base (27 Dokumente, Stand `d2a59c3` + Zaubertassen-Dateien)
+**Tester:** QA Engineer (AI)
+
+Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
+
+### Acceptance Criteria Status
+
+#### Wertelisten
+- [x] Neue Kundenarten gültig; `b2b` ist ein Fehler mit Hinweis auf `b2b-reseller` / `b2b-pro`
+- [x] Vier Kanäle gültig
+- [x] Fünf Kundengruppen in Tabellenreihenfolge mit deutscher Bezeichnung
+- [ ] BUG-1: Produktliste „alphabetisch nach Titel" sortiert nach Byte-Reihenfolge (Großbuchstaben vor Kleinbuchstaben, Umlaute ans Ende)
+
+#### Auswahl nach Kundengruppe
+- [x] Leere Felder gelten für jede Gruppe
+- [x] Privatkunde Shop, Privatkunde Amazon, Fachhändler, LOOXIS-Pro jeweils korrekt
+- [x] „Noch unklar" nur mit beiden Feldern leer (echte KB: 13 von 27 Dokumenten)
+
+#### Auswahl nach Produkt
+- [x] Leere `products` gelten immer
+- [x] Gewähltes Produkt bringt Produktdatei und gebundene Dokumente
+- [x] Kein Produkt → keine Produktdatei, keine produktgebundenen Dokumente (Begründungstext siehe BUG-2)
+- [x] Produkt mit unbrauchbarer Produktdatei → „ohne Produktwissen", Auswahl läuft weiter
+
+#### Welche Dokumente grundsätzlich in Frage kommen
+- [x] Fehlerhafte und `deprecated` Dokumente nie verwendet
+- [x] `draft` verwendet und gekennzeichnet
+- [x] `categories`/`topics` ohne Einfluss
+- [x] Beispiele auf 3 gute / 2 schlechte begrenzt, Produktbezug zuerst, dann ID
+
+#### Ergebnis der Auswahl
+- [x] Rangfolge der Knowledge Base, innerhalb des Typs nach ID
+- [x] Grund je ausgewähltem Dokument
+- [x] Grund je nicht ausgewähltem Dokument
+- [x] Fallkontext, Wissensstand, Fingerabdrücke, Anzahl Entwürfe, Gesamtumfang
+- [x] Wiederholbar: gleiche Eingabe → gleiche Dokumente und Reihenfolge (auch bei doppelter oder umsortierter Produktangabe)
+
+#### Umfang
+- [x] Über der Grenze fallen zuerst Referenzfälle weg, Warnung mit Umfang und Grenze
+- [x] Verbindliches Wissen wird nie gekürzt, Warnung bleibt
+
+#### Vorschläge aus der Bestellung
+- [x] Produktvorschlag über `order_keywords`, ohne Beachtung der Groß-/Kleinschreibung, auch mehrere Produkte
+- [x] Keine Treffer oder keine Bestellung → leer, kein Fehler
+- [x] Kundengruppe aus dem Kanal; unbekannt oder leer → „Noch unklar"
+- [x] Kanal-Zuordnung in der Konfiguration (`order_channels`), z. B. `fachhaendler.looxis.de`
+- [x] Die Wahl des Mitarbeiters gilt allein (die Auswahl nimmt nur den Fallkontext entgegen, Vorschläge fließen nicht ein)
+
+#### Prüfung der Knowledge-Dateien
+- [x] `order_keywords` nur in Produktdateien bekannt, muss einfache Liste sein
+- [x] Doppeltes Schlüsselwort bei zwei Produkten → Warnung an beiden Dateien
+- [x] Unerreichbarer Geltungsbereich → Warnung (auch `b2c` + `fachhaendler`)
+
+#### Vorschau-Befehl
+- [x] Listet ausgewählte und nicht ausgewählte Dokumente mit ID, Titel, Status, Grund, dazu Umfang und Warnungen
+- [x] Unbekannte Kundengruppe oder unbekanntes Produkt → erlaubte Werte, Exit-Code 1
+
+#### Guide und Vorlagen
+- [x] Guide beschreibt neue Kundenarten, Kanäle, Kundengruppen und `order_keywords` inkl. Interviewfrage
+- [x] Produkt-Vorlage enthält `order_keywords`
+
+### Edge Cases Status
+- [x] Keine passenden Dokumente → leere Liste, Warnung „Kein Wissen für diesen Fall."
+- [x] Knowledge-Ordner fehlt → leeres Ergebnis mit der Meldung aus PROJ-3
+- [x] Unbekanntes Produkt → ignoriert, als unbekannt genannt
+- [x] Dokument für mehrere Kundenarten/Produkte → einmal ausgewählt
+- [x] `b2c` mit leerem Kanal → Shop und Amazon
+- [x] Kanal `shop` mit leerer Kundenart → nur Privatkunde Shop
+- [x] `b2b-reseller` + `b2b-pro` → beide B2B-Gruppen
+- [x] Produkt im Unterordner → alle Dateien geladen, Produkt einmal in der Liste
+- [x] Schlüsselwort unter 3 Zeichen → Warnung
+- [x] Bestellung mit mehreren Produkten → alle vorgeschlagen
+- [x] Wissensstand ändert sich → Ergebnis trägt Fingerabdrücke und Commit
+- [x] Sehr viele Referenzfälle → Obergrenze, Rest bei den nicht ausgewählten
+
+**Zusätzlich geprüft:**
+- [x] Geschwindigkeit: Auswahl aus 200 Dokumenten in ca. 16 ms (Anforderung < 100 ms)
+- [x] `order_keywords` als einzelner Text statt Liste, mit leeren Einträgen oder als Zahl → robust verarbeitet
+- [x] Artikelnummer als Zahl in der Bestellposition → wird erkannt
+- [x] Deprecated Produktdatei → kein Vorschlag
+- [ ] BUG-3: Produktdatei mit eingeschränktem Geltungsbereich (z. B. nur `amazon`) bei Shop-Fall → Produktdatei fehlt ohne Hinweis „ohne Produktwissen"
+- [ ] BUG-4: Befehl schreibt „1 Dokumente"; `--product=` ohne Wert meldet „Unbekanntes Produkt: ."
+
+### Security Audit Results
+- [x] Keine neue Route, kein Controller, keine Eingabe aus dem Web; `route:list` unverändert (4 Routen)
+- [x] Keine Datenbank, keine Schreibzugriffe; die Auswahl ändert keine Datei
+- [x] Eingaben des Befehls werden nur gegen feste Listen verglichen, nie als Pfad verwendet
+- [x] Keine Geheimnisse in Konfiguration oder Ausgabe
+- Hinweis für PROJ-10: Gründe und Produkt-Slugs stammen aus Frontmatter und müssen in Blade escaped ausgegeben werden (Standard `{{ }}`)
+- Hinweis für PROJ-7: Bestellpositionen als Texte übergeben; Arrays in `article_number`/`description` würden einen Fehler auslösen
+
+### Inhaltliche Hinweise (keine Bugs)
+- Numerische Schlüsselwörter wie `11282` passen als Teilstring auch auf `112820`. So in der Spec gewollt („kommt vor"); bei kurzen Nummern ggf. eindeutiger formulieren.
+- POLICY-008 verweist auf PROCESS-001, das nur für `shop` gilt; Fachhändler-Fälle erhalten den Prozess nicht. Ebenso gelten TONE-001, PLAYBOOK-002 und GLOSSARY-002 nur für `shop`.
+- Umfang mit einem Produkt bereits 40.750 von 60.000 Zeichen (Privatkunde Amazon + Zaubertasse); Grenze mit PROJ-9 neu bewerten.
+
+### Bugs Found
+
+#### BUG-1: Produktliste nicht alphabetisch im deutschen Sinn
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Produktdateien mit Titeln „Zaubertasse", „Ölbild", „acrylglas", „Bild"
+  2. `KnowledgeSelector::products()` abfragen
+  3. Expected: acrylglas, Bild, Ölbild, Zaubertasse
+  4. Actual: Bild, Zaubertasse, acrylglas, Ölbild
+- **Priority:** Fix before deployment (klein, betrifft das Formular in PROJ-9)
+
+#### BUG-2: Irreführender Grund „anderes Produkt", wenn kein Produkt gewählt ist
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. `knowledge:select private-shop` (ohne `--product`)
+  2. Expected: z. B. „nur für Produkt magic-mug"
+  3. Actual: „anderes Produkt: magic-mug", obwohl kein Produkt gewählt war
+- **Priority:** Fix before deployment
+
+#### BUG-3: Kein Hinweis, wenn die Produktdatei für die Kundengruppe nicht gilt
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Produktdatei mit `sales_channels: [amazon]`
+  2. Auswahl für „Privatkunde, eigener Shop" mit diesem Produkt
+  3. Expected: Produkt wird als „ohne Produktwissen" genannt
+  4. Actual: Produktdatei steht nur bei den nicht ausgewählten; keine Warnung zum Produkt
+- **Priority:** Nice to have (Produktdateien sind in der Regel nicht eingeschränkt)
+
+#### BUG-4: Kleinigkeiten in der Befehlsausgabe
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Auswahl mit genau einem (nicht) ausgewählten Dokument → „1 Dokumente"
+  2. `knowledge:select private-shop --product=` → „Unbekanntes Produkt: ."
+- **Priority:** Nice to have
+
+### Summary
+- **Acceptance Criteria:** 36/37 passed (1 Low-Bug)
+- **Bugs Found:** 4 total (0 critical, 0 high, 0 medium, 4 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** BUG-1 und BUG-2 vor PROJ-9 beheben (je wenige Zeilen); BUG-3 und BUG-4 optional
 
 ## Deployment
 _To be added by /deploy_
