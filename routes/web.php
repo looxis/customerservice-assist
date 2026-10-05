@@ -22,6 +22,9 @@ Route::get('/tickets', [TicketController::class, 'lookup'])->name('tickets.looku
 Route::get('/tickets/{number}', [TicketController::class, 'show'])
     ->where('number', '[0-9]{1,20}')
     ->name('tickets.show');
+Route::get('/tickets/{number}/bestellungen', [TicketController::class, 'addOrder'])
+    ->where('number', '[0-9]{1,20}')
+    ->name('tickets.orders.add');
 
 if (app()->isLocal()) {
     Route::view('/styleguide', 'styleguide')->name('styleguide');

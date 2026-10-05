@@ -1,6 +1,6 @@
 # PROJ-7: Bestellung aus EOCS laden
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -207,6 +207,22 @@ Keine neuen Pakete.
 - `.env.example`: `EOCS_URL=`, `EOCS_TOKEN=`, `EOCS_TIMEOUT=10` (trägt der Product Owner ein).
 - Tests nur mit erfundenen Daten: Muster je Kanal inkl. Fehltreffer (Sendungs-, Telefonnummern), Bereinigung, EOCS nachgestellt (Treffer, mehrere Treffer, nicht gefunden, 401, Zeitüberschreitung), Reklamationsaufträge (nur echte Folgeaufträge), Zusammenführen mit Amazon, Auswahl in der Adresse (Hinzufügen, Entfernen, höchstens 10), keine Kundendaten auf der Seite und im Log.
 
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-05**, Frontend und Backend in einem Durchgang; gegen das echte EOCS mit allen sechs Kanälen geprüft.
+
+- **Erkennung** (`app/Orders/`): `OrderNumberFormat` (Muster je Kanal an einer Stelle: Amazon, looxis.de/Fachhändler, LOOXIS-Pro mit/ohne `BEST-PRO`, looxis.fr 9-stellig, masterpics, EOCS-ID), `OrderNumberDetector` (Bereinigung einer Eingabe, Suche im ganzen Verlauf inkl. Zitate, Amazon-Erkennung aus PROJ-6 zuerst, höchstens 10). Links, Sendungs-, Telefonnummern und Postleitzahlen werden nicht vorgeschlagen.
+- **EOCS** (`app/Eocs/`): `EocsClient` (Laravel-HTTP-Client, Bearer-Token, parallele Abfragen per `Http::pool`), `EocsOrder`, `EocsOrderItem`, `EocsShipment`, `EocsClaim`, `OrderLookup`, Fehler `EocsProblem`/`EocsException`. Kanal der Knowledge Base über `knowledge.order_channels` (EOCS-Kanalname, sonst Plattformname). Kundendaten (Name, E-Mail, Adressen, Telefon, Zahlung) werden nicht übernommen. Log nur mit Nummer, Fehlerart, HTTP-Status.
+- **Reklamationsaufträge:** exakte Abfragen `R1-<Nummer>` für alle geladenen Bestellungen gemeinsam; nur wenn R1 existiert, folgen R2–R6 usw. (höchstens R20); Treffer zählen nur mit `origin_order_id` der Bestellung. Die unscharfe Suche wurde verworfen: sie dauert in EOCS über 7 s.
+- **Seite:** Bereich „Bestellungen" im Ticketkopf (`ticket/orders`): Vorschläge als Links mit Kanal, Eingabefeld (GET `tickets.orders.add`, `AddOrderRequest`, Fehler am Feld, Auswahl bleibt), Bestellblöcke (`ticket/order-block`: Nummer, Kanal, EOCS-ID, Status-Badge mit EOCS-Farbe, Datum, Rechnungsnummer, Sendungen, Produkte aus der Amazon-Nachricht, Reklamationsaufträge, „In EOCS öffnen", „Entfernen"); ungeladene Amazon-Erkennungen als `ticket/mention-block` mit „Aus EOCS laden". Auswahl in `?bestellungen[]=…`, ungültige Einträge werden verworfen, höchstens 10. „Aktualisieren" behält die Auswahl.
+- **Konfiguration:** `services.eocs` (`EOCS_URL`, `EOCS_TOKEN`, `EOCS_TIMEOUT`).
+- **Gemessen (echtes EOCS):** eine Bestellung 1,4 s Seitenaufbau (inkl. Zammad), sechs Bestellungen 2,3–3,2 s. **Die Suche über die EOCS-ID dauert in EOCS selbst rund 7 s** (`filter[id]`), alle anderen Abfragen 0,15–0,25 s. EOCS beantwortet nur wenige Anfragen gleichzeitig.
+- **Abweichungen:**
+  - Die Anforderung „unter 2 s" wird bei einer Bestellung erreicht, bei mehreren nicht ganz (bis gut 3 s) und bei der EOCS-ID-Suche deutlich nicht (EOCS-seitig).
+  - Der bisherige Amazon-Block aus PROJ-6 ist im Bereich „Bestellungen" aufgegangen (PROJ-6-Test angepasst).
+- **Testhilfen** `fakeZammad`, `zammadArticle`, `amazonNotice` nach `tests/Pest.php` verschoben.
+- **Tests:** `tests/Feature/PROJ-7-EocsOrderTest.php` (40 Fälle, EOCS nachgestellt, nur erfundene Daten). Gesamte Suite grün.
+- **Empfehlung an EOCS:** Index bzw. schnellere Abfrage für `filter[id]` oder Freigabe von `GET /api/v1/orders/{id}` für den Token; ein Filter für Folgeaufträge (`origin_order_id`) würde die R1-Abfragen ersetzen.
 
 ## QA Test Results
 _To be added by /qa_

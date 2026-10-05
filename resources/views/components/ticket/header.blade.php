@@ -59,51 +59,13 @@
         </div>
     </dl>
 
-    @foreach ($ticket->orders as $order)
-        <section class="mt-6 border-t border-slate-100 pt-4" aria-label="Bestellung {{ $order->number }}">
-            <h3 class="text-sm font-semibold text-slate-900">Bestellung <span class="font-normal text-slate-600">· aus {{ $order->source }}</span></h3>
-            <dl class="mt-3 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-                <div>
-                    <dt class="text-slate-600">Bestellnummer</dt>
-                    <dd class="mt-1 font-mono text-slate-900">{{ $order->number }}</dd>
-                </div>
-                <div>
-                    <dt class="text-slate-600">Rechnungsnummer</dt>
-                    <dd class="mt-1 font-mono text-slate-900">{{ $order->invoiceNumber ?? '–' }}</dd>
-                </div>
-            </dl>
-            @if ($order->items !== [])
-                <div class="mt-3 overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-b border-slate-200 text-slate-600">
-                                <th scope="col" class="py-2 pr-4 font-medium">Produkt</th>
-                                <th scope="col" class="py-2 pr-4 font-medium">ASIN</th>
-                                <th scope="col" class="py-2 pr-4 font-medium">SKU</th>
-                                <th scope="col" class="py-2 font-medium">Anzahl</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($order->items as $item)
-                                <tr class="border-b border-slate-100 align-top">
-                                    <td class="py-2 pr-4 text-slate-900">{{ $item->name }}</td>
-                                    <td class="py-2 pr-4 font-mono text-slate-900">{{ $item->asin ?? '–' }}</td>
-                                    <td class="py-2 pr-4 font-mono text-slate-900">{{ $item->sku ?? '–' }}</td>
-                                    <td class="py-2 text-slate-900">{{ $item->quantity ?? '–' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </section>
-    @endforeach
+    {{ $orders ?? '' }}
 
     <div class="mt-6 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
         <x-button :href="$ticket->zammadUrl" variant="secondary" target="_blank" rel="noopener noreferrer">
             In Zammad öffnen <x-icon name="chevron-right" size="16" />
         </x-button>
-        <x-button :href="route('tickets.show', ['number' => $ticket->number])" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
+        <x-button :href="route('tickets.show', array_filter(['number' => $ticket->number, 'bestellungen' => request()->query('bestellungen')]))" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
             <x-icon name="refresh" size="16" /> Aktualisieren
         </x-button>
     </div>

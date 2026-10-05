@@ -1,0 +1,19 @@
+@props(['mention', 'loadUrl'])
+
+{{-- An order recognised from Amazon's notice (PROJ-6) that is not loaded from EOCS yet. --}}
+<article class="rounded-lg p-4 ring-1 ring-slate-200 ring-inset" aria-label="Bestellung {{ $mention->number }}">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+            <p class="font-mono text-sm font-semibold text-slate-900">{{ $mention->number }}</p>
+            <p class="mt-0.5 text-xs text-slate-600">aus {{ $mention->source }}</p>
+        </div>
+        <x-button :href="$loadUrl" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Bestellung wird geladen …' })">Aus EOCS laden</x-button>
+    </div>
+    @if ($mention->items !== [])
+        <ul class="mt-3 space-y-1 text-sm">
+            @foreach ($mention->items as $item)
+                <li class="text-slate-900">{{ $item->name }} @if ($item->asin)<span class="font-mono text-xs text-slate-600">· ASIN {{ $item->asin }}</span>@endif</li>
+            @endforeach
+        </ul>
+    @endif
+</article>

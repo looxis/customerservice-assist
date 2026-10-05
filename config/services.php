@@ -72,4 +72,20 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | EOCS (PROJ-7)
+    |--------------------------------------------------------------------------
+    |
+    | Read-only access to orders (docs/orders-api.md), only from the internal
+    | network. The token contains "|" and must be quoted in .env.
+    |
+    */
+
+    'eocs' => [
+        'url' => env('EOCS_URL'),
+        'token' => env('EOCS_TOKEN'),
+        'timeout' => env('EOCS_TIMEOUT', 10),
+    ],
+
 ];

@@ -22,7 +22,12 @@
     @endif
 
     @if ($ticket)
-        <x-ticket.header :ticket="$ticket" />
+        <x-ticket.header :ticket="$ticket">
+            <x-slot:orders>
+                <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []"
+                                 :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
+            </x-slot:orders>
+        </x-ticket.header>
         <x-ticket.thread :articles="$ticket->articles" />
     @endif
 </x-layouts.app>

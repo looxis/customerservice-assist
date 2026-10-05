@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Eocs\EocsClient;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
@@ -29,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
             config('services.zammad.clickable_link_hosts', []),
             config('services.zammad.footers', []),
         ));
+        $this->app->bind(EocsClient::class, fn (): EocsClient => new EocsClient(config('services.eocs'), array_change_key_case(config('knowledge.order_channels', []), CASE_LOWER)));
         $this->app->bind(ZammadClient::class, fn (Application $app): ZammadClient => new ZammadClient(config('services.zammad'), $app->make(MessageBody::class)));
         $this->app->bind(StaffDirectory::class, fn (): StaffDirectory => new StaffDirectory(config('staff')));
         $this->app->bind(KnowledgeSuggester::class, fn (Application $app): KnowledgeSuggester => new KnowledgeSuggester($app->make(KnowledgeLibrary::class), $app->make(KnowledgeSelector::class), config('knowledge')));
