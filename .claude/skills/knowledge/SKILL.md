@@ -28,6 +28,7 @@ The guide was written for a chat that cannot see the repository. Where it says t
 From the frontmatter of the existing files, collect:
 - assigned IDs per type (the highest number per type decides the next one; never fill gaps, never reuse an ID, `000` is reserved for templates)
 - existing values of `products`, `categories`, `topics`, `customer_types`, `sales_channels`
+- existing `order_keywords` per product file
 - titles, so you notice when a rule already exists
 
 If two files share an ID, report it and stop until the author has decided.
@@ -44,6 +45,7 @@ Use the argument as the starting point. If no argument was given, ask what the a
 - Follow the sections of the template; they are your checklist.
 - Always ask for the scope: all customers and channels, or only some?
 - For permissions, ask for action, whether the agent may decide alone, the value limit and the approving role.
+- For product files, ask for `order_keywords`: article numbers and article names as they appear on order lines, including older spellings. Propose candidates, keep only what the author confirms, at least three characters each and not used by another product.
 - If something is missing (a limit, an exception, a responsible role), ask. Never fill in a plausible assumption.
 - If the author describes an old case, ask whether the decision made then should still apply today.
 

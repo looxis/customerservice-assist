@@ -102,7 +102,11 @@ So wird `categories` gesetzt:
 
 `products`: ein Slug pro Produkt, identisch mit dem Dateinamen in `knowledge/products/` (bei einem auf mehrere Dateien aufgeteilten Produkt: dem Namen des Unterordners). Gilt ein Dokument für alle Produkte, bleibt `products` leer. Dokumente mit `products` verwendet die App nur, wenn der Mitarbeiter eines dieser Produkte gewählt hat.
 
-`order_keywords` (nur in Produktdateien): Artikelnummern oder Bezeichnungen, an denen die App das Produkt in einer Bestellposition erkennt und es vorschlägt. Groß- und Kleinschreibung spielt keine Rolle; ein Schlüsselwort passt, wenn es irgendwo in Artikelnummer oder Bezeichnung vorkommt. Deshalb eindeutige Begriffe wählen (mindestens drei Zeichen) und denselben Begriff nicht bei zwei Produkten eintragen; die Prüfung warnt in beiden Fällen.
+`order_keywords` (nur in Produktdateien): Artikelnummern oder Bezeichnungen, an denen die App das Produkt in einer Bestellposition erkennt und es vorschlägt. Groß- und Kleinschreibung spielt keine Rolle; ein Schlüsselwort passt, wenn es irgendwo in Artikelnummer oder Bezeichnung vorkommt. Deshalb eindeutige Begriffe wählen (mindestens drei Zeichen) und denselben Begriff nicht bei zwei Produkten eintragen; die Prüfung warnt in beiden Fällen. Welche Schlüsselwörter schon vergeben sind, steht im Sitzungsstart-Block.
+
+- Frage beim Erfassen jeder Produktdatei ausdrücklich: „Woran erkennt man das Produkt in einer Bestellung? Welche Artikelnummern oder Artikelbezeichnungen stehen auf der Bestellposition, auch ältere oder abweichende Schreibweisen?" Schlage passende Begriffe aus dem Gespräch vor (Produktname, gängige Synonyme), trage aber nur ein, was der Autor bestätigt.
+- Prüfe jeden Vorschlag gegen die vergebenen Schlüsselwörter. Ist ein Begriff zu allgemein (z. B. „Tasse", wenn es mehrere Tassen gibt), schlage einen genaueren vor.
+- Kennt der Autor die Bezeichnungen noch nicht, bleibt `order_keywords` leer; das Produkt wird dann nur nicht vorgeschlagen, der Mitarbeiter kann es trotzdem wählen.
 
 `topics`: frei, aber sparsam. Zwei bis vier Werte pro Dokument, die das Fallmuster benennen (z. B. `customer-configuration`, `photo-quality`, `replacement`, `refund`).
 
@@ -190,6 +194,9 @@ Vorhandene products-Slugs:
 Vorhandene topics-Werte:
 (Liste oder „noch keine")
 
+Vergebene order_keywords je Produkt:
+(Liste oder „noch keine")
+
 Heute möchte ich erfassen:
 (Thema oder Fall)
 ```
@@ -202,6 +209,7 @@ Heute möchte ich erfassen:
 - Alle Schlagwörter sind vorhandene Werte oder ausdrücklich als neu genannt.
 - `customer_types` und `sales_channels` sind gesetzt, wenn das Dokument eingeschränkt gilt, sonst leer; der Text nennt denselben Geltungsbereich.
 - `categories` ist vorhanden; bei Playbooks und Processes ist mindestens ein Wert gesetzt.
+- Produktdateien: nach `order_keywords` wurde gefragt; jedes Schlüsselwort hat mindestens drei Zeichen und ist bei keinem anderen Produkt vergeben.
 - Jede Aussage stammt vom Autor; nichts ist ergänzt oder geschätzt.
 - Keine personenbezogenen Daten.
 - Verweise zeigen nur auf bekannte IDs.

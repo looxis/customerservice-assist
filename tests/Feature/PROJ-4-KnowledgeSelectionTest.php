@@ -494,6 +494,30 @@ describe('checks of the knowledge files', function () {
             ->not->toContain('policies/policy-002-doc.md');
     });
 
+    test('the id overview lists the order keywords per product', function () {
+        $library = knowledgeBase([
+            ...productDoc('magic-mug', 'PRODUCT-001', ['order_keywords' => ['Zaubertasse', 'MM-100']]),
+            ...productDoc('3d-glass-photo', 'PRODUCT-002', ['order_keywords' => ['Glasfoto']], 'products/3d-glass-photo/overview.md'),
+            ...productDoc('3d-glass-photo', 'PRODUCT-003', ['order_keywords' => ['Glasfoto', 'GF-1']], 'products/3d-glass-photo/production.md'),
+        ]);
+
+        expect($library->overview())
+            ->toContain("Vorhandene products-Slugs:\n3d-glass-photo, magic-mug\n")
+            ->toContain("Vergebene order_keywords je Produkt:\n3d-glass-photo: GF-1, Glasfoto\nmagic-mug: MM-100, Zaubertasse");
+    });
+
+    test('the id overview says when no order keywords exist yet', function () {
+        expect(knowledgeBase(selectionDoc('POLICY-001'))->overview())->toContain("Vergebene order_keywords je Produkt:\nnoch keine");
+    });
+
+    test('the authoring guide and the knowledge skill ask for order keywords', function () {
+        expect(file_get_contents(base_path('docs/KNOWLEDGE_AUTHORING_GUIDE.md')))
+            ->toContain('Frage beim Erfassen jeder Produktdatei ausdrücklich')
+            ->toContain('Vergebene order_keywords je Produkt:')
+            ->and(file_get_contents(base_path('.claude/skills/knowledge/SKILL.md')))
+            ->toContain('For product files, ask for `order_keywords`');
+    });
+
     test('the product template contains order_keywords', function () {
         expect(file_get_contents(base_path('knowledge/templates/product.md')))->toContain("\norder_keywords:\n");
     });

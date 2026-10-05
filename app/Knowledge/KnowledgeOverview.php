@@ -48,6 +48,9 @@ class KnowledgeOverview
             array_push($lines, '', $heading, $values === [] ? 'noch keine' : implode(', ', $values));
         }
 
+        $keywords = $this->orderKeywords($documents);
+        array_push($lines, '', 'Vergebene order_keywords je Produkt:', ...($keywords === [] ? ['noch keine'] : $keywords));
+
         array_push($lines, '', 'Heute möchte ich erfassen:', '(Thema oder Fall)');
 
         return implode("\n", $lines);
@@ -111,9 +114,31 @@ class KnowledgeOverview
         }
 
         $files = $documents
-            ->filter(fn (KnowledgeDocument $document): bool => $document->folderType === 'product')
-            ->map(fn (KnowledgeDocument $document): string => pathinfo($document->path, PATHINFO_FILENAME));
+            ->map(fn (KnowledgeDocument $document): ?string => $document->productSlug())
+            ->filter();
 
         return collect($values)->merge($files)->unique()->sort()->values()->all();
+    }
+
+    /**
+     * One line per product, e.g. "magic-mug: Thermotasse, Zaubertasse", so a
+     * new product file does not reuse a keyword.
+     *
+     * @param  Collection<int, KnowledgeDocument>  $documents
+     * @return list<string>
+     */
+    private function orderKeywords(Collection $documents): array
+    {
+        return $documents
+            ->filter(fn (KnowledgeDocument $document): bool => $document->productSlug() !== null && $document->orderKeywords() !== [])
+            ->groupBy(fn (KnowledgeDocument $document): string => $document->productSlug())
+            ->sortKeys()
+            ->map(fn (Collection $files, string $slug): string => $slug.': '.$files
+                ->flatMap(fn (KnowledgeDocument $document): array => $document->orderKeywords())
+                ->unique()
+                ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+                ->implode(', '))
+            ->values()
+            ->all();
     }
 }
