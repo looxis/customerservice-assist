@@ -1,6 +1,6 @@
 # PROJ-25: Über die App
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 
@@ -179,7 +179,100 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-25-AboutPageTest.php` (23 Tests). Gesamte Suite: 393 Tests grün. Assets neu gebaut.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-05
+**App URL:** http://localhost:8081/ueber-die-app
+**Tester:** QA Engineer (AI)
+
+Geprüft über Pest (Feature-Tests), HTTP-Abrufe gegen die laufende App und Proben mit abweichenden Texten. Ein Browser-Werkzeug stand nicht zur Verfügung: Darstellung in Chrome, Firefox, Safari und bei 375/768/1440 px wurde nur am Markup geprüft (siehe unten). Den Text hat der Autor am 2026-10-05 gelesen und bestätigt.
+
+### Acceptance Criteria Status
+
+#### Navigation
+- [x] „Über die App" mit Icon unten in der Seitenleiste, eigener Bereich „Weitere Seiten", getrennt von den Arbeitsseiten
+- [x] Seitentitel „Über die App", Eintrag als aktiv markiert (genau ein aktiver Eintrag)
+- [x] Direkter Aufruf ohne Anmeldung (HTTP 200)
+
+#### Inhalt für alle
+- [x] Abschnitte in der Reihenfolge der Gliederung, jeweils mit Überschrift
+- [x] „in Arbeit" als Badge bei 7 noch nicht nutzbaren Schritten; „Passendes Wissen auswählen" ohne Hinweis
+- [x] Grenzen: kein Versand, keine Entscheidung, keine Änderungen an Bestellungen, Erstattungen, Gutschriften
+- [x] „Gut zu wissen": „unklar", Entwurfs-Wissen, Quellen
+- [x] Beispiel fiktiv, ohne Namen, Adressen, Bestell- oder Ticketnummern
+- [x] Verweis auf die Knowledge-Übersicht öffnet `/knowledge` im selben Tab
+- [x] Einfache Sprache; Knowledge, Entwurfs-Wissen und Kundengruppe beim ersten Vorkommen erklärt (Kleinigkeit siehe BUG-2)
+
+#### Info-Kasten „Aktueller Stand"
+- [x] App-Version wie im Sidebar-Fuß
+- [x] Wissensstand, verwendbare Dokumente, davon Entwürfe (fehlerhafte und `deprecated` nicht mitgezählt)
+- [x] Geänderte Knowledge-Datei erscheint beim nächsten Laden
+
+#### Für Entwickler
+- [x] Optisch abgesetzt (gestrichelte Linie, eigene Überschrift mit Icon)
+- [x] Tech Stack mit je einem Satz zum Zweck
+- [x] Bausteine, Skills-Ablauf, Betrieb über Sail
+- [x] Fundorte: PRD, INDEX, Authoring Guide, Design-Dokument, Design System, README
+- [x] Keine Zugangsdaten, Adressen, Ports, `.env`-Inhalte (Test prüft URLs, IPs, Ports, Schlüsselwörter)
+
+#### Pflege
+- [x] Entfernen der Hinweise „in Arbeit" steht als fester Punkt in der `/qa`-Checkliste
+
+### Edge Cases Status
+- [x] Knowledge-Ordner fehlt → 0 Dokumente plus Meldung aus PROJ-3, Seite vollständig
+- [x] Wissensstand unbekannt → „unbekannt"
+- [x] Uncommittete Änderungen → Zusatz „mit uncommitteten Änderungen"
+- [x] Lokal → Version „dev"
+- [x] Fehlerhafte Knowledge-Dateien zählen nicht mit, keine Fehlerliste auf der Seite
+- [x] Text fehlt oder leer → „Beschreibung fehlt", Info-Kasten bleibt
+- [~] Schmaler Bildschirm: nur am Markup geprüft (Seitenleiste unter `md` ausgeblendet, Tabelle mit waagrechtem Scrollen im eigenen Kasten, `wrap-anywhere` für lange Pfade). Sichtprüfung bei 375 px steht aus.
+
+**Zusätzlich geprüft:**
+- [x] Text ohne Entwicklerteil → nur Teil für alle, keine Meldung
+- [x] Nur Entwicklerteil → Info-Kasten und Entwicklerteil
+- [x] Überschrift „Für Entwickler" doppelt → Trennung an der ersten, zweite bleibt als normale Überschrift
+- [x] Mehrere Kennungen in einer Zeile und in Fettschrift → je ein Badge; Kennung als Linktext bleibt Link
+- [x] Kennung in Code bleibt stehen (Entwicklerteil erklärt sie so)
+- [x] Genau eine `h1` auf der Seite
+- [ ] BUG-1: Überschrift „## Für Entwickler:" (mit Doppelpunkt) oder „für entwickler" wird nicht als Trennstelle erkannt
+
+### Security Audit Results
+- [x] Rohes HTML im Text wird escaped (`<script>` erscheint nicht)
+- [x] Abfrageparameter werden nicht ausgegeben (Reflected-XSS-Probe ohne Treffer)
+- [x] Nur GET; POST ergibt 405
+- [x] Kein Pfad aus der Anfrage wird zum Lesen von Dateien verwendet (Textpfad nur aus der Konfiguration); `../.env` ergibt 404
+- [x] Sicherheits-Header aktiv (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`)
+- [x] Keine Geheimnisse in der Ausgabe
+- [x] Keine Formulare, daher kein CSRF-Risiko; keine Anmeldung im MVP (laut PRD)
+
+### Regression
+- [x] PROJ-1 (Shell, Version im Fuß), PROJ-24 (aktiver Eintrag „Knowledge", Markdown-Darstellung): Tests grün
+- [x] Gesamte Suite: 393 Tests grün
+
+### Bugs Found
+
+#### BUG-1: Trennstelle „Für Entwickler" ist sehr streng
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. In `docs/ABOUT.md` die Überschrift als „## Für Entwickler:" oder „# für entwickler" schreiben
+  2. Seite öffnen
+  3. Expected: Entwicklerteil abgesetzt unter dem Info-Kasten
+  4. Actual: Entwicklerteil erscheint im Teil für alle, über dem Info-Kasten, ohne Absetzung
+- **Priority:** Nice to have (heute korrekt; betrifft nur künftige Textänderungen)
+
+#### BUG-2: „Authoring Guide" im Teil für alle unerklärt
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Abschnitt „Wissen ergänzen" lesen
+  2. Expected: einfache Sprache ohne unerklärte Fachbegriffe
+  3. Actual: „nach dem Authoring Guide" ohne Erklärung, was das ist und wo er liegt
+- **Priority:** Nice to have (z. B. „nach unserer Schreibanleitung für Wissen (Authoring Guide)")
+
+### Summary
+- **Acceptance Criteria:** 23/23 passed
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; Sichtprüfung bei 375 px beim nächsten Browserbesuch nachholen
 
 ## Deployment
 _To be added by /deploy_
