@@ -54,15 +54,18 @@ class MessageBody
 
     /**
      * @param  bool  $ours  Message written by us: our signature is hidden.
-     * @return array{body: HtmlString, quote: HtmlString|null}
+     * @return array{body: HtmlString, quote: HtmlString|null, order: OrderMention|null}
      */
     public function parse(?string $body, ?string $contentType, bool $ours = false): array
     {
         $body = (string) $body;
+        $order = null;
 
-        [$main, $quote] = str_contains(strtolower((string) $contentType), 'html')
-            ? $this->splitHtml($body, $ours)
-            : array_map(fn (?string $part): ?string => $part === null ? null : $this->plainToHtml($part), $this->splitPlain($this->withoutPlainFooter($body)));
+        if (str_contains(strtolower((string) $contentType), 'html')) {
+            [$main, $quote, $order] = $this->splitHtml($body, $ours);
+        } else {
+            [$main, $quote] = array_map(fn (?string $part): ?string => $part === null ? null : $this->plainToHtml($part), $this->splitPlain($this->withoutPlainFooter($body)));
+        }
 
         if ($ours) {
             $main = $this->withoutTextSignature($main);
@@ -73,6 +76,7 @@ class MessageBody
         return [
             'body' => new HtmlString($this->sanitize($main)),
             'quote' => trim(strip_tags($quote)) === '' ? null : new HtmlString($quote),
+            'order' => $order,
         ];
     }
 
@@ -183,12 +187,12 @@ class MessageBody
      * Everything from there on (including what follows in enclosing elements)
      * is the quote. Without text before it, nothing is cut.
      *
-     * @return array{0: string, 1: string|null}
+     * @return array{0: string, 1: string|null, 2: OrderMention|null}
      */
     private function splitHtml(string $html, bool $ours): array
     {
         if (trim($html) === '') {
-            return ['', null];
+            return ['', null, null];
         }
 
         $document = HTMLDocument::createFromString('<!DOCTYPE html><html><body>'.$html.'</body></html>', LIBXML_NOERROR, 'UTF-8');
@@ -200,6 +204,7 @@ class MessageBody
             }
         }
 
+        $order = (new AmazonNotice)->extract($document);
         $footer = $this->findFooterStart($body);
 
         if ($footer !== null) {
@@ -209,13 +214,14 @@ class MessageBody
         $start = $this->findQuoteStart($body);
 
         if ($start === null) {
-            return $this->splitLeadingQuote($document, $body) ?? [$this->innerHtml($document, $body), null];
+            return [...($this->splitLeadingQuote($document, $body) ?? [$this->innerHtml($document, $body), null]), $order];
         }
 
+        $before = $this->innerHtml($document, $body);
         $quote = $this->cutFrom($document, $body, $start);
         $main = $this->innerHtml($document, $body);
 
-        return trim(strip_tags($main)) === '' ? [$html, null] : [$main, $quote];
+        return trim(strip_tags($main)) === '' ? [$before, null, $order] : [$main, $quote, $order];
     }
 
     /**

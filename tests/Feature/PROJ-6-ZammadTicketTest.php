@@ -386,6 +386,83 @@ describe('boilerplate', function () {
     });
 });
 
+/**
+ * A fictitious Amazon buyer-message notice in Amazon's table layout.
+ */
+function amazonNotice(string $message, string $order = '402-0000000-0000001', array $products = [['B000TEST01', 'Zaubertasse schwarz']]): string
+{
+    $rows = implode('', array_map(fn (array $product, int $index): string => '<tr><td> '.($index + 1).' </td><td> '.$product[0].' </td><td> '.$product[1].' </td></tr>', $products, array_keys($products)));
+
+    return '<center><table><tr><td><table><tr><td>'
+        .'<p>Du hast eine Nachricht erhalten.</p>'
+        .'<p>Bestellnummer '.$order.':</p>'
+        .'<table><tbody><tr><td># </td><td>ASIN </td><td>Produktname </td></tr>'.$rows.'</tbody></table>'
+        .'<h4><strong>Nachricht:</strong></h4>'
+        .'<table><tr><th><pre>'.$message.'</pre></th></tr></table>'
+        .'<table><tr><td><a href="https://sellercentral.amazon.it/nms/redirect/x">Fall lösen</a></td></tr></table>'
+        .'<p>Dieser Service wird ausschließlich für die Kommunikation mit Käufern angeboten.</p>'
+        .'</td></tr></table></td></tr></table></center>';
+}
+
+describe('amazon notice', function () {
+    test('the repeated header is removed from each amazon message, only the buyer\'s words remain', function () {
+        fakeZammad([zammadArticle(['body' => amazonNotice('Il pacco è pronto?')])]);
+
+        $html = $this->get('/tickets/2137942')->getContent();
+        preg_match('/<div class="mail-text">(.*?)<\/div>\s*<\/div>/s', $html, $text);
+
+        expect(strip_tags($text[1]))->toContain('Il pacco è pronto?')->toContain('Fall lösen')
+            ->not->toContain('Du hast eine Nachricht erhalten')
+            ->not->toContain('Bestellnummer')
+            ->not->toContain('ASIN')
+            ->not->toContain('Nachricht:');
+    });
+
+    test('the order is shown once in the header with known fields, unknown ones stay empty', function () {
+        fakeZammad([
+            zammadArticle(['id' => 1, 'body' => amazonNotice('Erste Frage', products: [['B000TEST01', 'Zaubertasse schwarz'], ['B000TEST02', 'Fototasse weiß']])]),
+            zammadArticle(['id' => 2, 'body' => amazonNotice('Zweite Frage'), 'created_at' => '2026-10-02T07:00:00.000Z']),
+        ]);
+
+        $html = $this->get('/tickets/2137942')
+            ->assertSeeTextInOrder([
+                'Bestellung', 'aus Amazon-Nachricht',
+                'Bestellnummer', '402-0000000-0000001', 'Rechnungsnummer', '–',
+                'Produkt', 'ASIN', 'SKU', 'Anzahl',
+                'Zaubertasse schwarz', 'B000TEST01', '–', '–',
+                'Fototasse weiß', 'B000TEST02',
+                'Erste Frage', 'Zweite Frage',
+            ])
+            ->getContent();
+
+        expect(substr_count($html, 'aria-label="Bestellung 402-0000000-0000001"'))->toBe(1)
+            ->and(substr_count($html, '>Zaubertasse schwarz<'))->toBe(1);
+    });
+
+    test('different orders in one ticket are shown separately', function () {
+        fakeZammad([
+            zammadArticle(['id' => 1, 'body' => amazonNotice('A', '402-0000000-0000001')]),
+            zammadArticle(['id' => 2, 'body' => amazonNotice('B', '302-0000000-0000002'), 'created_at' => '2026-10-02T07:00:00.000Z']),
+        ]);
+
+        $this->get('/tickets/2137942')->assertSeeTextInOrder(['402-0000000-0000001', '302-0000000-0000002']);
+    });
+
+    test('a ticket without amazon notice has no order block', function () {
+        fakeZammad([zammadArticle(['body' => '<p>Meine Bestellnummer ist 402-0000000-0000001.</p>'])]);
+
+        $this->get('/tickets/2137942')
+            ->assertDontSee('aria-label="Bestellung', false)
+            ->assertSeeText('Meine Bestellnummer ist 402-0000000-0000001.');
+    });
+
+    test('a customer text that merely mentions "Nachricht:" is kept', function () {
+        fakeZammad([zammadArticle(['body' => amazonNotice('Nachricht: bitte schnell antworten')])]);
+
+        $this->get('/tickets/2137942')->assertSeeText('Nachricht: bitte schnell antworten');
+    });
+});
+
 describe('cleaning of mail html', function () {
     test('scripts, images, styles and event handlers are removed, text structure and links stay', function () {
         $parsed = app(MessageBody::class)->parse(

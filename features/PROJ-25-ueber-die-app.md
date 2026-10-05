@@ -33,6 +33,7 @@
 4. **Was die App bewusst nicht tut** – nichts senden, nichts entscheiden, keine Änderungen an Bestellungen, Erstattungen oder Gutschriften, keine Bildanalyse.
 5. **Gut zu wissen** – „unklar" ist ein gewünschtes Ergebnis; Entwurfs-Wissen ist gekennzeichnet und darf kritisch betrachtet werden; jede Empfehlung nennt ihre Quellen.
 6. **Wissen ergänzen** – kurz: Wissen liegt als Dateien im Repository, wird mit einer Chat-KI nach dem Authoring Guide verfasst und von einem Entwickler eingepflegt; Verweis auf die Knowledge-Seite.
+6a. **Noch zu klären** – organisatorische offene Punkte, die die Anzeige betreffen (seit 2026-10-05: einheitliche Signaturen im Team).
 7. **Aktueller Stand** (Info-Kasten) – App-Version, Wissensstand, Anzahl verwendbarer Knowledge-Dokumente, davon Entwürfe.
 8. **Für Entwickler** – deutlich abgesetzt: Tech Stack, Bausteine der App, Arbeitsweise (Sail, Skills-Workflow, Feature-Specs) und wo im Repository was liegt.
 

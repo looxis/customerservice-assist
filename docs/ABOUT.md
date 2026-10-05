@@ -47,6 +47,10 @@ Die Knowledge besteht aus einzelnen Textdateien, eine Datei pro Regel, Produkt o
 
 Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für Wissen (dem „Authoring Guide"); ein Entwickler pflegt die Dateien anschließend ein. Welche Dokumente es gibt und ob sie fehlerfrei sind, zeigt die [Knowledge-Übersicht](/knowledge).
 
+# Noch zu klären
+
+- **Einheitliche Signaturen:** Bei unseren eigenen Antworten blendet die App die Signatur aus, damit der Verlauf lesbar bleibt. Das klappt, wenn Zammad die Signatur markiert hat oder wenn sie in der Liste der bekannten Signaturen steht. Heute nutzt fast jede Kollegin und jeder Kollege eine eigene Variante, je nach Sprache und Kanal (z. B. auf Italienisch für Amazon). Im Team ist noch zu klären, welche Signaturen es gibt und welche einheitliche Form sie haben sollen. Danach werden sie in den geplanten Einstellungen der App gepflegt.
+
 # Für Entwickler
 
 ## Tech Stack

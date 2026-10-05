@@ -43,7 +43,7 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-24 | Knowledge-Übersicht | Seite in der App: alle Dokumente mit ID, Typ, Status und Geltungsbereich, Fehler und Warnungen je Datei, Kopier-Button für die ID-Übersicht | P0 | PROJ-1, PROJ-3 | Approved | [Spec](PROJ-24-knowledge-uebersicht.md) | 2026-10-02 |
 | PROJ-25 | Über die App | Seite „Über die App“ unten in der Seitenleiste: Ziel, Ablauf mit Hinweis „in Arbeit“, Beispiel, Grenzen, Wissen ergänzen, Info-Kasten mit App- und Wissensstand, abgesetzter Entwicklerteil mit Tech Stack | P0 | PROJ-1, PROJ-3 | Approved | [Spec](PROJ-25-ueber-die-app.md) | 2026-10-05 |
 | PROJ-26 | Mobiles Menü | Burger-Symbol rechts in der Kopfleiste unter 768 px, Menüfläche mit denselben Einträgen wie die Seitenleiste, Schließen per Eintrag, Symbol, Tippen daneben oder Escape, Fokusführung | P1 | PROJ-1 | Planned | [Spec](PROJ-26-mobiles-menue.md) | 2026-10-05 |
-| PROJ-27 | Einstellungen: zugelassene Links | Seite „Einstellungen" in der App mit einer Liste zugelassener Adressen (Domains), je Eintrag „als Text anzeigen" oder „klickbar lassen"; die Ticketansicht (PROJ-6) liest diese Liste statt der Konfiguration | P1 | PROJ-6 | Roadmap | – | 2026-10-05 |
+| PROJ-27 | Einstellungen für die Mail-Anzeige | Seite „Einstellungen" in der App mit drei Listen, die die Ticketansicht (PROJ-6) statt der Konfiguration liest: zugelassene Adressen (je Eintrag „als Text anzeigen" oder „klickbar lassen"), unsere Signaturen in allen Varianten und Sprachen samt Syntax (werden bei unseren Nachrichten ausgeblendet) und Textbausteine, ab denen der Rest einer Mail ausgeblendet wird | P1 | PROJ-6 | Roadmap | – | 2026-10-05 |
 
 <!-- Add features above this line -->
 

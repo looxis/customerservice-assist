@@ -36,6 +36,13 @@ class ZammadClient
     ];
 
     /**
+     * Orders named in the thread of the ticket being read, keyed by number.
+     *
+     * @var array<string, OrderMention>
+     */
+    private array $orders = [];
+
+    /**
      * @param  array{url: ?string, token: ?string, timeout: int|string, timezone: string}  $config
      */
     public function __construct(
@@ -53,6 +60,8 @@ class ZammadClient
             $articles = $this->get("ticket_articles/by_ticket/{$data['id']}", ['expand' => 'true']);
             $customer = isset($data['customer_id']) ? $this->customer((int) $data['customer_id']) : null;
             $state = strtolower((string) ($data['state'] ?? ''));
+            $this->orders = [];
+            $thread = $this->articles(is_array($articles) ? $articles : []);
 
             return new Ticket(
                 number: (string) $data['number'],
@@ -65,8 +74,9 @@ class ZammadClient
                 customerName: $customer['name'] ?? null,
                 customerEmail: $customer['email'] ?? null,
                 createdAt: $this->time($data['created_at'] ?? null),
-                articles: $this->articles(is_array($articles) ? $articles : []),
+                articles: $thread,
                 zammadUrl: $this->baseUrl()."/#ticket/zoom/{$data['id']}",
+                orders: array_values($this->orders),
             );
         } catch (ZammadException $exception) {
             Log::warning('Zammad request failed', ['ticket' => $number, 'problem' => $exception->problem->value, 'status' => $exception->httpStatus]);
@@ -146,6 +156,11 @@ class ZammadClient
         return array_map(function (array $article): TicketArticle {
             $sender = strtolower((string) ($article['sender'] ?? ''));
             $parsed = $this->messageBody->parse($article['body'] ?? '', $article['content_type'] ?? 'text/plain', ours: $sender !== 'customer');
+
+            if ($parsed['order'] !== null) {
+                $number = $parsed['order']->number;
+                $this->orders[$number] = isset($this->orders[$number]) ? $this->orders[$number]->merge($parsed['order']) : $parsed['order'];
+            }
             $type = strtolower((string) ($article['type'] ?? ''));
 
             return new TicketArticle(

@@ -12,6 +12,7 @@ final readonly class Ticket
 {
     /**
      * @param  list<TicketArticle>  $articles  Oldest first.
+     * @param  list<OrderMention>  $orders  Orders named in the thread, each once.
      */
     public function __construct(
         public string $number,
@@ -26,6 +27,7 @@ final readonly class Ticket
         public CarbonImmutable $createdAt,
         public array $articles,
         public string $zammadUrl,
+        public array $orders = [],
     ) {}
 
     public function lastArticleAt(): ?CarbonImmutable
