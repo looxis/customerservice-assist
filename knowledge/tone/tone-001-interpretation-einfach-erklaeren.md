@@ -6,6 +6,9 @@ status: draft
 customer_types:
 sales_channels:
 - looxis-de
+- fachhaendler
+- looxis-pro
+- masterpics
 products:
 categories:
 - complaint
@@ -20,7 +23,7 @@ related_knowledge:
 - PLAYBOOK-002
 ---
 
-Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `looxis-de`. Erfasst wird die Kommunikation zu interpretationsabhängigen Produkten.
+Gilt für alle Kundenarten und Kanäle außer Amazon; im Kanalschema sind das `looxis-de`, `fachhaendler`, `looxis-pro` und `masterpics`. Erfasst wird die Kommunikation zu interpretationsabhängigen Produkten.
 
 # Ziel
 

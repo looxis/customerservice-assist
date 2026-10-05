@@ -5,6 +5,9 @@ type: process
 status: draft
 sales_channels:
 - looxis-de
+- fachhaendler
+- looxis-pro
+- masterpics
 categories:
 - complaint
 - order-process-question
@@ -18,7 +21,7 @@ related_knowledge:
 - GLOSSARY-002
 ---
 
-Gilt für alle Kundenarten auf allen Kanälen außer Amazon; im aktuellen Kanalschema ist dies `looxis-de`. Erfasst werden Produkte, deren Produktionsdatei durch einen Interpretationsvorgang erstellt wurde.
+Gilt für alle Kundenarten auf allen Kanälen außer Amazon; im Kanalschema sind das `looxis-de`, `fachhaendler`, `looxis-pro` und `masterpics`. Erfasst werden Produkte, deren Produktionsdatei durch einen Interpretationsvorgang erstellt wurde.
 
 # Ziel
 
