@@ -121,6 +121,7 @@
 | Auswahl der Bestellungen in der Adresse der Ticketseite, Daten jedes Mal frisch | Neuladen und Link an Kollegen funktionieren; nichts gespeichert bis PROJ-11 | 2026-10-05 |
 | masterpics als eigener Kanal aufnehmen | Neuer White-Label-Kunde mit eigenem Nummernformat | 2026-10-05 |
 | EOCS-Fehler blockieren die Ticketansicht nicht | Das Ticket bleibt bearbeitbar, PROJ-8 ist der Ausweichweg | 2026-10-05 |
+| Formate der Bestellnummern später auf der Einstellungsseite pflegbar (PROJ-27) | Neue Kanäle oder Formatänderungen ohne Entwickler; bis dahin zentral in `OrderNumberFormat` | 2026-10-05 |
 | Reklamationsaufträge als Hinweis im Block der Original-Bestellung | Zeigt sofort, ob schon reklamiert oder nachproduziert wurde – wichtig für wiederholte Reklamationen und für die Analyse | 2026-10-05 |
 | Positionen werden mitgeladen, aber noch nicht angezeigt | Produktvorschlag (PROJ-4, über Artikelnummer) und Analyse (PROJ-9) brauchen sie; die Anzeige wird später festgelegt | 2026-10-05 |
 

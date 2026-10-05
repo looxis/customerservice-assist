@@ -35,7 +35,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Roadmap |
 | P1 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
 | P1 | Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
-| P1 | Einstellungen für die Mail-Anzeige (zugelassene Links, Signaturen, Textbausteine) | Roadmap |
+| P1 | Einstellungen für die Mail-Anzeige und Bestellnummern (zugelassene Links, Signaturen, Textbausteine, Bestellnummern-Formate) | Roadmap |
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | P1 | Gesamtliste aller Analysen, Feedbacks und Wissenslücken mit Filter | Roadmap |
 | P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
