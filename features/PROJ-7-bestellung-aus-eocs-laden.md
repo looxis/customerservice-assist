@@ -1,6 +1,6 @@
 # PROJ-7: Bestellung aus EOCS laden
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -226,7 +226,88 @@ Keine neuen Pakete.
 - **Empfehlung an EOCS:** Index bzw. schnellere Abfrage für `filter[id]` oder Freigabe von `GET /api/v1/orders/{id}` für den Token; ein Filter für Folgeaufträge (`origin_order_id`) würde die R1-Abfragen ersetzen.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-05
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+Geprüft mit Pest (EOCS und Zammad nachgestellt, nur erfundene Daten), gegen das echte EOCS mit je einer Bestellung aller sechs Kanäle und einer EOCS-ID sowie an sechs echten Tickets auf Fehltreffer. Der Product Owner hat die Bedienung am 2026-10-05 im Browser erfolgreich getestet; ein eigenes Browser-Werkzeug stand nicht zur Verfügung.
+
+### Acceptance Criteria Status
+
+#### Vorschläge aus dem Ticket
+- [x] Bereich „Bestellungen" mit Vorschlägen und Eingabefeld
+- [x] Jede Nummer einmal, mit vermutetem Kanal, in Reihenfolge des Auftretens; Zitate und unsere Antworten zählen
+- [x] Amazon-Erkennung aus PROJ-6 als erster Vorschlag
+- [x] Klick lädt die Bestellung als eigenen Block, Vorschlag als geladen markiert
+- [x] Ohne Treffer „Keine Bestellnummer gefunden – bitte von Hand eintragen"
+- [x] Ohne Auswahl keine Anfrage an EOCS
+- [x] Keine Fehltreffer in sechs echten Tickets (#2132884, #2137635, #2137945, #2137941, #2137956, #2137960)
+
+#### Eingabe von Hand
+- [x] Laden per Knopf oder Enter
+- [x] Bereinigung (Leerzeichen, Zeilenumbruch, `#`, `BEST-PRO`, Großschreibung bei Shop-Nummern; masterpics behält die Schreibweise)
+- [x] Unbekanntes Format → Meldung am Feld, Auswahl bleibt, keine Anfrage
+- [x] EOCS-ID wird über `filter[id]` gesucht (langsam, siehe BUG-1)
+
+#### Anzeige
+- [x] Externe Nummer, EOCS-ID, Kanal, Datum, Status in EOCS-Farbe, Rechnungsnummer, Sendungen (Sendungsnummer als Text)
+- [x] Keine Kundendaten im Ticketkopf und im Log
+- [x] „In EOCS öffnen" → `https://eocs.loox.is/orders/{ID}` in neuem Tab
+- [x] Reklamationsaufträge mit Nummer, Datum, Status, Link (echt: `R1-402-4907715-1581912`)
+- [x] Positionen werden mitgeladen (für PROJ-4/PROJ-9), nicht angezeigt
+- [x] Amazon-Erkennung und EOCS-Bestellung in einem Block
+- [x] Mehrere Bestellungen, einzeln entfernbar; Auswahl übersteht Neuladen und Link; „Aktualisieren" behält sie
+- [x] Nichts dauerhaft gespeichert
+
+#### Fehler
+- [x] Unbekannte Nummer → Hinweis mit „Entfernen", Ticket bleibt
+- [x] Mehrere Treffer → alle mit Hinweis
+- [x] Nicht erreichbar / Serverfehler → eine Meldung mit „Erneut versuchen"
+- [x] Zugang fehlt oder ungültig → Meldung ohne Details, Log ohne Bestelldaten
+- [x] EOCS-Fehler blockieren Ticket und Vorschläge nicht
+
+### Edge Cases Status
+- [x] Nummer mehrfach im Verlauf → ein Vorschlag
+- [x] Mehrere Nummern → alle, Amazon zuerst
+- [x] Sendungs-, Telefonnummern, Postleitzahlen, Links, Wörter mit Ziffern → kein Vorschlag
+- [x] Kanal aus EOCS hat Vorrang vor dem vermuteten
+- [x] Bestellung ohne Versand → „noch nicht versandt"
+- [x] Mehr als zehn Treffer → zehn Vorschläge plus Hinweis
+- [x] Shop-Nummer klein getippt → Großbuchstaben
+- [x] 300 Einträge in der Adresse → auf 10 begrenzt, Seite in 1,5 s
+
+### Security Audit Results
+- [x] Eingaben nur nach bekannten Mustern an EOCS (keine freien Zeichen in der Abfrage); `<script>`, Pfad-Teile und Zeichenketten statt Liste werden verworfen
+- [x] Eingabe im Feld wird nach Fehler maskiert zurückgegeben (`"><img onerror>` als Text)
+- [x] Token nur serverseitig, nie auf der Seite; Bearer-Header
+- [x] Kundendaten aus EOCS werden nicht übernommen (Test mit Kundendaten in der Attrappe)
+- [x] Nur GET, keine Schreibwirkung in EOCS
+- Hinweis: Ohne Login kann jeder im internen Netz Bestellungen über ihre Nummer ansehen (Stand und Umfang wie Zammad-Tickets, PRD)
+
+### Regression
+- [x] PROJ-6: Amazon-Block im Bereich „Bestellungen" aufgegangen (Test angepasst), übrige Tests grün
+- [x] PROJ-4: Kanal-Zuordnung mit EOCS-Namen
+- [x] About-Seite: Schritt 3 beschreibt jetzt das Laden; „in Arbeit" bleibt nur für das Ergänzen von Hand (PROJ-8)
+- [x] Gesamte Suite grün
+
+### Bugs Found
+
+#### BUG-1: Ladezeit über der Anforderung bei EOCS-ID und mehreren Bestellungen
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Ticketseite mit `?bestellungen[]=753194` (EOCS-ID) aufrufen → rund 8 s
+  2. Ticketseite mit sechs Bestellungen verschiedener Kanäle → 2,3–3,2 s
+  3. Expected: unter 2 s je Bestellung (Spec)
+  4. Actual: EOCS braucht für `filter[id]` selbst rund 7 s; bei mehreren Bestellungen stauen sich die Anfragen, weil EOCS nur wenige gleichzeitig beantwortet
+- **Priority:** Fix in next sprint – braucht eine Änderung in EOCS (Index bzw. schnelle Suche über die ID oder `GET /orders/{id}` für den Token, Filter für Folgeaufträge); in der App bereits auf das Mögliche optimiert
+
+### Summary
+- **Acceptance Criteria:** alle bestanden (EOCS-ID funktional, aber langsam)
+- **Bugs Found:** 1 total (0 critical, 0 high, 1 medium, 0 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; BUG-1 als Wunsch an EOCS weitergeben
 
 ## Deployment
 _To be added by /deploy_
