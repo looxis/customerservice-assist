@@ -13,7 +13,8 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 /**
  * Turns the body of a Zammad message into safe HTML and splits off a quoted
  * earlier message at its end. Mail from outside is never trusted: only text
- * structure survives, clickable links are removed and nothing is loaded from elsewhere.
+ * structure survives, clickable links are removed (except configured trusted
+ * hosts) and nothing is loaded from elsewhere. Configured footers are cut off.
  */
 class MessageBody
 {
@@ -41,10 +42,14 @@ class MessageBody
     /**
      * @param  list<string>  $signatures  Our own text signatures (e.g. on Amazon), hidden at the end of our messages.
      * @param  list<string>  $allowedLinkHosts  Hosts (with their subdomains) whose links stay visible as plain text.
+     * @param  list<string>  $clickableLinkHosts  Hosts whose links stay clickable; "*" stands for a country ending (e.g. "sellercentral.amazon.*").
+     * @param  list<string>  $footers  Texts from which on the rest of a mail is boilerplate and hidden (e.g. Amazon's notice).
      */
     public function __construct(
         private readonly array $signatures = [],
         private readonly array $allowedLinkHosts = [],
+        private readonly array $clickableLinkHosts = [],
+        private readonly array $footers = [],
     ) {}
 
     /**
@@ -57,7 +62,7 @@ class MessageBody
 
         [$main, $quote] = str_contains(strtolower((string) $contentType), 'html')
             ? $this->splitHtml($body, $ours)
-            : array_map(fn (?string $part): ?string => $part === null ? null : $this->plainToHtml($part), $this->splitPlain($body));
+            : array_map(fn (?string $part): ?string => $part === null ? null : $this->plainToHtml($part), $this->splitPlain($this->withoutPlainFooter($body)));
 
         if ($ours) {
             $main = $this->withoutTextSignature($main);
@@ -88,12 +93,35 @@ class MessageBody
             $text = trim(html_entity_decode(strip_tags($match[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8'), " \t\n\r\0\x0B\u{00A0}");
             $href = preg_match('/\bhref\s*=\s*(["\'])(.*?)\1/is', $match[1], $attribute) ? html_entity_decode($attribute[2], ENT_QUOTES | ENT_HTML5, 'UTF-8') : '';
 
+            if ($this->isClickableLink($href)) {
+                return $text === '' ? '' : '<a href="'.e($href).'">'.e($text).'</a>';
+            }
+
             if ($this->isAllowedLink($href)) {
                 return e($text !== '' ? $text : $href);
             }
 
             return $text === '' || preg_match(self::BARE_LINK, $text) ? self::LINK_REMOVED : e($text).' '.self::LINK_REMOVED;
         }, $html) ?? $html;
+    }
+
+    private function isClickableLink(string $href): bool
+    {
+        $host = strtolower((string) parse_url($href, PHP_URL_HOST));
+
+        if ($host === '' || strtolower((string) parse_url($href, PHP_URL_SCHEME)) !== 'https') {
+            return false;
+        }
+
+        foreach ($this->clickableLinkHosts as $pattern) {
+            $regex = '/^'.str_replace('\\*', '(?:[a-z]{2,3}|co\.[a-z]{2}|com\.[a-z]{2})', preg_quote(strtolower(trim($pattern)), '/')).'$/';
+
+            if (trim($pattern) !== '' && preg_match($regex, $host)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isAllowedLink(string $href): bool
@@ -172,26 +200,19 @@ class MessageBody
             }
         }
 
+        $footer = $this->findFooterStart($body);
+
+        if ($footer !== null) {
+            $this->cutFrom($document, $body, $footer);
+        }
+
         $start = $this->findQuoteStart($body);
 
         if ($start === null) {
             return $this->splitLeadingQuote($document, $body) ?? [$this->innerHtml($document, $body), null];
         }
 
-        $quoted = [];
-
-        for ($node = $start; $node !== null && $node !== $body; $node = $node->parentNode) {
-            for ($sibling = $node === $start ? $node : $node->nextSibling; $sibling !== null; $sibling = $sibling->nextSibling) {
-                $quoted[] = $sibling;
-            }
-        }
-
-        $quote = implode('', array_map(fn (Node $node): string => $document->saveHtml($node), $quoted));
-
-        foreach ($quoted as $node) {
-            $node->parentNode?->removeChild($node);
-        }
-
+        $quote = $this->cutFrom($document, $body, $start);
         $main = $this->innerHtml($document, $body);
 
         return trim(strip_tags($main)) === '' ? [$html, null] : [$main, $quote];
@@ -290,6 +311,83 @@ class MessageBody
         return null;
     }
 
+    /**
+     * Remove a node and everything that follows it in reading order, also
+     * outside its enclosing elements. Returns the removed part as HTML.
+     */
+    private function cutFrom(HTMLDocument $document, Node $root, Node $start): string
+    {
+        $removed = [];
+
+        for ($node = $start; $node !== null && $node !== $root; $node = $node->parentNode) {
+            for ($sibling = $node === $start ? $node : $node->nextSibling; $sibling !== null; $sibling = $sibling->nextSibling) {
+                $removed[] = $sibling;
+            }
+        }
+
+        $html = implode('', array_map(fn (Node $node): string => $document->saveHtml($node), $removed));
+
+        foreach ($removed as $node) {
+            $node->parentNode?->removeChild($node);
+        }
+
+        return $html;
+    }
+
+    /**
+     * The first text node that contains one of the configured footer texts.
+     */
+    private function findFooterStart(Node $root): ?Node
+    {
+        if ($this->footers === []) {
+            return null;
+        }
+
+        $stack = [$root];
+
+        while ($stack !== []) {
+            $node = array_pop($stack);
+
+            if ($node->nodeType === XML_TEXT_NODE && $this->containsFooter((string) $node->textContent)) {
+                return $node;
+            }
+
+            foreach (array_reverse(iterator_to_array($node->childNodes)) as $child) {
+                $stack[] = $child;
+            }
+        }
+
+        return null;
+    }
+
+    private function containsFooter(string $text): bool
+    {
+        $text = mb_strtolower(preg_replace('/[\s\x{00A0}]+/u', ' ', $text) ?? $text);
+
+        foreach ($this->footers as $footer) {
+            $footer = mb_strtolower(preg_replace('/\s+/u', ' ', trim($footer)) ?? $footer);
+
+            if ($footer !== '' && str_contains($text, $footer)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function withoutPlainFooter(string $text): string
+    {
+        $lines = preg_split('/\R/u', $text) ?: [$text];
+
+        foreach ($lines as $index => $line) {
+            if ($this->containsFooter($line)) {
+                return implode("\n", array_slice($lines, 0, $index));
+            }
+        }
+
+        return $text;
+    }
+
     private function innerHtml(HTMLDocument $document, Node $node): string
     {
         return implode('', array_map(fn (Node $child): string => $document->saveHtml($child), iterator_to_array($node->childNodes)));
@@ -374,7 +472,12 @@ class MessageBody
 
         $config = (new HtmlSanitizerConfig)
             ->defaultAction(HtmlSanitizerAction::Block)
-            ->withMaxInputLength(-1);
+            ->withMaxInputLength(-1)
+            ->allowLinkSchemes(['https'])
+            ->allowRelativeLinks(false)
+            ->allowElement('a', ['href'])
+            ->forceAttribute('a', 'target', '_blank')
+            ->forceAttribute('a', 'rel', 'noopener noreferrer nofollow');
 
         foreach (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u', 'blockquote', 'pre', 'code', 'hr', 'table', 'thead', 'tbody', 'tr', 'td', 'th'] as $element) {
             $config = $config->allowElement($element);

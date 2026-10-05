@@ -219,16 +219,22 @@
             @apply my-2 border-l-2 border-slate-200 pl-4 text-slate-600;
         }
 
+        /* Mails (e.g. from Amazon) put long customer texts in <pre> or wide
+           tables; lines wrap at the visible edge instead of scrolling. */
         pre {
-            @apply overflow-x-auto rounded-md bg-slate-100 p-3 font-mono text-xs;
+            @apply whitespace-pre-wrap wrap-anywhere font-body text-sm;
         }
 
         table {
-            @apply block w-full overflow-x-auto text-left;
+            @apply w-full table-fixed text-left;
         }
 
         td, th {
-            @apply px-2 py-1 align-top;
+            @apply px-2 py-1 align-top wrap-anywhere;
+        }
+
+        a {
+            @apply font-medium text-brand underline hover:text-brand-hover;
         }
     }
 

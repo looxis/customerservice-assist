@@ -60,6 +60,16 @@ return [
         // Clickable links in mails are removed. Links to these hosts (and their
         // subdomains) stay visible as plain text. Moves to a settings page later.
         'allowed_link_hosts' => ['looxis.de', 'looxis.com', 'dhl.de'],
+
+        // Links to these hosts stay clickable (https only). "*" stands for a
+        // country ending such as .de, .it or .co.uk.
+        'clickable_link_hosts' => ['sellercentral.amazon.*'],
+
+        // From the first of these texts on, the rest of a mail is boilerplate
+        // and hidden (case and line breaks do not matter).
+        'footers' => [
+            'Dieser Service wird ausschließlich für die Kommunikation mit Käufern angeboten',
+        ],
     ],
 
 ];

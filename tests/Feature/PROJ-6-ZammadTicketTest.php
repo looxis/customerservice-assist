@@ -350,6 +350,42 @@ describe('our signature', function () {
     });
 });
 
+describe('boilerplate', function () {
+    test('amazon\'s notice and everything after it is hidden, the customer text stays', function () {
+        $html = '<table><tr><td>Du hast eine Nachricht erhalten.</td></tr><tr><td><pre>Ciao, il pacco è pronto.</pre></td></tr>'
+            .'<tr><td><a href="https://sellercentral.amazon.it/x">Fall lösen</a></td></tr>'
+            .'<tr><td><p>Dieser Service wird ausschließlich für die Kommunikation mit Käufern angeboten. Bitte beachten Sie …</p></td></tr>'
+            .'<tr><td>Copyright Amazon</td></tr></table><p>Amazon Services Europe</p>';
+
+        fakeZammad([zammadArticle(['body' => $html])]);
+
+        $this->get('/tickets/2137942')
+            ->assertSeeTextInOrder(['Du hast eine Nachricht erhalten.', 'Ciao, il pacco è pronto.', 'Fall lösen'])
+            ->assertDontSeeText('Dieser Service wird')
+            ->assertDontSeeText('Copyright Amazon')
+            ->assertDontSeeText('Amazon Services Europe');
+    });
+
+    test('the footer text is found regardless of case and line breaks, also in plain text', function () {
+        $body = new MessageBody(footers: ['Dieser Service wird ausschließlich für die Kommunikation mit Käufern angeboten']);
+
+        expect(strip_tags((string) $body->parse("<div>Frage</div><div>dieser Service wird\nausschließlich für die Kommunikation mit Käufern angeboten.</div>", 'text/html')['body']))->toBe('Frage')
+            ->and(strip_tags((string) $body->parse("Frage\nDieser Service wird ausschließlich für die Kommunikation mit Käufern angeboten.\nRest", 'text/plain')['body']))->toBe('Frage');
+    });
+
+    test('the footer texts come from the configuration', function () {
+        config(['services.zammad.footers' => ['Diese E-Mail wurde automatisch erstellt']]);
+
+        expect(strip_tags((string) app(MessageBody::class)->parse('<p>Text</p><p>Diese E-Mail wurde automatisch erstellt.</p><p>Rest</p>', 'text/html')['body']))->toBe('Text');
+    });
+
+    test('long lines in pre blocks are kept for wrapping, not cut', function () {
+        $line = str_repeat('parola ', 300);
+
+        expect((string) app(MessageBody::class)->parse("<pre>{$line}</pre>", 'text/html')['body'])->toContain(trim($line));
+    });
+});
+
 describe('cleaning of mail html', function () {
     test('scripts, images, styles and event handlers are removed, text structure and links stay', function () {
         $parsed = app(MessageBody::class)->parse(
@@ -393,6 +429,27 @@ describe('cleaning of mail html', function () {
             ->toBe('<p>Siehe www.dhl.de oder https://drive.google.com/x</p>')
             ->and((string) app(MessageBody::class)->parse("Foto: https://drive.google.com/x\nDanke", 'text/plain')['body'])
             ->toBe("<p>Foto: https://drive.google.com/x<br />\nDanke</p>");
+    });
+
+    test('links to trusted hosts stay clickable in a new tab', function (string $href, bool $clickable) {
+        $body = (string) app(MessageBody::class)->parse('<p><a href="'.$href.'">Fall lösen</a></p>', 'text/html')['body'];
+
+        $clickable
+            ? expect($body)->toBe('<p><a href="'.$href.'" target="_blank" rel="noopener noreferrer nofollow">Fall lösen</a></p>')
+            : expect($body)->toBe('<p>Fall lösen [Link entfernt]</p>');
+    })->with([
+        'amazon italy' => ['https://sellercentral.amazon.it/nms/redirect/abc', true],
+        'amazon germany' => ['https://sellercentral.amazon.de/nms/redirect/abc', true],
+        'amazon uk' => ['https://sellercentral.amazon.co.uk/x', true],
+        'look-alike domain' => ['https://sellercentral.amazon.evil.com/x', false],
+        'look-alike prefix' => ['https://sellercentral.amazon.it.evil.example/x', false],
+        'other amazon host' => ['https://www.amazon.de/x', false],
+        'without https' => ['http://sellercentral.amazon.it/x', false],
+    ]);
+
+    test('a trusted link without text disappears instead of showing a marker', function () {
+        expect((string) app(MessageBody::class)->parse('<p>Hallo<a href="https://sellercentral.amazon.it/x"><img src="logo.png"></a></p>', 'text/html')['body'])
+            ->toBe('<p>Hallo</p>');
     });
 
     test('the allowed hosts come from the configuration', function () {
