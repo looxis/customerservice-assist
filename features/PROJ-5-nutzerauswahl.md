@@ -1,6 +1,6 @@
 # PROJ-5: Nutzerauswahl
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -99,12 +99,68 @@ Im MVP gibt es keine Anmeldung (PRD). Die Nutzerauswahl ist keine Sicherheitsfun
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Dauerhafter, verschlüsselter Cookie (ca. 5 Jahre) statt localStorage | Server kennt den Namen bei jeder Anfrage: Kopfleiste ohne Flackern, Prüfung beim Absenden ohne Extra-Feld | 2026-10-05 |
+| Namensliste in eigener `config/staff.php` | Leicht auffindbar und änderbar; wird mit PROJ-15 durch die Datenbank ersetzt | 2026-10-05 |
+| Name wird bei jedem Lesen gegen die Liste geprüft | Entfernte oder manipulierte Namen gelten als „kein Name" (Spec) | 2026-10-05 |
+| Speichern per POST mit Form Request und `@csrf`; Alpine sendet im Hintergrund, ohne JS normales Absenden | Eingaben auf der Seite bleiben erhalten; Projektregel „Form Requests für jede Eingabe" | 2026-10-05 |
+| Gemeinsamer Alpine-Zustand für Kopfleiste und Hinweis | Beide aktualisieren sich nach der Wahl gleichzeitig, ohne Neuladen | 2026-10-05 |
+| Middleware „Name erforderlich" jetzt bauen, ab PROJ-9 anwenden | Einheitliches Verhalten für Analyse, Feedback und Wissenslücke; neue Middleware ist laut Projektregel freigabepflichtig; vom Product Owner am 2026-10-05 freigegeben | 2026-10-05 |
+| Unter 768 px nur Initial im Kreis | Platz in der Kopfleiste neben dem späteren Menü-Symbol (PROJ-26) | 2026-10-05 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Keine Datenbank, kein Login. Die Namensliste steht in einer eigenen kleinen Konfigurationsdatei. Der gewählte Name wird in einem **dauerhaften, verschlüsselten Cookie** des Browsers gespeichert. Dadurch kennt der Server den Namen bei jedem Seitenaufruf: Er kann ihn direkt in die Kopfleiste schreiben und beim Absenden einer Analyse prüfen. Gewählt wird über ein kleines Aufklapp-Menü in der Kopfleiste, das ohne Neuladen der Seite speichert. So bleiben Eingaben auf der Seite erhalten.
+
+### A) Bausteine
+```
+Kopfleiste (Layout aus PROJ-1, Bereich rechts)
++-- Namensanzeige (neue Blade-Komponente, auf jeder Seite)
+    +-- ohne Namen: Knopf „Name wählen" (auffällig)
+    +-- mit Namen: Name als Knopf („Angemeldet als … – Name wechseln")
+    +-- schmaler Bildschirm: nur Initial im Kreis, später links neben dem Menü-Symbol (PROJ-26)
+    +-- Aufklapp-Liste mit allen Namen, aktueller markiert
+        +-- schließt bei Auswahl, Klick daneben, Escape
+
+Seite „Ticket analysieren"
++-- Hinweis „Bitte wähle zuerst deinen Namen" mit derselben Namensliste
+    (nur ohne gewählten Namen; verschwindet nach der Wahl ohne Neuladen)
+
+Server
++-- Namensliste (config/staff.php)
++-- „Aktueller Mitarbeiter": liest den Cookie, prüft ihn gegen die Liste,
+|   liefert Name oder „kein Name" an Kopfleiste und spätere Features
++-- Speichern der Wahl: eigene Adresse (POST), prüft den Namen über eine Form Request,
+|   setzt den Cookie; antwortet dem Aufklapp-Menü direkt, ohne Seitenwechsel
++-- Schutz für spätere Aktionen: eine Middleware „Name erforderlich" für die
+    Absende-Adressen von PROJ-9, PROJ-11 und PROJ-12 (zurück mit Eingaben und Hinweis)
+```
+
+### B) Daten
+- **Namensliste:** in `config/staff.php`, eine einfache Liste. Ausgabe immer alphabetisch, doppelte Einträge zählen einmal. Start: Cara, Etienne, Johannes, Kerstin, Nele, Thomas.
+- **Cookie:** ein Eintrag mit dem gewählten Namen, verschlüsselt (Laravel-Standard), Laufzeit etwa fünf Jahre, nur für diese App. Er gilt für alle Tabs desselben Browsers.
+- Es gibt keine Datenbank und kein Protokoll der Wechsel. Das Speichern des Namens zu einer Analyse übernimmt PROJ-11.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Cookie statt Browser-Speicher (localStorage):** Den Browser-Speicher kann nur die Seite im Browser lesen, nicht der Server. Dann würde die Kopfleiste kurz leer erscheinen und erst danach den Namen zeigen. Außerdem müsste jede Analyse den Namen extra mitschicken. Ein Cookie kommt bei jeder Anfrage automatisch mit.
+- **Verschlüsselter Cookie:** Laravel verschlüsselt Cookies ohnehin. Ein von Hand veränderter Wert ist damit unlesbar. Trotzdem prüft der Server jeden Namen gegen die Liste, wie es die Spec verlangt: Ein Name, der aus der Liste entfernt wurde, gilt dann als „kein Name".
+- **Wählen ohne Neuladen:** Die Spec verlangt, dass Eingaben auf der Seite erhalten bleiben. Deshalb speichert das Aufklapp-Menü (Alpine.js) die Wahl im Hintergrund. Kopfleiste und Hinweis aktualisieren sich sofort über einen gemeinsamen Zustand. Ohne JavaScript funktioniert dasselbe Formular als normales Absenden mit Rückkehr auf die Seite.
+- **Form Request für die Wahl:** Die Projektregel verlangt Form Requests für jede Eingabe. Er erlaubt nur Namen aus der Liste. Das Formular trägt `@csrf`.
+- **Middleware „Name erforderlich" schon jetzt, angewendet erst ab PROJ-9:** PROJ-9, PROJ-11 und PROJ-12 schützen ihre Absende-Adressen dann mit einer Zeile, und das Verhalten ist überall gleich: zurück zur Seite, Eingaben bleiben, Hinweis „Bitte wähle zuerst deinen Namen". Laut Projektregeln braucht neue Middleware eine ausdrückliche Freigabe; sie wird hiermit zur Freigabe vorgelegt.
+- **Eigene Konfigurationsdatei `config/staff.php`:** Die Liste ist leicht zu finden und zu ändern, ohne andere Einstellungen anzufassen. Mit PROJ-15 wird sie durch die Datenbank ersetzt.
+- **Breiten-Verhalten:** Unter 768 px zeigt die Kopfleiste nur das Initial im Kreis, mit vollem Namen für Screenreader. Das passt zur Entscheidung für das Burger-Menü (PROJ-26).
+
+### D) Abhängigkeiten
+Keine neuen Pakete (Alpine.js und Laravel-Cookies sind vorhanden).
+
+### E) Hinweise für /frontend und /backend
+- Frontend: Komponente für die Namensanzeige mit Aufklapp-Liste, gemeinsamer Alpine-Zustand für Kopfleiste und Hinweis, Hinweis auf „Ticket analysieren", Darstellung „Keine Namen hinterlegt" bei leerer Liste.
+- Backend: `config/staff.php`, Dienst „Aktueller Mitarbeiter", Route zum Speichern (POST) mit Form Request, Cookie setzen, Middleware „Name erforderlich" samt Tests (an einer Test-Route, solange es PROJ-9 nicht gibt).
+- Tests: Anzeige mit und ohne Cookie, Wechsel, unbekannter oder entfernter Name, leere Liste, Ablehnung fremder Namen beim Speichern, CSRF, Middleware-Verhalten mit erhaltenen Eingaben.
+
 
 ## QA Test Results
 _To be added by /qa_
