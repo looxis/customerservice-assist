@@ -4,15 +4,18 @@ title: Ersatz und Erstattung bei Reklamationen
 type: policy
 status: draft
 customer_types:
-  - b2c
+- b2c
 sales_channels:
 products:
 categories:
-  - complaint
+- complaint
 topics:
-  - replacement
-  - refund
-  - production-error
+- replacement
+- refund
+- production-error
+related_knowledge:
+- POLICY-010
+- PLAYBOOK-006
 ---
 
 Gilt für Privatkunden auf allen Vertriebskanälen. Bestätigte Anwendungsfälle sind der eigene LOOXIS-Onlineshop und Amazon. Kanalbedingungen sind nach POLICY-004 zusätzlich zu prüfen; diese Policy gilt nicht für B2B-Bestellungen.
@@ -45,7 +48,7 @@ Die Erstattungsbefugnis richtet sich nach PERMISSION-001, die Befugnis zur Neupr
 
 Das für den Kunden personalisierte, beanstandete Produkt muss bei einer korrigierenden Neuproduktion nach dieser Vorgabe nicht zurückgesendet werden. Der Kunde kann es behalten und, wenn er möchte, zunächst verschenken und das korrigierte Produkt später nachreichen. Dies ist eine Möglichkeit, keine Verpflichtung.
 
-Diese Aussage gilt nicht automatisch für vertauschte Ware. Deren Rücksendung ist noch gesondert zu regeln.
+Für vertauschte Ware sowie die Rücksendung wiederverwendbarer, nicht personalisierter Bestandteile und den Ersatz einzelner Teile gilt POLICY-010. Die Prüfung einer Verwechslung ist in PLAYBOOK-006 beschrieben.
 
 # Ausnahmen und gesetzliche Grenzen
 
@@ -55,7 +58,6 @@ Ein subjektiv formulierter Vorwurf ist weder automatisch ein Mangel noch automat
 
 # Noch zu klären
 
-- Rücksendungsablauf bei vertauschter Ware.
 - Produktbezogene Kriterien zur Bewertung von Druckhelligkeit und Ausrichtung; es sind noch keine Toleranzwerte festgelegt.
 
 # Rechtsgrundlagen
