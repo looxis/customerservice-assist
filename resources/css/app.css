@@ -189,4 +189,9 @@
             @apply border-b border-slate-100 px-3 py-2 align-top;
         }
     }
+
+    /* "[in Arbeit]" marker on the "Über die App" page (see App\Http\Controllers\AboutController). */
+    .about-wip {
+        @apply ml-1 inline-flex items-center whitespace-nowrap rounded-pill bg-warning-500/10 px-2 py-0.5 text-[11px] font-medium text-warning-700 ring-1 ring-warning-500/20 ring-inset;
+    }
 }

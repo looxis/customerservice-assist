@@ -28,6 +28,10 @@
             <x-nav-item :href="route('knowledge.index')" icon="layers" :active="request()->routeIs('knowledge.*')">Knowledge</x-nav-item>
         </nav>
 
+        <nav class="shrink-0 space-y-1 border-t border-slate-200 px-3 py-3" aria-label="Weitere Seiten">
+            <x-nav-item :href="route('about')" icon="help" :active="request()->routeIs('about')">Über die App</x-nav-item>
+        </nav>
+
         <div class="shrink-0 border-t border-slate-200 p-4 font-mono text-xs text-slate-400">
             Version {{ config('app.version') }}
         </div>

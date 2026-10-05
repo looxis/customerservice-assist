@@ -1,6 +1,6 @@
 # PROJ-25: Über die App
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 
@@ -163,6 +163,20 @@ Keine neuen Pakete.
 - Den ersten Text für `docs/ABOUT.md` entwirft `/frontend` aus PRD, CLAUDE.md und den Specs. Der Autor gibt ihn frei.
 - Tests: Feature-Tests für Navigation, Reihenfolge der Abschnitte, Badge, Info-Kasten (inkl. fehlender Knowledge-Ordner und unbekannter Wissensstand), fehlender Text und keine Inhalte aus `.env`.
 
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-05.** Die Serverseite ist so klein, dass sie mit dem Frontend gebaut wurde; `/backend` entfällt.
+
+- **Text:** `docs/ABOUT.md`, Abschnitte als `#`-Überschriften (auf der Seite `h2`). Der erste Entwurf stammt aus PRD, CLAUDE.md und den Specs. Das Beispiel (Zaubertasse auf Amazon) folgt PLAYBOOK-004. Sieben von acht Ablaufschritten tragen `[in Arbeit]`; „Passendes Wissen auswählen" (PROJ-4, Approved) nicht.
+- **Seite:** Route `/ueber-die-app` (Name `about`), `AboutController` (invokable), View `resources/views/about.blade.php`. Der Text wird an der Überschrift „Für Entwickler" geteilt. Der Teil für alle steht in einer Karte, danach folgt der Info-Kasten, dann der Entwicklerteil unter gestrichelter Trennlinie mit eigener Überschrift und Zahnrad-Icon.
+- **Darstellung:** `KnowledgeMarkdown` aus PROJ-24 (rohes HTML wird escaped). `[in Arbeit]` wird zum Badge (CSS-Klasse `.about-wip` in `resources/css/app.css`); innerhalb von Code bleibt die Kennung stehen.
+- **Info-Kasten:** App-Version (`config('app.version')`), Wissensstand (`KnowledgeState::label()`), verwendbare Dokumente und Entwürfe. Fehlt der Knowledge-Ordner oder ist er leer, erscheint dazu die Meldung aus PROJ-3. Link zur Knowledge-Übersicht.
+- **Navigation:** Zweiter, abgesetzter `<nav>`-Bereich „Weitere Seiten" unter der Hauptnavigation in der Seitenleiste.
+- **Konfiguration:** `app.about_path` (Standard `docs/ABOUT.md`), damit Tests einen anderen Text verwenden können.
+- **Abweichungen vom Tech Design:**
+  - Icon `help` aus dem bestehenden Set statt eines neuen `info`; das Design System führt `help` ausdrücklich für „Hilfe, Info".
+  - Der Link zur Knowledge-Übersicht steht im Text als relative Adresse `/knowledge`.
+- **Tests:** `tests/Feature/PROJ-25-AboutPageTest.php` (23 Tests). Gesamte Suite: 393 Tests grün. Assets neu gebaut.
 
 ## QA Test Results
 _To be added by /qa_
