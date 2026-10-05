@@ -1,6 +1,6 @@
 # PROJ-25: Über die App
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 
@@ -106,12 +106,63 @@
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Text in `docs/ABOUT.md` (Markdown), eine Datei für beide Teile | Ohne Programmierkenntnisse änderbar, auch im Repository lesbar, eine Quelle | 2026-10-05 |
+| Trennung der Teile an der Überschrift „Für Entwickler" | Einfache, sichtbare Konvention; Info-Kasten sitzt dazwischen | 2026-10-05 |
+| Bestehende sichere Markdown-Darstellung aus PROJ-24 wiederverwenden | Schutz gegen eingeschleustes HTML schon vorhanden und getestet | 2026-10-05 |
+| Kennung `[in Arbeit]` wird als Badge dargestellt | Eine merkbare Kennung; im Rohtext verständlich | 2026-10-05 |
+| Web-Route `/ueber-die-app`, Blade ohne Alpine.js | Reine Leseseite ohne Interaktion | 2026-10-05 |
+| Fehlender oder leerer Text → Hinweis statt Fehlerseite | Ein Dokumentationsfehler soll die App nicht blockieren | 2026-10-05 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Die Seite liest Text, schreibt nichts und braucht keine Datenbank. Der Text steht als **eine Markdown-Datei im Repository** (`docs/ABOUT.md`). Die App zeigt ihn mit derselben sicheren Markdown-Darstellung wie die Knowledge-Dokumente (PROJ-24). Den Info-Kasten füllt die App bei jedem Aufruf aus der bestehenden Knowledge-Bibliothek und der Versionsangabe aus PROJ-1.
+
+### A) Bausteine
+```
+Seitenleiste (Layout aus PROJ-1)
++-- Arbeitsseiten: Ticket analysieren, Knowledge (unverändert)
++-- unten, abgesetzt: „Über die App" mit neuem Info-Icon (aktiv markiert auf der Seite)
++-- Fuß: Versionsangabe (unverändert)
+
+Seite „Über die App" (/ueber-die-app)
++-- Teil für alle            <- docs/ABOUT.md bis zur Überschrift „Für Entwickler"
+|   +-- Abschnitte 1–6 der Gliederung
+|   +-- Hinweis „in Arbeit" als Badge bei noch fehlenden Schritten
++-- Info-Kasten „Aktueller Stand" (Karte)
+|   +-- App-Version
+|   +-- Wissensstand (Commit, Datum, ggf. „mit uncommitteten Änderungen" oder „unbekannt")
+|   +-- verwendbare Dokumente, davon Entwürfe
+|   +-- Link zur Knowledge-Übersicht
++-- Teil „Für Entwickler"   <- docs/ABOUT.md ab der Überschrift „Für Entwickler", in eigener, abgesetzter Karte
+```
+
+### B) Daten
+- **Text:** `docs/ABOUT.md`, normales Markdown. Eine Überschrift „Für Entwickler" trennt die beiden Teile; die App setzt dort den Info-Kasten dazwischen.
+- **Markierung „in Arbeit":** Im Text steht an einem Schritt die Kennung `[in Arbeit]`. Die App zeigt sie als Badge an. Liest man die Datei direkt im Repository, bleibt die Kennung als normaler Text verständlich.
+- **Info-Kasten:** Es wird nichts gespeichert. App-Version aus der Konfiguration (PROJ-1), Wissensstand und Zahlen aus der Knowledge-Bibliothek (PROJ-3), wie auf der Knowledge-Seite.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Markdown-Datei statt Text im Seitenbaustein:** Der Text ist ohne Programmierkenntnisse änderbar (Spec). Entwickler lesen ihn auch direkt im Repository oder auf GitHub. Eine Quelle, keine doppelte Pflege.
+- **Eine Datei statt zwei:** Beide Teile bleiben zusammen und lesen sich auch außerhalb der App als ein Dokument. Die feste Überschrift „Für Entwickler" reicht als Trennstelle.
+- **Ablage in `docs/`:** Dort liegt die übrige Projektdokumentation. So entsteht kein neuer Ordner.
+- **Bestehende Markdown-Darstellung wiederverwenden:** Sie ist schon gegen eingeschleusten Code abgesichert (PROJ-24): rohes HTML wird nicht ausgeführt, Bilder werden nicht geladen. Auf diese Seite kommt dieselbe Absicherung ohne neuen Code.
+- **Kennung `[in Arbeit]` statt eigener Syntax:** Eine einzige, leicht zu merkende Kennung. Das Entfernen beim Abnehmen eines Features ist eine Textänderung (Punkt der `/qa`-Checkliste).
+- **Eigene, schlichte Seite (Web-Route, Blade):** Keine Interaktion nötig, also kein Alpine.js. Deutsche Adresse `/ueber-die-app`, passend zu `/knowledge/dokument/…`.
+- **Text fehlt oder ist leer:** Die Seite zeigt trotzdem Info-Kasten und einen Hinweis „Beschreibung fehlt" statt eines Fehlers. Ein fehlender Text darf die App nicht stören.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Neues Icon `info` im bestehenden Icon-Baustein.
+- Die Seitenleiste bekommt unter der Hauptnavigation einen abgesetzten Bereich für den neuen Eintrag.
+- Den ersten Text für `docs/ABOUT.md` entwirft `/frontend` aus PRD, CLAUDE.md und den Specs. Der Autor gibt ihn frei.
+- Tests: Feature-Tests für Navigation, Reihenfolge der Abschnitte, Badge, Info-Kasten (inkl. fehlender Knowledge-Ordner und unbekannter Wissensstand), fehlender Text und keine Inhalte aus `.env`.
+
 
 ## QA Test Results
 _To be added by /qa_

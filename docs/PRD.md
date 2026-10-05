@@ -23,7 +23,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Knowledge Base einlesen und prüfen (Frontmatter validieren, Prüfbefehl, ID-Übersicht) | Approved |
 | P0 (MVP) | Knowledge-Übersicht (Seite mit Dokumenten, Prüfergebnis, ID-Übersicht zum Kopieren) | Approved |
 | P0 (MVP) | Deterministische Knowledge-Auswahl | Approved |
-| P0 (MVP) | Seite „Über die App“ (Ziel, Ablauf, Grenzen, Stand, Entwicklerteil) | Planned |
+| P0 (MVP) | Seite „Über die App“ (Ziel, Ablauf, Grenzen, Stand, Entwicklerteil) | Architected |
 | P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Roadmap |
 | P0 (MVP) | Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Roadmap |
 | P0 (MVP) | Bestellung aus EOCS laden (automatische Erkennung, manuelle Bestellnummer) | Roadmap |
