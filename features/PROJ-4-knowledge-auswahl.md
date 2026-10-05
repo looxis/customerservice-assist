@@ -1,8 +1,8 @@
 # PROJ-4: Knowledge-Auswahl
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
-**Last Updated:** 2026-10-02
+**Last Updated:** 2026-10-05
 
 ## Dependencies
 - Requires: PROJ-3 (Knowledge Base einlesen und prüfen) – liefert die verwendbaren Dokumente, den Wissensstand und die Fingerabdrücke
@@ -123,7 +123,7 @@ PROJ-4 hat keine eigene Seite. Es liefert die Auswahl-Logik, die Wertelisten fü
 ## Open Questions
 - [ ] Liefert EOCS den Kanal einer Bestellung, und mit welchem Wortlaut? Bekannt sind die Kanäle selbst (eigener Shop, Amazon, `fachhaendler.looxis.de`, LOOXIS-Pro), nicht aber, ob und wie EOCS sie übergibt. Die Zuordnung EOCS-Bezeichnung → Kanal ist deshalb konfigurierbar und wird mit PROJ-7 gefüllt. Übergibt EOCS nichts, wählt der Mitarbeiter ohne Vorschlag.
 - [x] Bestellen Fachhändler und LOOXIS-Pro über einen eigenen Weg? → Ja: Fachhändler über `fachhaendler.looxis.de` (Kanal `fachhaendler`), LOOXIS-Pro über den Kanal `looxis-pro` (Auskunft vom 2026-10-02).
-- [ ] Welche Obergrenze für den Gesamtumfang ist sinnvoll? Hängt vom Modell in PROJ-9 ab; Vorschlag für den Start: 60.000 Zeichen. In `/architecture` festlegen.
+- [x] Welche Obergrenze für den Gesamtumfang ist sinnvoll? → 60.000 Zeichen Dokumenttext für den Start, in der Konfiguration; mit PROJ-9 überprüfen (2026-10-05).
 - [ ] Das Feld `limit_basis` in zwei Permissions ist der Prüfung unbekannt. Behalten und offiziell aufnehmen, oder entfernen? Gehört nicht zu PROJ-4, sollte aber vor dem ersten Test entschieden werden.
 
 ## Decision Log
@@ -148,12 +148,92 @@ PROJ-4 hat keine eigene Seite. Es liefert die Auswahl-Logik, die Wertelisten fü
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Eigener Auswahl-Baustein neben der Knowledge-Bibliothek | Trennung Einlesen/Prüfen von Auswählen; PROJ-9, PROJ-13 und der Vorschau-Befehl nutzen dieselbe Auswahl | 2026-10-05 |
+| Kundengruppen, Kanal-Zuordnung und Obergrenzen in `config/knowledge.php` | Vorgabe der Spec; änderbar ohne Programmänderung, passt zu den bestehenden Wertelisten | 2026-10-05 |
+| Eine Kundengruppen-Regel für Auswahl und Prüfwarnung „passt zu keiner Gruppe" | Auswahl und Prüfung können nicht auseinanderlaufen | 2026-10-05 |
+| Auswahlergebnis als festes Objekt im Speicher, keine Datenbank | Die Auswahl speichert nichts (Spec); PROJ-10/11 übernehmen Gründe, Fingerabdrücke und Wissensstand unverändert | 2026-10-05 |
+| Obergrenze 60.000 Zeichen Dokumenttext ohne Frontmatter | ca. 15.000 Tokens, viel Reserve für aktuelle Modelle; ohne Modellwissen messbar; anpassbar mit PROJ-9 | 2026-10-05 |
+| Produkt-Slug = Dateiname, bei aufgeteilten Produkten Name des Unterordners | Fortsetzung der PROJ-3-Regel; deckt den im Design-Dokument erlaubten Produktordner ab | 2026-10-05 |
+| Ausschlussgrund ist der erste zutreffende in fester Reihenfolge (Kundenart, Kanal, Produkt, Obergrenze) | Eindeutige, wiederholbare Begründung je Dokument | 2026-10-05 |
+| `policy-008` wird auf `b2b-reseller` + `fachhaendler` umgestellt | Das Dokument nutzt entgegen der Spec-Annahme `b2b` und würde sonst ein Prüffehler | 2026-10-05 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-4 läuft ganz im Backend und hat keine eigene Oberfläche. Es setzt auf der Lese- und Prüfschicht aus PROJ-3 auf: Alle Dokumente kommen weiterhin nur über die zentrale Knowledge-Bibliothek, und die Auswahl arbeitet nur mit den dort als verwendbar markierten Dokumenten. Neu sind ein Auswahl-Baustein, ein Vorschlags-Baustein, Erweiterungen der Prüfung, ein Terminal-Befehl und Einträge in der Knowledge-Konfiguration. Es gibt keine Datenbanktabelle; die Auswahl speichert nichts (das übernimmt PROJ-11).
+
+### A) Bausteine
+```
+Knowledge-Konfiguration (config/knowledge.php)
++-- Wertelisten: Kundenarten (b2c, b2b-reseller, b2b-pro), Kanäle (shop, amazon, fachhaendler, looxis-pro)
++-- Kundengruppen: fünf Einträge mit Schlüssel, deutscher Bezeichnung, Kundenart, Kanal (Reihenfolge = Anzeige)
++-- Kanal-Zuordnung: EOCS-Bezeichnung -> Kanal (vorerst leer bzw. mit den bekannten Werten, Füllung mit PROJ-7)
++-- Obergrenzen: 3 gute Beispiele, 2 schlechte Beispiele, 60.000 Zeichen Gesamtumfang
+
+Knowledge-Bibliothek (PROJ-3, unverändert in der Rolle)
++-- liefert verwendbare Dokumente, Wissensstand, Fingerabdrücke
+
+Kundengruppe (neu)
++-- kennt Kundenart und Kanal einer Gruppe
++-- beantwortet „gilt dieses Dokument für mich?" – die einzige Stelle mit dieser Regel
+
+Fallkontext (neu)
++-- gewählte Kundengruppe
++-- gewählte Produkte (leer = „kein Produktbezug / unklar")
+
+Knowledge-Auswahl (neu)
++-- Wertelisten für das Formular: Kundengruppen, wählbare Produkte
++-- Auswahl für einen Fallkontext -> Auswahlergebnis
+
+Auswahlergebnis (neu, nur im Speicher)
++-- Fallkontext und Wissensstand
++-- ausgewählte Dokumente in Rangfolge, je mit Grund, Entwurfs-Kennzeichen, Fingerabdruck
++-- nicht ausgewählte Dokumente mit Grund
++-- unbekannte Produkte, Produkte ohne Produktwissen
++-- Anzahl Entwürfe, Gesamtumfang in Zeichen, Warnungen
+
+Vorschläge (neu)
++-- Produkte aus Bestellpositionen (über order_keywords der Produktdateien)
++-- Kundengruppe aus dem Kanal der Bestellung (über die Kanal-Zuordnung)
+
+Prüfung (Erweiterung PROJ-3)
++-- b2b als Fehler mit Hinweis auf die neuen Werte
++-- order_keywords: nur in Produktdateien, einfache Liste, doppelte und zu kurze Schlüsselwörter warnen
++-- Warnung, wenn ein Dokument zu keiner Kundengruppe passt (nutzt dieselbe Regel wie die Auswahl)
+
+Terminal-Befehl knowledge:select (neu)
++-- Kundengruppe als Pflichtangabe, Produkte optional
++-- gibt ausgewählte und nicht ausgewählte Dokumente, Umfang und Warnungen aus
+```
+
+### B) Daten (ohne Datenbank)
+- **Kundengruppe:** Schlüssel (z. B. `private-shop`, `private-amazon`, `reseller`, `looxis-pro`, `unclear`), Bezeichnung, Kundenart, Kanal. „Noch unklar" hat weder Kundenart noch Kanal.
+- **Produkt-Slug:** Bei einer einzelnen Produktdatei ist es der Dateiname (wie bisher geprüft). Bei einem aufgeteilten Produkt ist es der Name des Unterordners; alle Dateien darin gehören zu diesem Produkt. Wählbar ist ein Produkt, sobald es mindestens eine verwendbare Datei hat. Die Bezeichnung in der Liste ist der Titel der Datei mit dem Slug als Namen, sonst der Titel der Datei mit der kleinsten ID.
+- **order_keywords:** neue Liste im Frontmatter von Produktdateien (Artikelnummern, Bezeichnungen). Der Vergleich ignoriert Groß- und Kleinschreibung und sucht das Schlüsselwort als Teil von Artikelnummer oder Bezeichnung.
+- **Umfang:** gezählt werden die Zeichen des Dokumenttexts ohne Frontmatter. Das ist der Teil, der in PROJ-9 im Prompt landet, und lässt sich ohne Modellwissen bestimmen.
+
+### C) Auswahlregel in einem Satz
+Ein verwendbares Dokument wird ausgewählt, wenn (1) seine Kundenart leer ist oder die Kundenart der Gruppe enthält, (2) sein Kanal leer ist oder den Kanal der Gruppe enthält, und (3) seine Produkte leer sind oder eines der gewählten Produkte enthalten (Produktdateien zählen als zu ihrem eigenen Produkt gehörig). Bei „Noch unklar" gelten (1) und (2) nur bei leeren Feldern. Danach werden die Beispiele begrenzt und erst bei Überschreitung des Umfangs ganz weggelassen. Sortiert wird nach der Typ-Reihenfolge der Konfiguration, innerhalb des Typs nach ID. Jeder Ausschluss bekommt den ersten Grund, der zutrifft (Kundenart, Kanal, Produkt, Obergrenze), damit die Begründung eindeutig ist.
+
+### D) Technische Entscheidungen (für Nicht-Entwickler)
+- **Eigener Baustein statt Logik in der Bibliothek:** Die Bibliothek bleibt fürs Einlesen und Prüfen zuständig, die Auswahl ist eine eigene Aufgabe. PROJ-9 (Analyse), PROJ-13 (Evaluation) und der Terminal-Befehl nutzen denselben Baustein, deshalb wählen alle gleich aus.
+- **Kundengruppen und Obergrenzen in der Konfiguration:** So verlangt es die Spec. Die Werte lassen sich ändern, ohne Code an mehreren Stellen anzupassen.
+- **Eine Regel für Auswahl und Prüfung:** Die Warnung „passt zu keiner Kundengruppe" fragt dieselbe Kundengruppen-Logik wie die Auswahl. Die beiden können deshalb nie auseinanderlaufen.
+- **Ergebnis als festes Objekt statt loser Liste:** PROJ-10 und PROJ-11 brauchen später genau diese Angaben (Gründe, Fingerabdrücke, Wissensstand, Entwürfe). Ein festes Ergebnis-Objekt sorgt dafür, dass nichts davon verloren geht.
+- **Obergrenze 60.000 Zeichen:** Das sind etwa 15.000 Tokens und passt mit viel Reserve zu aktuellen OpenAI-Modellen. Heute umfasst die ganze Knowledge Base deutlich weniger. Die Grenze schützt vor Ausreißern und ist in der Konfiguration änderbar, sobald PROJ-9 das Modell festlegt.
+- **Kein Zwischenspeicher:** Das Einlesen ist pro Anfrage schon zwischengespeichert, die Auswahl selbst ist bei 200 Dokumenten reine Listenarbeit und bleibt weit unter 100 ms.
+- **Umstellung der bestehenden Dokumente gehört dazu:** `policy-008` nutzt heute `b2b` und `shop` und würde mit den neuen Wertelisten fehlschlagen. Sie wird auf `b2b-reseller` und `fachhaendler` umgestellt, Guide und Produkt-Vorlage werden ergänzt.
+
+### E) Abhängigkeiten
+Keine neuen Pakete.
+
+### F) Hinweise für /backend
+- Es gibt keine Oberfläche; `/frontend` entfällt für PROJ-4.
+- Tests: Unit-Tests für Auswahlregel, Reihenfolge, Obergrenzen und Vorschläge mit Test-Knowledge-Ordnern (wie bei PROJ-3); Feature-Tests für den Terminal-Befehl.
+
 
 ## QA Test Results
 _To be added by /qa_
