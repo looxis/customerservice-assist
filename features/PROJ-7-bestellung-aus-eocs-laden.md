@@ -1,6 +1,6 @@
 # PROJ-7: Bestellung aus EOCS laden
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -128,12 +128,85 @@
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Eigener Baustein `app/Eocs/` nach dem Muster von `app/Zammad/`, Laravel-HTTP-Client | Einheitliche Struktur, Tests mit Attrappen, keine neuen Pakete | 2026-10-05 |
+| Kundendaten aus EOCS nicht ins Bestellobjekt übernehmen | Datensparsamkeit: werden weder angezeigt noch (bisher) für die Analyse gebraucht | 2026-10-05 |
+| Bestellnummern-Erkennung als eigener Baustein `app/Orders/` mit festen Mustern | Einzeln testbar, später durch den KI-Workflow ersetzbar | 2026-10-05 |
+| Auswahl der Bestellungen als Liste in der Adresse, höchstens 10 | Neuladen, Zurück, Link an Kollegen; keine Speicherung bis PROJ-11 | 2026-10-05 |
+| Reklamationsaufträge über Suche ohne `,exact`, gefiltert auf `R<n>-<Original>` und `origin_order_id` | EOCS hat keinen Filter für Folgeaufträge; doppelte Bedingung verhindert Fremdtreffer | 2026-10-05 |
+| Fehler „nicht gefunden" je Nummer, „nicht erreichbar/Zugang ungültig" einmal; Ticket bleibt sichtbar | Spec; EOCS-Probleme dürfen die Bearbeitung nicht blockieren | 2026-10-05 |
+| EOCS-Statusfarbe auf Badge-Töne des Design Systems abbilden | Gewohnte Farben aus EOCS, aber im LOOXIS-Design | 2026-10-05 |
+| Abfragen mehrerer Bestellungen parallel | Bleibt auch bei zehn Bestellungen unter 2 s | 2026-10-05 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-7 folgt dem Muster der Zammad-Anbindung (PROJ-6): ein eigener EOCS-Baustein liest Bestellungen nur lesend über die Orders-API (`docs/orders-api.md`) und übersetzt sie in eigene, einfache Bestellobjekte. Die Ticketseite zeigt diese an. Es gibt weder Datenbank noch Zwischenspeicher; welche Bestellungen zu einem Ticket geladen sind, steht in der Adresse der Ticketseite. Die Erkennung von Bestellnummern ist ein eigener kleiner Baustein, damit ihn später der KI-Workflow ersetzen kann.
+
+### A) Bausteine
+```
+Ticketseite (/tickets/{nummer}?bestellungen[]=…)       (PROJ-6, erweitert)
++-- Ticketkopf
+    +-- Bereich „Bestellungen" (neue Komponente)
+        +-- Vorschläge: gefundene Nummern als Knöpfe mit vermutetem Kanal
+        |   (Amazon aus PROJ-6 zuerst; geladene markiert; höchstens 10)
+        +-- Feld „Bestellnummer von Hand" + „Laden"
+        +-- Meldung bei EOCS-Fehler (einmal, mit „Erneut versuchen")
+        +-- je geladener Bestellung ein Block (neue Komponente)
+            +-- externe Nummer, EOCS-ID, Kanal, Datum, Status-Badge (Farbe aus EOCS)
+            +-- Rechnungsnummer
+            +-- Sendungen: Dienstleister, Sendungsnummer (Text), Datum, zugestellt
+            +-- Reklamationsaufträge: Nummer, Datum, Status, „In EOCS öffnen"
+            +-- Produkte aus der Amazon-Nachricht (falls vorhanden, wie bisher)
+            +-- „In EOCS öffnen", „Entfernen"
+        +-- Hinweis „nicht gefunden" je Nummer, die EOCS nicht kennt
+
+Server
++-- Bestellnummern-Erkennung (app/Orders/)
+|   +-- feste Muster je Kanal an einer Stelle (Amazon, looxis.de/Fachhändler,
+|   |   LOOXIS-Pro mit/ohne BEST-PRO, looxis.fr, masterpics, EOCS-ID)
+|   +-- Bereinigung einer Eingabe (Leerzeichen, #, BEST-PRO, Großschreibung bei Shop-Nummern)
+|   +-- Suche im ganzen Verlauf inkl. Zitate, Reihenfolge des ersten Auftretens
++-- EOCS-Baustein (app/Eocs/)
+|   +-- Suche über externe Nummer (exakt) oder EOCS-ID, mit Sendungen und Positionen
+|   +-- Reklamationsaufträge: zweite Suche ohne „exakt", nur Treffer mit Verweis auf die Bestellung
+|   +-- Fehlerarten: nicht gefunden · nicht erreichbar · Zugang ungültig
+|   +-- Bestellobjekt (Kopf, Status, Sendungen, Positionen, Reklamationsaufträge)
++-- Ticket-Controller (erweitert): liest die Auswahl aus der Adresse, lädt die Bestellungen,
+|   führt sie mit den Amazon-Erkennungen aus PROJ-6 zusammen
++-- Eingabe-Prüfung (Form Request) für „von Hand laden" und „entfernen":
+    bereinigt, prüft das Format, leitet auf die Ticketadresse mit neuer Auswahl weiter
+```
+
+### B) Daten (nichts wird gespeichert)
+- **Auswahl:** Liste der Bestellnummern in der Adresse der Ticketseite, höchstens 10.
+- **Bestellung (je Aufruf frisch aus EOCS):** EOCS-ID, externe Nummer, Kanalname (`client.name`) und daraus der Kanal der Knowledge Base über die bestehende Zuordnung `knowledge.order_channels`, Bestelldatum, Status (Text und Farbe), Rechnungsnummer, Sendungen, Positionen, Reklamationsaufträge.
+- **Position:** Artikelnummer (`item.item_id`), Name, Produktart, Anzahl, Status, Konfigurations-ID, Personalisierungsdaten. Wird geladen, aber noch nicht angezeigt (für PROJ-4 und PROJ-9).
+- **Kundendaten** (Name, E-Mail, Adressen, Telefon, Zahlung) werden gelesen, aber nicht ins Bestellobjekt übernommen – sie verlassen den EOCS-Baustein nicht.
+- **Konfiguration:** `EOCS_URL`, `EOCS_TOKEN`, `EOCS_TIMEOUT` über `config/services.php`; Bestellungen in der EOCS-Oberfläche unter `{EOCS_URL}/orders/{ID}`.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Eigener EOCS-Baustein nach dem Zammad-Muster:** Die Seite und später PROJ-8/9/11 kennen nur das eigene Bestellobjekt. Ändert sich die EOCS-API, wird nur dieser Baustein angepasst. Laravels HTTP-Client bringt Zeitlimit und Test-Attrappen mit; kein neues Paket.
+- **Kundendaten nicht ins Bestellobjekt:** Was nicht angezeigt wird und für die Analyse nicht gebraucht wird, soll gar nicht erst durch die App wandern (Datensparsamkeit). Ob Lieferland o. Ä. später für die Analyse gebraucht wird, entscheidet PROJ-9.
+- **Erkennung als eigener Baustein mit festen Mustern:** Die Muster stehen an einer Stelle und sind einzeln getestet. Der KI-Workflow (n8n) kann den Baustein später ersetzen, ohne dass sich an Seite oder EOCS-Anbindung etwas ändert. Shop und Fachhändler DE haben dasselbe Format; der Vorschlag nennt dann „looxis.de / Fachhändler", den genauen Kanal liefert EOCS.
+- **Auswahl in der Adresse statt Sitzung:** Neuladen, Zurück und Link an Kollegen funktionieren; jeder Aufruf holt frische Daten (Spec). Hinzufügen und Entfernen sind normale Links bzw. ein kleines Formular, das auf die neue Adresse weiterleitet – kein JavaScript nötig, Alpine.js nur für das Lade-Overlay.
+- **Reklamationsaufträge über eine zweite, unscharfe Suche:** EOCS bietet keinen Filter „Folgeaufträge zu ID x". Die Suche ohne „exakt" findet sie; behalten werden nur Treffer, deren Nummer `R<Zahl>-<Original>` lautet **und** die auf die Bestellung verweisen. So rutscht nichts Fremdes hinein.
+- **EOCS-Fehler je Bestellung, nicht für die Seite:** Ticket und Vorschläge bleiben immer sichtbar (Spec). „Nicht erreichbar" und „Zugang ungültig" betreffen alle Bestellungen und erscheinen einmal; „nicht gefunden" je Nummer.
+- **Statusfarbe aus EOCS:** EOCS liefert eine Farbe je Status (z. B. `green`); sie wird auf die Badge-Töne des Design Systems übersetzt (grün → Erfolg, gelb/orange → Warnung, rot → Fehler, blau → Info, sonst neutral).
+- **Ladezeit:** Je Bestellung zwei Abfragen (Bestellung, Reklamationsaufträge), je unter 0,3 s. Bei mehreren Bestellungen werden die Abfragen parallel geschickt, damit auch zehn Bestellungen unter 2 s bleiben.
+- **Zusammenführen mit der Amazon-Erkennung aus PROJ-6:** Gleiche externe Nummer → ein Block; Produkte aus der Amazon-Nachricht bleiben sichtbar, Status und Rechnungsnummer kommen aus EOCS.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Frontend: Komponenten für den Bereich „Bestellungen" und den Bestellblock; der bisherige Amazon-Block aus PROJ-6 geht im Bestellblock auf.
+- Backend: `app/Orders/` (Erkennung), `app/Eocs/` (Client, Bestellung, Sendung, Position, Reklamationsauftrag, Fehler), Form Request, Controller-Erweiterung, `services.eocs`.
+- `.env.example`: `EOCS_URL=`, `EOCS_TOKEN=`, `EOCS_TIMEOUT=10` (trägt der Product Owner ein).
+- Tests nur mit erfundenen Daten: Muster je Kanal inkl. Fehltreffer (Sendungs-, Telefonnummern), Bereinigung, EOCS nachgestellt (Treffer, mehrere Treffer, nicht gefunden, 401, Zeitüberschreitung), Reklamationsaufträge (nur echte Folgeaufträge), Zusammenführen mit Amazon, Auswahl in der Adresse (Hinzufügen, Entfernen, höchstens 10), keine Kundendaten auf der Seite und im Log.
+
 
 ## QA Test Results
 _To be added by /qa_
