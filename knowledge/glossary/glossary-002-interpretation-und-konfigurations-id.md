@@ -5,7 +5,7 @@ type: glossary
 status: draft
 customer_types:
 sales_channels:
-- shop
+- looxis-de
 products:
 categories:
 topics:
@@ -14,7 +14,7 @@ topics:
 related_knowledge:
 ---
 
-Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `shop`. Erfasst werden Produkte mit einem Interpretationsvorgang bei der Erstellung der Produktionsdatei.
+Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `looxis-de`. Erfasst werden Produkte mit einem Interpretationsvorgang bei der Erstellung der Produktionsdatei.
 
 # Bedeutung
 

@@ -5,7 +5,7 @@ type: playbook
 status: draft
 customer_types:
 sales_channels:
-- shop
+- looxis-de
 products:
 categories:
 - complaint
@@ -20,7 +20,7 @@ related_knowledge:
 - TONE-001
 ---
 
-Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `shop`. Erfasst werden Produkte mit interpretationsabhängigen Produktionsdateien.
+Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `looxis-de`. Erfasst werden Produkte mit interpretationsabhängigen Produktionsdateien.
 
 # Fallmuster
 

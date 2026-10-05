@@ -58,11 +58,11 @@ describe('document list', function () {
 
     test('a row shows id, title, status and scope, and an empty scope as "alle"', function () {
         knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Kulanz', 'customer_types' => ['b2c'], 'sales_channels' => ['shop'], 'categories' => ['complaint']]),
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Kulanz', 'customer_types' => ['b2c'], 'sales_channels' => ['looxis-de'], 'categories' => ['complaint']]),
         ]);
 
         $this->get('/knowledge')
-            ->assertSeeInOrder(['POLICY-001', 'Kulanz', 'Entwurf', 'Kundenart:', 'b2c', 'Kanal:', 'shop', 'Kategorie:', 'complaint', 'Produkt:', 'alle'])
+            ->assertSeeInOrder(['POLICY-001', 'Kulanz', 'Entwurf', 'Kundenart:', 'b2c', 'Kanal:', 'looxis-de', 'Kategorie:', 'complaint', 'Produkt:', 'alle'])
             ->assertSee('href="'.documentUrl('policies/policy-001-a.md').'"', false);
     });
 
@@ -261,13 +261,13 @@ describe('id overview', function () {
 describe('document view', function () {
     test('it shows header data, scope, topics, path and short fingerprint', function () {
         $library = knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Kulanz im Shop', 'customer_types' => ['b2c'], 'sales_channels' => ['shop'], 'categories' => ['complaint'], 'topics' => ['goodwill', 'refund']]),
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Kulanz im Shop', 'customer_types' => ['b2c'], 'sales_channels' => ['looxis-de'], 'categories' => ['complaint'], 'topics' => ['goodwill', 'refund']]),
         ]);
 
         $this->get(documentUrl('policies/policy-001-a.md'))
             ->assertOk()
             ->assertSee('<title>POLICY-001 – Customer Service Assist</title>', false)
-            ->assertSeeInOrder(['POLICY-001', 'Policies', 'Kulanz im Shop', 'Entwurf', 'Kundenart:', 'b2c', 'Kanal:', 'shop', 'Kategorie:', 'complaint', 'Produkt:', 'alle', 'Themen:', 'goodwill', 'refund', 'policies/policy-001-a.md', 'Fingerabdruck'])
+            ->assertSeeInOrder(['POLICY-001', 'Policies', 'Kulanz im Shop', 'Entwurf', 'Kundenart:', 'b2c', 'Kanal:', 'looxis-de', 'Kategorie:', 'complaint', 'Produkt:', 'alle', 'Themen:', 'goodwill', 'refund', 'policies/policy-001-a.md', 'Fingerabdruck'])
             ->assertSeeText($library->find('POLICY-001')->shortFingerprint());
     });
 

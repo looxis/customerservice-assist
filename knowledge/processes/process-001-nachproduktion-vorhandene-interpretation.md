@@ -4,7 +4,7 @@ title: Nachproduktion mit Wiederverwendung der ursprünglichen Interpretation
 type: process
 status: draft
 sales_channels:
-- shop
+- looxis-de
 categories:
 - complaint
 - order-process-question
@@ -18,7 +18,7 @@ related_knowledge:
 - GLOSSARY-002
 ---
 
-Gilt für alle Kundenarten auf allen Kanälen außer Amazon; im aktuellen Kanalschema ist dies `shop`. Erfasst werden Produkte, deren Produktionsdatei durch einen Interpretationsvorgang erstellt wurde.
+Gilt für alle Kundenarten auf allen Kanälen außer Amazon; im aktuellen Kanalschema ist dies `looxis-de`. Erfasst werden Produkte, deren Produktionsdatei durch einen Interpretationsvorgang erstellt wurde.
 
 # Ziel
 

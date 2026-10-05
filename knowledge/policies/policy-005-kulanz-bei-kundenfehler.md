@@ -6,7 +6,7 @@ status: draft
 customer_types:
 - b2c
 sales_channels:
-- shop
+- looxis-de
 categories:
 - complaint
 - order-process-question

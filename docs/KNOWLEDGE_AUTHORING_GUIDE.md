@@ -118,7 +118,7 @@ Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das i
 
 | Wert | Bedeutung |
 |---|---|
-| `b2c` | Privatkunde (eigener Shop oder Amazon) |
+| `b2c` | Privatkunde (looxis.de oder Amazon) |
 | `b2b-reseller` | Foto-Fachhändler / Reseller |
 | `b2b-pro` | LOOXIS-Pro: Geschäftskunde, der Rohware in größeren Mengen bezieht |
 | `b2b-whitelabel` | White-Label-Kunde: Geschäftskunde, der unter eigenem Namen an seine Endkunden verkauft und uns die Aufträge samt Lieferadresse übermittelt (z. B. masterpics). Er ist für korrekte Adressdaten verantwortlich. |
@@ -129,7 +129,7 @@ Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 
 | Wert | Bedeutung |
 |---|---|
-| `shop` | eigener Online-Shop (Privatkunden) |
+| `looxis-de` | eigener Online-Shop looxis.de (Privatkunden; früher `shop`) |
 | `amazon` | Amazon |
 | `fachhaendler` | Fachhändler-Shop fachhaendler.looxis.de |
 | `looxis-pro` | Bestellweg für LOOXIS-Pro |
@@ -142,16 +142,16 @@ Regeln:
 
   | Kundengruppe | Kundenart | Kanal |
   |---|---|---|
-  | Privatkunde, eigener Shop | `b2c` | `shop` |
+  | Privatkunde, looxis.de | `b2c` | `looxis-de` |
   | Privatkunde, Amazon | `b2c` | `amazon` |
   | Foto-Fachhändler / Reseller | `b2b-reseller` | `fachhaendler` |
   | LOOXIS-Pro | `b2b-pro` | `looxis-pro` |
   | White-Label-Kunde, masterpics | `b2b-whitelabel` | `masterpics` |
   | Noch unklar | – | – |
 
-  Ein Dokument gilt für eine Gruppe, wenn beide Felder leer sind oder den Wert der Gruppe enthalten. Beispiele: `customer_types: [b2c]` mit leerem Kanal gilt für Privatkunden im Shop und auf Amazon. `sales_channels: [shop]` mit leerer Kundenart gilt nur für Privatkunden im Shop, nicht für Fachhändler. Ist die Kundengruppe noch unklar, verwendet die App nur Dokumente, bei denen beide Felder leer sind.
+  Ein Dokument gilt für eine Gruppe, wenn beide Felder leer sind oder den Wert der Gruppe enthalten. Beispiele: `customer_types: [b2c]` mit leerem Kanal gilt für Privatkunden auf looxis.de und auf Amazon. `sales_channels: [looxis-de]` mit leerer Kundenart gilt nur für Privatkunden auf looxis.de, nicht für Fachhändler. Soll ein Dokument für alle Kanäle außer Amazon gelten, werden alle diese Kanäle aufgezählt. Ist die Kundengruppe noch unklar, verwendet die App nur Dokumente, bei denen beide Felder leer sind.
 - Passt eine Kombination zu keiner Gruppe (z. B. `b2c` mit nur `looxis-pro`), warnt die Prüfung: Das Dokument würde nie verwendet.
-- Was ein Fallkontext laden würde, zeigt `./vendor/bin/sail artisan knowledge:select private-shop --product=<slug>`.
+- Was ein Fallkontext laden würde, zeigt `./vendor/bin/sail artisan knowledge:select private-looxis-de --product=<slug>`.
 - Unterscheidet sich eine Regel je Kundenart oder Kanal deutlich, **zwei Dokumente** schreiben (eines je Geltungsbereich) statt eines Dokuments mit „bei B2B gilt abweichend …". Kleine Abweichungen dürfen als Ausnahme im Text bleiben; dann bleiben die Felder leer.
 - Der Geltungsbereich steht zusätzlich in einem Satz am Anfang des Textes (z. B. „Gilt nur für Geschäftskunden."), damit die Datei auch für Menschen eindeutig ist. Frontmatter und Text müssen dasselbe sagen.
 - Frage beim Erfassen jeder Policy, Permission und jedes Playbooks ausdrücklich: „Gilt das für alle Kunden und Kanäle, oder nur für bestimmte?"

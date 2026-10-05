@@ -5,7 +5,7 @@ type: tone
 status: draft
 customer_types:
 sales_channels:
-- shop
+- looxis-de
 products:
 categories:
 - complaint
@@ -20,7 +20,7 @@ related_knowledge:
 - PLAYBOOK-002
 ---
 
-Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `shop`. Erfasst wird die Kommunikation zu interpretationsabhängigen Produkten.
+Gilt für alle Kundenarten und Kanäle außer Amazon; im aktuellen Kanalschema ist dies `looxis-de`. Erfasst wird die Kommunikation zu interpretationsabhängigen Produkten.
 
 # Ziel
 

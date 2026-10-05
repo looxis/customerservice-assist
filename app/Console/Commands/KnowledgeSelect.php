@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('knowledge:select {group : Kundengruppe, z. B. private-shop} {--product=* : Produkt-Slug, mehrfach möglich}')]
+#[Signature('knowledge:select {group : Kundengruppe, z. B. private-looxis-de} {--product=* : Produkt-Slug, mehrfach möglich}')]
 #[Description('Zeigt, welche Knowledge-Dokumente für Kundengruppe und Produkte ausgewählt würden und welche aus welchem Grund nicht')]
 class KnowledgeSelect extends Command
 {

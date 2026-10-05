@@ -89,14 +89,14 @@ describe('value lists', function () {
         $groups = app(KnowledgeSelector::class)->customerGroups();
 
         expect(array_map(fn ($group) => $group->label, $groups))->toBe([
-            'Privatkunde, eigener Shop',
+            'Privatkunde, looxis.de',
             'Privatkunde, Amazon',
             'Foto-Fachhändler / Reseller',
             'LOOXIS-Pro',
             'White-Label-Kunde, masterpics',
             'Noch unklar',
         ])->and(array_map(fn ($group) => [$group->customerType, $group->salesChannel], $groups))->toBe([
-            ['b2c', 'shop'],
+            ['b2c', 'looxis-de'],
             ['b2c', 'amazon'],
             ['b2b-reseller', 'fachhaendler'],
             ['b2b-pro', 'looxis-pro'],
@@ -135,12 +135,18 @@ describe('value lists', function () {
 
     test('the new customer types and channels are valid', function () {
         $library = knowledgeBase([
-            ...selectionDoc('POLICY-001', ['customer_types' => ['b2c'], 'sales_channels' => ['shop', 'amazon']]),
+            ...selectionDoc('POLICY-001', ['customer_types' => ['b2c'], 'sales_channels' => ['looxis-de', 'amazon']]),
             ...selectionDoc('POLICY-002', ['customer_types' => ['b2b-reseller'], 'sales_channels' => ['fachhaendler']]),
             ...selectionDoc('POLICY-003', ['customer_types' => ['b2b-pro'], 'sales_channels' => ['looxis-pro']]),
         ]);
 
         expect($library->issues())->toBeEmpty();
+    });
+
+    test('the former channel value shop is an error that names looxis-de', function () {
+        $library = knowledgeBase(selectionDoc('POLICY-001', ['sales_channels' => ['shop']]));
+
+        expect(messagesOf($library, 'error'))->toContain('Unbekannter Wert `shop` in `sales_channels`. Der eigene Shop heißt jetzt `looxis-de`.');
     });
 
     test('the former value b2b is an error that names the new values', function () {
@@ -156,9 +162,9 @@ describe('selection by customer group', function () {
         knowledgeBase([
             ...selectionDoc('POLICY-001'),
             ...selectionDoc('POLICY-002', ['customer_types' => ['b2c']]),
-            ...selectionDoc('POLICY-003', ['customer_types' => ['b2c'], 'sales_channels' => ['shop']]),
+            ...selectionDoc('POLICY-003', ['customer_types' => ['b2c'], 'sales_channels' => ['looxis-de']]),
             ...selectionDoc('POLICY-004', ['customer_types' => ['b2c'], 'sales_channels' => ['amazon']]),
-            ...selectionDoc('POLICY-005', ['sales_channels' => ['shop']]),
+            ...selectionDoc('POLICY-005', ['sales_channels' => ['looxis-de']]),
             ...selectionDoc('POLICY-006', ['customer_types' => ['b2b-reseller'], 'sales_channels' => ['fachhaendler']]),
             ...selectionDoc('POLICY-007', ['customer_types' => ['b2b-pro']]),
             ...selectionDoc('POLICY-008', ['customer_types' => ['b2b-reseller', 'b2b-pro']]),
@@ -169,7 +175,7 @@ describe('selection by customer group', function () {
     test('each group gets the documents for its customer type and channel', function (string $group, array $expected) {
         expect(selectedIds(selectFor($group)))->toBe($expected);
     })->with([
-        'private shop' => ['private-shop', ['POLICY-001', 'POLICY-002', 'POLICY-003', 'POLICY-005']],
+        'private shop' => ['private-looxis-de', ['POLICY-001', 'POLICY-002', 'POLICY-003', 'POLICY-005']],
         'private amazon' => ['private-amazon', ['POLICY-001', 'POLICY-002', 'POLICY-004']],
         'reseller' => ['reseller', ['POLICY-001', 'POLICY-006', 'POLICY-008']],
         'looxis pro' => ['looxis-pro', ['POLICY-001', 'POLICY-007', 'POLICY-008']],
@@ -178,18 +184,18 @@ describe('selection by customer group', function () {
     ]);
 
     test('selected documents carry an understandable reason', function () {
-        $selected = collect(selectFor('private-shop')->selected)->mapWithKeys(fn ($entry) => [$entry->document->id => $entry->reason]);
+        $selected = collect(selectFor('private-looxis-de')->selected)->mapWithKeys(fn ($entry) => [$entry->document->id => $entry->reason]);
 
         expect($selected->all())->toBe([
             'POLICY-001' => 'gilt für alle',
             'POLICY-002' => 'Kundenart b2c',
-            'POLICY-003' => 'Kundenart b2c, Kanal shop',
-            'POLICY-005' => 'Kanal shop',
+            'POLICY-003' => 'Kundenart b2c, Kanal looxis-de',
+            'POLICY-005' => 'Kanal looxis-de',
         ]);
     });
 
     test('left-out documents are listed with the first reason that applies', function () {
-        expect(excludedReasons(selectFor('private-shop')))->toBe([
+        expect(excludedReasons(selectFor('private-looxis-de')))->toBe([
             'POLICY-004' => 'nur für Kanal amazon',
             'POLICY-006' => 'nur für Kundenart b2b-reseller',
             'POLICY-007' => 'nur für Kundenart b2b-pro',
@@ -212,7 +218,7 @@ describe('selection by product', function () {
     });
 
     test('without a product only documents without products are used', function () {
-        $selection = selectFor('private-shop');
+        $selection = selectFor('private-looxis-de');
 
         expect(selectedIds($selection))->toBe(['POLICY-001'])
             ->and(excludedReasons($selection))->toMatchArray([
@@ -222,7 +228,7 @@ describe('selection by product', function () {
     });
 
     test('a chosen product adds its product file and the documents bound to it', function () {
-        $selection = selectFor('private-shop', ['lunchbox']);
+        $selection = selectFor('private-looxis-de', ['lunchbox']);
 
         expect(selectedIds($selection))->toBe(['POLICY-001', 'PRODUCT-001', 'PLAYBOOK-001', 'PLAYBOOK-002'])
             ->and($selection->selected[1]->reason)->toBe('Produktwissen lunchbox')
@@ -230,12 +236,12 @@ describe('selection by product', function () {
     });
 
     test('all files of a split product are used, a document for several products appears once', function () {
-        expect(selectedIds(selectFor('private-shop', ['3d-glass-photo', 'lunchbox'])))
+        expect(selectedIds(selectFor('private-looxis-de', ['3d-glass-photo', 'lunchbox'])))
             ->toBe(['POLICY-001', 'PRODUCT-001', 'PRODUCT-002', 'PRODUCT-003', 'PLAYBOOK-001', 'PLAYBOOK-002']);
     });
 
     test('an unknown product is ignored and named', function () {
-        $selection = selectFor('private-shop', ['mug']);
+        $selection = selectFor('private-looxis-de', ['mug']);
 
         expect(selectedIds($selection))->toBe(['POLICY-001'])
             ->and($selection->unknownProducts)->toBe(['mug'])
@@ -250,7 +256,7 @@ test('a chosen product whose product file became faulty is named as without prod
         ...productDoc('lunchbox', 'PRODUCT-001', ['status' => 'final']),
     ]);
 
-    $selection = selectFor('private-shop', ['lunchbox']);
+    $selection = selectFor('private-looxis-de', ['lunchbox']);
 
     expect(selectedIds($selection))->toBe(['POLICY-001', 'PLAYBOOK-001'])
         ->and($selection->productsWithoutKnowledge)->toBe(['lunchbox'])
@@ -266,7 +272,7 @@ describe('which documents qualify at all', function () {
             ...selectionDoc('POLICY-004', ['customer_types' => ['firma']]),
         ]);
 
-        $selection = selectFor('private-shop');
+        $selection = selectFor('private-looxis-de');
 
         expect(selectedIds($selection))->toBe(['POLICY-001', 'POLICY-002'])
             ->and(excludedReasons($selection))->toBe([])
@@ -296,7 +302,7 @@ describe('which documents qualify at all', function () {
             ...selectionDoc('EXAMPLE-BAD-003'),
         ]);
 
-        $selection = selectFor('private-shop', ['lunchbox']);
+        $selection = selectFor('private-looxis-de', ['lunchbox']);
 
         expect(selectedIds($selection))->toBe(['PRODUCT-001', 'EXAMPLE-GOOD-001', 'EXAMPLE-GOOD-002', 'EXAMPLE-GOOD-004', 'EXAMPLE-BAD-001', 'EXAMPLE-BAD-002'])
             ->and(excludedReasons($selection))->toBe([
@@ -321,7 +327,7 @@ describe('result', function () {
             ...selectionDoc('POLICY-001'),
         ]);
 
-        expect(selectedIds(selectFor('private-shop', ['lunchbox'])))->toBe([
+        expect(selectedIds(selectFor('private-looxis-de', ['lunchbox'])))->toBe([
             'POLICY-001', 'POLICY-002', 'PERMISSION-001', 'PRODUCT-001', 'PROCESS-001',
             'PLAYBOOK-001', 'TONE-001', 'GLOSSARY-001', 'EXAMPLE-GOOD-001', 'EXAMPLE-BAD-001',
         ]);
@@ -356,8 +362,8 @@ describe('result', function () {
             ...productDoc('lunchbox', 'PRODUCT-001'),
         ]);
 
-        $first = selectFor('private-shop', ['lunchbox', 'lunchbox']);
-        $second = selectFor('private-shop', ['lunchbox']);
+        $first = selectFor('private-looxis-de', ['lunchbox', 'lunchbox']);
+        $second = selectFor('private-looxis-de', ['lunchbox']);
 
         expect(selectedIds($first))->toBe(selectedIds($second))
             ->and(excludedReasons($first))->toBe(excludedReasons($second));
@@ -376,7 +382,7 @@ describe('result', function () {
         config(['knowledge.path' => sys_get_temp_dir().'/knowledge-test-missing']);
         app()->forgetScopedInstances();
 
-        $selection = selectFor('private-shop');
+        $selection = selectFor('private-looxis-de');
 
         expect($selection->isEmpty())->toBeTrue()
             ->and($selection->warnings)->toContain('Der Knowledge-Ordner fehlt. Es steht kein Unternehmenswissen zur Verfügung.');
@@ -392,7 +398,7 @@ describe('size limit', function () {
             ...selectionDoc('EXAMPLE-BAD-001', [], str_repeat('c', 100)),
         ]);
 
-        $selection = selectFor('private-shop');
+        $selection = selectFor('private-looxis-de');
 
         expect(selectedIds($selection))->toBe(['POLICY-001', 'EXAMPLE-GOOD-001'])
             ->and(excludedReasons($selection))->toBe(['EXAMPLE-BAD-001' => 'weggelassen, weil der Gesamtumfang die Obergrenze überschreitet'])
@@ -408,7 +414,7 @@ describe('size limit', function () {
             ...selectionDoc('EXAMPLE-GOOD-001', [], str_repeat('c', 100)),
         ]);
 
-        $selection = selectFor('private-shop');
+        $selection = selectFor('private-looxis-de');
 
         expect(selectedIds($selection))->toBe(['POLICY-001', 'PLAYBOOK-001'])
             ->and($selection->exceedsLimit())->toBeTrue()
@@ -447,9 +453,13 @@ describe('suggestions from the order', function () {
     test('the channel of the order suggests the customer group', function (?string $channel, string $group) {
         expect(app(KnowledgeSuggester::class)->customerGroup($channel)->key)->toBe($group);
     })->with([
-        'shop' => ['shop', 'private-shop'],
+        'looxis-de' => ['looxis-de', 'private-looxis-de'],
         'amazon' => ['Amazon', 'private-amazon'],
         'reseller shop by its eocs name' => ['fachhaendler.looxis.de', 'reseller'],
+        'looxis.de by its eocs name' => ['looxis.de Vanilo', 'private-looxis-de'],
+        'french reseller by its eocs name' => ['reseller.looxis.fr', 'reseller'],
+        'looxis pro by its eocs name' => ['looxis-pro.com', 'looxis-pro'],
+        'masterpics by its eocs name' => ['Masterpics White Label DE', 'whitelabel-masterpics'],
         'looxis pro' => ['looxis-pro', 'looxis-pro'],
         'masterpics' => ['masterpics', 'whitelabel-masterpics'],
         'french reseller shop' => ['looxis.fr', 'reseller'],
@@ -458,10 +468,10 @@ describe('suggestions from the order', function () {
     ]);
 
     test('the channel names of the order are configurable', function () {
-        config(['knowledge.order_channels' => ['Webshop DE' => 'shop']]);
+        config(['knowledge.order_channels' => ['Webshop DE' => 'looxis-de']]);
 
-        expect(app(KnowledgeSuggester::class)->customerGroup('webshop de')->key)->toBe('private-shop')
-            ->and(app(KnowledgeSuggester::class)->customerGroup('shop')->key)->toBe('unclear');
+        expect(app(KnowledgeSuggester::class)->customerGroup('webshop de')->key)->toBe('private-looxis-de')
+            ->and(app(KnowledgeSuggester::class)->customerGroup('looxis-de')->key)->toBe('unclear');
     });
 });
 
@@ -507,7 +517,7 @@ describe('checks of the knowledge files', function () {
     test('customer type and channel that fit no customer group warn', function () {
         $library = knowledgeBase([
             ...selectionDoc('POLICY-001', ['customer_types' => ['b2c'], 'sales_channels' => ['looxis-pro']]),
-            ...selectionDoc('POLICY-002', ['customer_types' => ['b2c'], 'sales_channels' => ['looxis-pro', 'shop']]),
+            ...selectionDoc('POLICY-002', ['customer_types' => ['b2c'], 'sales_channels' => ['looxis-pro', 'looxis-de']]),
         ]);
 
         expect(messagesOf($library, 'warning'))->toContain('policies/policy-001-doc.md: Kundenart und Kanal passen zu keiner Kundengruppe')
@@ -551,8 +561,8 @@ describe('preview command', function () {
             ...productDoc('lunchbox', 'PRODUCT-001', ['title' => 'Lunchbox']),
         ]);
 
-        $this->artisan('knowledge:select private-shop --product=lunchbox')
-            ->expectsOutputToContain('Fallkontext: Privatkunde, eigener Shop; Produkte: lunchbox')
+        $this->artisan('knowledge:select private-looxis-de --product=lunchbox')
+            ->expectsOutputToContain('Fallkontext: Privatkunde, looxis.de; Produkte: lunchbox')
             ->expectsOutputToContain('Ausgewählt: 2 Dokumente, davon 2 Entwurfs-Wissen')
             ->expectsTable(['ID', 'Titel', 'Status', 'Grund'], [
                 ['POLICY-001', 'Für alle', 'draft', 'gilt für alle'],
@@ -570,7 +580,7 @@ describe('preview command', function () {
     test('an empty product option is ignored', function () {
         knowledgeBase(productDoc('lunchbox', 'PRODUCT-001'));
 
-        $this->artisan('knowledge:select private-shop --product=')
+        $this->artisan('knowledge:select private-looxis-de --product=')
             ->expectsOutputToContain('Produkte: kein Produktbezug')
             ->assertSuccessful();
     });
@@ -580,14 +590,14 @@ describe('preview command', function () {
 
         $this->artisan('knowledge:select haendler')
             ->expectsOutputToContain('Unbekannte Kundengruppe `haendler`.')
-            ->expectsOutputToContain('Erlaubt: private-shop (Privatkunde, eigener Shop), private-amazon')
+            ->expectsOutputToContain('Erlaubt: private-looxis-de (Privatkunde, looxis.de), private-amazon')
             ->assertFailed();
     });
 
     test('an unknown product names the allowed values and fails', function () {
         knowledgeBase(productDoc('lunchbox', 'PRODUCT-001'));
 
-        $this->artisan('knowledge:select private-shop --product=mug')
+        $this->artisan('knowledge:select private-looxis-de --product=mug')
             ->expectsOutputToContain('Unbekanntes Produkt: mug.')
             ->expectsOutputToContain('Erlaubt: lunchbox')
             ->assertFailed();

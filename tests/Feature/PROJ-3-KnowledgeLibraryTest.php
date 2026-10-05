@@ -402,7 +402,7 @@ describe('check command', function () {
 describe('id overview', function () {
     test('it lists assigned ids with title, the next free id per type and all tag values', function () {
         $library = knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Erste Regel', 'topics' => ['refund'], 'customer_types' => ['b2c'], 'sales_channels' => ['shop'], 'categories' => ['complaint'], 'products' => ['lunchbox']]),
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Erste Regel', 'topics' => ['refund'], 'customer_types' => ['b2c'], 'sales_channels' => ['looxis-de'], 'categories' => ['complaint'], 'products' => ['lunchbox']]),
             'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'title' => 'Dritte Regel', 'topics' => ['goodwill']]),
             'products/lunchbox.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Lunchbox']),
         ]);
@@ -416,7 +416,7 @@ describe('id overview', function () {
             ->toContain("Vorhandene topics-Werte:\ngoodwill, refund")
             ->toContain("Verwendete categories-Werte:\ncomplaint")
             ->toContain("Verwendete customer_types-Werte:\nb2c")
-            ->toContain("Verwendete sales_channels-Werte:\nshop");
+            ->toContain("Verwendete sales_channels-Werte:\nlooxis-de");
     });
 
     test('ids of deprecated and faulty documents still count as assigned', function () {
