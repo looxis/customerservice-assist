@@ -6,7 +6,7 @@ Der Vorschlag stützt sich auf das Wissen unseres Unternehmens: Regeln, Produktw
 
 # So funktioniert es
 
-1. **Deinen Namen wählen.** Einmal pro Browser, damit nachvollziehbar ist, wer eine Analyse gestartet hat. [in Arbeit]
+1. **Deinen Namen wählen.** Einmal pro Browser, damit nachvollziehbar ist, wer eine Analyse gestartet hat. Dein Name steht danach immer rechts oben; ein Klick darauf wechselt ihn.
 2. **Ticket laden.** Du gibst die Ticketnummer ein, die App holt das Ticket mit dem ganzen Verlauf aus Zammad. [in Arbeit]
 3. **Bestellung laden.** Die App sucht die Bestellnummer im Ticket und holt die Bestelldaten. Fehlt etwas, trägst du es von Hand nach. [in Arbeit]
 4. **Kundengruppe und Produkt bestätigen.** Die App schlägt beides aus der Bestellung vor, zum Beispiel „Privatkunde, Amazon" und „Zaubertasse". Du bestätigst oder korrigierst. Ist die Kundengruppe noch unklar, wählst du „Noch unklar". [in Arbeit]

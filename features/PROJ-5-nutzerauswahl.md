@@ -1,6 +1,6 @@
 # PROJ-5: Nutzerauswahl
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -175,7 +175,95 @@ Keine neuen Pakete (Alpine.js und Laravel-Cookies sind vorhanden).
 - **Tests:** `tests/Feature/PROJ-5-StaffSelectionTest.php` (21 Tests, mit Datensätzen 30 Fälle, inkl. Middleware an Test-Routen). Gesamte Suite: 427 Tests grün. Assets neu gebaut.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-05
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+Geprüft über Pest (Feature-Tests inkl. Middleware an Test-Routen) und HTTP-Abrufe gegen die laufende App. Das Verhalten im Browser (Aufklappen, Wechsel ohne Neuladen, Merken nach Browser-Neustart, Initial bei schmalem Fenster) hat der Product Owner am 2026-10-05 im Browser bestätigt; ein eigenes Browser-Werkzeug stand nicht zur Verfügung.
+
+### Acceptance Criteria Status
+
+#### Namensliste
+- [x] Genau Cara, Etienne, Johannes, Kerstin, Nele, Thomas, alphabetisch
+- [x] Änderung in `config/staff.php` wirkt ohne Codeänderung (sortiert, ohne Doppelte und Leereinträge)
+- [x] Kein „Andere", kein Freitextfeld
+
+#### Erste Auswahl
+- [x] Ohne Namen „Name wählen" in der Kopfleiste auf allen Seiten
+- [x] Hinweis mit Namensauswahl auf „Ticket analysieren"
+- [x] Knowledge, Dokumente und „Über die App" ohne Namen uneingeschränkt nutzbar, ohne Hinweis
+- [x] Nach der Wahl sofort sichtbar, Hinweis weg, Seite ohne Neuladen (vom Product Owner im Browser bestätigt)
+
+#### Merken und Anzeigen
+- [x] Name bleibt über Neuladen, Seitenwechsel und Browser-Neustart (Cookie, Product Owner bestätigt; Grenze 400 Tage siehe Hinweise)
+- [x] Name auf jeder Seite in der Kopfleiste, unter 768 px als Initial
+- [x] Anderer Browser ohne Cookie: kein Name gewählt
+
+#### Wechseln
+- [x] Klick auf den Namen öffnet die Liste, aktueller Name markiert (`aria-pressed`, Haken)
+- [x] Anderer Name gilt sofort, ohne Rückfrage
+- [x] Klick daneben und Escape schließen, Name bleibt
+- [x] Kein Eintrag zum Zurücksetzen
+
+#### Bereitstellung für andere Features
+- [x] Mit Namen kennt der Server den Namen beim Absenden (Test-Route)
+- [x] Ohne Namen wird die Aktion nicht ausgeführt, zurück mit Eingaben und Hinweis; JSON-Anfragen erhalten 409
+- [x] Nicht (mehr) gelisteter Name gilt als „kein Name"
+
+#### Bedienbarkeit
+- [x] Per Tastatur bedienbar, Ansage „Name wählen" bzw. „Angemeldet als … – Name wechseln", Tippflächen mindestens 44 px
+
+### Edge Cases Status
+- [x] Name aus der Liste entfernt → „Name wählen", Middleware lehnt ab
+- [x] Browser speichert nichts → bei jedem Besuch neu wählen, App funktioniert sonst
+- [x] Zwei Tabs → gemeinsamer Cookie; Absenden gilt für den aktuell gewählten Namen
+- [x] Leere Liste → „Keine Namen hinterlegt", kein Hinweis, Lesen möglich
+- [x] Doppelter Name in der Konfiguration → erscheint einmal
+- [x] Manipulierter Cookie: unverschlüsselter Wert `staff_name=Nele` wird nicht akzeptiert („Name wählen")
+- [x] Langer Seitentitel → Titel gekürzt (PROJ-1), Name bleibt
+
+**Zusätzlich geprüft:**
+- [x] Schreibweise muss exakt stimmen (`nele` abgelehnt), Liste als Array, leerer Wert und `<script>` abgelehnt (422), kein Cookie gesetzt
+- [x] Nur POST; GET auf `/name` ergibt 405
+- [x] Namen werden im Alpine-Ausdruck sicher als JSON eingesetzt (`Js::from`), Anzeige per `x-text`
+- [ ] BUG-1: Rückleitung folgt einer fremden Herkunftsadresse (siehe unten)
+
+### Security Audit Results
+- [x] CSRF: ohne Token 419 (gegen die laufende App geprüft); beide Formulare tragen `@csrf`
+- [x] Cookie verschlüsselt, `HttpOnly`, `SameSite=Lax`; unverschlüsselte oder fremde Werte werden verworfen
+- [x] Server prüft jeden Namen gegen die Liste (beim Speichern und beim Lesen)
+- [x] Keine sensiblen Daten in der JSON-Antwort (nur der Name), Sicherheits-Header gesetzt
+- [x] Keine Anmeldung im MVP (PRD); die Nutzerauswahl ist ausdrücklich keine Sicherheitsfunktion
+- [ ] BUG-1: Weiterleitung auf fremde Adresse über den Referer-Header
+- Hinweis: Kein Rate-Limit auf `POST /name`. Folgenlos, weil nur der eigene Cookie gesetzt wird (30 schnelle Anfragen: alle 200, keine Nebenwirkung).
+
+### Regression
+- [x] PROJ-1 (Kopfleiste, Layout, Fehlerseiten), PROJ-24 (Navigation, Knowledge-Seiten), PROJ-25 (About-Seite): Tests grün
+- [x] About-Seite: Schritt „Deinen Namen wählen" ist nutzbar, Hinweis „in Arbeit" entfernt (Checklisten-Punkt aus PROJ-25), Test angepasst
+- [x] Gesamte Suite: 427 Tests grün
+
+### Hinweise
+- Browser begrenzen Cookies auf höchstens 400 Tage (der Server setzt 5 Jahre). Nach gut einem Jahr ohne Wechsel wird einmal neu gefragt. Bei Bedarf: Cookie bei jedem Besuch erneuern.
+
+### Bugs Found
+
+#### BUG-1: Rückleitung folgt einer fremden Herkunftsadresse
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. Gültige Sitzung mit CSRF-Token
+  2. `POST /name` (ohne JavaScript, kein JSON) mit `Referer: https://evil.example/phish`
+  3. Expected: Rückleitung nur auf Seiten der App, sonst auf „Ticket analysieren"
+  4. Actual: 302 auf `https://evil.example/phish`
+- **Hinweis:** Praktisch kaum ausnutzbar, weil die Anfrage ein gültiges CSRF-Token braucht. Dasselbe Muster (`back()`) nutzt die Middleware „Name erforderlich", die ab PROJ-9 an weiteren Formularen hängt. Gleiche Klasse wie PROJ-24 BUG-1.
+- **Priority:** Fix before deployment (vor PROJ-9, damit das Muster nicht übernommen wird)
+
+### Summary
+- **Acceptance Criteria:** 18/18 passed
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass mit einem Low-Befund
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; BUG-1 vor PROJ-9 beheben
 
 ## Deployment
 _To be added by /deploy_

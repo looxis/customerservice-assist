@@ -153,9 +153,10 @@ describe('work in progress marker', function () {
 
         preg_match('/So funktioniert es.*?<\/ol>/s', $html, $flow);
 
-        expect(substr_count($flow[0], 'about-wip'))->toBe(7)
+        expect(substr_count($flow[0], 'about-wip'))->toBe(6)
             ->and($flow[0])->toMatch('/Passendes Wissen auswählen\.<\/strong>((?!<\/li>).)*<\/li>/s')
-            ->and(preg_match('/Passendes Wissen auswählen\.<\/strong>((?!<\/li>).)*about-wip/s', $flow[0]))->toBe(0);
+            ->and(preg_match('/Passendes Wissen auswählen\.<\/strong>((?!<\/li>).)*about-wip/s', $flow[0]))->toBe(0)
+            ->and(preg_match('/Deinen Namen wählen\.<\/strong>((?!<\/li>).)*about-wip/s', $flow[0]))->toBe(0);
     });
 });
 
