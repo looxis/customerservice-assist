@@ -1,6 +1,6 @@
 # PROJ-6: Zammad-Ticket laden
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -203,6 +203,23 @@ Server
 - **Vor dem Bau gegen das echte Zammad prüfen:** die Feldnamen der Suche nach Nummer, die Kennzeichnung „zusammengeführt" (Status `merged` und Ziel-Ticket) und die Kennung eingebetteter Bilder.
 - **Tests:** Zammad wird nachgestellt (Erfolg, 404, 401/403, Zeitüberschreitung, leeres Ticket, zusammengeführtes Ticket). Dazu Eingabe-Varianten, Bereinigung mit Schadcode-Beispielen, Zitat-Muster deutsch und englisch, die Zusammenfassung ab 11 Nachrichten und die Prüfung, dass im Log kein Inhalt steht.
 
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-05**, Frontend und Backend in einem Durchgang. Gegen ein echtes Zammad noch **nicht** geprüft: Zugang und Beispielticket liefert der Product Owner nach.
+
+- **Seiten und Routen:** `/` mit Eingabe (`x-ticket.lookup`); `GET /tickets?ticket=…` (`tickets.lookup`, `TicketLookupRequest` löst die Nummer aus „Ticket#…", 1–20 Ziffern, sonst zurück mit Meldung am Feld); `GET /tickets/{nummer}` (`tickets.show`, nur Ziffern). Lokale Vorschau mit erfundenem Ticket: `/styleguide/ticket` (`?antworten=12` für einen langen Verlauf), nur in der lokalen Umgebung.
+- **Komponenten:** `ticket/lookup` (Alpine `ticketLookup`: Einfügen über `navigator.clipboard.readText`, Bereinigung, Sperre gegen doppeltes Absenden, Lade-Overlay; ohne Berechtigung „Bitte mit Strg+V einfügen"), `ticket/header`, `ticket/article` (drei Arten mit farbiger linker Kante und Badge, interne Notizen gelb getönt, neueste mit Ring und Sprung `scrollIntoView`), `ticket/thread` (ab 11 Nachrichten: erste und letzte fünf offen, Mitte als `<details>`).
+- **Zammad-Baustein `app/Zammad/`:** `ZammadClient` (Suche `tickets/search?query=number:…&expand=true`, Nachrichten `ticket_articles/by_ticket/{id}?expand=true`, Kunde `users/{id}`, Ziel eines zusammengeführten Tickets über `links`, Token-Header, Zeitlimit aus der Konfiguration), Objekte `Ticket`, `TicketArticle`, `TicketAttachment`, `ArticleKind`, Fehler `ZammadException`/`ZammadProblem` (404/403/503, Texte aus der Spec). Ins Log kommen nur Nummer, Fehlerart und HTTP-Status. Zeiten in Europe/Berlin.
+- **`MessageBody`:** Zitat-Erkennung vor der Bereinigung (DOM: `blockquote`, Gmail-/Outlook-/Thunderbird-Marker, deutsche und englische Kopfzeilen; Text: `>` und Kopfzeilen), danach `symfony/html-sanitizer`. Erlaubt sind Text-Struktur und Links (`http`, `https`, `mailto`, neuer Tab, `noopener noreferrer nofollow`). Unbekannte Hüllen-Elemente werden entfernt, ihr Text bleibt. Skripte, Stile, Bilder, Frames und Formulare entfallen komplett. Keine Längenbegrenzung. Reiner Text wird escaped, Absätze und Zeilenumbrüche bleiben.
+- **Konfiguration:** `config/services.php` → `zammad.url`, `zammad.token`, `zammad.timeout` (Standard 10 s). **Noch offen:** `.env.example` um `ZAMMAD_URL=`, `ZAMMAD_TOKEN=`, `ZAMMAD_TIMEOUT=10` ergänzen. Die Datei ist für den Assistenten gesperrt, der Product Owner trägt sie ein.
+- **Neue Abhängigkeit:** `symfony/html-sanitizer` ^8.1 (freigegeben).
+- **Abweichungen und Hinweise:**
+  - Status-Badge zeigt den deutschen Zammad-Status („Offen", „Neu", …); geschlossene und zusammengeführte Tickets gelten als geschlossen.
+  - Der Knopf „Aktualisieren" ist ein Link auf dieselbe Adresse (normales Neuladen).
+  - Doppeltes Absenden verhindert die Komponente selbst; PROJ-1 BUG-3 (Lade-Overlay sperrt die Tastatur nicht) bleibt für das übrige Overlay offen.
+  - Ohne Zammad-Konfiguration zeigt die Ticketseite „Die Verbindung zu Zammad ist nicht eingerichtet oder ungültig" (503).
+- **Vor der Abnahme gegen das echte Zammad prüfen:** Feldnamen der Suche mit `expand=true` (`state`, `group`, `customer_id`), `sender`/`internal`/`type` der Nachrichten, Kennung eingebetteter Bilder, Ziel bei zusammengeführten Tickets, Länge der Ticketnummern.
+- **Tests:** `tests/Feature/PROJ-6-ZammadTicketTest.php` (51 Fälle, Zammad nachgestellt). PROJ-1-Test an den neuen Startseitentext angepasst. Gesamte Suite: 483 Tests grün.
 
 ## QA Test Results
 _To be added by /qa_

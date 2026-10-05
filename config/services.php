@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Zammad (PROJ-6)
+    |--------------------------------------------------------------------------
+    |
+    | Read-only access with the app's own Zammad user and token. Times are
+    | shown in the local time zone of the customer service team.
+    |
+    */
+
+    'zammad' => [
+        'url' => env('ZAMMAD_URL'),
+        'token' => env('ZAMMAD_TOKEN'),
+        'timeout' => env('ZAMMAD_TIMEOUT', 10),
+        'timezone' => 'Europe/Berlin',
+    ],
+
 ];

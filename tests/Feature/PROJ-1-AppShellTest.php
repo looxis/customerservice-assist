@@ -19,7 +19,7 @@ describe('layout shell', function () {
             ->assertSee('<html lang="de">', false)
             ->assertSee('<title>Ticket analysieren – Customer Service Assist</title>', false)
             ->assertSeeText('Customer Service Assist')
-            ->assertSeeText('Hier werden künftig Tickets analysiert')
+            ->assertSeeText('Ticket aus Zammad')
             ->assertDontSeeText('Laravel');
     });
 
