@@ -118,6 +118,19 @@ describe('value lists', function () {
         ]);
     });
 
+    test('product titles sort as a german reader expects, ignoring case and umlauts', function () {
+        knowledgeBase([
+            ...productDoc('zauber', 'PRODUCT-001', ['title' => 'Zaubertasse']),
+            ...productDoc('oel', 'PRODUCT-002', ['title' => 'Ölbild']),
+            ...productDoc('acryl', 'PRODUCT-003', ['title' => 'acrylglas']),
+            ...productDoc('bild', 'PRODUCT-004', ['title' => 'Bild']),
+            ...productDoc('ofen', 'PRODUCT-005', ['title' => 'Ofenkachel']),
+        ]);
+
+        expect(array_column(app(KnowledgeSelector::class)->products(), 'title'))
+            ->toBe(['acrylglas', 'Bild', 'Ofenkachel', 'Ölbild', 'Zaubertasse']);
+    });
+
     test('the new customer types and channels are valid', function () {
         $library = knowledgeBase([
             ...selectionDoc('POLICY-001', ['customer_types' => ['b2c'], 'sales_channels' => ['shop', 'amazon']]),
@@ -198,8 +211,8 @@ describe('selection by product', function () {
 
         expect(selectedIds($selection))->toBe(['POLICY-001'])
             ->and(excludedReasons($selection))->toMatchArray([
-                'PRODUCT-001' => 'anderes Produkt: lunchbox',
-                'PLAYBOOK-001' => 'anderes Produkt: lunchbox',
+                'PRODUCT-001' => 'nur für Produkt lunchbox',
+                'PLAYBOOK-001' => 'nur für Produkt lunchbox',
             ]);
     });
 
@@ -538,11 +551,20 @@ describe('preview command', function () {
                 ['POLICY-001', 'Für alle', 'draft', 'gilt für alle'],
                 ['PRODUCT-001', 'Lunchbox', 'draft', 'Produktwissen lunchbox'],
             ])
-            ->expectsOutputToContain('Nicht ausgewählt: 1 Dokumente')
+            ->expectsOutputToContain('Nicht ausgewählt: 1 Dokument')
+            ->doesntExpectOutputToContain('1 Dokumente')
             ->expectsTable(['ID', 'Titel', 'Status', 'Grund'], [
                 ['POLICY-002', 'Nur Amazon', 'draft', 'nur für Kanal amazon'],
             ])
             ->expectsOutputToContain('Umfang: ')
+            ->assertSuccessful();
+    });
+
+    test('an empty product option is ignored', function () {
+        knowledgeBase(productDoc('lunchbox', 'PRODUCT-001'));
+
+        $this->artisan('knowledge:select private-shop --product=')
+            ->expectsOutputToContain('Produkte: kein Produktbezug')
             ->assertSuccessful();
     });
 

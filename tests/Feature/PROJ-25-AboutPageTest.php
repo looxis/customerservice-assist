@@ -231,6 +231,12 @@ describe('missing text', function () {
             ->assertDontSeeText('Für Entwickler');
     })->with(['missing file' => [null], 'empty file' => ["  \n"]]);
 
+    test('the developer heading is found with a colon or in lower case', function (string $heading) {
+        aboutText("# Wofür ist die App?\n\nFür alle.\n\n{$heading}\n\nNur für Entwickler.\n");
+
+        $this->get(route('about'))->assertSeeTextInOrder(['Für alle.', 'Aktueller Stand', 'Für Entwickler', 'Nur für Entwickler.']);
+    })->with(['colon' => ['## Für Entwickler:'], 'lower case' => ['# für entwickler']]);
+
     test('a text without developer part shows only the general part', function () {
         aboutText("# Wofür ist die App?\n\nNur für alle.\n");
 

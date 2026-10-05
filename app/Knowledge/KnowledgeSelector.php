@@ -52,7 +52,7 @@ class KnowledgeSelector
             ->filter(fn (KnowledgeDocument $document): bool => $document->productSlug() !== null)
             ->groupBy(fn (KnowledgeDocument $document): string => $document->productSlug())
             ->map(fn (Collection $files, string $slug): array => ['slug' => $slug, 'title' => $this->productTitle($slug, $files)])
-            ->sortBy([['title', 'asc'], ['slug', 'asc']])
+            ->sortBy(fn (array $product): string => $this->sortKey($product['title']).'|'.$product['slug'])
             ->values()
             ->all();
     }
@@ -110,7 +110,7 @@ class KnowledgeSelector
             return null;
         }
 
-        return 'anderes Produkt: '.implode(', ', $bound);
+        return ($products === [] ? 'nur für Produkt ' : 'anderes Produkt: ').implode(', ', $bound);
     }
 
     /**
@@ -284,6 +284,15 @@ class KnowledgeSelector
             ?? $files->sortBy(fn (KnowledgeDocument $document): string => (string) $document->id)->first();
 
         return $main->title ?? $slug;
+    }
+
+    /**
+     * Alphabetical order as a German reader expects it: case-insensitive,
+     * umlauts next to their base letter. Works without the intl extension.
+     */
+    private function sortKey(string $title): string
+    {
+        return strtr(mb_strtolower($title), ['ä' => 'a', 'ö' => 'o', 'ü' => 'u', 'ß' => 'ss']);
     }
 
     private function number(int $value): string

@@ -243,7 +243,7 @@ Keine neuen Pakete.
 - **Prüfung** (`KnowledgeValidator`): Hinweis bei `b2b`; `order_keywords` nur in Produktdateien bekannt; Warnungen bei Schlüsselwörtern unter 3 Zeichen, bei gleichem Schlüsselwort für verschiedene Produkte (nicht innerhalb eines aufgeteilten Produkts) und bei Geltungsbereichen ohne passende Kundengruppe. Die bestehende Warnung „keine Produktdatei" erkennt jetzt auch Unterordner-Produkte am Ordnernamen.
 - **Befehl** `knowledge:select {gruppe} {--product=*}`: Tabellen für ausgewählte und nicht ausgewählte Dokumente, Umfang, Warnungen. Unbekannte Gruppe oder unbekanntes Produkt → Liste der erlaubten Werte, Fehlschlag. Erlaubt sind nur Produkte mit verwendbarer Produktdatei.
 - **Präzisierungen gegenüber der Spec:**
-  - Ausschlussgründe lauten „nur für Kundenart …", „nur für Kanal …", „anderes Produkt: …", „Obergrenze für gute/schlechte Beispiele erreicht (n)" und „weggelassen, weil der Gesamtumfang die Obergrenze überschreitet".
+  - Ausschlussgründe lauten „nur für Kundenart …", „nur für Kanal …", „nur für Produkt …" (kein Produkt gewählt) bzw. „anderes Produkt: …", „Obergrenze für gute/schlechte Beispiele erreicht (n)" und „weggelassen, weil der Gesamtumfang die Obergrenze überschreitet".
   - Bei Überschreitung des Umfangs werden Referenzfälle einzeln vom Ende der Rangfolge her weggelassen (schlechte vor guten), bis der Umfang passt – nicht alle auf einmal.
   - Unbekannte Produkte (keine Produktdatei) werden für die Auswahl ignoriert; Produkte, deren Produktdateien alle unbrauchbar sind, gelten weiter für andere Dokumente und erscheinen als „ohne Produktwissen".
   - Die Meldung „Knowledge-Ordner fehlt" aus PROJ-3 erscheint als Warnung im Auswahlergebnis.
@@ -264,7 +264,7 @@ Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
 - [x] Neue Kundenarten gültig; `b2b` ist ein Fehler mit Hinweis auf `b2b-reseller` / `b2b-pro`
 - [x] Vier Kanäle gültig
 - [x] Fünf Kundengruppen in Tabellenreihenfolge mit deutscher Bezeichnung
-- [ ] BUG-1: Produktliste „alphabetisch nach Titel" sortiert nach Byte-Reihenfolge (Großbuchstaben vor Kleinbuchstaben, Umlaute ans Ende)
+- [x] Produktliste alphabetisch nach Titel, ohne Beachtung der Groß-/Kleinschreibung, Umlaute beim Grundbuchstaben (BUG-1, behoben)
 
 #### Auswahl nach Kundengruppe
 - [x] Leere Felder gelten für jede Gruppe
@@ -334,7 +334,7 @@ Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
 - [x] Artikelnummer als Zahl in der Bestellposition → wird erkannt
 - [x] Deprecated Produktdatei → kein Vorschlag
 - [ ] BUG-3: Produktdatei mit eingeschränktem Geltungsbereich (z. B. nur `amazon`) bei Shop-Fall → Produktdatei fehlt ohne Hinweis „ohne Produktwissen"
-- [ ] BUG-4: Befehl schreibt „1 Dokumente"; `--product=` ohne Wert meldet „Unbekanntes Produkt: ."
+- [x] Befehl schreibt „1 Dokument"; `--product=` ohne Wert wird ignoriert (BUG-4, behoben)
 
 ### Security Audit Results
 - [x] Keine neue Route, kein Controller, keine Eingabe aus dem Web; `route:list` unverändert (4 Routen)
@@ -351,8 +351,9 @@ Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
 
 ### Bugs Found
 
-#### BUG-1: Produktliste nicht alphabetisch im deutschen Sinn
+#### BUG-1: Produktliste nicht alphabetisch im deutschen Sinn – BEHOBEN (2026-10-05)
 - **Severity:** Low
+- **Fix:** Sortierschlüssel in Kleinbuchstaben, ä/ö/ü/ß wie a/o/u/ss; ohne `intl`-Erweiterung. Test mit „acrylglas, Bild, Ofenkachel, Ölbild, Zaubertasse".
 - **Steps to Reproduce:**
   1. Produktdateien mit Titeln „Zaubertasse", „Ölbild", „acrylglas", „Bild"
   2. `KnowledgeSelector::products()` abfragen
@@ -360,8 +361,9 @@ Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
   4. Actual: Bild, Zaubertasse, acrylglas, Ölbild
 - **Priority:** Fix before deployment (klein, betrifft das Formular in PROJ-9)
 
-#### BUG-2: Irreführender Grund „anderes Produkt", wenn kein Produkt gewählt ist
+#### BUG-2: Irreführender Grund „anderes Produkt", wenn kein Produkt gewählt ist – BEHOBEN (2026-10-05)
 - **Severity:** Low
+- **Fix:** Ohne gewähltes Produkt lautet der Grund „nur für Produkt …"; mit gewähltem, aber anderem Produkt weiter „anderes Produkt: …".
 - **Steps to Reproduce:**
   1. `knowledge:select private-shop` (ohne `--product`)
   2. Expected: z. B. „nur für Produkt magic-mug"
@@ -377,8 +379,9 @@ Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
   4. Actual: Produktdatei steht nur bei den nicht ausgewählten; keine Warnung zum Produkt
 - **Priority:** Nice to have (Produktdateien sind in der Regel nicht eingeschränkt)
 
-#### BUG-4: Kleinigkeiten in der Befehlsausgabe
+#### BUG-4: Kleinigkeiten in der Befehlsausgabe – BEHOBEN (2026-10-05)
 - **Severity:** Low
+- **Fix:** Einzahl „1 Dokument"; leere `--product=`-Werte werden ignoriert.
 - **Steps to Reproduce:**
   1. Auswahl mit genau einem (nicht) ausgewählten Dokument → „1 Dokumente"
   2. `knowledge:select private-shop --product=` → „Unbekanntes Produkt: ."
@@ -386,7 +389,7 @@ Browser- und Responsive-Tests entfallen: PROJ-4 hat keine Seite und keine Route.
 
 ### Summary
 - **Acceptance Criteria:** 36/37 passed (1 Low-Bug)
-- **Bugs Found:** 4 total (0 critical, 0 high, 0 medium, 4 low)
+- **Bugs Found:** 4 total (0 critical, 0 high, 0 medium, 4 low); BUG-1, BUG-2 und BUG-4 am 2026-10-05 behoben, BUG-3 bewusst offen
 - **Security:** Pass
 - **Production Ready:** YES
 - **Recommendation:** BUG-1 und BUG-2 vor PROJ-9 beheben (je wenige Zeilen); BUG-3 und BUG-4 optional

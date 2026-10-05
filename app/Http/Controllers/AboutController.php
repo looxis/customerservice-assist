@@ -9,7 +9,7 @@ use Illuminate\Support\HtmlString;
 
 class AboutController extends Controller
 {
-    private const string DEVELOPER_HEADING = '/^#{1,6}[ \t]+Für Entwickler[ \t]*$/mu';
+    private const string DEVELOPER_HEADING = '/^#{1,6}[ \t]+für entwickler[ \t]*:?[ \t]*$/miu';
 
     private const string WORK_IN_PROGRESS = '[in Arbeit]';
 

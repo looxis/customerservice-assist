@@ -233,7 +233,7 @@ Geprüft über Pest (Feature-Tests), HTTP-Abrufe gegen die laufende App und Prob
 - [x] Mehrere Kennungen in einer Zeile und in Fettschrift → je ein Badge; Kennung als Linktext bleibt Link
 - [x] Kennung in Code bleibt stehen (Entwicklerteil erklärt sie so)
 - [x] Genau eine `h1` auf der Seite
-- [ ] BUG-1: Überschrift „## Für Entwickler:" (mit Doppelpunkt) oder „für entwickler" wird nicht als Trennstelle erkannt
+- [x] Überschrift „## Für Entwickler:" (mit Doppelpunkt) oder „für entwickler" wird als Trennstelle erkannt (BUG-1, behoben)
 
 ### Security Audit Results
 - [x] Rohes HTML im Text wird escaped (`<script>` erscheint nicht)
@@ -250,8 +250,9 @@ Geprüft über Pest (Feature-Tests), HTTP-Abrufe gegen die laufende App und Prob
 
 ### Bugs Found
 
-#### BUG-1: Trennstelle „Für Entwickler" ist sehr streng
+#### BUG-1: Trennstelle „Für Entwickler" ist sehr streng – BEHOBEN (2026-10-05)
 - **Severity:** Low
+- **Fix:** Erkennung ohne Beachtung der Groß-/Kleinschreibung, Doppelpunkt am Ende erlaubt; Test für beide Schreibweisen.
 - **Steps to Reproduce:**
   1. In `docs/ABOUT.md` die Überschrift als „## Für Entwickler:" oder „# für entwickler" schreiben
   2. Seite öffnen
@@ -259,8 +260,9 @@ Geprüft über Pest (Feature-Tests), HTTP-Abrufe gegen die laufende App und Prob
   4. Actual: Entwicklerteil erscheint im Teil für alle, über dem Info-Kasten, ohne Absetzung
 - **Priority:** Nice to have (heute korrekt; betrifft nur künftige Textänderungen)
 
-#### BUG-2: „Authoring Guide" im Teil für alle unerklärt
+#### BUG-2: „Authoring Guide" im Teil für alle unerklärt – BEHOBEN (2026-10-05)
 - **Severity:** Low
+- **Fix:** „nach unserer Schreibanleitung für Wissen (dem „Authoring Guide")".
 - **Steps to Reproduce:**
   1. Abschnitt „Wissen ergänzen" lesen
   2. Expected: einfache Sprache ohne unerklärte Fachbegriffe
@@ -269,7 +271,7 @@ Geprüft über Pest (Feature-Tests), HTTP-Abrufe gegen die laufende App und Prob
 
 ### Summary
 - **Acceptance Criteria:** 23/23 passed
-- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low); beide am 2026-10-05 behoben
 - **Security:** Pass
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; Sichtprüfung bei 375 px beim nächsten Browserbesuch nachholen

@@ -45,7 +45,7 @@ Eine Kundin hat auf Amazon eine Zaubertasse gekauft. Sie schreibt: „Das Motiv 
 
 Die Knowledge besteht aus einzelnen Textdateien, eine Datei pro Regel, Produkt oder Ablauf. Neues Wissen entsteht entlang echter Fälle: Fehlt der App etwas, wird es aufgeschrieben, zuerst als Entwurf.
 
-Verfasst wird Wissen mit Hilfe einer Chat-KI nach dem Authoring Guide; ein Entwickler pflegt die Dateien anschließend ein. Welche Dokumente es gibt und ob sie fehlerfrei sind, zeigt die [Knowledge-Übersicht](/knowledge).
+Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für Wissen (dem „Authoring Guide"); ein Entwickler pflegt die Dateien anschließend ein. Welche Dokumente es gibt und ob sie fehlerfrei sind, zeigt die [Knowledge-Übersicht](/knowledge).
 
 # Für Entwickler
 

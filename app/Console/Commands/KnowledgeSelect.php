@@ -25,8 +25,9 @@ class KnowledgeSelect extends Command
             return self::FAILURE;
         }
 
+        $products = array_values(array_filter(array_map('trim', $this->option('product')), fn (string $product): bool => $product !== ''));
         $allowedProducts = array_column($selector->products(), 'slug');
-        $unknownProducts = array_values(array_diff($this->option('product'), $allowedProducts));
+        $unknownProducts = array_values(array_diff($products, $allowedProducts));
 
         if ($unknownProducts !== []) {
             $this->error('Unbekanntes Produkt: '.implode(', ', $unknownProducts).'.');
@@ -35,20 +36,20 @@ class KnowledgeSelect extends Command
             return self::FAILURE;
         }
 
-        $selection = $selector->select(new CaseContext($group, $this->option('product')));
+        $selection = $selector->select(new CaseContext($group, $products));
 
         $this->line("Fallkontext: {$selection->context->label()}");
         $this->line("Wissensstand: {$selection->state->label()}");
 
         $this->newLine();
-        $this->line('Ausgewählt: '.count($selection->selected).' Dokumente, davon '.$selection->draftCount().' Entwurfs-Wissen');
+        $this->line('Ausgewählt: '.$this->documents(count($selection->selected)).', davon '.$selection->draftCount().' Entwurfs-Wissen');
 
         if (! $selection->isEmpty()) {
             $this->table(['ID', 'Titel', 'Status', 'Grund'], $this->rows($selection->selected));
         }
 
         $this->newLine();
-        $this->line('Nicht ausgewählt: '.count($selection->excluded).' Dokumente');
+        $this->line('Nicht ausgewählt: '.$this->documents(count($selection->excluded)));
 
         if ($selection->excluded !== []) {
             $this->table(['ID', 'Titel', 'Status', 'Grund'], $this->rows($selection->excluded));
@@ -62,6 +63,11 @@ class KnowledgeSelect extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function documents(int $count): string
+    {
+        return $count === 1 ? '1 Dokument' : "{$count} Dokumente";
     }
 
     /**
