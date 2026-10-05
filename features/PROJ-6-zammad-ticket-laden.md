@@ -1,6 +1,6 @@
 # PROJ-6: Zammad-Ticket laden
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -103,7 +103,7 @@
 
 ## Open Questions
 - [ ] Der Knopf „Einfügen" braucht eine verschlüsselte Verbindung (HTTPS), außer auf `localhost`. Läuft die App im internen Netz unter HTTPS? Ohne HTTPS bleibt nur Strg+V. Mit `/deploy` klären.
-- [ ] Welcher Zammad-Zugang wird für die App angelegt (eigener Nutzer mit Lesezugriff auf welche Gruppen)? Mit `/architecture` klären.
+- [ ] Zammad-Zugang: Ein eigener Nutzer „Customer Service Assist" mit Leserechten auf die Kundenservice-Gruppen und einem Token mit dem Recht `ticket.agent` (Entscheidung `/architecture`). Offen: Wer legt ihn an, und für welche Gruppen genau?
 - [ ] Wie lang sind Ticketnummern in eurer Zammad-Installation höchstens? Wird für die Prüfung der Eingabe gebraucht.
 
 ## Decision Log
@@ -126,12 +126,83 @@
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Zammad-REST-Schnittstelle, eigener Nutzer mit Lesezugriff und Token | Offizieller Weg in Zammad 7; nachvollziehbar und sperrbar; Token nur auf dem Server | 2026-10-05 |
+| Laravel-HTTP-Client, kein Zammad-Paket | Zeitlimit, Fehlerbehandlung und Test-Attrappen eingebaut; wenige Endpunkte nötig | 2026-10-05 |
+| Eigener Baustein `app/Zammad/` mit eigenem Ticket-Objekt | PROJ-7/9/11 bleiben unabhängig von Zammad-Details; Änderungen an einer Stelle | 2026-10-05 |
+| Normales Formular mit Weiterleitung auf `/tickets/{nummer}`, Alpine nur für Komfort | Adresse je Ticket, Neuladen und Zurück funktionieren; Server prüft die Eingabe selbst | 2026-10-05 |
+| `symfony/html-sanitizer` für E-Mail-HTML | Bewährte, gepflegte Bibliothek statt eigener Regeln; E-Mails von außen sind nicht vertrauenswürdig | 2026-10-05 |
+| Zitat-Erkennung nach festen Mustern, alles ab dem ersten Treffer eingeklappt | Nachvollziehbar; im Zweifel bleibt der Text vollständig sichtbar | 2026-10-05 |
+| Vier Fehlerarten mit HTTP-Status 404/403/503, Log nur mit Nummer und Fehlerart | Verständliche Meldungen, keine Kundendaten im Log | 2026-10-05 |
+| Kein Zwischenspeicher | Spec verlangt frische Ansicht und keine Speicherung; Last für Zammad gering | 2026-10-05 |
+| Ticketnummer: 1–20 Ziffern, bis die echte Länge bekannt ist | Schutz vor unsinnigen Abfragen; später enger fassen | 2026-10-05 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Die App liest Tickets über die **REST-Schnittstelle von Zammad 7**, nur lesend und mit einem eigenen Zugangs-Token. Jeder Aufruf der Ticketseite fragt Zammad direkt. Es gibt keine Datenbank, keinen Zwischenspeicher, und in den Logs stehen keine Ticketinhalte. Die Zammad-Antwort wird auf dem Server in ein eigenes, einfaches Ticket-Objekt übersetzt. Dabei werden E-Mail-HTML bereinigt, Zitate erkannt und Nachrichten eingeordnet. Die Seite zeigt dieses Objekt nur noch an.
+
+### A) Bausteine
+```
+Seite „Ticket analysieren" (/)                       Ticketseite (/tickets/{nummer})
++-- Eingabe (neue Komponente, auf beiden Seiten)     +-- Eingabe (oben, für das nächste Ticket)
+|   +-- Feld (Fokus), „Einfügen", „Ticket laden"     +-- Fehlermeldung (falls Zammad-Fehler)
+|   +-- Meldung am Feld bei ungültiger Eingabe       +-- Kopf (Karte)
++-- Hinweis Nutzerauswahl (PROJ-5)                   |   +-- Nummer, Betreff, Status-Badge, Gruppe
+                                                     |   +-- Kunde (Name, E-Mail), erstellt, letzte Nachricht
+                                                     |   +-- Anzahl Nachrichten, „N Anhänge – in Zammad ansehen"
+                                                     |   +-- Hinweis „Geschlossen" / „Zusammengeführt mit …"
+                                                     |   +-- „In Zammad öffnen", „Aktualisieren"
+                                                     +-- Verlauf
+                                                         +-- Nachricht (neue Komponente), drei Arten:
+                                                         |   Kunde (weiß) · wir (Brand-Tönung) · intern (Warn-Tönung, „Intern")
+                                                         |   +-- Art, Name, Datum/Uhrzeit, Kanal, ggf. „automatisch"
+                                                         |   +-- bereinigter Text, Zitat eingeklappt (bestehende Aufklapp-Komponente)
+                                                         |   +-- Anhangliste (Name, Art, Größe)
+                                                         +-- „N weitere Nachrichten anzeigen" (ab 11 Nachrichten)
+                                                         +-- neueste Nachricht hervorgehoben, Sprung dorthin
+
+Server
++-- Zammad-Anbindung (eigener Baustein in app/Zammad/)
+|   +-- Ticket über die Nummer suchen, Nachrichten des Tickets holen
+|   +-- 10 s Zeitlimit, klare Fehlerarten: nicht gefunden · kein Zugriff · nicht erreichbar · Zugang ungültig
++-- Übersetzung in ein eigenes Ticket-Objekt (Kopf, Nachrichten, Anhänge)
+|   +-- HTML-Bereinigung · Zitat-Erkennung · Art der Nachricht · eingebettete Bilder aussortieren
++-- Eingabe-Prüfung (Form Request): Nummer aus „Ticket#…" lösen, nur Ziffern erlauben
++-- Ticket-Controller: Eingabe → Weiterleitung auf /tickets/{nummer}; Ticketseite anzeigen
+```
+
+### B) Daten (nichts wird gespeichert)
+- **Ticket (im Speicher, je Aufruf):** Nummer, interne Zammad-ID (für den Link), Betreff, Status, ob geschlossen oder zusammengeführt (mit Ziel-Nummer), Gruppe, Kunde (Name, E-Mail), Erstellungszeit, Zeit der letzten Nachricht, Nachrichten.
+- **Nachricht:** Art (Kunde, wir, intern), automatisch ja/nein, Kanal (E-Mail, Telefon, Notiz, Web …), Absendername, Zeitpunkt, bereinigter Haupttext, eingeklapptes Zitat (falls erkannt), Anhänge.
+- **Anhang:** Dateiname, Art (aus dem Dateityp: Bild, PDF, Dokument, Sonstiges), Größe. Eingebettete Bilder aus dem E-Mail-Text (etwa Signatur-Logos) werden aussortiert.
+- **Zuordnung der Arten:** Ist eine Nachricht in Zammad als intern markiert, gilt sie als *intern*. Sonst ist der Absender ein Kunde (*Kunde*) oder ein Mitarbeiter bzw. das System (*wir*). Systemnachrichten gelten als *automatisch*.
+- **Konfiguration:** Zammad-Adresse, Token und Zeitlimit in der Umgebung (`.env`), eingelesen über `config/services.php`.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **REST-Schnittstelle mit eigenem Token:** Das ist der offizielle Weg in Zammad 7. Ein eigener Nutzer „Customer Service Assist" mit reinen Leserechten macht nachvollziehbar, was die App tut, und lässt sich jederzeit sperren. Das Token liegt nur auf dem Server, nie im Browser.
+- **Laravels eingebauter HTTP-Client:** Er bringt Zeitlimit und Fehlerbehandlung mit. In Tests lässt sich Zammad vollständig nachstellen, ohne echtes System. Ein zusätzliches Zammad-Paket ist nicht nötig.
+- **Eigener Zammad-Baustein mit eigenem Ticket-Objekt:** Die Seite und später PROJ-7, PROJ-9 und PROJ-11 kennen nur dieses Objekt, nicht die Eigenheiten von Zammad. Ändert sich Zammad, wird nur dieser Baustein angepasst.
+- **Ticketseite mit eigener Adresse, normales Seitenladen:** Neuladen, die Zurück-Taste und Links an Kollegen funktionieren wie gewohnt. Die Eingabe schickt ein normales Formular. Der Server löst die Nummer aus „Ticket#…" und leitet auf `/tickets/{nummer}` weiter. JavaScript (Alpine.js) bereinigt die Eingabe schon vorher und liefert die Bequemlichkeiten: den Knopf „Einfügen", das Lade-Overlay, die Sperre gegen doppeltes Absenden und den Sprung zur neuesten Nachricht.
+- **„Einfügen" über die Zwischenablage-Funktion des Browsers:** Klappt das nicht (keine Berechtigung, kein HTTPS), erscheint der Hinweis „Bitte mit Strg+V einfügen". Ein Fehler entsteht dabei nicht.
+- **HTML-Bereinigung mit einer bewährten Bibliothek statt eigener Regeln:** E-Mails von außen können Schadcode enthalten. Erlaubt bleiben nur Absätze, Zeilenumbrüche, Listen, Hervorhebungen, Zitate und Links (in neuem Tab). Bilder, Stile, Schriften und Skripte werden entfernt, nachgeladene Inhalte sind ausgeschlossen. Empfohlen ist **`symfony/html-sanitizer`**: aus dem Symfony-Projekt, auf dem Laravel aufbaut, aktiv gepflegt und genau für diesen Zweck gebaut.
+- **Zitat-Erkennung nach festen Mustern:** Erkannt werden E-Mail-Zitatblöcke, Zeilen mit „>", „Am … schrieb …", „On … wrote:", „-----Ursprüngliche Nachricht-----" und Outlook-Köpfe („Von: … Gesendet: …"). Alles ab dem ersten Treffer wird eingeklappt und geht nie verloren. Erkennt die App ein Zitat nicht, steht der Text vollständig da. Das ist der sichere Fehlerfall.
+- **Fehlerarten statt technischer Meldungen:** Der Baustein übersetzt Zammad-Antworten in vier Fälle. Die Seite zeigt dazu die Texte aus der Spec, mit passendem HTTP-Status (404, 403, 503). Ins Log kommen nur Ticketnummer, Fehlerart und Status-Code, kein Inhalt.
+- **Ohne Zwischenspeicher:** Die Spec verlangt, dass jede Ansicht frisch ist und nichts gespeichert wird. Bei 10–100 Tickets am Tag ist der Aufwand für Zammad unerheblich.
+- **Prüfung der Nummer:** 1 bis 20 Ziffern. Genauer lässt es sich festlegen, sobald die Nummernlänge bekannt ist (offene Frage). Alles andere wird abgewiesen, bevor Zammad gefragt wird.
+
+### D) Abhängigkeiten
+- **`symfony/html-sanitizer`** (neu, vom Product Owner am 2026-10-05 freigegeben): sichere Bereinigung des E-Mail-HTML.
+- Sonst nichts Neues. HTTP-Client, Alpine.js und die bestehenden Komponenten (Karte, Badge, Alert, Aufklappen, Button, Input, Lade-Overlay) sind vorhanden.
+
+### E) Hinweise für /frontend und /backend
+- **Frontend:** Komponenten für Eingabe (mit Alpine für Einfügen, Bereinigung und Sperre gegen doppeltes Absenden), Kopf und Nachricht. Die Ticketseite wird mit Beispieldaten gebaut, bis die Anbindung steht.
+- **Backend:** `app/Zammad/` (Client, Ticket-, Nachrichten- und Anhang-Objekte, Bereinigung, Zitat-Erkennung), Form Request für die Eingabe, Controller und Routen, Einträge `ZAMMAD_URL`, `ZAMMAD_TOKEN`, `ZAMMAD_TIMEOUT` in `.env.example`.
+- **Vor dem Bau gegen das echte Zammad prüfen:** die Feldnamen der Suche nach Nummer, die Kennzeichnung „zusammengeführt" (Status `merged` und Ziel-Ticket) und die Kennung eingebetteter Bilder.
+- **Tests:** Zammad wird nachgestellt (Erfolg, 404, 401/403, Zeitüberschreitung, leeres Ticket, zusammengeführtes Ticket). Dazu Eingabe-Varianten, Bereinigung mit Schadcode-Beispielen, Zitat-Muster deutsch und englisch, die Zusammenfassung ab 11 Nachrichten und die Prüfung, dass im Log kein Inhalt steht.
+
 
 ## QA Test Results
 _To be added by /qa_
