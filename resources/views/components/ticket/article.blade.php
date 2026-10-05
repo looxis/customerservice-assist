@@ -2,9 +2,9 @@
 
 @php
     $tone = match ($article->kind) {
-        \App\Zammad\ArticleKind::Customer => ['border' => 'border-l-slate-400', 'badge' => 'neutral'],
-        \App\Zammad\ArticleKind::Agent => ['border' => 'border-l-brand', 'badge' => 'info'],
-        \App\Zammad\ArticleKind::Internal => ['border' => 'border-l-warning-500', 'badge' => 'warning'],
+        \App\Zammad\ArticleKind::Customer => ['border' => 'border-l-brand', 'badge' => 'info', 'side' => 'md:mr-auto'],
+        \App\Zammad\ArticleKind::Agent => ['border' => 'border-l-slate-400', 'badge' => 'neutral', 'side' => 'md:ml-auto'],
+        \App\Zammad\ArticleKind::Internal => ['border' => 'border-l-warning-500', 'badge' => 'warning', 'side' => 'md:ml-auto'],
     };
 @endphp
 
@@ -12,8 +12,9 @@
 <article
     @if ($latest) id="neueste-nachricht" x-data x-init="$el.scrollIntoView({ block: 'start' })" @endif
     @class([
-        'scroll-mt-4 rounded-lg border-l-4 p-5 shadow-1 ring-1 wrap-anywhere',
+        'scroll-mt-4 rounded-lg border-l-4 p-5 shadow-1 ring-1 wrap-anywhere md:w-4/5',
         $tone['border'],
+        $tone['side'],
         'bg-white ring-slate-200' => $article->kind !== \App\Zammad\ArticleKind::Internal,
         'bg-warning-500/5 ring-warning-500/20' => $article->kind === \App\Zammad\ArticleKind::Internal,
         'ring-2 ring-brand' => $latest,

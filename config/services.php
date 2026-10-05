@@ -56,6 +56,10 @@ return [
         'signatures' => [
             "Freundliche Grüße\nLOOXIS Kundenservice",
         ],
+
+        // Clickable links in mails are removed. Links to these hosts (and their
+        // subdomains) stay visible as plain text. Moves to a settings page later.
+        'allowed_link_hosts' => ['looxis.de', 'looxis.com', 'dhl.de'],
     ],
 
 ];

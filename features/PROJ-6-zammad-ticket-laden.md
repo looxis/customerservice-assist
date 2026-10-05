@@ -68,7 +68,8 @@
 - [ ] Angenommen eine E-Mail enthält am Ende ältere zitierte Nachrichten (z. B. „Am 03.10.2026 schrieb …" oder „> …"), wenn sie angezeigt wird, dann ist das Zitat eingeklappt und per Klick „Zitat anzeigen" aufklappbar.
 - [ ] Angenommen ein Ticket hat mehr als 10 Nachrichten, wenn der Verlauf angezeigt wird, dann sind die erste und die letzten fünf Nachrichten offen und die übrigen zu „N weitere Nachrichten anzeigen" zusammengefasst.
 - [ ] Angenommen eine Nachricht ist als HTML-E-Mail geschrieben, wenn sie angezeigt wird, dann erscheint ihr Text lesbar mit Absätzen, Zeilen und Listen, aber ohne Skripte, eingebettete Bilder, Schriftarten oder Formatierungen aus der E-Mail.
-- [ ] Angenommen eine Nachricht enthält Links oder Web-Adressen (auch als reinen Text, auch im Zitat), wenn sie angezeigt wird, dann ist jeder Link durch „[Link entfernt]" ersetzt; ein beschreibender Linktext bleibt davor stehen; nichts davon ist anklickbar.
+- [ ] Angenommen eine Nachricht enthält klickbare Links (auch im Zitat), wenn sie angezeigt wird, dann ist keiner anklickbar: ein Link auf eine zugelassene Adresse (vorerst `looxis.de`, `looxis.com`, `dhl.de` samt Subdomains) bleibt als Text sichtbar, jeder andere wird durch „[Link entfernt]" ersetzt, ein beschreibender Linktext bleibt davor stehen. Web-Adressen, die als reiner Text in der Mail stehen, bleiben unverändert und sind nicht anklickbar.
+- [ ] Angenommen der Verlauf wird auf einem Bildschirm ab 768 px angezeigt, wenn der Nutzer ihn betrachtet, dann sind alle Nachrichten gleich breit (vier Fünftel); Nachrichten vom Kunden stehen links mit orangefarbener Kante, unsere Nachrichten und interne Notizen rechts eingerückt (unsere mit grauer, interne mit gelber Kante). Darunter nutzen alle die volle Breite.
 - [ ] Angenommen eine Nachricht enthält viele Leerzeilen, wenn sie angezeigt wird, dann steht zwischen zwei Textzeilen höchstens eine Leerzeile, und am Anfang und Ende stehen keine.
 
 ### Anhänge
@@ -122,7 +123,9 @@
 | Geschlossene Tickets ansehbar, zusammengeführte mit Link zum Ziel-Ticket | Reklamationen kommen oft auf geschlossene Tickets zurück; zusammengeführte Tickets führen sonst ins Leere | 2026-10-05 |
 | Laden ohne gewählten Namen erlaubt | Der Name wird erst für Analyse und Protokoll gebraucht (PROJ-5) | 2026-10-05 |
 | Fehler in klarer Sprache mit nächstem Schritt, technische Details nur im Log | Aushilfen sollen wissen, was zu tun ist; keine internen Details auf dem Bildschirm | 2026-10-05 |
-| Alle Links und Web-Adressen werden durch „[Link entfernt]" ersetzt, auch in unseren Nachrichten (statt in neuem Tab zu öffnen) | Für die Bearbeitung nicht nötig; Phishing-Mail mit Google-Drive-Link (Ticket#2137941) hat den Spam-Filter überwunden. Entfernen in Zammad selbst ist ein eigenes Thema | 2026-10-05 |
+| Klickbare Links werden entfernt (statt in neuem Tab zu öffnen); zugelassene Adressen bleiben als Text, reine Text-Adressen bleiben unverändert | Für die Bearbeitung nicht nötig; Phishing-Mail mit Google-Drive-Link (Ticket#2137941) hat den Spam-Filter überwunden. Eigene und Versand-Adressen (looxis.de, dhl.de) tragen Information. Entfernen in Zammad selbst ist ein eigenes Thema | 2026-10-05 |
+| Liste zugelassener Adressen vorerst in `config/services.php`, später auf einer Einstellungsseite (PROJ-27) | Product Owner will die Liste ohne Entwickler pflegen | 2026-10-05 |
+| Kunde links, wir rechts eingerückt, alle vier Fünftel breit; Kanten getauscht (Kunde orange, wir grau) | Liest sich wie ein Gespräch; die Kundennachricht ist das, worauf es ankommt | 2026-10-05 |
 | Höchstens eine Leerzeile in der Anzeige | Lange Threads mit vielen Leerzeilen sind schwer lesbar | 2026-10-05 |
 
 ### Technical Decisions
@@ -230,8 +233,10 @@ Server
   - `<div>` bleibt als Zeile erhalten (vorher liefen Zeilen aus Apple Mail/Gmail zusammen); Überschriften `h1`–`h6` erlaubt.
   - Ergebnis am echten Ticket: alle 12 Nachrichten zeigen nur den neuen Text, Zitate eingeklappt, keine eigene Signatur mehr.
 - **Zweite Optimierung (2026-10-05):**
-  - Links: `<a>` wird vor der Bereinigung durch seinen Text plus „[Link entfernt]" ersetzt (nur „[Link entfernt]", wenn der Text selbst eine Adresse ist oder fehlt); danach werden `http(s)://…` und `www.…` im Text ersetzt. Gilt für alle Nachrichten und Zitate. Geprüft an Ticket#2137941 (Phishing, Google-Drive-Link): kein Link mehr auf der Seite.
+  - Links: `<a>` wird vor der Bereinigung durch seinen Text plus „[Link entfernt]" ersetzt (nur „[Link entfernt]", wenn der Text selbst eine Adresse ist oder fehlt). Gilt für alle Nachrichten und Zitate. Geprüft an Ticket#2137941 (Phishing, Google-Drive-Link): kein Link mehr auf der Seite.
   - Leerzeilen: leere Blöcke werden zu einem Umbruch, Umbrüche am Blockende entfallen, nach einem Block höchstens eine Leerzeile, im Text höchstens zwei Umbrüche in Folge, nichts Leeres am Anfang und Ende.
+  - **Nachgeschärft:** Nur klickbare Links werden entfernt. Links auf zugelassene Hosts (`services.zammad.allowed_link_hosts`: `looxis.de`, `looxis.com`, `dhl.de` samt Subdomains, nur `http`/`https`) bleiben als nicht anklickbarer Text; Adressen als reiner Text bleiben unverändert. Pflege der Liste später über PROJ-27.
+  - Layout: Kunde links (orange Kante), wir und interne Notizen rechts eingerückt (grau bzw. gelb), alle `md:w-4/5`; unter 768 px volle Breite.
   - Eigene Textformatierung `.mail-text` statt `.knowledge-text`: Zeilen (`<div>`) ohne Zusatzabstand, nur Absätze mit Abstand. Vorher erzeugte der Absatzabstand der Knowledge-Seite zwischen jeder Mail-Zeile eine scheinbare Leerzeile.
 - **Gegen das echte Zammad bestätigt:** Suche mit `expand=true` liefert `state`, `group`, `customer_id` als erwartet; Nachrichten liefern `sender` (Customer/Agent), `type`, `internal`, `content_type` text/html. Zammad legt zu jeder eingehenden HTML-Mail eine Kopie `message.html` als Anhang ab (`content-alternative`/`original-format`); sie wird jetzt nicht als Anhang gelistet und nicht mitgezählt.
 - **Vor der Abnahme gegen das echte Zammad prüfen:** Feldnamen der Suche mit `expand=true` (`state`, `group`, `customer_id`), `sender`/`internal`/`type` der Nachrichten, Kennung eingebetteter Bilder, Ziel bei zusammengeführten Tickets, Länge der Ticketnummern.

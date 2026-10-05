@@ -13,7 +13,7 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 /**
  * Turns the body of a Zammad message into safe HTML and splits off a quoted
  * earlier message at its end. Mail from outside is never trusted: only text
- * structure survives, links are replaced and nothing is loaded from elsewhere.
+ * structure survives, clickable links are removed and nothing is loaded from elsewhere.
  */
 class MessageBody
 {
@@ -40,8 +40,12 @@ class MessageBody
 
     /**
      * @param  list<string>  $signatures  Our own text signatures (e.g. on Amazon), hidden at the end of our messages.
+     * @param  list<string>  $allowedLinkHosts  Hosts (with their subdomains) whose links stay visible as plain text.
      */
-    public function __construct(private readonly array $signatures = []) {}
+    public function __construct(
+        private readonly array $signatures = [],
+        private readonly array $allowedLinkHosts = [],
+    ) {}
 
     /**
      * @param  bool  $ours  Message written by us: our signature is hidden.
@@ -69,31 +73,46 @@ class MessageBody
 
     public function sanitize(string $html): string
     {
-        return $this->tidyBlankLines($this->withoutBareLinks($this->sanitizer()->sanitize($this->withoutLinks($html))));
+        return $this->tidyBlankLines($this->sanitizer()->sanitize($this->withoutLinks($html)));
     }
 
     /**
-     * Links are never needed to handle a complaint and may lead to phishing:
-     * each one becomes "[Link entfernt]", a describing link text stays in front.
+     * Clickable links are never needed to handle a complaint and may lead to
+     * phishing. None stays clickable: a link to an allowed host remains as
+     * plain text, any other becomes "[Link entfernt]" behind its describing text.
+     * Addresses written as plain text are left as they are.
      */
     private function withoutLinks(string $html): string
     {
-        return preg_replace_callback('/<a\b[^>]*>(.*?)<\/a\s*>/isu', function (array $match): string {
-            $text = trim(html_entity_decode(strip_tags($match[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'), " \t\n\r\0\x0B\u{00A0}");
+        return preg_replace_callback('/<a\b([^>]*)>(.*?)<\/a\s*>/isu', function (array $match): string {
+            $text = trim(html_entity_decode(strip_tags($match[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8'), " \t\n\r\0\x0B\u{00A0}");
+            $href = preg_match('/\bhref\s*=\s*(["\'])(.*?)\1/is', $match[1], $attribute) ? html_entity_decode($attribute[2], ENT_QUOTES | ENT_HTML5, 'UTF-8') : '';
+
+            if ($this->isAllowedLink($href)) {
+                return e($text !== '' ? $text : $href);
+            }
 
             return $text === '' || preg_match(self::BARE_LINK, $text) ? self::LINK_REMOVED : e($text).' '.self::LINK_REMOVED;
         }, $html) ?? $html;
     }
 
-    /**
-     * Web addresses written as plain text are replaced as well; tags are left alone.
-     */
-    private function withoutBareLinks(string $html): string
+    private function isAllowedLink(string $href): bool
     {
-        return implode('', array_map(
-            fn (string $part): string => str_starts_with($part, '<') ? $part : (preg_replace(self::BARE_LINK, self::LINK_REMOVED, $part) ?? $part),
-            preg_split('/(<[^>]+>)/u', $html, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [$html],
-        ));
+        $host = strtolower((string) parse_url($href, PHP_URL_HOST));
+
+        if ($host === '' || ! in_array(strtolower((string) parse_url($href, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+            return false;
+        }
+
+        foreach ($this->allowedLinkHosts as $allowed) {
+            $allowed = strtolower(trim($allowed));
+
+            if ($allowed !== '' && ($host === $allowed || str_ends_with($host, '.'.$allowed))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

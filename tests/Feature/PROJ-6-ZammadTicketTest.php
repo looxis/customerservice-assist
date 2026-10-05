@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 beforeEach(function () {
     $this->withoutVite();
 
-    config(['services.zammad' => ['url' => 'https://zammad.test', 'token' => 'geheim-123', 'timeout' => 10, 'timezone' => 'Europe/Berlin']]);
+    config(['services.zammad.url' => 'https://zammad.test', 'services.zammad.token' => 'geheim-123', 'services.zammad.timeout' => 10]);
 });
 
 /**
@@ -194,6 +194,21 @@ describe('thread', function () {
         ]);
     });
 
+    test('customer messages sit left with an orange edge, ours and internal notes right, all four fifths wide', function () {
+        fakeZammad([
+            zammadArticle(['id' => 1]),
+            zammadArticle(['id' => 2, 'sender' => 'Agent', 'from' => 'Nele', 'created_at' => '2026-10-02T07:00:00.000Z']),
+            zammadArticle(['id' => 3, 'sender' => 'Agent', 'internal' => true, 'from' => 'Cara', 'created_at' => '2026-10-03T07:00:00.000Z']),
+        ]);
+
+        preg_match_all('/<article\b[^>]*class="([^"]*)"/s', $this->get('/tickets/2137942')->getContent(), $classes);
+
+        expect($classes[1])->toHaveCount(3)
+            ->and($classes[1][0])->toContain('md:w-4/5')->toContain('border-l-brand')->toContain('md:mr-auto')
+            ->and($classes[1][1])->toContain('md:w-4/5')->toContain('border-l-slate-400')->toContain('md:ml-auto')
+            ->and($classes[1][2])->toContain('md:w-4/5')->toContain('border-l-warning-500')->toContain('md:ml-auto');
+    });
+
     test('the newest message is highlighted and scrolled to', function () {
         fakeZammad([zammadArticle(['id' => 1]), zammadArticle(['id' => 2, 'body' => '<p>Neu</p>', 'created_at' => '2026-10-03T07:00:00.000Z'])]);
 
@@ -365,13 +380,26 @@ describe('cleaning of mail html', function () {
         'empty link' => ['<p>Hier<a href="https://evil.example"><img src="x"></a></p>', '<p>Hier[Link entfernt]</p>'],
         'nested markup' => ['<p><a href="https://evil.example"><b>Jetzt</b> öffnen</a></p>', '<p>Jetzt öffnen [Link entfernt]</p>'],
         'mailto' => ['<p><a href="mailto:a@example.org">Schreiben</a></p>', '<p>Schreiben [Link entfernt]</p>'],
-        'bare address in text' => ['<p>Bitte hier: https://drive.google.com/file?id=1&amp;x=2 ansehen</p>', '<p>Bitte hier: [Link entfernt] ansehen</p>'],
-        'www without scheme' => ['<div>www.evil.example/login</div>', '<div>[Link entfernt]</div>'],
+        'allowed host shown as text' => ['<p>Shop: <a href="https://fachhaendler.looxis.de/login">https://fachhaendler.looxis.de</a></p>', '<p>Shop: https://fachhaendler.looxis.de</p>'],
+        'allowed host with describing text' => ['<p><a href="https://www.dhl.de/de/privatkunden.html">Sendung verfolgen</a></p>', '<p>Sendung verfolgen</p>'],
+        'allowed host without text shows the address' => ['<p><a href="https://looxis.de/agb"></a></p>', '<p>https://looxis.de/agb</p>'],
+        'allowed address as text, foreign target' => ['<p><a href="https://evil.example">https://looxis.de</a></p>', '<p>[Link entfernt]</p>'],
+        'look-alike host' => ['<p><a href="https://looxis.de.evil.example/x">Login</a></p>', '<p>Login [Link entfernt]</p>'],
+        'allowed host over another scheme' => ['<p><a href="javascript://looxis.de/%0aalert(1)">Klick</a></p>', '<p>Klick [Link entfernt]</p>'],
     ]);
 
-    test('bare addresses in plain text mails are replaced too', function () {
-        expect((string) app(MessageBody::class)->parse("Foto: https://drive.google.com/x\nDanke", 'text/plain')['body'])
-            ->toBe("<p>Foto: [Link entfernt]<br />\nDanke</p>");
+    test('addresses written as plain text stay unchanged and are not clickable', function () {
+        expect((string) app(MessageBody::class)->parse('<p>Siehe www.dhl.de oder https://drive.google.com/x</p>', 'text/html')['body'])
+            ->toBe('<p>Siehe www.dhl.de oder https://drive.google.com/x</p>')
+            ->and((string) app(MessageBody::class)->parse("Foto: https://drive.google.com/x\nDanke", 'text/plain')['body'])
+            ->toBe("<p>Foto: https://drive.google.com/x<br />\nDanke</p>");
+    });
+
+    test('the allowed hosts come from the configuration', function () {
+        config(['services.zammad.allowed_link_hosts' => ['example.org']]);
+
+        expect((string) app(MessageBody::class)->parse('<p><a href="https://shop.example.org">Shop</a> <a href="https://looxis.de">LOOXIS</a></p>', 'text/html')['body'])
+            ->toBe('<p>Shop LOOXIS [Link entfernt]</p>');
     });
 
     test('links in the collapsed quote are replaced too', function () {
@@ -381,12 +409,16 @@ describe('cleaning of mail html', function () {
     });
 
     test('the ticket page shows no links from mails', function () {
-        fakeZammad([zammadArticle(['body' => '<p>Bitte prüfen: <a href="https://drive.google.com/x">Bilder</a> und www.evil.example</p>'])]);
+        fakeZammad([zammadArticle(['body' => '<p>Bitte prüfen: <a href="https://drive.google.com/x">Bilder</a> und <a href="https://fachhaendler.looxis.de">Shop</a></p>'])]);
 
-        $this->get('/tickets/2137942')
-            ->assertSeeText('Bitte prüfen: Bilder [Link entfernt] und [Link entfernt]')
+        $html = $this->get('/tickets/2137942')
+            ->assertSeeText('Bitte prüfen: Bilder [Link entfernt] und Shop')
             ->assertDontSee('drive.google.com')
-            ->assertDontSee('evil.example');
+            ->getContent();
+
+        preg_match('/<div class="mail-text">.*?<\/div>/s', $html, $text);
+
+        expect($text[0])->not->toContain('<a ');
     });
 
     test('blank lines are reduced to at most one', function (string $html, string $expected) {
