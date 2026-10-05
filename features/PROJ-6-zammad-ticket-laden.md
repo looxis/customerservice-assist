@@ -1,6 +1,6 @@
 # PROJ-6: Zammad-Ticket laden
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-05
 
@@ -265,7 +265,95 @@ Server
 - **Tests:** `tests/Feature/PROJ-6-ZammadTicketTest.php` (51 Fälle, Zammad nachgestellt). PROJ-1-Test an den neuen Startseitentext angepasst. Gesamte Suite: 483 Tests grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-05
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+Geprüft mit Pest (Zammad nachgestellt) und gegen das echte Zammad (`hello.loox.is`) mit den Tickets #2132884 (12 Nachrichten, Niederländisch), #2137635 (Amazon, Italienisch), #2137945 (Amazon, Französisch), #2137941 (Phishing), #2137956 (geschlossen) sowie nicht vorhandenen Nummern. Darstellung, Einfügen-Knopf und Lesbarkeit hat der Product Owner während der Optimierungsrunden am 2026-10-05 im Browser geprüft; ein eigenes Browser-Werkzeug stand nicht zur Verfügung.
+
+### Acceptance Criteria Status
+
+#### Eingabe
+- [x] Zentrales Feld mit Fokus, „Einfügen" und „Ticket laden"
+- [x] `Ticket#…`, `ticket# …`, `#…`, reine Nummer, Leerzeichen und Zeilenumbruch führen zur Ticketadresse
+- [x] Ungültige Eingabe (leer, Buchstaben, zwei Nummern, über 20 Ziffern, Liste, Skript) → Meldung am Feld, keine Anfrage an Zammad
+- [x] Server prüft selbst (Form Request), unabhängig vom Browser
+- [x] Einfügen per Zwischenablage, Hinweis „Bitte mit Strg+V einfügen" ohne Berechtigung (vom Product Owner im Browser genutzt; Fehlerfall nur am Code geprüft)
+
+#### Laden und eigene Adresse
+- [x] Eigene Adresse je Ticket, jeder Aufruf frisch aus Zammad (zwei Aufrufe = zwei Abrufe), „Aktualisieren", anderes Ticket über das Feld
+- [x] Nichts vom Ticketinhalt gespeichert; Log enthält nur Nummer, Fehlerart, Status
+- [x] Ladezeit echter Tickets 0,45–0,9 s (Anforderung < 3 s)
+
+#### Kopfdaten
+- [x] Nummer, Betreff, Status, Gruppe, Kunde (Name, E-Mail), erstellt, letzte Nachricht, Anzahl Nachrichten, Anhänge mit Link
+- [x] „In Zammad öffnen" in neuem Tab
+- [x] Geschlossenes Ticket deutlich markiert und ansehbar (#2137956)
+- [x] Zusammengeführtes Ticket mit Link zum Ziel – nur mit nachgestelltem Zammad geprüft; im lesbaren Bereich gibt es kein zusammengeführtes Ticket
+
+#### Verlauf
+- [x] Chronologisch, drei Arten deutlich unterschieden, interne Notizen und unsere Antworten vollständig
+- [x] Neueste hervorgehoben, Sprung dorthin
+- [x] Zitate eingeklappt (Deutsch, Englisch, Niederländisch, Französisch, Apple/Gmail/Outlook/Zammad-Marker, in jeder Tiefe, auch Antwort unter dem Zitat); am echten 12-Nachrichten-Ticket alle korrekt
+- [x] Ab 11 Nachrichten Mitte zusammengefasst
+- [x] HTML bereinigt; klickbare Links entfernt bzw. als Text (zugelassene Hosts) oder klickbar (Seller Central); Text-Adressen unverändert
+- [x] Höchstens eine Leerzeile; lange Zeilen umbrechen ohne waagrechtes Scrollen
+- [x] Amazon-Kopf aus jeder Nachricht entfernt, Bestellung einmal im Ticketkopf (Italienisch und Französisch geprüft)
+- [x] Amazon-Textbausteine ab „Dieser Service wird ausschließlich …" ausgeblendet
+- [x] Kunde links, wir und interne Notizen rechts eingerückt
+
+#### Anhänge
+- [x] Name, Art, Größe; eingebettete Bilder und Zammads `message.html`-Kopie ausgelassen
+
+#### Fehler
+- [x] Nicht gefunden (404), kein Zugriff (403), nicht erreichbar/Zeitüberschreitung/keine JSON-Antwort (503 mit „Erneut versuchen"), Zugang ungültig oder fehlend (503)
+- [x] Keine Zugangsdaten, Adressen oder technischen Texte in Meldungen
+
+### Edge Cases Status
+- [x] Lange Nachricht, viele Nachrichten, Nachricht ohne Text, Ticket ohne Nachrichten, Umlaute
+- [x] Andere Kanäle (Notiz, Amazon) mit Kanal-Angabe
+- [x] Nutzer ohne Namen kann laden, Hinweis aus PROJ-5 bleibt
+- [~] Systemnachrichten als „automatisch": nur Absender „System" wird so markiert; die n8n-Versandinfo kommt als Agent-Nachricht und erscheint als „Von uns" (kein Fehler, nur Hinweis)
+- [~] Doppeltes Absenden: Sperre in der Komponente, nur am Code geprüft
+- [ ] Offene Frage: maximale Länge der Ticketnummern (vorläufig 1–20 Ziffern)
+
+### Security Audit Results
+- [x] Ausgabe der echten Tickets ohne `<script>`, Event-Handler, `javascript:`, Stile, Bilder, Frames
+- [x] Klickbare Links nur zu Zammad selbst und `sellercentral.amazon.*` (https); Täuschungsadressen werden entfernt
+- [x] Token nie auf der Seite, nur serverseitig; Zugriff nur lesend (`ticket.agent`, Gruppen „lesen")
+- [x] Eingabe nur Ziffern; Pfad-Varianten (`/tickets/abc`, `../`) ergeben 404
+- [x] Fehlerseiten ohne technische Details; Log ohne Inhalte
+- [x] Kein Formular mit Schreibwirkung (GET); CSRF für die Namensauswahl unverändert aktiv
+- Hinweis: Ohne Login kann jeder im internen Netz jedes Ticket der lesbaren Gruppen ansehen (bewusst, PRD; Login mit PROJ-15)
+
+### Regression
+- [x] PROJ-1 (Startseite: Platzhaltertext durch Eingabe ersetzt, Test angepasst), PROJ-5, PROJ-24, PROJ-25: grün
+- [x] About-Seite: Schritt „Ticket laden" ist nutzbar, Hinweis „in Arbeit" entfernt, Beschreibung aktualisiert, Test angepasst
+- [x] Gesamte Suite grün
+
+### Bugs Found
+
+#### BUG-1: Tests schreiben in das Log der lokalen App
+- **Severity:** Low
+- **Steps to Reproduce:**
+  1. `./vendor/bin/sail artisan test`
+  2. `storage/logs/laravel.log` öffnen
+  3. Expected: Testläufe hinterlassen keine Einträge im App-Log
+  4. Actual: Einträge `testing.WARNING: Zammad request failed …` (nur Nummer und Fehlerart, keine Inhalte)
+- **Priority:** Nice to have (Log-Kanal für Tests z. B. auf `null` stellen)
+
+### In diesem Zusammenhang relevante offene Bugs anderer Features
+- PROJ-1 BUG-3: Lade-Overlay sperrt die Tastatur nicht (PROJ-6 verhindert doppeltes Laden selbst)
+- PROJ-1 BUG-4 / PROJ-24 BUG-5: Fehlerseiten 405 und 419 englisch („Method Not Allowed" bestätigt)
+- PROJ-1 BUG-2 (Rest): Kontrast `slate-400`
+
+### Summary
+- **Acceptance Criteria:** alle bestanden (zusammengeführtes Ticket nur mit Attrappe)
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; die drei PROJ-1-Altlasten vor dem Produktivstart beheben
 
 ## Deployment
 _To be added by /deploy_

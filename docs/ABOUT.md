@@ -7,7 +7,7 @@ Der Vorschlag stützt sich auf das Wissen unseres Unternehmens: Regeln, Produktw
 # So funktioniert es
 
 1. **Deinen Namen wählen.** Einmal pro Browser, damit nachvollziehbar ist, wer eine Analyse gestartet hat. Dein Name steht danach immer rechts oben; ein Klick darauf wechselt ihn.
-2. **Ticket laden.** Du gibst die Ticketnummer ein, die App holt das Ticket mit dem ganzen Verlauf aus Zammad. [in Arbeit]
+2. **Ticket laden.** In Zammad am Ticket auf „Kopieren" klicken, in der App auf „Einfügen". Die App holt das Ticket mit dem ganzen Verlauf aus Zammad: Kundennachrichten links, unsere Antworten und interne Notizen rechts, Zitate und Signaturen eingeklappt, klickbare Links entfernt, Amazon-Bestellungen oben im Kopf.
 3. **Bestellung laden.** Die App sucht die Bestellnummer im Ticket und holt die Bestelldaten. Fehlt etwas, trägst du es von Hand nach. [in Arbeit]
 4. **Kundengruppe und Produkt bestätigen.** Die App schlägt beides aus der Bestellung vor, zum Beispiel „Privatkunde, Amazon" und „Zaubertasse". Du bestätigst oder korrigierst. Ist die Kundengruppe noch unklar, wählst du „Noch unklar". [in Arbeit]
 5. **Passendes Wissen auswählen.** Die App sucht aus der Knowledge genau die Dokumente heraus, die für diese Kundengruppe und dieses Produkt gelten. Das geschieht automatisch und nach festen Regeln, nicht durch die KI.
