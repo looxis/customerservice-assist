@@ -13,7 +13,7 @@
 
 ## Features
 
-The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 is independent and can be built at any time). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
+The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
 
 | ID | Feature | Description | Priority | Dependencies | Status | Spec | Created |
 |----|---------|-------------|----------|--------------|--------|------|---------|
@@ -42,7 +42,8 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-23 | Entwurfs-Wissen bestätigen | Ein Admin stellt ein `draft`-Dokument nach guten Testergebnissen per Klick auf `active` | P1 | PROJ-3, PROJ-10 | Roadmap | – | 2026-10-02 |
 | PROJ-24 | Knowledge-Übersicht | Seite in der App: alle Dokumente mit ID, Typ, Status und Geltungsbereich, Fehler und Warnungen je Datei, Kopier-Button für die ID-Übersicht | P0 | PROJ-1, PROJ-3 | Approved | [Spec](PROJ-24-knowledge-uebersicht.md) | 2026-10-02 |
 | PROJ-25 | Über die App | Seite „Über die App“ unten in der Seitenleiste: Ziel, Ablauf mit Hinweis „in Arbeit“, Beispiel, Grenzen, Wissen ergänzen, Info-Kasten mit App- und Wissensstand, abgesetzter Entwicklerteil mit Tech Stack | P0 | PROJ-1, PROJ-3 | Approved | [Spec](PROJ-25-ueber-die-app.md) | 2026-10-05 |
+| PROJ-26 | Mobiles Menü | Burger-Symbol rechts in der Kopfleiste unter 768 px, Menüfläche mit denselben Einträgen wie die Seitenleiste, Schließen per Eintrag, Symbol, Tippen daneben oder Escape, Fokusführung | P1 | PROJ-1 | Planned | [Spec](PROJ-26-mobiles-menue.md) | 2026-10-05 |
 
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-26
+## Next Available ID: PROJ-27
