@@ -34,7 +34,7 @@
 - Bestelldaten von Hand ergänzen, wenn EOCS nichts liefert – PROJ-8.
 - Übergabe der Bestelldaten an die Analyse – PROJ-9.
 - Speichern der gewählten Bestellungen zum Ticket – PROJ-11 (bis dahin steht die Auswahl in der Adresse der Ticketseite).
-- Item-API (Produktdetails) – wird geprüft, sobald die Beschreibung vorliegt; Einbindung, falls nötig, in einem späteren Schritt.
+- Item-API (Produktdetails) – für PROJ-7 nicht nötig (siehe `docs/eocs-items-api.md`); API-Beschreibung der Bestellungen in `docs/orders-api.md`.
 - Änderungen an Bestellungen in EOCS (Non-Goal).
 
 ## Acceptance Criteria
@@ -96,7 +96,8 @@
 - [x] looxis.fr: 9-stellig, beginnt mit `700` (Klärung 2026-10-05).
 - [x] Suche über die EOCS-ID: `filter[id]=…` funktioniert; `/api/v1/orders/{id}` antwortet mit 401 und wird nicht genutzt (Test 2026-10-05).
 - [x] Positionen: `include=order_items` liefert je Position `quantity`, `position`, `status_name`, `custom_code` (Konfigurations-ID) mit `custom_code_url` (Konfigurator), `shop`, `item{item_id, name, product_type, configurations, individual}` und `data` (bei Amazon u. a. `asin`, `customizationData`). Die Artikelnummer `item.item_id` entspricht den `order_keywords` der Produktdateien (Test 2026-10-05).
-- [ ] Welche Werte hat `client.name` für Shop, Fachhändler, looxis.fr, LOOXIS-Pro und masterpics? Nötig für die Zuordnung zur Kundengruppe (`order_channels`).
+- [x] Kanalnamen in EOCS (`client.name`): `looxis.de Vanilo` → shop, `fachhaendler.looxis.de` → fachhaendler, `reseller.looxis.fr` → fachhaendler, `looxis-pro.com` → looxis-pro, `Masterpics White Label DE` → masterpics, `Amazon.*` (Plattform `Amazon`) → amazon. Vollständig in `docs/orders-api.md` (2026-10-05).
+- [ ] Soll der Kanal „shop" künftig „looxis.de" heißen – nur als Bezeichnung in der App oder auch als Wert in der Knowledge Base?
 - [x] Authentifizierung über `Authorization: Bearer …` funktioniert; falscher Token → 401, unbekannte Nummer → leere Liste (Test 2026-10-05). Offen bleibt nur, ob ein eigenes Device mit reinen Leserechten angelegt wird.
 - [ ] Der Token enthält `|` und muss in der `.env` in Anführungszeichen stehen; ein Teil wurde in einer Fehlerausgabe sichtbar – Token nach Abschluss neu erstellen.
 - [x] `ticket_number` wird von Agents manchmal bei Reklamationen eingetragen (Reklamation als neuer Auftrag mit Verweis auf Original und Ticket). Filtern danach erlaubt die API nicht (erlaubte Filter: `external_order_id, id, claim, statuses, tags, pro, individual, too_late, stocked, name, merchant, ordered_at, created_at, producible`).
