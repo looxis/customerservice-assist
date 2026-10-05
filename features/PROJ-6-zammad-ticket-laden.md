@@ -219,6 +219,14 @@ Server
   - Der Knopf „Aktualisieren" ist ein Link auf dieselbe Adresse (normales Neuladen).
   - Doppeltes Absenden verhindert die Komponente selbst; PROJ-1 BUG-3 (Lade-Overlay sperrt die Tastatur nicht) bleibt für das übrige Overlay offen.
   - Ohne Zammad-Konfiguration zeigt die Ticketseite „Die Verbindung zu Zammad ist nicht eingerichtet oder ungültig" (503).
+- **Optimierung nach erstem Test mit echtem Ticket (2026-10-05, Ticket#2132884, niederländischer Kunde, 12 Nachrichten):**
+  - Zitat-Erkennung sucht jetzt in Lesereihenfolge in jeder Verschachtelungstiefe und klappt alles ab dem ersten Zitat-Beginn ein, auch was danach in umschließenden Elementen folgt.
+  - Neue Muster: Niederländisch („Op … heeft … het volgende geschreven:", „Begin doorgestuurd bericht:", „Van:/Verzonden:", „Oorspronkelijk bericht"), Apple Mail Deutsch/Englisch („Anfang der weitergeleiteten Nachricht:", „Begin forwarded message:"), Französisch („Le … a écrit :"), dazu Zammads eigene Markierung `js-signatureMarker`.
+  - Antworten unter dem Zitat: Beginnt eine Mail mit dem Zitat und folgt danach neuer Text, wird der Zitatblock am Anfang eingeklappt und der neue Text gezeigt.
+  - Unsere Signatur wird bei Nachrichten „von uns" ausgeblendet: der von Zammad markierte Block (`data-signature`) sowie konfigurierte Text-Signaturen ohne Markierung (`services.zammad.signatures`, vorbelegt mit „Freundliche Grüße / LOOXIS Kundenservice" für Amazon), nur am Ende, unabhängig von Groß-/Kleinschreibung und Zeilenumbrüchen. Die Grußformel davor („Best regards") bleibt stehen. Kundensignaturen bleiben unverändert.
+  - `<div>` bleibt als Zeile erhalten (vorher liefen Zeilen aus Apple Mail/Gmail zusammen); Überschriften `h1`–`h6` erlaubt.
+  - Ergebnis am echten Ticket: alle 12 Nachrichten zeigen nur den neuen Text, Zitate eingeklappt, keine eigene Signatur mehr.
+- **Gegen das echte Zammad bestätigt:** Suche mit `expand=true` liefert `state`, `group`, `customer_id` als erwartet; Nachrichten liefern `sender` (Customer/Agent), `type`, `internal`, `content_type` text/html. Zammad legt zu jeder eingehenden HTML-Mail eine Kopie `message.html` als Anhang ab (`content-alternative`/`original-format`); sie wird jetzt nicht als Anhang gelistet und nicht mitgezählt.
 - **Vor der Abnahme gegen das echte Zammad prüfen:** Feldnamen der Suche mit `expand=true` (`state`, `group`, `customer_id`), `sender`/`internal`/`type` der Nachrichten, Kennung eingebetteter Bilder, Ziel bei zusammengeführten Tickets, Länge der Ticketnummern.
 - **Tests:** `tests/Feature/PROJ-6-ZammadTicketTest.php` (51 Fälle, Zammad nachgestellt). PROJ-1-Test an den neuen Startseitentext angepasst. Gesamte Suite: 483 Tests grün.
 

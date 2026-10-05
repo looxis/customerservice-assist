@@ -50,6 +50,12 @@ return [
         'token' => env('ZAMMAD_TOKEN'),
         'timeout' => env('ZAMMAD_TIMEOUT', 10),
         'timezone' => 'Europe/Berlin',
+
+        // Our own signatures without Zammad's signature marker (e.g. on Amazon),
+        // hidden at the end of our messages. Line breaks and case do not matter.
+        'signatures' => [
+            "Freundliche Grüße\nLOOXIS Kundenservice",
+        ],
     ],
 
 ];

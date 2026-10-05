@@ -145,7 +145,7 @@ class ZammadClient
 
         return array_map(function (array $article): TicketArticle {
             $sender = strtolower((string) ($article['sender'] ?? ''));
-            $parsed = $this->messageBody->parse($article['body'] ?? '', $article['content_type'] ?? 'text/plain');
+            $parsed = $this->messageBody->parse($article['body'] ?? '', $article['content_type'] ?? 'text/plain', ours: $sender !== 'customer');
             $type = strtolower((string) ($article['type'] ?? ''));
 
             return new TicketArticle(
@@ -181,7 +181,8 @@ class ZammadClient
     }
 
     /**
-     * Attachments without images embedded in the mail text (e.g. signature logos).
+     * Real attachments only: without images embedded in the mail text (e.g.
+     * signature logos) and without Zammad's copy of the original mail.
      *
      * @return list<TicketAttachment>
      */
@@ -194,7 +195,9 @@ class ZammadClient
             $contentType = strtolower((string) ($preferences['content-type'] ?? $preferences['mime-type'] ?? 'application/octet-stream'));
             $embedded = ! empty($preferences['content-id']) || str_starts_with(strtolower((string) ($preferences['content-disposition'] ?? '')), 'inline');
 
-            if ($embedded && str_starts_with($contentType, 'image/')) {
+            $originalMail = ! empty($preferences['content-alternative']) || ! empty($preferences['original-format']);
+
+            if ($originalMail || ($embedded && str_starts_with($contentType, 'image/'))) {
                 continue;
             }
 

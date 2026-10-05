@@ -220,7 +220,31 @@ describe('thread', function () {
         'gmail marker' => ['text/html', '<div>Neu<div class="gmail_quote">Am Freitag schrieb X: alt</div></div>', 'Neu', 'alt'],
         'plain text with >' => ['text/plain', "Danke!\n\n> Alte Mail\n> Zeile 2", 'Danke!', 'Alte Mail'],
         'plain text german header' => ['text/plain', "Danke!\n\nAm 03.10.2026 schrieb Kundenservice:\nAlt", 'Danke!', 'Alt'],
+        'dutch reply header' => ['text/html', '<div>Bedankt!</div><div>Op 12 jun 2026 om 08:55 heeft Kundenservice &lt;service@example.org&gt; het volgende geschreven:</div><blockquote type="cite">Oud bericht</blockquote>', 'Bedankt!', 'Oud bericht'],
+        'dutch forward' => ['text/html', '<div>Hoi.<div>Groet<div><br>Begin doorgestuurd bericht:<br><blockquote type="cite"><div><b>Van:</b> Klant</div>Oud</blockquote></div></div></div>', 'Hoi.', 'Oud'],
+        'dutch outlook header' => ['text/html', '<p>Hallo</p><p><b>Van:</b> Kundenservice<br><b>Verzonden:</b> vrijdag</p><p>Oud</p>', 'Hallo', 'Oud'],
+        'apple mail german forward' => ['text/html', '<div>Siehe unten.</div><div>Anfang der weitergeleiteten Nachricht:</div><blockquote type="cite">Alt</blockquote>', 'Siehe unten.', 'Alt'],
+        'zammad marker deep inside' => ['text/html', '<div><div>Neu<br><span class="js-signatureMarker"></span><div>Kundenservice</div><div>Alt</div></div></div>', 'Neu', 'Alt'],
+        'quote nested two levels deep' => ['text/html', '<div>Hi.<div>Text<div>Gruß<blockquote type="cite">Alt</blockquote></div></div></div>', 'Gruß', 'Alt'],
     ]);
+
+    test('everything after the quote start is collapsed, even outside the enclosing element', function () {
+        $parsed = app(MessageBody::class)->parse('<div>Neu<div>Am 01.10.2026 schrieb X:<blockquote>Alt</blockquote></div>Danach</div><p>Rest</p>', 'text/html');
+
+        expect(strip_tags((string) $parsed['body']))->toBe('Neu')
+            ->and(strip_tags((string) $parsed['quote']))->toContain('Alt')->toContain('Danach')->toContain('Rest');
+    });
+
+    test('a reply written below the quote shows the new text and collapses the quote at the start', function () {
+        fakeZammad([zammadArticle(['body' => '<div>Op 12 jun 2026, om 08:55 heeft Kundenservice het volgende geschreven:<br><span class="js-signatureMarker"></span><blockquote type="cite"><div>Alte Antwort</div></blockquote></div><div><br></div><div>Goedemiddag</div><div>Nieuwe tekst</div>'])]);
+
+        $this->get('/tickets/2137942')->assertSeeTextInOrder(['Goedemiddag', 'Nieuwe tekst', 'Zitat anzeigen', 'Alte Antwort']);
+    });
+
+    test('lines written as div elements stay separate lines', function () {
+        expect((string) app(MessageBody::class)->parse('<div>Zeile 1</div><div>Zeile 2</div>', 'text/html')['body'])
+            ->toBe('<div>Zeile 1</div><div>Zeile 2</div>');
+    });
 
     test('a mail that consists only of a quote is shown in full', function () {
         fakeZammad([zammadArticle(['body' => '<blockquote><p>Nur weitergeleitet</p></blockquote>'])]);
@@ -272,6 +296,45 @@ describe('thread', function () {
     });
 });
 
+describe('our signature', function () {
+    test('the signature zammad marks in our messages is hidden', function () {
+        fakeZammad([zammadArticle(['sender' => 'Agent', 'from' => 'Nele', 'body' => '<p>Gerne geschehen.</p><p>Best regards</p><div data-signature="true" data-signature-id="1">Nele<br>LOOXIS GmbH<br>Musterstraße 1</div>'])]);
+
+        $this->get('/tickets/2137942')
+            ->assertSeeText('Gerne geschehen.')
+            ->assertDontSeeText('LOOXIS GmbH')
+            ->assertDontSeeText('Musterstraße 1');
+    });
+
+    test('a configured text signature at the end of our message is hidden, regardless of case and line breaks', function () {
+        config(['services.zammad.signatures' => ["Freundliche Grüße\nLOOXIS Kundenservice"]]);
+        fakeZammad([zammadArticle(['sender' => 'Agent', 'type' => 'amazon', 'content_type' => 'text/plain', 'from' => 'Kundenservice', 'body' => "Ihre Erstattung ist veranlasst.\n\nfreundliche Grüße\nLOOXIS   Kundenservice\n"])]);
+
+        $this->get('/tickets/2137942')
+            ->assertSeeText('Ihre Erstattung ist veranlasst.')
+            ->assertDontSeeText('LOOXIS Kundenservice');
+    });
+
+    test('the signature is only removed at the end, not in the middle of a text', function () {
+        $body = new MessageBody(["Freundliche Grüße\nLOOXIS Kundenservice"]);
+
+        expect(strip_tags((string) $body->parse('<p>Freundliche Grüße LOOXIS Kundenservice sind wir.</p><p>Weiter</p>', 'text/html', ours: true)['body']))
+            ->toContain('Freundliche Grüße LOOXIS Kundenservice sind wir.');
+    });
+
+    test('a message consisting only of the signature keeps it', function () {
+        $body = new MessageBody(['LOOXIS Kundenservice']);
+
+        expect(strip_tags((string) $body->parse('LOOXIS Kundenservice', 'text/plain', ours: true)['body']))->toBe('LOOXIS Kundenservice');
+    });
+
+    test('customer messages keep their text and signature', function () {
+        fakeZammad([zammadArticle(['body' => '<p>Danke</p><div data-signature="true">Erika Beispiel<br>Musterweg 2</div>'])]);
+
+        $this->get('/tickets/2137942')->assertSeeText('Musterweg 2');
+    });
+});
+
 describe('cleaning of mail html', function () {
     test('scripts, images, styles and event handlers are removed, text structure and links stay', function () {
         $parsed = app(MessageBody::class)->parse(
@@ -311,11 +374,13 @@ describe('attachments', function () {
             ['filename' => 'tasse.jpg', 'size' => '2480311', 'preferences' => ['Content-Type' => 'image/jpeg']],
             ['filename' => 'rechnung.pdf', 'size' => '51200', 'preferences' => ['Content-Type' => 'application/pdf']],
             ['filename' => 'logo.png', 'size' => '1200', 'preferences' => ['Content-Type' => 'image/png', 'Content-ID' => 'logo@mail', 'Content-Disposition' => 'inline']],
+            ['filename' => 'message.html', 'size' => '1303', 'preferences' => ['content-alternative' => true, 'original-format' => true, 'Mime-Type' => 'text/html', 'Charset' => 'utf-8']],
         ]])]);
 
         $this->get('/tickets/2137942')
             ->assertSeeTextInOrder(['tasse.jpg', 'Bild, 2,4 MB', 'rechnung.pdf', 'PDF, 50 KB'])
             ->assertDontSeeText('logo.png')
+            ->assertDontSeeText('message.html')
             ->assertSeeText('2 Anhänge – in Zammad ansehen');
     });
 });
