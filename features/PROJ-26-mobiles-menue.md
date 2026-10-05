@@ -17,7 +17,7 @@
 ## Out of Scope
 - Änderungen an der Seitenleiste auf dem Desktop; sie bleibt wie in PROJ-1.
 - Weitere Einträge oder Unterpunkte; das Menü zeigt die Einträge, die es in der Seitenleiste gibt.
-- Nutzerauswahl im Menü – PROJ-5 entscheidet, wo der gewählte Nutzer erscheint.
+- Nutzerauswahl im Menü. Laut PROJ-5 steht der gewählte Name links neben dem Menü-Symbol, bei Platzmangel nur das Initial im Kreis.
 - Allgemeine Überarbeitung der Seiten für schmale Bildschirme (Tabellen, Formulare); jede Seite verantwortet ihre eigene Darstellung.
 - Wischgesten zum Öffnen oder Schließen.
 - Eigene App für Mobilgeräte oder Installation als Web-App.

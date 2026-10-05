@@ -24,7 +24,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Knowledge-Übersicht (Seite mit Dokumenten, Prüfergebnis, ID-Übersicht zum Kopieren) | Approved |
 | P0 (MVP) | Deterministische Knowledge-Auswahl | Approved |
 | P0 (MVP) | Seite „Über die App“ (Ziel, Ablauf, Grenzen, Stand, Entwicklerteil) | Approved |
-| P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Roadmap |
+| P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Planned |
 | P0 (MVP) | Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Roadmap |
 | P0 (MVP) | Bestellung aus EOCS laden (automatische Erkennung, manuelle Bestellnummer) | Roadmap |
 | P0 (MVP) | Bestelldaten manuell ergänzen (Fallback) | Roadmap |
@@ -61,7 +61,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **Tech-Stack:** unverändert aus dem Starter Kit (Laravel 13, Blade, Tailwind v4, Alpine.js, MySQL über Eloquent, Pest).
 - **Dev: Laravel Sail (Docker).** Alle Befehle über `./vendor/bin/sail ...`.
 - **No authentication im MVP.** Die App ist nur im internen Netz/VPN erreichbar, zusätzlich schützt ein gemeinsames Passwort vor der App (Webserver-Konfiguration, Umsetzung in `/deploy`). Eine vom Admin gesteuerte Benutzerverwaltung mit Benutzername und Passwort folgt als P1.
-- **Nutzererfassung im MVP:** fest hinterlegte Namensliste (Kerstin, Etienne, Nele, Cara, Johannes), Auswahl einmal pro Browser per Dropdown, gewählter Nutzer dauerhaft in der UI sichtbar. Die Liste wandert mit der Benutzerverwaltung in die Datenbank.
+- **Nutzererfassung im MVP:** fest hinterlegte Namensliste (Cara, Etienne, Johannes, Kerstin, Nele, Thomas), Auswahl einmal pro Browser per Dropdown, gewählter Nutzer dauerhaft in der UI sichtbar. Die Liste wandert mit der Benutzerverwaltung in die Datenbank.
 - **LLM:** Start mit OpenAI per API. Die App bleibt anbieterneutral, Modell und Anbieter müssen austauschbar und vergleichbar sein. Ticketinhalte mit Kundendaten gehen an den Anbieter; ein Auftragsverarbeitungsvertrag ist Voraussetzung.
 - **Knowledge Base:** Struktur fest nach `docs/KNOWLEDGE_BASE_DESIGN.md`, Ablage in `knowledge/` als Markdown mit YAML-Frontmatter, Git als Versionshistorie. Gold-Testfälle liegen getrennt in `evaluation/` und dienen nie als Retrieval-Wissen. Fachliche Regeln stehen nicht im Prompt.
 - **Geltungsbereich von Knowledge:** Dokumente können über die Frontmatter-Felder `customer_types` (`b2c`, `b2b-reseller`, `b2b-pro`) und `sales_channels` (`shop`, `amazon`, `fachhaendler`, `looxis-pro`) auf Kundenart und Vertriebskanal eingeschränkt sein; leer heißt „gilt für alle". Der Mitarbeiter wählt vor der Analyse eine von fünf Kundengruppen (Privatkunde Shop, Privatkunde Amazon, Foto-Fachhändler/Reseller, LOOXIS-Pro, noch unklar) und das betroffene Produkt; die App schlägt beides aus der Bestellung vor, soweit möglich. Die Auswahl filtert nach Kundengruppe und Produkt, nicht nach Art der Anfrage. Eine automatische Fachhändler-Erkennung bleibt Non-Goal.
