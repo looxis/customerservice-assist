@@ -121,6 +121,7 @@ Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das i
 | `b2c` | Privatkunde (eigener Shop oder Amazon) |
 | `b2b-reseller` | Foto-Fachhändler / Reseller |
 | `b2b-pro` | LOOXIS-Pro: Geschäftskunde, der Rohware in größeren Mengen bezieht |
+| `b2b-whitelabel` | White-Label-Kunde: Geschäftskunde, der unter eigenem Namen an seine Endkunden verkauft und uns die Aufträge samt Lieferadresse übermittelt (z. B. masterpics). Er ist für korrekte Adressdaten verantwortlich. |
 
 Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 
@@ -132,6 +133,7 @@ Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 | `amazon` | Amazon |
 | `fachhaendler` | Fachhändler-Shop fachhaendler.looxis.de |
 | `looxis-pro` | Bestellweg für LOOXIS-Pro |
+| `masterpics` | Aufträge des White-Label-Kunden masterpics |
 
 Regeln:
 
@@ -144,6 +146,7 @@ Regeln:
   | Privatkunde, Amazon | `b2c` | `amazon` |
   | Foto-Fachhändler / Reseller | `b2b-reseller` | `fachhaendler` |
   | LOOXIS-Pro | `b2b-pro` | `looxis-pro` |
+  | White-Label-Kunde, masterpics | `b2b-whitelabel` | `masterpics` |
   | Noch unklar | – | – |
 
   Ein Dokument gilt für eine Gruppe, wenn beide Felder leer sind oder den Wert der Gruppe enthalten. Beispiele: `customer_types: [b2c]` mit leerem Kanal gilt für Privatkunden im Shop und auf Amazon. `sales_channels: [shop]` mit leerer Kundenart gilt nur für Privatkunden im Shop, nicht für Fachhändler. Ist die Kundengruppe noch unklar, verwendet die App nur Dokumente, bei denen beide Felder leer sind.

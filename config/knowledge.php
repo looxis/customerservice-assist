@@ -67,9 +67,9 @@ return [
 
     'usable_statuses' => ['draft', 'active'],
 
-    'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro'],
+    'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro', 'b2b-whitelabel'],
 
-    'sales_channels' => ['shop', 'amazon', 'fachhaendler', 'looxis-pro'],
+    'sales_channels' => ['shop', 'amazon', 'fachhaendler', 'looxis-pro', 'masterpics'],
 
     'categories' => ['complaint', 'product-question', 'order-process-question'],
 
@@ -84,7 +84,7 @@ return [
 
     'retired_values' => [
         'customer_types' => [
-            'b2b' => 'Stattdessen `b2b-reseller` (Foto-Fachhändler / Reseller) oder `b2b-pro` (LOOXIS-Pro) verwenden.',
+            'b2b' => 'Stattdessen `b2b-reseller` (Foto-Fachhändler / Reseller), `b2b-pro` (LOOXIS-Pro) oder `b2b-whitelabel` (White-Label-Kunde, z. B. masterpics) verwenden.',
         ],
     ],
 
@@ -104,6 +104,7 @@ return [
         'private-amazon' => ['label' => 'Privatkunde, Amazon', 'customer_type' => 'b2c', 'sales_channel' => 'amazon'],
         'reseller' => ['label' => 'Foto-Fachhändler / Reseller', 'customer_type' => 'b2b-reseller', 'sales_channel' => 'fachhaendler'],
         'looxis-pro' => ['label' => 'LOOXIS-Pro', 'customer_type' => 'b2b-pro', 'sales_channel' => 'looxis-pro'],
+        'whitelabel-masterpics' => ['label' => 'White-Label-Kunde, masterpics', 'customer_type' => 'b2b-whitelabel', 'sales_channel' => 'masterpics'],
         'unclear' => ['label' => 'Noch unklar', 'customer_type' => null, 'sales_channel' => null],
     ],
 
@@ -124,6 +125,8 @@ return [
         'fachhaendler' => 'fachhaendler',
         'fachhaendler.looxis.de' => 'fachhaendler',
         'looxis-pro' => 'looxis-pro',
+        'looxis.fr' => 'fachhaendler',
+        'masterpics' => 'masterpics',
     ],
 
     /*

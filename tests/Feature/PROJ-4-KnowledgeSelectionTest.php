@@ -83,7 +83,7 @@ function excludedReasons(KnowledgeSelection $selection): array
 }
 
 describe('value lists', function () {
-    test('the five customer groups come in the configured order with german labels', function () {
+    test('the six customer groups come in the configured order with german labels', function () {
         knowledgeBase([]);
 
         $groups = app(KnowledgeSelector::class)->customerGroups();
@@ -93,12 +93,14 @@ describe('value lists', function () {
             'Privatkunde, Amazon',
             'Foto-Fachhändler / Reseller',
             'LOOXIS-Pro',
+            'White-Label-Kunde, masterpics',
             'Noch unklar',
         ])->and(array_map(fn ($group) => [$group->customerType, $group->salesChannel], $groups))->toBe([
             ['b2c', 'shop'],
             ['b2c', 'amazon'],
             ['b2b-reseller', 'fachhaendler'],
             ['b2b-pro', 'looxis-pro'],
+            ['b2b-whitelabel', 'masterpics'],
             [null, null],
         ]);
     });
@@ -144,7 +146,7 @@ describe('value lists', function () {
     test('the former value b2b is an error that names the new values', function () {
         $library = knowledgeBase(selectionDoc('POLICY-001', ['customer_types' => ['b2b']]));
 
-        expect(messagesOf($library, 'error'))->toContain('Unbekannter Wert `b2b` in `customer_types`. Stattdessen `b2b-reseller` (Foto-Fachhändler / Reseller) oder `b2b-pro` (LOOXIS-Pro) verwenden.')
+        expect(messagesOf($library, 'error'))->toContain('Unbekannter Wert `b2b` in `customer_types`. Stattdessen `b2b-reseller` (Foto-Fachhändler / Reseller), `b2b-pro` (LOOXIS-Pro) oder `b2b-whitelabel` (White-Label-Kunde, z. B. masterpics) verwenden.')
             ->and($library->usable())->toBeEmpty();
     });
 });
@@ -160,6 +162,7 @@ describe('selection by customer group', function () {
             ...selectionDoc('POLICY-006', ['customer_types' => ['b2b-reseller'], 'sales_channels' => ['fachhaendler']]),
             ...selectionDoc('POLICY-007', ['customer_types' => ['b2b-pro']]),
             ...selectionDoc('POLICY-008', ['customer_types' => ['b2b-reseller', 'b2b-pro']]),
+            ...selectionDoc('POLICY-009', ['customer_types' => ['b2b-whitelabel'], 'sales_channels' => ['masterpics']]),
         ]);
     });
 
@@ -170,6 +173,7 @@ describe('selection by customer group', function () {
         'private amazon' => ['private-amazon', ['POLICY-001', 'POLICY-002', 'POLICY-004']],
         'reseller' => ['reseller', ['POLICY-001', 'POLICY-006', 'POLICY-008']],
         'looxis pro' => ['looxis-pro', ['POLICY-001', 'POLICY-007', 'POLICY-008']],
+        'white label masterpics' => ['whitelabel-masterpics', ['POLICY-001', 'POLICY-009']],
         'unclear' => ['unclear', ['POLICY-001']],
     ]);
 
@@ -190,6 +194,7 @@ describe('selection by customer group', function () {
             'POLICY-006' => 'nur für Kundenart b2b-reseller',
             'POLICY-007' => 'nur für Kundenart b2b-pro',
             'POLICY-008' => 'nur für Kundenart b2b-reseller, b2b-pro',
+            'POLICY-009' => 'nur für Kundenart b2b-whitelabel',
         ]);
     });
 });
@@ -446,6 +451,8 @@ describe('suggestions from the order', function () {
         'amazon' => ['Amazon', 'private-amazon'],
         'reseller shop by its eocs name' => ['fachhaendler.looxis.de', 'reseller'],
         'looxis pro' => ['looxis-pro', 'looxis-pro'],
+        'masterpics' => ['masterpics', 'whitelabel-masterpics'],
+        'french reseller shop' => ['looxis.fr', 'reseller'],
         'unknown channel' => ['ebay', 'unclear'],
         'no channel' => [null, 'unclear'],
     ]);
