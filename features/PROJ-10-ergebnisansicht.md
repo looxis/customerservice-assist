@@ -1,6 +1,6 @@
 # PROJ-10: Ergebnisansicht
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -105,12 +105,77 @@ PROJ-9 zeigt alle Ergebnisteile gleichrangig untereinander, unter einem weiterhi
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Weiter ohne Datenbank: Entwurf, Quellen-Fassungen und „letzte Analyse je Ticket“ im bestehenden verschlüsselten Zwischenspeicher (7 Tage) | Gleiche Mechanik wie PROJ-9; PROJ-11 überträgt alles in die Datenbank, ohne die Oberfläche zu ändern | 2026-10-06 |
+| Bearbeiteter Entwurf wird neben dem KI-Original im selben Analyse-Datensatz gespeichert | Original bleibt für „wiederherstellen“ und PROJ-12 erhalten; eine Analyse = ein Datensatz | 2026-10-06 |
+| Text der zitierten Knowledge-Dokumente wird bei der Analyse mitgespeichert (Momentaufnahme) | Quellen in der Fassung der Analyse zeigen, auch bei nicht committeten Änderungen; Inhalte sind keine Kundendaten | 2026-10-06 |
+| Automatisches Speichern per Hintergrundanfrage (Alpine.js, kurz nach dem letzten Tastendruck), eigene Route nur für den Entwurf | Kein Neuladen, kein Speichern-Knopf; CSRF-geschützt, Name erforderlich, Länge begrenzt | 2026-10-06 |
+| „Letzte Analyse“ als Verweis je Ticket; Testläufe mit eigenem Verweis je Schnittpunkt | Automatisches Wiederfinden ohne Datenbank; Tests beeinflussen die echte Anzeige nicht (PROJ-32) | 2026-10-06 |
+| „Neue Nachrichten seit der Analyse“ über einen bei der Analyse gemerkten Stand des Verlaufs (letzte Nachricht) | Einfacher, sicherer Vergleich beim Öffnen | 2026-10-06 |
+| Damalige Formulareingaben (Gruppe, Produkte, Variante, Kontextfeld, Bestelldaten von Hand) werden mit der Analyse gespeichert | Formular klappt mit den Eingaben der angezeigten Analyse auf, auch nach dem Neuladen | 2026-10-06 |
+| Abschnitte als aufklappbare HTML-Elemente, Kopieren mit vorhandenem Muster (Zwischenablage, sonst markieren) | Funktioniert ohne JavaScript; bewährtes Verhalten aus PROJ-24 | 2026-10-06 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-10 baut die Ergebnisanzeige aus PROJ-9 um und ergänzt drei Dinge, die gespeichert werden müssen: den bearbeiteten Antwortentwurf, die Fassung der zitierten Quellen und die „letzte Analyse“ je Ticket. Eine Datenbank ist dafür noch nicht nötig. Es gilt derselbe verschlüsselte Zwischenspeicher wie bei PROJ-9 (7 Tage); PROJ-11 überführt alles in die Datenbank.
+
+### A) Bausteine
+```
+Ticketseite
++-- Ticketkopf (PROJ-6)
++-- Ergebnis (neu aufgebaut)
+|   +-- Kopfzeile: „Analyse von Nele, 06.10., 14:05“ · ggf. „Testlauf“
+|   +-- Hinweis „Seit dieser Analyse sind neue Nachrichten eingegangen“ + [Neu analysieren]
+|   +-- Kasten „Was ist zu tun?“
+|   |   +-- Einstufung, Confidence
+|   |   +-- Empfohlene Maßnahme + Vorgänge
+|   |   +-- Befugnis in klarer Sprache
+|   |   +-- Fehlende Informationen mit Rückfrage
+|   |   +-- Fehlendes Wissen / kein Wissen / Entwurfs-Wissen / „Prüfhinweise vorhanden“
+|   +-- Antwortentwurf
+|   |   +-- Überschrift mit Sprache · „bearbeitet von … am …“ · Speicheranzeige
+|   |   +-- Hinweise „Von der App eingesetzt: …“ und „N Stellen noch ausfüllen“
+|   |   +-- Textfeld (wächst mit)
+|   |   +-- [Kopieren] (mit Nachfrage bei offenen Stellen) · [Original der KI wiederherstellen]
+|   +-- Aufklappbare Abschnitte (anfangs zu, mit Anzahl)
+|       +-- Begründung · Kurzfassung · Kategorie/Fallmuster · Confidence-Gründe
+|       +-- Interne To-dos · Prüfhinweise · Metadaten
+|       +-- Quellen (N): je Quelle aufklappbar mit Text + Link zur Knowledge-Übersicht
++-- Analyse-Formular (PROJ-9), nach einer Analyse eingeklappt auf eine Zeile
++-- Verlauf (PROJ-6)
+```
+Wiederverwendet: Karte, Abzeichen, Hinweis-Kasten, Knopf, aufklappbare Abschnitte (`collapsible`), Kopier-Verhalten aus `copy-field`, Knowledge-Textdarstellung.
+
+### B) Daten
+Der Analyse-Datensatz aus PROJ-9 bekommt zusätzlich:
+- **Bearbeiteter Entwurf:** Text, wer ihn zuletzt bearbeitet hat und wann. Das KI-Original bleibt daneben unverändert.
+- **Quellen-Fassungen:** für jede zitierte Knowledge-ID Titel, Typ, Status und Text zum Zeitpunkt der Analyse, dazu der Fingerabdruck (zum Erkennen späterer Änderungen).
+- **Stand des Verlaufs:** Kennung und Zeit der letzten Nachricht bei der Analyse.
+- **Formulareingaben:** Kundengruppe, Produkte, Variante, Kontextfeld, Bestelldaten von Hand.
+
+Neu je Ticket:
+- **Verweis „letzte Analyse“** auf die jüngste echte Analyse; Testläufe haben einen eigenen Verweis je Schnittpunkt.
+
+Alles verschlüsselt im Zwischenspeicher, 7 Tage ab der letzten Änderung. Keine Entwurfsinhalte im Log.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Speichern beim Tippen:** Die Seite schickt den Entwurf kurz nach dem letzten Tastendruck im Hintergrund an die App. Das ist eine eigene, kleine Adresse nur für den Entwurf, geschützt wie alle Formulare (Name erforderlich, Schutz gegen fremde Absendungen, höchstens 20.000 Zeichen). Schlägt es fehl, bleibt der Text im Feld und die App versucht es erneut.
+- **Quellen als Momentaufnahme:** Würde die App die Quelle erst beim Aufklappen lesen, sähe man evtl. eine spätere Fassung. Deshalb wird der Text der zitierten Dokumente bei der Analyse mitgespeichert; der Fingerabdruck zeigt, ob sich das Dokument seither geändert hat.
+- **Letzte Analyse wiederfinden:** Je Ticket merkt sich die App, welche Analyse die jüngste ist. Beim Öffnen des Tickets wird sie angezeigt; ob neue Nachrichten dazugekommen sind, erkennt die App am gemerkten Stand des Verlaufs.
+- **Offene Platzhalter:** Die App zählt im Browser die eckigen Klammern, die sie nicht füllen konnte, nach derselben Regel wie beim Einsetzen.
+- **Ohne JavaScript** bleibt alles lesbar: Abschnitte klappen über HTML auf, der Entwurf ist als Text sichtbar.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Bestehende Ergebnisse aus PROJ-9 ohne die neuen Felder müssen weiter angezeigt werden (Quellen dann nur mit ID, Formular ohne damalige Eingaben).
+- „Original wiederherstellen“ setzt den bearbeiteten Entwurf zurück (gespeichert als „nicht bearbeitet“).
+- Der Ergebnis-Link `?analyse=…` bleibt gültig; ohne Link gilt der Verweis „letzte Analyse“.
+- Tests: Speichern (Name nötig, fremde Analyse/fremdes Ticket abgelehnt, Länge), Wiederfinden inkl. Testläufe, neue Nachrichten, Quellen geändert/entfernt, alte Ergebnisse ohne neue Felder.
 
 ## QA Test Results
 _To be added by /qa_
