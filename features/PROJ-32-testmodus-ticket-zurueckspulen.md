@@ -1,6 +1,6 @@
 # PROJ-32: Testmodus – Ticket zurückspulen
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -85,12 +85,60 @@ Im Moment kommen wenige Tickets herein, und alle werden zügig beantwortet. Fris
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Zurückgespultes Ticket = dasselbe Ticket mit gekürztem Verlauf; alle PROJ-9-Bausteine bleiben unverändert | Analyse, Zusammenfassung, Vorschau, Schwelle und Bestellnummern-Erkennung arbeiten automatisch auf dem Stand; kein zweiter Codepfad, der auseinanderlaufen kann | 2026-10-06 |
+| Schnittpunkt als Zammad-Nachrichten-ID in der Adresse (`?stand=…`) und als verstecktes Formularfeld | Neu laden und Weitergeben behalten den Stand; der Server prüft ID, Ticket und Nachrichtenart bei jedem Aufruf | 2026-10-06 |
+| Admin-Liste `admins` in `config/staff.php`; Testmodus-Schalter als verschlüsseltes Cookie wie der Name | Gleiche Mechanik wie PROJ-5, keine Datenbank; wird mit PROJ-15 durch eine echte Rolle ersetzt | 2026-10-06 |
+| Zusammenfassung im Testlauf unter eigenem Schlüssel je Schnittpunkt | Echte Zusammenfassung bleibt unberührt; wiederholte Tests desselben Stands sparen Tokens | 2026-10-06 |
+| Keine Datenbank, keine neuen Pakete | Speicherung wie PROJ-9 (vorübergehend, verschlüsselt); dauerhaft erst mit PROJ-11 | 2026-10-06 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Der Testmodus baut auf PROJ-9 auf. Die Idee: Ein zurückgespultes Ticket ist für die App einfach dasselbe Ticket mit einem kürzeren Verlauf. Alles, was heute schon mit dem Verlauf arbeitet (Vorschau, Varianten, Schwelle für die Zusammenfassung, Bestellnummern-Vorschläge, Analyse), funktioniert damit ohne Änderung auf dem früheren Stand. Neu sind nur: wer den Testmodus sehen darf, der Schalter, das Kürzen und die Kennzeichnung.
+
+### A) Bausteine
+```
+Kopfleiste (alle Seiten)
++-- Name (PROJ-5)
++-- Schalter „Testmodus" (nur Admins)
++-- Hinweisband „Testmodus aktiv" (nur wenn eingeschaltet)
+
+Ticketseite (PROJ-6)
++-- Kopf: Status + Hinweis „Testlauf – Status und spätere Antworten werden ignoriert"
+|        + „Ganzen Verlauf zeigen" (wenn zurückgespult)
++-- Verlauf bis zum Schnittpunkt
+|   +-- jede Kundennachricht: Schaltfläche „Bis hierher testen" (nur Testmodus)
++-- Block „N spätere Nachrichten (nicht an die KI)" – ausgegraut, aufklappbar
++-- Analyse-Formular (PROJ-9), trägt den Schnittpunkt verdeckt mit
++-- Zusammenfassung (PROJ-9), je Schnittpunkt getrennt
++-- Ergebnis (PROJ-9) mit Kennzeichnung „Testlauf (Stand bis Nachricht vom …)"
+```
+
+### B) Daten
+- **Admin-Liste:** in der Konfiguration neben der Namensliste, zunächst nur „Etienne".
+- **Schalter:** je Browser in einem verschlüsselten Cookie, wie der gewählte Name. Wirkt nur, wenn der gewählte Name Admin ist.
+- **Schnittpunkt:** die Zammad-Nummer der gewählten Kundennachricht, in der Adresse der Seite und im Formular. Wird nirgends dauerhaft gespeichert.
+- **Zusammenfassung im Testlauf:** wie bisher vorübergehend (7 Tage, verschlüsselt), aber unter einem eigenen Schlüssel je Ticket und Schnittpunkt.
+- **Ergebnis:** wie bisher, zusätzlich mit dem Vermerk „Testlauf" und Datum/Uhrzeit der Schnittpunkt-Nachricht.
+- **Kundengruppe:** je Ticket weiter gemerkt, je Kunde im Testlauf nicht.
+- Jede Nachricht bekommt intern ihre Zammad-Nummer mit, damit der Schnittpunkt eindeutig ist.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Kürzen statt Sonderweg:** Würde jeder Baustein selbst „Testmodus" kennen, könnte z. B. die Vorschau etwas anderes zeigen als das, was an die KI geht. Mit einem gekürzten Ticket ist das ausgeschlossen.
+- **Prüfung auf dem Server:** Ob jemand Admin ist und ob der Schnittpunkt gültig ist (gehört zu diesem Ticket, ist eine Kundennachricht), prüft der Server bei jeder Anzeige und jedem Abschicken. Ein ungültiger Schnittpunkt führt zum Hinweis „Stand nicht gefunden" und zum ganzen Verlauf.
+- **Ohne Login nur schwacher Schutz:** Wer „Etienne" wählt, ist Admin. Im internen Netz vertretbar; PROJ-15 ersetzt die Liste durch eine echte Rolle.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Schalter in der Kopfleiste neben dem Namen; Umschalten per Formular (POST mit CSRF), danach zurück auf dieselbe Seite (sichere Weiterleitung wie bei der Namenswahl).
+- „Bis hierher testen" ist ein einfacher Link mit `?stand=…` (keine Datenänderung).
+- Eingeklappter Block nutzt dieselbe Aufklapp-Darstellung wie Zitate/Signatur.
+- Tests: Nicht-Admin mit `stand` in Adresse und Formular, fremde/ungültige Nachrichten-ID, Zusammenfassung getrennt, Kundengruppe je Kunde nicht gemerkt, Vorschau = gesendeter Text.
 
 ## QA Test Results
 _To be added by /qa_
