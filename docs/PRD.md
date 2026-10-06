@@ -34,6 +34,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Feedback und Wissenslücke melden | Roadmap |
 | P0 (MVP) | Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Roadmap |
 | P0 (MVP) | Interne Arbeitsabläufe zum Fall (Dokumenttyp `procedure`, Vorschläge nach der Analyse) | Planned |
+| P0 (MVP) | Testmodus für Admins: beantwortete Tickets auf einen früheren Stand zurückspulen | Planned |
 | P1 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
 | P1 | Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
 | P1 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Roadmap |

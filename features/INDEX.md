@@ -13,7 +13,7 @@
 
 ## Features
 
-The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time; PROJ-28 is P0 and should be built right after PROJ-11; PROJ-30 is P0 and is built after PROJ-10, its document type was built ahead). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
+The ID order is the recommended build order (exceptions: PROJ-24 was added later and should be built right after PROJ-3; PROJ-25 and PROJ-26 are independent and can be built at any time; PROJ-28 is P0 and should be built right after PROJ-11; PROJ-30 is P0 and is built after PROJ-10, its document type was built ahead; PROJ-32 is built right after PROJ-9 to test it on answered tickets). No authentication in the MVP (see `docs/PRD.md`, Constraints); login arrives with PROJ-15.
 
 | ID | Feature | Description | Priority | Dependencies | Status | Spec | Created |
 |----|---------|-------------|----------|--------------|--------|------|---------|
@@ -48,7 +48,8 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-29 | Ticketbearbeitung in der App | Die App wird zur bevorzugten Arbeitsoberfläche neben Zammad: lesen, antworten, interne Notiz, Status und Zuständigkeit direkt aus der App nach Zammad, damit nur noch selten in Zammad gewechselt und nicht mehr hin und her kopiert werden muss; Zammad bleibt das führende System; berührt PROJ-19 und die Non-Goals im PRD | P2 | PROJ-6, PROJ-15, PROJ-19 | Roadmap | – | 2026-10-05 |
 | PROJ-30 | Interne Arbeitsabläufe zum Fall | Neuer Dokumenttyp `procedure` (Schritt-für-Schritt-Anleitung für Menschen); nach der Analyse passende Abläufe vorschlagen (Kundengruppe, Kanal, Produkt, Fallkategorie, Vorgang), manuell wählbar, abhakbar, kritische Hinweise hervorgehoben, getrennt vom Antwortentwurf; Dokumenttyp und Prüfung vorgezogen | P0 | PROJ-3, PROJ-4, PROJ-9, PROJ-10 | Planned | [Spec](PROJ-30-interne-arbeitsablaeufe.md) | 2026-10-05 |
 | PROJ-31 | Einstellungen: KI-Modell und Prompts | Auf der Seite „Einstellungen": Modell je Aufruf (Analyse, Zusammenfassung) per Freitextfeld wählbar, darüber die aktuell beim Anbieter verfügbaren Modelle mit genauer Bezeichnung; Prompts für Zusammenfassung und Analyse ansehen und ändern, jede Änderung als neue Prompt-Version nachvollziehbar | P1 | PROJ-9, PROJ-11 | Roadmap | – | 2026-10-06 |
+| PROJ-32 | Testmodus – Ticket zurückspulen | Admin-Werkzeug (Admin-Liste in der Konfiguration, Schalter je Browser): beantwortete oder geschlossene Tickets auf den Stand einer Kundennachricht zurückspulen; nur Nachrichten bis dahin gehen in Analyse und Zusammenfassung, spätere eingeklappt zum Vergleich; Testläufe gekennzeichnet und von echten Daten getrennt | P0 | PROJ-5, PROJ-6, PROJ-9 | Planned | [Spec](PROJ-32-testmodus-ticket-zurueckspulen.md) | 2026-10-06 |
 
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-32
+## Next Available ID: PROJ-33
