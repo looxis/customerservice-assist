@@ -1,4 +1,4 @@
-@props(['articles', 'later' => [], 'rewindUrl' => null])
+@props(['articles', 'later' => [], 'rewound' => false, 'rewindUrl' => null])
 
 @php
     $count = count($articles);
@@ -36,7 +36,7 @@
                 {{ $summary }}
             @endif
 
-            <x-ticket.article :article="$article" :latest="$index === $count - 1" :rewind-url="$rewindUrl && $article->kind === \App\Zammad\ArticleKind::Customer && $article->id !== null ? $rewindUrl($article->id) : null" />
+            <x-ticket.article :article="$article" :latest="$index === $count - 1" :latest-label="$rewound ? 'Stand des Testlaufs' : 'Neueste Nachricht'" :rewind-url="$rewindUrl && $article->kind === \App\Zammad\ArticleKind::Customer && $article->id !== null ? $rewindUrl($article->id) : null" />
         @endforeach
     @endif
 

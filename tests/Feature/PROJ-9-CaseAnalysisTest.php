@@ -602,3 +602,74 @@ describe('qa additions', function () {
         expect($html)->not->toContain('<script>alert(1)</script>')->not->toContain('<img src=x')->toContain('&lt;script&gt;');
     });
 });
+
+describe('bug fixes', function () {
+    test('a retryable error offers "Erneut versuchen", a missing key does not', function () {
+        CaseAgent::fake(fn () => throw new ConnectionException('down'));
+        analysisTicket();
+
+        analyze();
+        $this->get('/tickets/2137942')->assertSeeText('Die Analyse ist gerade nicht möglich.')->assertSee('form="analyse-formular"', false);
+
+        config(['ai.providers.openai.key' => '']);
+        analyze();
+        $this->get('/tickets/2137942')->assertDontSee('form="analyse-formular"', false);
+    });
+
+    test('without matching knowledge the result says so', function () {
+        knowledgeBase(['policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'Nur Amazon', 'sales_channels' => ['amazon']])]);
+        CaseAgent::fake([caseAnswer(['knowledge_ids' => []])]);
+        analysisTicket();
+
+        $this->get(analyze(['kundengruppe' => 'reseller'])->headers->get('Location'))->assertSeeText('Kein Wissen für diesen Fall');
+    });
+
+    test('with knowledge there is no such hint', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        $this->get(analyze()->headers->get('Location'))->assertDontSeeText('Kein Wissen für diesen Fall');
+    });
+
+    test('a full thread above the limit is refused with a pointer to the summary variant', function () {
+        config(['analysis.max_input_characters' => 500]);
+        CaseAgent::fake();
+        analysisTicket([
+            zammadArticle(['id' => 1, 'body' => '<p>'.str_repeat('alt ', 200).'</p>']),
+            zammadArticle(['id' => 2, 'body' => '<p>Neu</p>', 'created_at' => '2026-10-02T07:12:00.000Z']),
+        ]);
+
+        analyze(['variante' => 'verlauf']);
+
+        CaseAgent::assertNeverPrompted();
+        $this->get('/tickets/2137942')->assertSeeText('Der Verlauf ist zu lang für die KI.');
+    });
+
+    test('for the summary the oldest part of a very long thread is shortened', function () {
+        config(['analysis.max_input_characters' => 300]);
+        SummaryAgent::fake([summaryAnswer()]);
+        analysisTicket([
+            zammadArticle(['id' => 1, 'body' => '<p>ANFANG '.str_repeat('alt ', 200).'</p>']),
+            zammadArticle(['id' => 2, 'body' => '<p>Mitte ENDE</p>', 'created_at' => '2026-10-02T07:12:00.000Z']),
+            zammadArticle(['id' => 3, 'body' => '<p>Neu</p>', 'created_at' => '2026-10-03T07:12:00.000Z']),
+        ]);
+
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.summary.create', ['number' => '2137942']));
+
+        SummaryAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('ENDE') && ! $prompt->contains('ANFANG') && $prompt->contains('gekürzt'));
+    });
+
+    test('language model calls are limited per name and minute', function () {
+        config(['analysis.calls_per_minute' => 2]);
+        CaseAgent::fake([caseAnswer(), caseAnswer(), caseAnswer()]);
+        analysisTicket();
+
+        analyze();
+        analyze();
+        test()->from('/tickets/2137942')->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf'])
+            ->assertRedirect('/tickets/2137942')
+            ->assertSessionHas('analysis_error', 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.');
+
+        CaseAgent::assertPrompted(fn () => true);
+    });
+});

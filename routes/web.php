@@ -30,8 +30,8 @@ Route::get('/tickets/{number}/bestellungen', [TicketController::class, 'addOrder
     ->name('tickets.orders.add');
 
 Route::middleware('staff.selected')->whereNumber('number')->group(function (): void {
-    Route::post('/tickets/{number}/analyse', [AnalysisController::class, 'analyze'])->name('tickets.analysis.run');
-    Route::post('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'createSummary'])->name('tickets.summary.create');
+    Route::post('/tickets/{number}/analyse', [AnalysisController::class, 'analyze'])->middleware('throttle:language-model')->name('tickets.analysis.run');
+    Route::post('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'createSummary'])->middleware('throttle:language-model')->name('tickets.summary.create');
     Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
 });
 

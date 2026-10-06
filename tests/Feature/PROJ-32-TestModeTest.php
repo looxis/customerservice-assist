@@ -211,3 +211,18 @@ describe('qa additions', function () {
         asTester(testMode: false)->post(route('test-mode.switch'), ['aktiv' => 'vielleicht'])->assertSessionHasErrors('aktiv');
     });
 });
+
+describe('bug fixes', function () {
+    test('the message a ticket is rewound to is labelled as the state of the test run', function () {
+        asTester()->get('/tickets/2137942?stand=11')->assertSeeText('Stand des Testlaufs')->assertDontSeeText('Neueste Nachricht');
+        asTester()->get('/tickets/2137942')->assertSeeText('Neueste Nachricht')->assertDontSeeText('Stand des Testlaufs');
+    });
+
+    test('an admin with the test mode off is told why a cut point is ignored, others are not', function () {
+        asTester(testMode: false)->get('/tickets/2137942?stand=11')
+            ->assertSeeText('Der Testmodus ist ausgeschaltet, deshalb gilt der ganze Verlauf.')
+            ->assertDontSeeText('spätere Nachricht');
+
+        asTester('Nele')->get('/tickets/2137942?stand=11')->assertDontSeeText('Testmodus ist ausgeschaltet');
+    });
+});

@@ -40,7 +40,7 @@
             @endif
         @endisset
 
-        <x-ticket.thread :articles="$ticket->articles" :later="$later ?? []" :rewind-url="($testMode ?? false) ? fn (int $id): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selected ?? [], 'stand' => $id]).'#analyse' : null">
+        <x-ticket.thread :articles="$ticket->articles" :later="$later ?? []" :rewound="$ticket->rewoundTo !== null" :rewind-url="($testMode ?? false) ? fn (int $id): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selected ?? [], 'stand' => $id]).'#analyse' : null">
             @isset($analysis)
                 <x-slot:summary>
                     <x-analysis.summary :number="$number" :analysis="$analysis" :selected="$selected ?? []" />

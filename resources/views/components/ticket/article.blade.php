@@ -1,4 +1,4 @@
-@props(['article', 'latest' => false, 'rewindUrl' => null])
+@props(['article', 'latest' => false, 'latestLabel' => 'Neueste Nachricht', 'rewindUrl' => null])
 
 @php
     $tone = match ($article->kind) {
@@ -32,7 +32,7 @@
             <span class="text-xs text-slate-600">· {{ $article->channel }}</span>
         @endif
         @if ($latest)
-            <span class="ml-auto text-xs font-semibold text-brand-700">Neueste Nachricht</span>
+            <span class="ml-auto text-xs font-semibold text-brand-700">{{ $latestLabel }}</span>
         @endif
         @if ($rewindUrl)
             <a href="{{ $rewindUrl }}" @class(['inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold text-warning-700 ring-1 ring-warning-500/30 ring-inset hover:bg-warning-500/10 focus-visible:outline-2 focus-visible:outline-brand', 'ml-auto' => ! $latest])>Bis hierher testen</a>

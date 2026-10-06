@@ -316,11 +316,11 @@ Server (app/Analysis/)
 ### Edge Cases Status
 - [x] Letzte Nachricht von uns: jüngste Kundennachricht gilt als letzte
 - [x] Keine Kundennachricht: Analyse möglich, nur „Ganzer Verlauf"
-- [ ] Sehr lange Tickets über der Modellgrenze: keine eigene Kürzung (BUG-3)
+- [x] Sehr lange Tickets über der Modellgrenze: behoben (BUG-3)
 - [x] Geschlossenes Ticket: Analyse möglich
 - [x] Mehrere Bestellungen: alle gehen mit
 - [x] „Noch unklar": Analyse mit allgemeingültigem Wissen
-- [ ] Wissen leer: Modell erhält „kein Wissen hinterlegt", in der Oberfläche aber kein eigener Hinweis (BUG-2)
+- [x] Wissen leer: Hinweis „Kein Wissen für diesen Fall" (BUG-2 behoben)
 - [x] Gleichzeitige Analysen: unabhängig (je Ergebnis eigene ID)
 - [x] Veraltete, von Hand geänderte Zusammenfassung: „neu erstellen" oder „weiter verwenden"
 - [x] Platzhalter im Antwortentwurf: nur bekannte werden eingesetzt
@@ -333,7 +333,7 @@ Server (app/Analysis/)
 - [x] Datenschutz: Kontaktdaten ersetzt, Lieferadresse und Zahlungsdaten nie übertragen, OpenAI `store: false`, Ergebnisse und Zusammenfassungen verschlüsselt, Log ohne Inhalte
 - [x] Zugangsdaten nur serverseitig, nicht in Seiten oder Meldungen
 - [x] Eingaben validiert (Kundengruppe, Produkte, Variante aus festen Listen; Kontext begrenzt)
-- [ ] Rate Limiting: serverseitig keines auf Analyse und Zusammenfassung (BUG-4)
+- [x] Rate Limiting: 6 KI-Aufrufe pro Minute je Name und Adresse (BUG-4 behoben)
 - Hinweis (kein Bug): Prompt-Injection über Kundentext ist grundsätzlich möglich. Abgemildert durch feste Wertelisten, Prüfung des Ergebnisses, keine Aktionen der App und Prüfung durch einen Menschen.
 
 ### Regression
@@ -344,27 +344,31 @@ Server (app/Analysis/)
 
 #### BUG-1: Kein eigener Knopf „Erneut versuchen" bei Fehlern
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – Knopf „Erneut versuchen" in der Fehlermeldung bei vorübergehenden Fehlern (nicht bei fehlendem Zugang); schickt das erhaltene Formular erneut ab.
 - **Steps to Reproduce:** Analyse starten, während der Anbieter nicht erreichbar ist. Erwartet: Meldung mit „Erneut versuchen". Tatsächlich: Meldung ohne Knopf; das Formular mit allen Eingaben bleibt, ein erneuter Klick auf „Analysieren" funktioniert.
 - **Priority:** Nice to have (mit PROJ-10)
 
 #### BUG-2: Kein Hinweis in der Oberfläche, wenn kein Wissen passt
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – Hinweis „Kein Wissen für diesen Fall" im Ergebnis; Warnungen der Wissensauswahl werden angezeigt.
 - **Steps to Reproduce:** Kundengruppe/Produkt wählen, für die kein Dokument gilt, analysieren. Erwartet: Hinweis „kein Wissen für diesen Fall". Tatsächlich: nur „Verwendetes Wissen: keines" und die Begründung des Modells; Warnungen der Wissensauswahl stehen nur in den Metadaten.
 - **Priority:** Fix in next sprint (mit PROJ-10)
 
 #### BUG-3: Keine Kürzung bei Überschreiten der Modellgrenze
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – Grenze `analysis.max_input_characters` (400.000 Zeichen, ca. 100.000 Tokens): „Ganzer Verlauf" darüber wird mit Verweis auf „Letzte Kundennachricht + Zusammenfassung" abgelehnt; für die Zusammenfassung werden die ältesten Nachrichten gekürzt, die letzte Kundennachricht nie.
 - **Steps to Reproduce:** Ticket mit sehr langem Verlauf und „Ganzer Verlauf" analysieren. Erwartet laut Edge Case: zuerst Verlauf kürzen, nie die letzte Kundennachricht. Tatsächlich: keine Prüfung; bei Überschreitung käme „Die Analyse ist gerade nicht möglich". Bei der Kontextgröße aktueller Modelle praktisch nicht zu erwarten; die Zusammenfassung ist ab der Schwelle vorausgewählt.
 - **Priority:** Nice to have
 
 #### BUG-4: Kein serverseitiges Rate Limiting für KI-Aufrufe
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – Begrenzung `throttle:language-model` auf Analyse und Zusammenfassung, 6 Aufrufe pro Minute je Name und Adresse (`analysis.calls_per_minute`), verständliche Meldung statt Fehlerseite.
 - **Steps to Reproduce:** Analyse-Formular mehrfach schnell per Skript absenden. Erwartet: Begrenzung. Tatsächlich: jeder Aufruf geht an den Anbieter (Kosten). Im Browser verhindert das Formular Doppelklicks; die App ist nur intern erreichbar.
 - **Priority:** Bei `/deploy` mit einplanen (z. B. Begrenzung je Name/Browser)
 
 ### Summary
 - **Acceptance Criteria:** 39/39 bestanden (eins mit dokumentierter Abweichung, eins mit BUG-1 als Low)
-- **Bugs Found:** 4 total (0 critical, 0 high, 0 medium, 4 low)
+- **Bugs Found:** 4 total (0 critical, 0 high, 0 medium, 4 low) – alle behoben 2026-10-06
 - **Security:** Pass (Rate Limiting als Low für `/deploy`)
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; BUG-1/2 mit PROJ-10 erledigen, BUG-4 bei `/deploy`; Webserver-Zeitlimit ≥ 120 s bei `/deploy` beachten.

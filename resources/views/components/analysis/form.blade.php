@@ -13,10 +13,17 @@
         <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Analyse</h2>
 
         @if (session('analysis_error'))
-            <x-alert type="error" class="mt-4" role="alert">{{ session('analysis_error') }}</x-alert>
+            <x-alert type="error" class="mt-4" role="alert">
+                <p>{{ session('analysis_error') }}</p>
+                @if (session('analysis_retry'))
+                    <p class="mt-3">
+                        <x-button type="submit" form="analyse-formular" variant="secondary"><x-icon name="refresh" size="16" /> Erneut versuchen</x-button>
+                    </p>
+                @endif
+            </x-alert>
         @endif
 
-        <form method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
+        <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', ''))) }"
               x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Ticket wird analysiert …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">

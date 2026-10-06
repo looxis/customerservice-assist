@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Eocs\EocsClient;
+use App\Http\LocalRedirect;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
@@ -11,7 +12,11 @@ use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\MessageBody;
 use App\Zammad\ZammadClient;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -42,6 +47,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('language-model', fn (Request $request): Limit => Limit::perMinute((int) config('analysis.calls_per_minute'))
+            ->by((app(StaffDirectory::class)->current($request) ?? '').'|'.$request->ip())
+            ->response(fn (Request $request): RedirectResponse => LocalRedirect::back($request, route('tickets.analyze'))
+                ->withInput()
+                ->with($request->routeIs('tickets.summary.*') ? 'summary_error' : 'analysis_error', 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.')));
+
         View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show'], function (\Illuminate\View\View $view): void {
             $staff = app(StaffDirectory::class);
             $testMode = app(TestMode::class);

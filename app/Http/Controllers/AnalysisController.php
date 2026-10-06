@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisException;
+use App\Analysis\AnalysisProblem;
 use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
 use App\Analysis\CaseAnalyzer;
@@ -35,21 +36,22 @@ class AnalysisController extends Controller
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
-        $back = fn (string $message): RedirectResponse => redirect()
+        $back = fn (string $message, bool $retry = false): RedirectResponse => redirect()
             ->to($this->ticketUrl($number, $request, '#analyse'))
             ->withInput()
-            ->with('analysis_error', $message);
+            ->with('analysis_error', $message)
+            ->with('analysis_retry', $retry);
 
         try {
             $ticket = $testMode->rewind($zammad->ticket($number), $request, $request->input('stand'))['ticket'];
         } catch (ZammadException $exception) {
-            return $back($exception->problem->message($number));
+            return $back($exception->problem->message($number), $exception->problem->canRetry());
         }
 
         try {
             $orders = collect($eocs->lookup($this->orderNumbers($request, $detector)))->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->values()->all();
         } catch (EocsException $exception) {
-            return $back($exception->problem->message());
+            return $back($exception->problem->message(), $exception->problem->canRetry());
         }
 
         $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request));
@@ -61,6 +63,10 @@ class AnalysisController extends Controller
         $context = new TicketContext($ticket);
         $variant = in_array($request->variant(), $context->variants(), true) ? $request->variant() : ContextVariant::FullThread;
         $summary = $variant === ContextVariant::LastWithSummary ? $store->summary($ticket->summaryKey()) : null;
+
+        if ($variant === ContextVariant::FullThread && $context->offersVariants() && mb_strlen($context->text($variant)) > (int) config('analysis.max_input_characters')) {
+            return $back('Der Verlauf ist zu lang für die KI. Bitte „Letzte Kundennachricht + Zusammenfassung“ wählen – die letzte Kundennachricht wird immer vollständig übertragen.');
+        }
 
         try {
             if ($variant === ContextVariant::LastWithSummary && ($summary === null || $summary->isStale($context->earlierFingerprint()))) {
@@ -83,7 +89,7 @@ class AnalysisController extends Controller
                 summary: $summary,
             ));
         } catch (AnalysisException $exception) {
-            return $back($exception->problem->message());
+            return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);
         }
 
         return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $id]))->withInput();

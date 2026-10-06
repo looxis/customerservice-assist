@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 /**
  * Admin tool for testing on answered tickets (PROJ-32): a ticket is rewound
  * to an earlier customer message, so analysis and summary only see the
- * thread up to there. Switched on per browser, only for admins.
+ * thread up to there. Switched on per browser, only for admins; for others
+ * a cut point is ignored without a word.
  */
 class TestMode
 {
@@ -37,8 +38,12 @@ class TestMode
      */
     public function rewind(Ticket $ticket, Request $request, mixed $stand): array
     {
-        if ($stand === null || $stand === '' || ! $this->isActive($request)) {
+        if ($stand === null || $stand === '' || ! $this->isAvailable($request)) {
             return ['ticket' => $ticket, 'later' => [], 'problem' => null];
+        }
+
+        if (! $this->isActive($request)) {
+            return ['ticket' => $ticket, 'later' => [], 'problem' => 'Der Testmodus ist ausgeschaltet, deshalb gilt der ganze Verlauf. Zum Testen oben rechts „Testmodus“ einschalten.'];
         }
 
         $rewound = is_scalar($stand) && ctype_digit((string) $stand) ? $ticket->rewoundTo((int) $stand) : null;

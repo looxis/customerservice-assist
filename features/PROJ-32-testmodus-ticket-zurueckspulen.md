@@ -208,17 +208,19 @@ Keine neuen Pakete.
 
 #### BUG-1: Schnittpunkt-Nachricht heißt „Neueste Nachricht"
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – im Testlauf heißt sie „Stand des Testlaufs".
 - **Steps to Reproduce:** Testmodus an, bei einer älteren Kundennachricht „Bis hierher testen". Erwartet: Hervorhebung als Schnittpunkt (z. B. „Stand des Testlaufs"). Tatsächlich: Die Nachricht trägt „Neueste Nachricht", wird hervorgehoben und angesprungen; inhaltlich stimmt das für den zurückgespulten Stand, kann aber verwirren.
 - **Priority:** Nice to have
 
 #### BUG-2: Admin mit ausgeschaltetem Testmodus sieht bei `?stand=` keinen Hinweis
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – Hinweis „Der Testmodus ist ausgeschaltet, deshalb gilt der ganze Verlauf …"; für Nicht-Admins weiter ohne Hinweis.
 - **Steps to Reproduce:** Testmodus aus, Adresse mit `?stand=…` öffnen (z. B. aus einem gemerkten Link). Erwartet: Hinweis „Testmodus ist aus – Stand wird ignoriert". Tatsächlich: ganzer Verlauf ohne Hinweis.
 - **Priority:** Nice to have
 
 ### Summary
 - **Acceptance Criteria:** 18/18 bestanden
-- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low) – beide behoben 2026-10-06
 - **Security:** Pass (schwacher Admin-Schutz ohne Login bekannt und akzeptiert)
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; BUG-1/2 bei Gelegenheit.

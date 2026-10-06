@@ -67,6 +67,15 @@ return [
 
     'retention_days' => 7,
 
+    // Language model calls (analysis and summary) per name and browser
+    // address per minute; protects against costs from repeated sending.
+    'calls_per_minute' => 6,
+
+    // Upper bound for the ticket part sent in one call (about 100,000
+    // tokens). A longer full thread must go through the summary; for the
+    // summary itself the oldest messages are shortened, never the newest.
+    'max_input_characters' => 400_000,
+
     // The customer group chosen for a Zammad customer or organization is
     // remembered for later tickets; it holds no case content.
     'customer_group_retention_days' => 365,

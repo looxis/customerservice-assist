@@ -26,7 +26,7 @@ class Summarizer
         $pseudonymizer = app(Pseudonymizer::class);
         $model = (string) config('analysis.models.summary');
 
-        $answer = $this->model->ask(new SummaryAgent($prompt->text), $pseudonymizer->apply($context->earlierText()), $model, 'summary', $ticket->number);
+        $answer = $this->model->ask(new SummaryAgent($prompt->text), $pseudonymizer->apply($this->limited($context->earlierText())), $model, 'summary', $ticket->number);
 
         $summary = new Summary(
             text: $pseudonymizer->restorePlain(Summary::textFrom($answer['data'])),
@@ -41,5 +41,15 @@ class Summarizer
         $this->store->putSummary($ticket->summaryKey(), $summary);
 
         return $summary;
+    }
+
+    /**
+     * Keep the newest part of a very long earlier thread.
+     */
+    private function limited(string $text): string
+    {
+        $limit = (int) config('analysis.max_input_characters');
+
+        return mb_strlen($text) <= $limit ? $text : "[Ältere Nachrichten wegen der Länge gekürzt]\n…".mb_substr($text, -$limit);
     }
 }

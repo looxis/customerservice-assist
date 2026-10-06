@@ -32,6 +32,20 @@
             </x-alert>
         @endif
 
+        @if (($meta['knowledge_fingerprints'] ?? null) === [])
+            <x-alert type="warning" class="mt-4">
+                <p class="font-semibold">Kein Wissen für diesen Fall</p>
+                <p class="mt-1">Für die gewählte Kundengruppe und die Produkte gibt es kein passendes Wissen. Der Vorschlag beruht nur auf dem Ticket und ist entsprechend vorsichtig. Stimmen Kundengruppe und Produkte?</p>
+            </x-alert>
+        @endif
+
+        @if (($meta['knowledge_warnings'] ?? []) !== [])
+            <x-alert type="warning" class="mt-4">
+                <p class="font-semibold">Hinweise zur Wissensauswahl</p>
+                <ul class="mt-1 list-disc pl-5">@foreach ($meta['knowledge_warnings'] as $warning)<li>{{ $warning }}</li>@endforeach</ul>
+            </x-alert>
+        @endif
+
         @if (($r['knowledge_gaps'] ?? []) !== [])
             <x-alert type="warning" class="mt-4">
                 <p class="font-semibold">Fehlendes Wissen</p>
