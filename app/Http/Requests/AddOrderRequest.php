@@ -15,6 +15,8 @@ class AddOrderRequest extends FormRequest
 {
     public const string MESSAGE = 'Unbekanntes Format. Erwartet z. B. 402-4907715-1581912 oder 7JI-0WC1-6M49.';
 
+    public const string EMPTY = 'Bitte eine Bestellnummer eingeben.';
+
     public function authorize(): bool
     {
         return true;
@@ -42,7 +44,7 @@ class AddOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'bestellnummer.required' => self::MESSAGE,
+            'bestellnummer.required' => self::EMPTY,
             'bestellnummer.string' => self::MESSAGE,
             'bestellnummer.max' => self::MESSAGE,
         ];

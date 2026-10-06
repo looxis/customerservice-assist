@@ -303,6 +303,11 @@ Geprüft mit Pest (EOCS und Zammad nachgestellt, nur erfundene Daten), gegen das
   4. Actual: EOCS braucht für `filter[id]` selbst rund 7 s; bei mehreren Bestellungen stauen sich die Anfragen, weil EOCS nur wenige gleichzeitig beantwortet
 - **Priority:** Fix in next sprint – braucht eine Änderung in EOCS (Index bzw. schnelle Suche über die ID oder `GET /orders/{id}` für den Token, Filter für Folgeaufträge); in der App bereits auf das Mögliche optimiert
 
+#### BUG-2: Bestellnummer im Ticket-Betreff wird nicht vorgeschlagen; leeres Feld meldet „Unbekanntes Format" – BEHOBEN (2026-10-06)
+- **Severity:** Medium
+- **Gefunden:** im ersten Test mit PROJ-9 (Ticket#2138220, Betreff „Bestellung 7JJ-0LFR-2GU7"; vorgeschlagen wurde nur `7JJ-0LQH-1RB6` aus der Nachricht).
+- **Fix:** Die Erkennung durchsucht den Betreff vor dem Verlauf (nach der Amazon-Erkennung); ein leeres Eingabefeld meldet „Bitte eine Bestellnummer eingeben." Tests ergänzt.
+
 ### Summary
 - **Acceptance Criteria:** alle bestanden (EOCS-ID funktional, aber langsam)
 - **Bugs Found:** 1 total (0 critical, 0 high, 1 medium, 0 low)

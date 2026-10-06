@@ -34,7 +34,8 @@ class OrderNumberDetector
 
     /**
      * Order numbers named in the ticket, in order of first appearance; orders
-     * recognised from Amazon's notice come first. Quotes count, links do not.
+     * recognised from Amazon's notice come first, then the ticket title, then
+     * the thread. Quotes count, links do not.
      *
      * @return list<OrderNumber>
      */
@@ -46,7 +47,7 @@ class OrderNumberDetector
             $found[$order->number] = new OrderNumber($order->number, OrderNumberFormat::Amazon);
         }
 
-        $text = implode("\n", array_map(fn (TicketArticle $article): string => $this->text($article), $ticket->articles));
+        $text = $ticket->title."\n".implode("\n", array_map(fn (TicketArticle $article): string => $this->text($article), $ticket->articles));
         $hits = [];
 
         foreach (OrderNumberFormat::cases() as $format) {

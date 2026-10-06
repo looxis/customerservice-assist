@@ -117,6 +117,15 @@ describe('order number formats', function () {
         Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'eocs.test'));
     });
 
+    test('a number in the ticket title is suggested too, before the thread', function () {
+        fakeZammad([zammadArticle(['body' => '<p>Bestellnummer Tasse: 7JJ-0LQH-1RB6</p>'])], ['title' => 'Bestellung 7JJ-0LFR-2GU7']);
+
+        $html = $this->get('/tickets/2137942')->getContent();
+        preg_match('/aria-label="Gefundene Bestellnummern">(.*?)<\/div>/s', $html, $suggestions);
+
+        expect($suggestions[1])->toMatch('/7JJ-0LFR-2GU7.*7JJ-0LQH-1RB6/s');
+    });
+
     test('tracking numbers, phone numbers, postcodes and links are not suggested', function () {
         ticketWith('<p>Sendung CM983471129DE, Tracking 00340434171079990018, Tel. 0031626176737, PLZ 32423, Code ABCDEFGHIJ, <a href="https://x.example/?o=402-4907715-1581912">Link</a>, Wort Bestellung1</p>');
 
@@ -322,10 +331,10 @@ describe('typing in a number', function () {
             ->assertSee('aria-invalid="true"', false);
     });
 
-    test('an empty input is rejected without asking eocs', function () {
+    test('an empty input asks for a number without asking eocs', function () {
         Http::fake();
 
-        $this->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => '']))->assertSessionHasErrors('bestellnummer');
+        $this->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => '']))->assertSessionHasErrors(['bestellnummer' => AddOrderRequest::EMPTY]);
 
         Http::assertNothingSent();
     });
