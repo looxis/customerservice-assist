@@ -69,6 +69,7 @@ describe('content of the real text', function () {
             'Ein Beispiel',
             'Was die App bewusst nicht tut',
             'Gut zu wissen',
+            'Wenn etwas fehlt',
             'Wissen ergänzen',
             'Aktueller Stand',
             'Für Entwickler',
@@ -110,6 +111,12 @@ describe('content of the real text', function () {
         }
 
         $response->assertSeeText('/write-spec')->assertSeeText('./vendor/bin/sail');
+    });
+
+    test('missing information, missing knowledge and the context field are explained, with the test cycle', function () {
+        $this->get(route('about'))
+            ->assertSeeTextInOrder(['Fehlende Informationen – uns fehlt etwas zum Fall.', 'Rückfrage', 'Fehlendes Wissen – uns fehlt eine Regel.', 'Fakten zum Fall', 'Regeln gehören nicht in dieses Feld'])
+            ->assertSeeTextInOrder(['Testen:', 'Lücke erkennen:', 'Wissen ergänzen:', 'Erneut testen:']);
     });
 
     test('the example is fictitious and contains no order or ticket numbers', function () {

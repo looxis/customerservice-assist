@@ -32,6 +32,11 @@ class ResultValidator
 
         $notes = [];
 
+        $data['knowledge_gaps'] = array_values(array_filter(
+            is_array($data['knowledge_gaps'] ?? null) ? $data['knowledge_gaps'] : [],
+            fn (mixed $gap): bool => is_array($gap) && is_string($gap['topic'] ?? null) && trim($gap['topic']) !== '',
+        ));
+
         if (! in_array($data['category'], config('knowledge.categories'), true)) {
             $notes[] = "Unbekannte Kategorie „{$data['category']}“ verworfen.";
             $data['category'] = null;

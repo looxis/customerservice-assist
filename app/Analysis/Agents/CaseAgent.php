@@ -62,6 +62,10 @@ class CaseAgent implements Agent, HasStructuredOutput
                 'from' => $schema->string()->required(),
                 'question' => $schema->string()->required(),
             ])->withoutAdditionalProperties())->required(),
+            'knowledge_gaps' => $schema->array()->items($schema->object([
+                'topic' => $schema->string()->description('Thema der fehlenden Regel')->required(),
+                'question' => $schema->string()->description('Frage, die das Unternehmenswissen beantworten müsste')->required(),
+            ])->withoutAdditionalProperties())->required(),
             'knowledge_ids' => $schema->array()->items($knowledgeId)->required(),
             'confidence' => $schema->object([
                 'level' => $schema->string()->enum(['HOCH', 'MITTEL', 'NIEDRIG'])->required(),

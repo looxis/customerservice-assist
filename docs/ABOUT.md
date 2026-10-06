@@ -36,14 +36,34 @@ Eine Kundin hat auf Amazon eine Zaubertasse gekauft. Sie schreibt: „Das Motiv 
 
 # Gut zu wissen
 
-- **„Unklar" ist ein gutes Ergebnis.** Fehlen Informationen, soll die App nicht raten. Sie sagt dann, was fehlt und welche Rückfrage an den Kunden sinnvoll ist.
+- **„Unklar" ist ein gutes Ergebnis.** Fehlen Informationen, soll die App nicht raten. Sie sagt dann, was fehlt und welche Rückfrage sinnvoll ist (mehr dazu im nächsten Abschnitt).
 - **Entwurfs-Wissen** ist Wissen, das noch nicht endgültig bestätigt ist. Die App verwendet es trotzdem und kennzeichnet es. Schau bei Entwurfs-Wissen ruhig kritisch hin. Wenn dir etwas falsch vorkommt, sag Bescheid; genau dafür ist die Kennzeichnung da.
 - **Jede Empfehlung nennt ihre Quellen**, also die Knowledge-Dokumente, auf denen sie beruht. So kannst du nachlesen, warum die App etwas vorschlägt.
 - **Die Kundengruppe ist wichtig.** Für Privatkunden im Shop, auf Amazon, für Fachhändler, für LOOXIS-Pro und für White-Label-Kunden wie masterpics gelten teils unterschiedliche Regeln. Wählst du die falsche Gruppe, bekommt die KI die falschen Regeln.
 
+# Wenn etwas fehlt
+
+Die App soll nie raten oder etwas erfinden. Fehlt etwas, sagt sie es offen. Dabei unterscheidet sie zwei Fälle:
+
+- **Fehlende Informationen – uns fehlt etwas zum Fall.** Zum Beispiel ein Foto, die Bestellnummer oder eine Auskunft der Produktion. Die App nennt im Vorschlag unter „Fehlende Informationen", *was* fehlt, *von wem* es kommen muss (Kunde oder intern) und formuliert die passende **Rückfrage**. Bei Reklamationen lautet die Bewertung dann „unklar". Das ist kein Fehler, sondern genau richtig: erst nachfragen, dann entscheiden.
+- **Fehlendes Wissen – uns fehlt eine Regel.** Zum Beispiel fragt ein Kunde: „Können meine zwei Bestellungen zusammengeführt und mit einer Rechnung berechnet werden?" Steht dazu nichts in der Knowledge, zeigt die App oben im Vorschlag den Hinweis **„Fehlendes Wissen"** mit dem Thema und der offenen Frage. Der Vorschlag sagt dazu bewusst nichts zu. Entscheide dann nicht nach Gefühl, sondern frag nach und melde die Lücke an Etienne. Dann wird das Wissen ergänzt (siehe „Wissen ergänzen").
+
+**Das Feld „Zusätzliche Informationen / eigene Einschätzung"** ist für **Fakten zum Fall** da, die nicht im Ticket stehen: „Foto geprüft: Motiv ist verschoben gedruckt", „Kundin am Telefon: braucht Ersatz bis zum 20.12.", „Produktion bestätigt Fehldruck". Die KI behandelt diese Angaben als geprüft und richtet sich danach.
+
+**Regeln gehören nicht in dieses Feld**, also nichts wie „Bestellungen kann man nicht zusammenführen, nur der Kunde bestimmt, was zu einer Bestellung gehört". Die KI würde die Regel zwar richtig anwenden. Aber dann merkt niemand, dass sie in der Knowledge fehlt, und beim nächsten Mal fehlt sie wieder. Solche Regeln bitte als Wissenslücke melden.
+
 # Wissen ergänzen
 
 Die Knowledge besteht aus einzelnen Textdateien, eine Datei pro Regel, Produkt oder Ablauf. Neues Wissen entsteht entlang echter Fälle: Fehlt der App etwas, wird es aufgeschrieben, zuerst als Entwurf.
+
+Neues Wissen wird an echten Fällen geprüft. Der Kreislauf:
+
+1. **Testen:** Ein Ticket analysieren, ohne die fehlende Regel ins Feld „Zusätzliche Informationen" zu schreiben.
+2. **Lücke erkennen:** Die App meldet „Fehlendes Wissen", oder der Vorschlag ist erkennbar falsch oder zu allgemein.
+3. **Wissen ergänzen:** Die Regel als neues Dokument aufschreiben, zuerst als Entwurf. Wichtig ist der Geltungsbereich (Kundengruppe, Produkt), denn nur passendes Wissen geht an die KI.
+4. **Erneut testen:** Dasselbe Ticket noch einmal analysieren. Das neue Wissen wirkt sofort. Unter „Verwendetes Wissen" siehst du, ob die KI das neue Dokument genutzt hat.
+
+Damit sich auch bereits beantwortete Tickets zum Testen eignen, kann ein Admin ein Ticket auf den Stand einer früheren Kundennachricht zurückspulen. Spätere Antworten gehen dann nicht an die KI und lassen sich zum Vergleich aufklappen. [in Arbeit]
 
 Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für Wissen (dem „Authoring Guide"); ein Entwickler pflegt die Dateien anschließend ein. Welche Dokumente es gibt und ob sie fehlerfrei sind, zeigt die [Knowledge-Übersicht](/knowledge).
 

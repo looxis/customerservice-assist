@@ -15,6 +15,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 id="result-heading" class="text-base font-semibold text-slate-900">Ergebnis der Analyse</h2>
             <div class="flex flex-wrap gap-2">
+                @if (($r['knowledge_gaps'] ?? []) !== [])<x-badge tone="warning">Wissenslücke</x-badge>@endif
                 @if ($r['assessment'] ?? null)<x-badge :tone="$assessment[$r['assessment']] ?? 'neutral'">{{ ucfirst($r['assessment']) }}</x-badge>@endif
                 <x-badge :tone="$confidence[$r['confidence']['level']] ?? 'neutral'">Confidence {{ $r['confidence']['level'] }}</x-badge>
             </div>
@@ -24,6 +25,18 @@
             <x-alert type="warning" class="mt-4">
                 <p class="font-semibold">Hinweise zur Prüfung des Ergebnisses</p>
                 <ul class="mt-1 list-disc pl-5">@foreach ($result['notes'] as $note)<li>{{ $note }}</li>@endforeach</ul>
+            </x-alert>
+        @endif
+
+        @if (($r['knowledge_gaps'] ?? []) !== [])
+            <x-alert type="warning" class="mt-4">
+                <p class="font-semibold">Fehlendes Wissen</p>
+                <p class="mt-1">Für diesen Fall fehlt eine Regel in der Wissensdatenbank. Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und die Lücke an Etienne melden.</p>
+                <ul class="mt-2 space-y-2">
+                    @foreach ($r['knowledge_gaps'] as $gap)
+                        <li><span class="font-medium">{{ $gap['topic'] }}</span>@if ($gap['question'] ?? null)<br><span>Offene Frage: {{ $gap['question'] }}</span>@endif</li>
+                    @endforeach
+                </ul>
             </x-alert>
         @endif
 

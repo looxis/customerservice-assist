@@ -523,3 +523,38 @@ describe('remembered choice', function () {
         expect($this->get('/tickets/2137942')->assertDontSeeText('Vorbelegt:')->getContent())->toMatch('/<option value="unclear"\s+selected/');
     });
 });
+
+describe('missing knowledge', function () {
+    test('a knowledge gap named by the ai is shown prominently with topic and open question', function () {
+        CaseAgent::fake([caseAnswer(['knowledge_gaps' => [['topic' => 'Bestellungen zusammenführen', 'question' => 'Können zwei Bestellungen auf eine Rechnung?']]])]);
+        analysisTicket();
+
+        $this->get(analyze()->headers->get('Location'))
+            ->assertSeeTextInOrder(['Wissenslücke', 'Fehlendes Wissen', 'Bestellungen zusammenführen', 'Offene Frage: Können zwei Bestellungen auf eine Rechnung?', 'Was ist passiert?']);
+    });
+
+    test('without a gap, or with an unusable one, nothing is shown', function (mixed $gaps) {
+        CaseAgent::fake([caseAnswer(['knowledge_gaps' => $gaps])]);
+        analysisTicket();
+
+        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse')->assertDontSeeText('Fehlendes Wissen');
+    })->with(['empty' => [[]], 'no topic' => [[['topic' => ' ', 'question' => 'x']]], 'not a list' => ['x']]);
+
+    test('the prompt separates missing case information from missing rules', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        analyze();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains((string) $prompt->agent->instructions(), '`knowledge_gaps`')
+            && str_contains((string) $prompt->agent->instructions(), '`missing_information`'));
+    });
+
+    test('the context field explains what belongs into it', function () {
+        analysisTicket();
+
+        $this->get('/tickets/2137942')
+            ->assertSee('Was du über diesen Fall weißt, das nicht im Ticket steht', false)
+            ->assertSeeText('Gilt für die KI als geprüfter Fakt. Allgemeine Regeln');
+    });
+});
