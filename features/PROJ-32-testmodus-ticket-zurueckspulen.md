@@ -1,6 +1,6 @@
 # PROJ-32: Testmodus – Ticket zurückspulen
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -150,7 +150,78 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-32-TestModeTest.php` (14 Fälle, nur erfundene Daten). Gesamte Suite: 691 grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-06
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (21 Fälle, Zammad nachgestellt, KI-Attrappen, nur erfundene Daten), Code-Review, Prüfung von `Ticket::rewoundTo()` gegen echte Tickets: #2132884 (14 Nachrichten, 8 Kundennachrichten: zurückgespult auf die 2. Kundennachricht → 3 Nachrichten behalten, 11 später, drei Varianten, eigener Zusammenfassungsschlüssel; eine eigene Antwort als Schnittpunkt wird abgelehnt) und #2137635 (Amazon: Bestellangabe aus der ersten Nachricht bleibt, Bestellnummer wird weiter vorgeschlagen). Kein Test in echten Browsern und Handy-/Tablet-Breiten; Schalter und Hinweisband nutzen bestehende Muster der Kopfleiste.
+
+### Acceptance Criteria Status
+
+#### Admin und Schalter
+- [x] Admin sieht den Schalter „Testmodus" in der Kopfleiste
+- [x] Nicht-Admin sieht keinen Schalter und keine Testmodus-Elemente
+- [x] Schalter bleibt im Browser eingeschaltet (Cookie), bis er ausgeschaltet wird
+- [x] Hinweis „Testmodus aktiv" auf jeder Seite
+- [x] Testmodus-Cookie wirkt nicht für Nicht-Admins
+
+#### Zurückspulen
+- [x] „Bis hierher testen" an jeder Kundennachricht, auch der ersten
+- [x] Gewählte Nachricht ist die letzte Kundennachricht, spätere eingeklappt und ausgegraut („N spätere Nachrichten (nicht an die KI)")
+- [x] Spätere Nachrichten aufklappbar zum Vergleich
+- [x] Vorschau nur bis zum Schnittpunkt
+- [x] Analyse nur bis zum Schnittpunkt; Varianten und Schwelle nach gekürztem Verlauf
+- [x] Zusammenfassung nur über Nachrichten vor der gewählten Kundennachricht
+- [x] „Ganzen Verlauf zeigen" hebt den Schnittpunkt auf
+- [x] Geschlossenes Ticket: Hinweis „Testlauf – Status und spätere Antworten werden ignoriert"
+- [x] Stand in der Adresse bleibt beim Neuladen; für Nicht-Admins ignoriert
+
+#### Kennzeichnung und Trennung
+- [x] Ergebnis gekennzeichnet „Testlauf (Stand bis Nachricht vom …)"
+- [x] Zusammenfassung im Testlauf getrennt (auch beim Bearbeiten), echte bleibt unberührt
+- [x] Kundengruppe aus dem Testlauf nicht je Kunde gemerkt
+- [x] Schnittpunkt im Formular eines Nicht-Admins wird ignoriert
+
+### Edge Cases Status
+- [x] Unbekannte oder fremde Nachricht als Schnittpunkt → „Stand nicht gefunden", ganzer Verlauf
+- [x] Keine Kundennachricht (eigene Antwort) als Schnittpunkt → wie nicht gefunden
+- [x] Zurückgespult auf die erste Nachricht → keine Varianten, nur diese Nachricht geht an die KI
+- [x] Danach folgt nur noch unsere Antwort → ein eingeklappter Eintrag, Kennzeichnung bleibt
+- [x] Wahl je Ticket wird auch im Testlauf gemerkt, je Kunde nicht
+- [x] Bestellnummern-Vorschläge nur aus dem Stand bis zum Schnittpunkt
+- [x] Namenswechsel auf Nicht-Admin → Elemente verschwinden
+
+### Security Audit Results
+- [x] Admin-Prüfung serverseitig bei Anzeige, Analyse, Zusammenfassung und Umschalten (403 für andere)
+- [x] CSRF: Schalter-Formular mit `@csrf`; „Bis hierher testen" ist ein reiner Link ohne Datenänderung
+- [x] Weiterleitung nach dem Umschalten nur auf dieselbe App (fremder Referer → Startseite)
+- [x] Eingaben geprüft: `aktiv` boolean, `stand` nur Ziffern und nur Kundennachrichten des Tickets
+- [x] Testlauf-Zusammenfassungen verschlüsselt wie in PROJ-9, getrennter Schlüssel
+- Hinweis (bekannt, in der Spec dokumentiert): Ohne Login kann jeder „Etienne" wählen und ist dann Admin. Im internen Netz akzeptiert, echte Rolle mit PROJ-15.
+
+### Regression
+- Gesamte Suite: 702 Tests grün; PROJ-6 (Verlauf, eingeklappte Nachrichten), PROJ-9 (Analyse, Zusammenfassung) unverändert für normale Nutzung.
+- Seite „Über die App": „in Arbeit" beim Testmodus entfernt, kurze Bedienhinweise ergänzt.
+
+### Bugs Found
+
+#### BUG-1: Schnittpunkt-Nachricht heißt „Neueste Nachricht"
+- **Severity:** Low
+- **Steps to Reproduce:** Testmodus an, bei einer älteren Kundennachricht „Bis hierher testen". Erwartet: Hervorhebung als Schnittpunkt (z. B. „Stand des Testlaufs"). Tatsächlich: Die Nachricht trägt „Neueste Nachricht", wird hervorgehoben und angesprungen; inhaltlich stimmt das für den zurückgespulten Stand, kann aber verwirren.
+- **Priority:** Nice to have
+
+#### BUG-2: Admin mit ausgeschaltetem Testmodus sieht bei `?stand=` keinen Hinweis
+- **Severity:** Low
+- **Steps to Reproduce:** Testmodus aus, Adresse mit `?stand=…` öffnen (z. B. aus einem gemerkten Link). Erwartet: Hinweis „Testmodus ist aus – Stand wird ignoriert". Tatsächlich: ganzer Verlauf ohne Hinweis.
+- **Priority:** Nice to have
+
+### Summary
+- **Acceptance Criteria:** 18/18 bestanden
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Security:** Pass (schwacher Admin-Schutz ohne Login bekannt und akzeptiert)
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; BUG-1/2 bei Gelegenheit.
 
 ## Deployment
 _To be added by /deploy_

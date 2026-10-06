@@ -63,7 +63,7 @@ Neues Wissen wird an echten Fällen geprüft. Der Kreislauf:
 3. **Wissen ergänzen:** Die Regel als neues Dokument aufschreiben, zuerst als Entwurf. Wichtig ist der Geltungsbereich (Kundengruppe, Produkt), denn nur passendes Wissen geht an die KI.
 4. **Erneut testen:** Dasselbe Ticket noch einmal analysieren. Das neue Wissen wirkt sofort. Unter „Verwendetes Wissen" siehst du, ob die KI das neue Dokument genutzt hat.
 
-Damit sich auch bereits beantwortete Tickets zum Testen eignen, kann ein Admin ein Ticket auf den Stand einer früheren Kundennachricht zurückspulen. Spätere Antworten gehen dann nicht an die KI und lassen sich zum Vergleich aufklappen. [in Arbeit]
+Damit sich auch bereits beantwortete Tickets zum Testen eignen, kann ein Admin ein Ticket auf den Stand einer früheren Kundennachricht zurückspulen. Spätere Antworten gehen dann nicht an die KI und lassen sich zum Vergleich aufklappen. Dafür schaltet der Admin oben rechts den „Testmodus" ein und wählt an einer Kundennachricht „Bis hierher testen". Testläufe sind gekennzeichnet und beeinflussen keine echten Vorschläge.
 
 Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für Wissen (dem „Authoring Guide"); ein Entwickler pflegt die Dateien anschließend ein. Welche Dokumente es gibt und ob sie fehlerfrei sind, zeigt die [Knowledge-Übersicht](/knowledge).
 

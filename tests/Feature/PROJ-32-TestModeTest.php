@@ -164,3 +164,50 @@ describe('rewinding', function () {
         asTester('Nele')->get('/tickets/2137942')->assertDontSeeText('Hier keine Regeln oder Antworten eintragen');
     });
 });
+
+describe('qa additions', function () {
+    test('the banner shows on every page while the test mode is on', function () {
+        asTester()->get(route('knowledge.index'))->assertSeeText('Testmodus aktiv');
+        asTester()->get(route('about'))->assertSeeText('Testmodus aktiv');
+    });
+
+    test('rewound to the first message there are no variants, only that message goes to the ai', function () {
+        CaseAgent::fake([caseResult()]);
+
+        asTester()->get('/tickets/2137942?stand=11')->assertDontSeeText('Was soll an die KI gehen?');
+        analyzeRewound(['stand' => '11']);
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Können zwei Bestellungen') && ! $prompt->contains('Nein, das geht leider nicht'));
+    });
+
+    test('rewound to the last customer message with only our reply after it, one later message is collapsed', function () {
+        asTester()->get('/tickets/2137942?stand=13')
+            ->assertSeeText('1 spätere Nachricht (nicht an die KI)')
+            ->assertSeeText('Testlauf:');
+    });
+
+    test('an edited summary of a test run is saved under the cut point only', function () {
+        SummaryAgent::fake([['facts' => 'Test-Fassung', 'timeline' => '', 'agreements' => '', 'open_questions' => '']]);
+        asTester()->post(route('tickets.summary.create', ['number' => '2137942']), ['stand' => '13']);
+
+        asTester()->put(route('tickets.summary.update', ['number' => '2137942']), ['stand' => '13', 'zusammenfassung' => 'Korrigiert im Test'])->assertRedirect();
+
+        expect(app(AnalysisStore::class)->summary('2137942.stand-13')->text)->toBe('Korrigiert im Test')
+            ->and(app(AnalysisStore::class)->summary('2137942'))->toBeNull();
+    });
+
+    test('"Ganzen Verlauf zeigen" leads to the ticket without cut point', function () {
+        asTester()->get('/tickets/2137942?stand=11')->assertSee('href="'.route('tickets.show', ['number' => '2137942']).'"', false);
+    });
+
+    test('switching never redirects to another site', function () {
+        asTester(testMode: false)->withHeader('referer', 'https://evil.example/x')->post(route('test-mode.switch'), ['aktiv' => '1'])
+            ->assertRedirect(route('tickets.analyze'));
+    });
+
+    test('the switch form is protected and validated', function () {
+        expect(asTester(testMode: false)->get('/tickets/2137942')->getContent())->toMatch('/action="[^"]*\/testmodus"[^>]*>\s*<input type="hidden" name="_token"/');
+
+        asTester(testMode: false)->post(route('test-mode.switch'), ['aktiv' => 'vielleicht'])->assertSessionHasErrors('aktiv');
+    });
+});
