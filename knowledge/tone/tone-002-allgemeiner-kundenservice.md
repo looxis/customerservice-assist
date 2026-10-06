@@ -41,6 +41,18 @@ Persönliche Belastungen ernst nehmen. Die Frage, was LOOXIS beeinflussen konnte
 
 „Außerhalb unseres Einflussbereichs“ kann verwendet werden, wenn dies konkret zutrifft. Eine Zuordnung zum persönlichen Risikobereich muss verständlich durch die tatsächlichen Umstände erklärt werden. Diese Begriffe ersetzen keine fachliche Prüfung von Verantwortung und Kundenansprüchen.
 
+# Absagen und nicht erfüllbare Wünsche
+
+Können wir einem Wunsch nicht entsprechen, zuerst für die Anfrage danken, dann klar und kurz begründen und – wenn möglich – zeigen, was der Kunde stattdessen tun kann (z. B. künftig alles in einer Bestellung aufgeben, um nur eine Rechnung zu erhalten und Versandkosten zu sparen). Die Antwort endet mit einem Satz des Bedauerns und der Bitte um Verständnis.
+
+Formulierungshilfen:
+
+- „Es tut uns sehr leid, dass wir Ihnen keine positivere Nachricht geben können.“
+- „Es tut uns leid, dass wir Ihrem Wunsch diesmal nicht entsprechen können.“
+- „Wir hoffen auf Ihr Verständnis.“
+
+Vermeiden: Absagen ohne Begründung. Bedauern, das wie eine Zusage oder ein Entgegenkommen klingt.
+
 # Formulierungshilfen
 
 - „Es tut uns leid, dass Sie mit dem Ergebnis unzufrieden sind.“
