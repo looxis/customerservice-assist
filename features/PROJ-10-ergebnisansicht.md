@@ -188,7 +188,8 @@ Keine neuen Pakete.
 - **Formular** nach einer Analyse unter dem Ergebnis und eingeklappt auf „Analysiert mit: Gruppe · Produkte · Variante – Eingaben ändern und neu analysieren“; bei Fehlern offen.
 - **Ältere Ergebnisse** aus PROJ-9 werden weiter angezeigt (Quellen dann ohne Text: „Der Text aus der Zeit der Analyse ist nicht gespeichert.“).
 - **Abweichung:** Eingesetzte Werte sind im Textfeld nicht farbig markiert (technisch nicht möglich), stattdessen der Hinweis „Von der App eingesetzt: …“ wie in der Spec. `Pseudonymizer::restore()` (HTML mit Markierungen) wird in der Ansicht nicht mehr verwendet, bleibt aber getestet.
-- **Tests:** `tests/Feature/PROJ-10-ResultViewTest.php` (17 Fälle); drei PROJ-9-Tests an die neue Ansicht angepasst. Gesamte Suite: 727 grün.
+- **Ticketkopf (2026-10-06, Rückmeldung Product Owner):** Das Feld „Gruppe“ zeigte die Zammad-Gruppe (z. B. „allgemeine Kunden“) und wurde als Kundengruppe verstanden. Jetzt zwei Felder: „Kundengruppe“ (gewählt für das Ticket bzw. in der angezeigten Analyse, sonst „noch nicht gewählt“) und „Zammad-Gruppe“.
+- **Tests:** `tests/Feature/PROJ-10-ResultViewTest.php` (18 Fälle); drei PROJ-9-Tests an die neue Ansicht angepasst. Gesamte Suite: 727 grün.
 
 ## QA Test Results
 _To be added by /qa_

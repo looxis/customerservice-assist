@@ -115,7 +115,7 @@ describe('header', function () {
         $this->get('/tickets/2137942')->assertSeeTextInOrder([
             'Ticket#2137942', 'Zaubertasse – Motiv erscheint nicht', 'Offen',
             'Kunde', 'Erika Beispiel', 'erika@example.org',
-            'Gruppe', 'Kundenservice',
+            'Zammad-Gruppe', 'Kundenservice',
             'Nachrichten', '2', '1 Anhang – in Zammad ansehen',
             'Erstellt', '01.10.2026, 09:12 Uhr',
             'Letzte Nachricht', '02.10.2026, 10:30 Uhr',

@@ -64,11 +64,14 @@ class AnalysisPanel
             [$group, $groupSource] = [$inputs['kundengruppe'], 'wie in der angezeigten Analyse'];
         }
 
+        $chosenGroup = $inputs['kundengruppe'] ?? $choice['group'] ?? null;
+
         return [
             'groups' => $this->selector->customerGroups(),
             'products' => $this->selector->products(),
             'suggestedGroup' => $group,
             'groupSource' => $groupSource,
+            'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
             'suggestedProducts' => $inputs['produkte'] ?? $choice['products'] ?? $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all())),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),

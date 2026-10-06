@@ -26,7 +26,7 @@
             <x-alert type="warning">{{ $rewindProblem }}</x-alert>
         @endif
 
-        <x-ticket.header :ticket="$ticket">
+        <x-ticket.header :ticket="$ticket" :customer-group="$analysis['chosenGroupLabel'] ?? null">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />

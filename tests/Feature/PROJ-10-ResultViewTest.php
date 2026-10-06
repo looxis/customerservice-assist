@@ -241,3 +241,16 @@ describe('finding the latest analysis', function () {
             ->assertSeeTextInOrder(['Ergebnis der Analyse', 'Antwortentwurf', 'Quellen (2)', 'POLICY-001', 'Der Text aus der Zeit der Analyse ist nicht gespeichert.']);
     });
 });
+
+describe('ticket header', function () {
+    test('the header names the chosen customer group apart from the zammad group', function () {
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSeeTextInOrder(['Kundengruppe', 'noch nicht gewählt', 'Zammad-Gruppe', 'Kundenservice']);
+
+        CaseAgent::fake([resultAnswer()]);
+        runAnalysis(['kundengruppe' => 'reseller']);
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSeeTextInOrder(['Kundengruppe', 'Foto-Fachhändler / Reseller', 'Zammad-Gruppe', 'Kundenservice']);
+    });
+});
