@@ -47,6 +47,7 @@ class CaseAnalyzer
         $model = (string) config('analysis.models.analysis');
 
         $attempts = 0;
+        $started = hrtime(true);
 
         do {
             $attempts++;
@@ -56,6 +57,8 @@ class CaseAnalyzer
                 $checked = $this->validator->check($answer['data'], $knowledgeIds);
             } catch (AnalysisException $exception) {
                 if ($exception->problem !== AnalysisProblem::InvalidResult || $attempts >= 2) {
+                    $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, $exception->problem->name, intdiv(hrtime(true) - $started, 1_000_000));
+
                     throw $exception;
                 }
 
@@ -81,6 +84,8 @@ class CaseAnalyzer
             'thread' => ['last_article_id' => $last?->id, 'last_article_at' => $last?->createdAt->toIso8601String(), 'count' => count($request->ticket->articles)],
             'inputs' => $request->formInput,
             'reply_edit' => null,
+            'sent_input' => $input,
+            'raw_response' => $answer['data'],
             'result' => $checked['result'],
             'notes' => $checked['notes'],
             'placeholders' => $pseudonymizer->values(),
@@ -106,8 +111,6 @@ class CaseAnalyzer
                 'knowledge_warnings' => $selection->warnings,
             ],
         ]);
-
-        $this->store->putLatest($request->ticket->summaryKey(), $id);
 
         return $id;
     }

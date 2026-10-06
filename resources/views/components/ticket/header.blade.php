@@ -1,4 +1,4 @@
-@props(['ticket', 'customerGroup' => null])
+@props(['ticket', 'customerGroup' => null, 'canDelete' => false])
 
 {{-- Header of a loaded ticket (PROJ-6). --}}
 <x-card>
@@ -77,5 +77,13 @@
         <x-button :href="route('tickets.show', array_filter(['number' => $ticket->number, 'bestellungen' => request()->query('bestellungen')]))" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
             <x-icon name="refresh" size="16" /> Aktualisieren
         </x-button>
+        @if ($canDelete)
+            <form method="POST" action="{{ route('tickets.analyses.destroy', ['number' => $ticket->number]) }}" class="ml-auto"
+                  x-data x-on:submit="if (! confirm('Alle Analysen, Entwürfe und Zusammenfassungen dieses Tickets endgültig löschen?')) $event.preventDefault()">
+                @csrf
+                @method('DELETE')
+                <x-button type="submit" variant="secondary"><x-icon name="trash" size="16" /> Alle Analysen dieses Tickets löschen</x-button>
+            </form>
+        @endif
     </div>
 </x-card>

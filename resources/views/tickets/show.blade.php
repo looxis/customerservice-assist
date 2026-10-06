@@ -26,7 +26,7 @@
             <x-alert type="warning">{{ $rewindProblem }}</x-alert>
         @endif
 
-        <x-ticket.header :ticket="$ticket" :customer-group="$analysis['chosenGroupLabel'] ?? null">
+        <x-ticket.header :ticket="$ticket" :customer-group="$analysis['chosenGroupLabel'] ?? null" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
@@ -37,8 +37,12 @@
                 <x-alert type="warning">Diese Analyse ist nicht mehr verfügbar.</x-alert>
             @endif
 
+            @if ($analysis['deletion'])
+                <x-alert>Inhalte gelöscht von {{ $analysis['deletion']['staff'] }} am {{ $analysis['deletion']['at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr.</x-alert>
+            @endif
+
             @if ($analysis['result'])
-                <x-analysis.result :result="$analysis['result']" :number="$number" />
+                <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" />
             @endif
 
             <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" />

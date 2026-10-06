@@ -15,7 +15,6 @@
                 @if ($summary->until)<span class="text-xs text-slate-600">zusammengefasst bis Nachricht vom {{ $summary->until }}</span>@endif
                 @if ($summary->edited)<x-badge compact>von Hand geändert</x-badge>@endif
                 @if ($stale)<x-badge compact tone="warning">veraltet – neue Nachrichten</x-badge>@endif
-                <x-badge compact>vorübergehend gespeichert</x-badge>
             @endif
         </header>
 

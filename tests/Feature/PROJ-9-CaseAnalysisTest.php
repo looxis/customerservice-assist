@@ -4,9 +4,10 @@ use App\Analysis\Agents\CaseAgent;
 use App\Analysis\Agents\SummaryAgent;
 use App\Analysis\AnalysisStore;
 use App\Analysis\Pseudonymizer;
+use App\Models\Analysis;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
@@ -346,7 +347,7 @@ describe('running an analysis', function () {
 
         parse_str((string) parse_url(analyze()->headers->get('Location'), PHP_URL_QUERY), $query);
 
-        expect(Cache::get("analysis.result.{$query['analyse']}"))->toBeString()->not->toContain('Die Tasse bleibt schwarz');
+        expect(DB::table('analyses')->where('uuid', $query['analyse'])->value('content'))->toBeString()->not->toContain('Die Tasse bleibt schwarz');
     });
 
     test('a result of another ticket is not shown', function () {
@@ -385,7 +386,7 @@ describe('summary', function () {
         SummaryAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Nachricht 4') && ! $prompt->contains('Nachricht 5,') && ! $prompt->contains('0171 2345678'));
 
         $html = $this->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Nachricht 4', 'Zusammenfassung des bisherigen Verlaufs', 'zusammengefasst bis Nachricht vom', 'vorübergehend gespeichert', 'Sachverhalt', 'Tasse defekt, Kontakt 0171 2345678', 'Nachricht 5'])
+            ->assertSeeTextInOrder(['Nachricht 4', 'Zusammenfassung des bisherigen Verlaufs', 'zusammengefasst bis Nachricht vom', 'Sachverhalt', 'Tasse defekt, Kontakt 0171 2345678', 'Nachricht 5'])
             ->getContent();
 
         expect($html)->not->toContain('veraltet');
@@ -450,18 +451,18 @@ describe('summary', function () {
         CaseAgent::assertNeverPrompted();
     });
 
-    test('the summary is stored encrypted for seven days', function () {
+    test('the summary is stored encrypted and lasts beyond seven days', function () {
         SummaryAgent::fake([summaryAnswer()]);
         analysisTicket(longThread());
 
         $this->withCookie('staff_name', 'Nele')->post(route('tickets.summary.create', ['number' => '2137942']));
 
-        expect(Cache::get('analysis.summary.2137942'))->toBeString()->not->toContain('Tasse defekt')
+        expect(DB::table('ticket_summaries')->where('scope_key', '2137942')->value('content'))->toBeString()->not->toContain('Tasse defekt')
             ->and(app(AnalysisStore::class)->summary('2137942')->text)->toContain('Tasse defekt');
 
         $this->travel(8)->days();
 
-        expect(app(AnalysisStore::class)->summary('2137942'))->toBeNull();
+        expect(app(AnalysisStore::class)->summary('2137942')?->text)->toContain('Tasse defekt');
     });
 
     test('creating a summary needs a chosen name', function () {
@@ -484,7 +485,7 @@ describe('remembered choice', function () {
 
         $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorbelegt: wie in der angezeigten Analyse');
 
-        Cache::forget('analysis.latest.2137942');
+        Analysis::query()->delete();
         $html = $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')
             ->assertSeeText('Vorbelegt: zuletzt gewählt von Nele am 06.10.2026, 14:05 Uhr')
             ->getContent();

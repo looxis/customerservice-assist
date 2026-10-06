@@ -65,7 +65,9 @@ return [
     |
     */
 
-    'retention_days' => 7,
+    // Customer content of analyses, summaries and remembered choices is
+    // emptied after this many months; the figures of an analysis stay.
+    'content_retention_months' => 12,
 
     // Longest reply draft that is saved after editing (PROJ-10).
     'max_reply_length' => 20_000,

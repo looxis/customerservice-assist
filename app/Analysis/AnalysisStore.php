@@ -2,27 +2,34 @@
 
 namespace App\Analysis;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Crypt;
+use App\Models\Analysis;
+use App\Models\CustomerGroupMemory;
+use App\Models\TicketCaseChoice;
+use App\Models\TicketSummary;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-use Throwable;
 
 /**
- * Temporary, encrypted storage for summaries and results until the analysis
- * log (PROJ-11) keeps them in the database.
+ * Lasting storage for analyses, summaries and remembered choices (PROJ-11).
+ * Customer content is encrypted and emptied after the retention period; the
+ * figures of an analysis stay for evaluations.
  */
 class AnalysisStore
 {
-    public function summary(string $ticketNumber): ?Summary
+    public function summary(string $scopeKey): ?Summary
     {
-        $data = $this->get("analysis.summary.{$ticketNumber}");
+        $summary = TicketSummary::query()->where('scope_key', $scopeKey)->first();
 
-        return $data === null ? null : Summary::fromArray($data);
+        return $summary === null ? null : Summary::fromArray($summary->content);
     }
 
-    public function putSummary(string $ticketNumber, Summary $summary): void
+    public function putSummary(string $scopeKey, Summary $summary): void
     {
-        $this->put("analysis.summary.{$ticketNumber}", $summary->toArray());
+        TicketSummary::query()->updateOrCreate(
+            ['scope_key' => $scopeKey],
+            ['ticket_number' => Str::before($scopeKey, '.'), 'content' => $summary->toArray()],
+        )->touch();
     }
 
     /**
@@ -32,7 +39,14 @@ class AnalysisStore
      */
     public function caseChoice(string $ticketNumber): ?array
     {
-        return $this->get("analysis.case.{$ticketNumber}");
+        $choice = TicketCaseChoice::query()->where('ticket_number', $ticketNumber)->first();
+
+        return $choice === null ? null : [
+            'group' => $choice->customer_group,
+            'products' => array_values($choice->products ?? []),
+            'staff' => $choice->staff_name,
+            'at' => $choice->updated_at->toIso8601String(),
+        ];
     }
 
     /**
@@ -40,7 +54,10 @@ class AnalysisStore
      */
     public function putCaseChoice(string $ticketNumber, string $group, array $products, string $staff): void
     {
-        $this->put("analysis.case.{$ticketNumber}", ['group' => $group, 'products' => $products, 'staff' => $staff, 'at' => now()->toIso8601String()]);
+        TicketCaseChoice::query()->updateOrCreate(
+            ['ticket_number' => $ticketNumber],
+            ['customer_group' => $group, 'products' => $products, 'staff_name' => $staff],
+        )->touch();
     }
 
     /**
@@ -48,25 +65,77 @@ class AnalysisStore
      */
     public function customerGroup(?string $customerKey): ?string
     {
-        return $customerKey === null ? null : ($this->get("analysis.customer-group.{$customerKey}")['group'] ?? null);
+        return $customerKey === null ? null : CustomerGroupMemory::query()
+            ->where('customer_key', $customerKey)
+            ->where('updated_at', '>=', now()->subDays((int) config('analysis.customer_group_retention_days')))
+            ->value('customer_group');
     }
 
     public function putCustomerGroup(?string $customerKey, string $group): void
     {
         if ($customerKey !== null) {
-            $this->put("analysis.customer-group.{$customerKey}", ['group' => $group], (int) config('analysis.customer_group_retention_days'));
+            CustomerGroupMemory::query()->updateOrCreate(['customer_key' => $customerKey], ['customer_group' => $group])->touch();
         }
     }
 
     /**
+     * Store a finished analysis: its figures in columns, the whole record encrypted.
+     *
      * @param  array<string, mixed>  $result
      */
     public function putResult(array $result): string
     {
+        $meta = $result['meta'] ?? [];
+        $answer = $result['result'] ?? [];
         $id = (string) Str::uuid();
-        $this->put("analysis.result.{$id}", $result);
+
+        Analysis::query()->create([
+            'uuid' => $id,
+            'ticket_number' => (string) $result['ticket'],
+            'scope_key' => (string) ($result['scope'] ?? $result['ticket']),
+            'status' => 'completed',
+            'staff_name' => (string) ($meta['staff'] ?? ''),
+            'test_until' => $meta['test_until'] ?? null,
+            'customer_group' => $meta['customer_group'] ?? null,
+            'products' => $meta['products'] ?? [],
+            'variant' => $meta['variant'] ?? null,
+            'category' => $answer['category'] ?? null,
+            'assessment' => $answer['assessment'] ?? null,
+            'confidence' => $answer['confidence']['level'] ?? null,
+            'actions' => $answer['actions'] ?? [],
+            'knowledge_ids' => $answer['knowledge_ids'] ?? [],
+            'knowledge_fingerprints' => $meta['knowledge_fingerprints'] ?? [],
+            'provider' => $meta['provider'] ?? null,
+            'model' => $meta['model'] ?? null,
+            'prompt_version' => $meta['prompt_version'] ?? null,
+            'summary_prompt_version' => $meta['summary_prompt_version'] ?? null,
+            'knowledge_state' => $meta['knowledge_state'] ?? null,
+            'duration_ms' => $meta['duration_ms'] ?? null,
+            'input_tokens' => $meta['input_tokens'] ?? null,
+            'output_tokens' => $meta['output_tokens'] ?? null,
+            'attempts' => $meta['attempts'] ?? null,
+            'content' => $result,
+        ]);
 
         return $id;
+    }
+
+    /**
+     * Log a failed analysis without any content.
+     */
+    public function putFailure(string $ticketNumber, string $scopeKey, string $staff, string $model, string $error, int $durationMs): void
+    {
+        Analysis::query()->create([
+            'uuid' => (string) Str::uuid(),
+            'ticket_number' => $ticketNumber,
+            'scope_key' => $scopeKey,
+            'status' => 'failed',
+            'error' => $error,
+            'staff_name' => $staff,
+            'provider' => config('analysis.provider'),
+            'model' => $model,
+            'duration_ms' => $durationMs,
+        ]);
     }
 
     /**
@@ -76,55 +145,117 @@ class AnalysisStore
      */
     public function updateResult(string $id, array $result): void
     {
-        $this->put("analysis.result.{$id}", $result);
+        unset($result['scope']);
+
+        Analysis::query()->where('uuid', $id)->whereNotNull('content')->first()?->update(['content' => $result]);
     }
 
     /**
-     * The latest analysis of a ticket (or of a test-run cut point, see Ticket::summaryKey()).
+     * The latest finished analysis with content of a ticket (or of a test-run
+     * cut point, see Ticket::summaryKey()).
      */
-    public function latest(string $ticketKey): ?string
+    public function latest(string $scopeKey): ?string
     {
-        return $this->get("analysis.latest.{$ticketKey}")['id'] ?? null;
-    }
-
-    public function putLatest(string $ticketKey, string $id): void
-    {
-        $this->put("analysis.latest.{$ticketKey}", ['id' => $id]);
+        return $this->finished($scopeKey)->whereNotNull('content')->value('uuid');
     }
 
     /**
+     * Finished analyses of a ticket or cut point, newest first, without content.
+     *
+     * @return list<array{id: string, created_at: CarbonImmutable, staff: string, group: string|null, variant: string|null, assessment: string|null, confidence: string|null, test: bool, removed: string|null}>
+     */
+    public function history(string $scopeKey): array
+    {
+        return $this->finished($scopeKey)
+            ->get(['uuid', 'created_at', 'staff_name', 'customer_group', 'variant', 'assessment', 'confidence', 'test_until', 'content_purged_at', 'content_deleted_at'])
+            ->map(fn (Analysis $analysis): array => [
+                'id' => $analysis->uuid,
+                'created_at' => CarbonImmutable::parse($analysis->created_at),
+                'staff' => $analysis->staff_name,
+                'group' => $analysis->customer_group,
+                'variant' => $analysis->variant,
+                'assessment' => $analysis->assessment,
+                'confidence' => $analysis->confidence,
+                'test' => $analysis->test_until !== null,
+                'removed' => match (true) {
+                    $analysis->content_deleted_at !== null => 'deleted',
+                    $analysis->content_purged_at !== null => 'purged',
+                    default => null,
+                },
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Who emptied the content of a ticket last, if nothing newer exists.
+     *
+     * @return array{staff: string, at: CarbonImmutable}|null
+     */
+    public function deletion(string $ticketNumber): ?array
+    {
+        $deleted = Analysis::query()->where('ticket_number', $ticketNumber)->whereNotNull('content_deleted_at')->latest('content_deleted_at')->first();
+
+        if ($deleted === null || Analysis::query()->where('ticket_number', $ticketNumber)->whereNotNull('content')->where('created_at', '>', $deleted->content_deleted_at)->exists()) {
+            return null;
+        }
+
+        return ['staff' => (string) $deleted->content_deleted_by, 'at' => CarbonImmutable::parse($deleted->content_deleted_at)];
+    }
+
+    /**
+     * The stored record of an analysis with content, plus its scope.
+     *
      * @return array<string, mixed>|null
      */
     public function result(string $id): ?array
     {
-        return Str::isUuid($id) ? $this->get("analysis.result.{$id}") : null;
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    private function put(string $key, array $data, ?int $days = null): void
-    {
-        Cache::put($key, Crypt::encrypt($data), now()->addDays($days ?? (int) config('analysis.retention_days')));
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function get(string $key): ?array
-    {
-        $value = Cache::get($key);
-
-        if (! is_string($value)) {
+        if (! Str::isUuid($id)) {
             return null;
         }
 
-        try {
-            $data = Crypt::decrypt($value);
-        } catch (Throwable) {
-            return null;
-        }
+        $analysis = Analysis::query()->where('uuid', $id)->whereNotNull('content')->first();
 
-        return is_array($data) ? $data : null;
+        return $analysis === null ? null : [...$analysis->content, 'scope' => $analysis->scope_key];
+    }
+
+    /**
+     * Empty all customer content of a ticket on request (admin, PROJ-11); the
+     * figures stay with a note who deleted when.
+     */
+    public function deleteTicket(string $ticketNumber, string $staff): void
+    {
+        Analysis::query()->where('ticket_number', $ticketNumber)->where('status', 'completed')->whereNull('content_deleted_at')
+            ->update(['content' => null, 'content_deleted_at' => now(), 'content_deleted_by' => $staff]);
+
+        TicketSummary::query()->where('ticket_number', $ticketNumber)->delete();
+        TicketCaseChoice::query()->where('ticket_number', $ticketNumber)->delete();
+    }
+
+    /**
+     * Empty content older than the retention period; drop old summaries,
+     * choices and customer memories.
+     *
+     * @return array{analyses: int, summaries: int, choices: int, customers: int}
+     */
+    public function purge(): array
+    {
+        $before = now()->subMonths((int) config('analysis.content_retention_months'));
+
+        return [
+            'analyses' => Analysis::query()->whereNotNull('content')->where('created_at', '<', $before)
+                ->update(['content' => null, 'content_purged_at' => now()]),
+            'summaries' => TicketSummary::query()->where('updated_at', '<', $before)->delete(),
+            'choices' => TicketCaseChoice::query()->where('updated_at', '<', $before)->delete(),
+            'customers' => CustomerGroupMemory::query()->where('updated_at', '<', now()->subDays((int) config('analysis.customer_group_retention_days')))->delete(),
+        ];
+    }
+
+    /**
+     * @return Builder<Analysis>
+     */
+    private function finished(string $scopeKey): Builder
+    {
+        return Analysis::query()->where('scope_key', $scopeKey)->where('status', 'completed')->latest()->latest('id');
     }
 }

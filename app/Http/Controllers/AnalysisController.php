@@ -15,6 +15,7 @@ use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\OrderLookup;
 use App\Http\Requests\AnalyzeTicketRequest;
+use App\Http\Requests\DeleteAnalysesRequest;
 use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
@@ -167,6 +168,10 @@ class AnalysisController extends Controller
             return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
         }
 
+        if ($store->latest((string) $stored['scope']) !== $analysis) {
+            return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
+        }
+
         $now = CarbonImmutable::now();
         $stored['reply_edit'] = $request->boolean('original')
             ? null
@@ -174,16 +179,20 @@ class AnalysisController extends Controller
 
         $store->updateResult($analysis, $stored);
 
-        // Keep "latest analysis" alive as long as the edited analysis itself.
-        $scope = (string) ($stored['scope'] ?? $number);
-        if (in_array($store->latest($scope), [null, $analysis], true)) {
-            $store->putLatest($scope, $analysis);
-        }
-
         return response()->json([
             'saved' => true,
             'edited' => $stored['reply_edit'] === null ? null : 'bearbeitet von '.$stored['reply_edit']['staff'].' am '.$now->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',
         ]);
+    }
+
+    /**
+     * Empty all customer content of a ticket's analyses (admin, PROJ-11).
+     */
+    public function destroyAll(string $number, DeleteAnalysesRequest $request, AnalysisStore $store, StaffDirectory $staff): RedirectResponse
+    {
+        $store->deleteTicket($number, (string) $staff->current($request));
+
+        return redirect()->route('tickets.show', ['number' => $number])->with('success', 'Alle Analysen dieses Tickets wurden gelöscht.');
     }
 
     /**

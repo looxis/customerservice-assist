@@ -1,4 +1,4 @@
-@props(['result', 'number'])
+@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null])
 
 @php
     $r = $result['result'];
@@ -13,6 +13,8 @@
     $todos = $r['internal_todos'] ?? [];
     $notes = $result['notes'] ?? [];
     $mayDecide = $r['authority']['agent_may_decide'] ?? false;
+    $isLatest = $result['is_latest'] ?? true;
+    $link = fn (?string $id): string => route('tickets.show', array_filter(['number' => $number, 'analyse' => $id, 'stand' => $stand])).'#ergebnis';
 @endphp
 
 {{-- Analysis result (PROJ-10): what to do and the reply first, the reasoning
@@ -30,6 +32,40 @@
                 <x-badge :tone="$confidence[$r['confidence']['level']] ?? 'neutral'">Confidence {{ $r['confidence']['level'] }}</x-badge>
             </div>
         </div>
+
+        @if (count($history) > 1)
+            <details class="group/history mt-3 rounded-md ring-1 ring-slate-200 ring-inset">
+                <summary class="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 hover:text-brand focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                    <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/history:rotate-90" />
+                    Frühere Analysen ({{ count($history) - 1 }})
+                </summary>
+                <ul class="divide-y divide-slate-100 border-t border-slate-100 text-sm">
+                    @foreach ($history as $entry)
+                        <li @class(['flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2', 'bg-brand/5' => $entry['id'] === $result['id']])>
+                            @if ($entry['removed'] === null && $entry['id'] !== $result['id'])
+                                <a href="{{ $link($entry['id']) }}" class="font-medium text-brand hover:text-brand-hover">{{ $entry['created_at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</a>
+                            @else
+                                <span class="font-medium text-slate-900">{{ $entry['created_at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span>
+                            @endif
+                            <span class="text-slate-600">{{ $entry['staff'] }} · {{ $entry['group_label'] ?? '–' }} · {{ $entry['variant_label'] ?? '–' }}</span>
+                            @if ($entry['assessment'])<x-badge compact :tone="$assessment[$entry['assessment']] ?? 'neutral'">{{ ucfirst($entry['assessment']) }}</x-badge>@endif
+                            @if ($entry['confidence'])<x-badge compact :tone="$confidence[$entry['confidence']] ?? 'neutral'">{{ $entry['confidence'] }}</x-badge>@endif
+                            @if ($entry['test'])<x-badge compact tone="warning">Testlauf</x-badge>@endif
+                            @if ($entry['id'] === $result['id'])<span class="text-xs font-semibold text-brand-700">angezeigt</span>@endif
+                            @if ($entry['removed'] === 'purged')<span class="text-xs text-slate-600">Inhalte nach 12 Monaten gelöscht</span>@endif
+                            @if ($entry['removed'] === 'deleted')<span class="text-xs text-slate-600">Inhalte gelöscht</span>@endif
+                        </li>
+                    @endforeach
+                </ul>
+            </details>
+        @endif
+
+        @if (! $isLatest)
+            <x-alert type="warning" class="mt-4">
+                Ältere Analyse vom {{ $time($meta['created_at']) }} Uhr – nur lesbar.
+                <a href="{{ $link(null) }}" class="font-semibold underline">Zur neuesten</a>
+            </x-alert>
+        @endif
 
         @if ($meta['test_until'] ?? null)
             <p class="mt-2 inline-flex rounded-md bg-warning-500/10 px-2 py-1 text-xs font-semibold text-warning-700">Testlauf (Stand bis Nachricht vom {{ $time($meta['test_until']) }})</p>
@@ -108,7 +144,7 @@
             @endif
         </div>
 
-        <x-analysis.reply-editor :result="$result" :number="$number" />
+        <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" />
 
         {{-- Reasoning and details --}}
         <div class="mt-6">
@@ -171,6 +207,17 @@
                         @foreach ($notes as $note)<li>{{ $note }}</li>@endforeach
                         @foreach ($meta['knowledge_warnings'] ?? [] as $warning)<li>{{ $warning }}</li>@endforeach
                     </ul>
+                </x-analysis.section>
+            @endif
+
+            @if ($admin && (($result['sent_input'] ?? null) !== null))
+                <x-analysis.section title="Protokoll (nur Admins)">
+                    <p class="font-semibold">An die KI gesendet</p>
+                    <pre class="mt-2 max-h-96 overflow-auto rounded-md bg-slate-50 p-3 font-mono text-xs whitespace-pre-wrap ring-1 ring-slate-200">{{ $result['sent_input'] }}</pre>
+                    <p class="mt-4 font-semibold">Antwort der KI (unverändert)</p>
+                    <pre class="mt-2 max-h-96 overflow-auto rounded-md bg-slate-50 p-3 font-mono text-xs whitespace-pre-wrap ring-1 ring-slate-200">{{ json_encode($result['raw_response'] ?? null, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                    <p class="mt-4 font-semibold">Metadaten</p>
+                    <pre class="mt-2 max-h-96 overflow-auto rounded-md bg-slate-50 p-3 font-mono text-xs whitespace-pre-wrap ring-1 ring-slate-200">{{ json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
                 </x-analysis.section>
             @endif
 

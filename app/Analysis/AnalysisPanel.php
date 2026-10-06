@@ -53,8 +53,12 @@ class AnalysisPanel
                 : $pseudonymizer->apply($context->text($variant, $summary?->text));
         }
 
-        $latestId = $resultId === null ? $this->store->latest($ticket->summaryKey()) : null;
+        $latestId = $this->store->latest($ticket->summaryKey());
         $result = $this->result($ticket, $resultId ?? $latestId);
+
+        if ($result !== null) {
+            $result['is_latest'] = $result['id'] === $latestId;
+        }
         $inputs = $result['inputs'] ?? [];
 
         $choice = $this->store->caseChoice($ticket->number);
@@ -84,6 +88,8 @@ class AnalysisPanel
             'summaryStale' => $summary?->isStale($context->earlierFingerprint()) ?? false,
             'summaryOffered' => $context->offersVariants(),
             'result' => $result,
+            'history' => $this->history($ticket),
+            'deletion' => $result === null ? $this->store->deletion($ticket->number) : null,
             'resultMissing' => $resultId !== null && $result === null,
         ];
     }
@@ -153,6 +159,22 @@ class AnalysisPanel
             'sources' => $this->sources($stored),
             'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen,
         ];
+    }
+
+    /**
+     * Earlier analyses of the ticket (or test-run cut point) with readable labels.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function history(Ticket $ticket): array
+    {
+        $groups = collect($this->selector->customerGroups())->mapWithKeys(fn (CustomerGroup $group): array => [$group->key => $group->label]);
+
+        return array_map(fn (array $entry): array => [
+            ...$entry,
+            'group_label' => $groups[$entry['group']] ?? $entry['group'],
+            'variant_label' => ContextVariant::tryFrom((string) $entry['variant'])?->label(),
+        ], $this->store->history($ticket->summaryKey()));
     }
 
     /**

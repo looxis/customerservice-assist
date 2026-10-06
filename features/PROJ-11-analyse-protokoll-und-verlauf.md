@@ -1,6 +1,6 @@
 # PROJ-11: Analyse-Protokoll und Verlauf
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -161,6 +161,19 @@ Keine neuen Pakete (Datenbank und Zeitplaner sind Teil von Laravel).
 - Ältere Analysen: Entwurf-Speichern serverseitig ablehnen (nicht nur in der Oberfläche sperren).
 - Vor PROJ-10 gab es Ergebnisse ohne Quellen-Texte – mit der Datenbank entfällt das (keine Übernahme).
 - Für `/deploy`: Migrationen ausführen, Zeitplaner einrichten, App-Schlüssel sichern.
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-06**, Frontend und Backend in einem Durchgang.
+
+- **Tabellen** (Migrationen 2026_10_06_14061x): `analyses` (Kennzahlen in Spalten, `content` verschlüsselt, Vermerke `content_purged_at`, `content_deleted_at/by`), `ticket_summaries` (je Ticket bzw. Teststand), `ticket_case_choices`, `customer_group_memories`. Modelle `Analysis`, `TicketSummary`, `TicketCaseChoice`, `CustomerGroupMemory` mit Factories.
+- **`AnalysisStore`** liest und schreibt jetzt die Datenbank; Schnittstelle unverändert bis auf: `latest()` fragt die jüngste fertige Analyse ab (kein Verweis mehr, `putLatest` entfällt), neu `putFailure()`, `history()`, `deletion()`, `deleteTicket()`, `purge()`.
+- **Protokoll:** `CaseAnalyzer` speichert zusätzlich `sent_input` (an die KI gesendeter Text mit Platzhaltern) und `raw_response` (unveränderte strukturierte Antwort); fehlgeschlagene Analysen als Zeile ohne Inhalt mit Fehlerart und Dauer.
+- **Oberfläche:** „Frühere Analysen (N)“ am Ergebnis (neueste zuerst, Kennzeichen „angezeigt“, „Testlauf“, „Inhalte nach 12 Monaten gelöscht“/„Inhalte gelöscht“); ältere Analyse mit Hinweis „Ältere Analyse vom … – nur lesbar. Zur neuesten“, Entwurf `readonly`, Speichern serverseitig abgelehnt (409); Abschnitt „Protokoll (nur Admins)“; Knopf „Alle Analysen dieses Tickets löschen“ im Ticketkopf nur für Admins mit Rückfrage; Vermerk „Inhalte gelöscht von … am …“. Kennzeichnung „vorübergehend gespeichert“ an der Zusammenfassung entfernt.
+- **Löschen:** `DELETE /tickets/{n}/analysen` (`tickets.analyses.destroy`, Form Request `DeleteAnalysesRequest` mit Admin-Prüfung → 403).
+- **Bereinigung:** Befehl `analysis:purge`, täglich 03:15 (`routes/console.php`); Frist `analysis.content_retention_months` (12), Kundengruppe je Kunde weiter 365 Tage. `analysis.retention_days` entfällt.
+- **Testläufe** erscheinen nur in der Liste ihres Teststands (Abweichung von „im Testmodus gekennzeichnet in der Liste des echten Tickets“: Teststände sind getrennte Bereiche, wie bei der Zusammenfassung).
+- **Tests:** `tests/Feature/PROJ-11-AnalysisLogTest.php` (13 Fälle); Feature-Tests laufen jetzt mit `RefreshDatabase` gegen die Testdatenbank; vier PROJ-9-Tests vom Zwischenspeicher auf die Datenbank umgestellt. Gesamte Suite: 747 grün.
+- **Für `/deploy`:** Migrationen ausführen, Zeitplaner (`schedule:run` per Cron oder `schedule:work`) einrichten, `APP_KEY` sichern (ohne ihn sind Inhalte nicht lesbar).
 
 ## QA Test Results
 _To be added by /qa_

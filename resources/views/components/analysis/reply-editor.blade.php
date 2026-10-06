@@ -1,4 +1,4 @@
-@props(['result', 'number'])
+@props(['result', 'number', 'readonly' => false])
 
 @php
     $language = $result['result']['reply']['language'] ?? null;
@@ -80,7 +80,7 @@
     <textarea
         x-ref="text"
         x-model="text"
-        x-on:input="changed()"
+        @if ($readonly) readonly @else x-on:input="changed()" @endif
         rows="12"
         maxlength="{{ config('analysis.max_reply_length') }}"
         aria-label="Antwortentwurf"
@@ -89,7 +89,9 @@
 
     <div class="mt-3 flex flex-wrap items-center gap-3">
         <x-button x-on:click="copy()" x-bind:disabled="text.trim() === ''"><x-icon name="doc" size="16" /> Kopieren</x-button>
+        @unless ($readonly)
         <x-button variant="secondary" x-show="text !== original" x-cloak x-on:click="restore()"><x-icon name="refresh" size="16" /> Original der KI wiederherstellen</x-button>
+        @endunless
         <span x-show="copied" x-cloak role="status" class="text-sm font-medium text-success-700">Kopiert</span>
         <span x-show="fallback" x-cloak role="status" class="text-sm text-slate-600">Der Browser erlaubt das Kopieren hier nicht. Der Text ist markiert – bitte mit Strg+C kopieren.</span>
     </div>
