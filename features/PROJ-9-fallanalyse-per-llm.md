@@ -1,6 +1,6 @@
 # PROJ-9: Fallanalyse per LLM
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-06
 
@@ -117,6 +117,8 @@
 - [x] Zugang: `OPENAI_TOKEN` (und `ANTHROPIC_TOKEN` für später) in der `.env`, Start mit OpenAI (2026-10-06).
 - [x] Auftragsverarbeitungsvertrag mit OpenAI ist abgeschlossen (2026-10-06). **Erneut zu überprüfen ab 01.01.2027.** Für Anthropic (PROJ-17) ist ein eigener Vertrag nötig.
 - [ ] Voreingestelltes Modell für Analyse und Zusammenfassung (ggf. günstigeres für die Zusammenfassung) – in `/architecture`; später auf der Einstellungsseite wählbar (PROJ-31).
+- [ ] Frei formulierte Anschriften ohne Postleitzahl im Ticketverlauf werden von den Mustern nicht immer erkannt. Reicht das für den Start (Lieferadresse aus EOCS wird sicher erkannt)?
+- [ ] `OPENAI_TOKEN` ist in der laufenden App noch leer (Stand 2026-10-06, `.env` vermutlich nicht gespeichert); danach verfügbare Modelle abfragen und Voreinstellung festlegen.
 - [ ] Ist die Schwelle „ab 5 Nachrichten oder ab 3 Nachrichten mit über 6.000 Zeichen" passend? Nach den ersten echten Tickets nachschärfen.
 - [x] Postanschriften werden nie übertragen; über umkehrbare Platzhalter kann der Antwortentwurf sie trotzdem enthalten (z. B. zur Bestätigung der Lieferadresse), eingesetzt erst in der App (2026-10-06).
 
@@ -146,12 +148,85 @@
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Offizielles Laravel AI SDK `laravel/ai` (v1.1, Laravel 13) | Anbieterneutral (OpenAI, Anthropic), strukturierte Ausgabe, Test-Attrappen; offiziell gepflegt | 2026-10-06 |
+| Feste Ergebnisstruktur als Schema plus eigene Prüfung danach | Modell antwortet in fester Form; Wertelisten aus Konfiguration und Wissensauswahl; nichts Erfundenes rutscht durch | 2026-10-06 |
+| Prompts als versionierte Dateien im Repository | Reproduzierbar; fachliche Regeln bleiben im Wissen; Bearbeitung in der App später mit PROJ-31 | 2026-10-06 |
+| Platzhalter vor dem Senden, Einsetzen in der App; Lieferadresse per Abgleich mit EOCS | Kontaktdaten verlassen die App nie; Antwortentwurf kann sie trotzdem enthalten | 2026-10-06 |
+| Synchroner Aufruf mit Lade-Overlay, danach Weiterleitung mit Ergebnis-Kennung | Einfach, keine Warteschlange; Neuladen löst keine zweite Analyse aus; Webserver-Limit ≥ 120 s nötig | 2026-10-06 |
+| Zusammenfassung und letztes Ergebnis verschlüsselt im Laravel-Cache (Tabelle `cache`), 7 Tage, bis PROJ-11 | Vorübergehende Ablage laut Spec; Ablaufzeit eingebaut; Fallinhalte nicht im Klartext | 2026-10-06 |
+| Eigene Konfiguration `config/analysis.php` für Modelle, Schwellen, Zeitlimit, Aufbewahrung | Eine Stelle; später von PROJ-31 überschreibbar | 2026-10-06 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Die Analyse läuft in zwei klar getrennten Teilen: **Aufbereitung** (deterministisch, ohne KI: Ticketkontext, Platzhalter, Wissen, Bestelldaten) und **KI-Aufruf** (Zusammenfassung bzw. Analyse mit fester Ergebnisstruktur). Die KI-Anbindung läuft über das **offizielle Laravel AI SDK**, das OpenAI und Anthropic gleich behandelt – so bleibt die App anbieterneutral (PRD, PROJ-17). Bis zur Datenbank (PROJ-11) werden Zusammenfassung und letztes Ergebnis verschlüsselt im Laravel-Cache gehalten.
+
+### A) Bausteine
+```
+Ticketseite (PROJ-6/7, erweitert)
++-- Bereich „Analyse" (neue Komponente, unter dem Ticketkopf)
+|   +-- Kundengruppe (Auswahl, vorgeschlagen aus EOCS-Kanal)
+|   +-- Produkt(e) (Mehrfachauswahl, vorgeschlagen aus EOCS-Artikelnummern)
+|   +-- Bestelldaten von Hand (aufklappbar, nur ohne EOCS-Bestellung)
+|   +-- Ticketkontext: drei Varianten (Auswahl, Vorauswahl nach Länge)
+|   |   +-- Hinweis „zuerst Zusammenfassung erstellen" bei langen Verläufen
+|   +-- „Was an die KI geht" (aufklappbare Vorschau je Variante)
+|   +-- Zusätzliche Informationen / eigene Einschätzung (Textfeld, max. 4.000 Zeichen)
+|   +-- „Analysieren" (Lade-Overlay, Sperre gegen Doppelklick)
++-- Zusammenfassung (oberhalb der letzten Kundennachricht im Verlauf)
+|   +-- feste Abschnitte, Stand „zusammengefasst bis …", Kennzeichen veraltet / von Hand geändert
+|   +-- „Zusammenfassung erstellen" / „Neu erstellen" / „Bearbeiten" + „Übernehmen"
++-- Ergebnis (schlicht, alle Teile untereinander; Arbeitsansicht folgt mit PROJ-10)
+    +-- Kurzfassung, Kategorie, Fallmuster, Einstufung, Maßnahme + Vorgänge, Befugnis,
+    |   Begründung, fehlende Informationen/Rückfrage, Confidence + Gründe, To-dos,
+    |   Antwortentwurf (Platzhalter eingesetzt und markiert), Knowledge-IDs (Entwurf gekennzeichnet)
+    +-- Hinweise zur Prüfung (verworfene IDs, Vorgänge, Kategorie)
+    +-- Metadaten klein: Modell, Prompt-Version, Wissensstand, Dauer, Nutzer
+
+Server (app/Analysis/)
++-- Ticketkontext-Aufbereitung: drei Varianten aus dem bereinigten Ticket (PROJ-6),
+|   letzte Kundennachricht bestimmen, Längen-Schwelle, Vorschau
++-- Platzhalter: E-Mail, Telefon, Anschrift (Muster) und Lieferadresse (aus EOCS) ersetzen;
+|   Zuordnung bleibt in der App
++-- Zusammenfassung: eigener KI-Aufruf, feste Struktur, Fingerabdruck der zusammengefassten
+|   Nachrichten (erkennt „veraltet"), Bearbeitung, Ablage 7 Tage
++-- Analyse: Eingaben zusammenstellen (Kontext, Bestelldaten ohne Adresse/Zahlung, Kundengruppe,
+|   Produkte, Mitarbeiterkontext, Wissen aus PROJ-4), KI-Aufruf mit fester Ergebnisstruktur,
+|   Prüfung des Ergebnisses, ein zweiter Versuch bei ungültiger Struktur
++-- Prompts: zwei versionierte Dateien im Repository (Zusammenfassung, Analyse)
++-- Form Requests für Analyse und Zusammenfassung; Middleware „Name erforderlich" (PROJ-5)
+```
+
+### B) Daten
+- **Ergebnis (feste Struktur):** Kurzfassung (Vorgang, Kundenwunsch), Kategorie (aus `knowledge.categories`), Fallmuster (Text), Einstufung (`berechtigt` / `unberechtigt` / `unklar`, nur bei Reklamation), Maßnahme (Text) und Vorgänge (aus `knowledge.actions`), Befugnis (selbst entscheiden ja/nein, Freigabe durch, Bezug auf Permission-ID), Begründung, fehlende Informationen (was, von wem, Rückfrage), Knowledge-IDs, Confidence (`HOCH`/`MITTEL`/`NIEDRIG`) mit Gründen, interne To-dos, Antwortentwurf (Sprache, Text mit Platzhaltern).
+- **Metadaten je Analyse:** Nutzer, Zeitpunkt, Anbieter und Modell, Prompt-Version, Wissensstand und Fingerabdrücke, Ticketnummer, Variante, Kundengruppe, Produkte, Bestellnummern, Dauer, Tokenverbrauch, Prüfhinweise. Grundlage für PROJ-11.
+- **Zusammenfassung:** Abschnitte, „bis Nachricht vom …", Fingerabdruck der Nachrichten, von Hand geändert ja/nein, Modell, Prompt-Version.
+- **Ablage bis PROJ-11:** im vorhandenen Laravel-Cache (Datenbank-Tabelle `cache`), **verschlüsselt**, 7 Tage: Zusammenfassung je Ticket; letztes Ergebnis je Analyse (mit Kennung in der Adresse, damit Neuladen das Ergebnis zeigt). Platzhalter-Zuordnung nur verschlüsselt beim Ergebnis.
+- **Konfiguration:** `OPENAI_TOKEN` (und `ANTHROPIC_TOKEN`) in der `.env`; Modell je Aufruf, Schwellen (5 Nachrichten / 3 Nachrichten mit 6.000 Zeichen), Zeitlimit 90 s, Aufbewahrung 7 Tage in einer eigenen Konfiguration `config/analysis.php`.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Offizielles Laravel AI SDK (`laravel/ai`) statt direktem OpenAI-Client:** Es ist das Werkzeug der Laravel-Macher, unterstützt OpenAI und Anthropic mit derselben Schreibweise, liefert strukturierte Antworten nach festem Schema und bringt Test-Attrappen mit. Ein Anbieterwechsel (PROJ-17) wird zur Einstellung statt zum Umbau.
+- **Feste Ergebnisstruktur als Schema:** Das Modell muss in genau dieser Form antworten; die Wertelisten (Kategorien, Vorgänge, erlaubte Knowledge-IDs) kommen aus Konfiguration bzw. Wissensauswahl. Danach prüft die App selbst noch einmal – was nicht passt, wird verworfen und angezeigt.
+- **Zwei Prompt-Dateien im Repository mit Versionsnummer:** Fachliche Regeln stehen nie im Prompt (PRD), nur Rolle, Arbeitsweise und Ausgabeform. Jede Analyse speichert die Version. PROJ-31 macht die Prompts später in der App bearbeitbar (mit eigener Versionierung).
+- **Platzhalter vor dem Senden, Einsetzen erst in der App:** Kontaktdaten und Lieferadresse verlassen die App nie. E-Mail und Telefon werden über Muster erkannt, die Lieferadresse über die EOCS-Daten (genauer Abgleich), sonstige Anschriften über Muster mit Postleitzahl und Straße. Grenze: frei formulierte Adressen ohne Postleitzahl werden nicht immer erkannt (siehe Open Questions).
+- **Synchroner Aufruf statt Hintergrund-Job:** Die Analyse dauert typisch 10–30 s. Ein normaler Seitenaufruf mit Lade-Overlay ist einfacher und braucht keine Warteschlange; nach dem Ergebnis leitet die App auf die Ticketadresse mit Ergebnis-Kennung weiter (Neuladen löst keine zweite Analyse aus). Für den Betrieb muss der Webserver Anfragen bis 120 s zulassen (`/deploy`).
+- **Cache statt Datenbanktabelle bis PROJ-11:** Die Spec verlangt „vorübergehend gespeichert"; der Cache hat Ablaufzeiten eingebaut. Verschlüsselt, weil Zusammenfassungen und Ergebnisse Fallinhalte enthalten.
+- **Wissen und Produkte über bestehende Bausteine:** Kundengruppe aus dem EOCS-Kanal und Produkte aus den Artikelnummern (PROJ-4 `KnowledgeSuggester`), Wissen aus `KnowledgeSelector` – Arbeitsabläufe (PROJ-30) bleiben ausgeschlossen.
+- **Log ohne Inhalte:** Ticketnummer, Modell, Dauer, Tokens, Fehlerart.
+
+### D) Abhängigkeiten
+- **`laravel/ai`** (neu, vom Product Owner am 2026-10-06 freigegeben): offizielles Laravel AI SDK – Anbindung an OpenAI (und später Anthropic), strukturierte Ausgabe, Test-Attrappen.
+
+### E) Hinweise für /frontend und /backend
+- Frontend: Komponenten Analyse-Formular, Zusammenfassung, Ergebnis (schlicht); Alpine für Variantenwahl, Vorschau, Bearbeiten der Zusammenfassung, Lade-Overlay.
+- Backend: `app/Analysis/` (Kontext, Platzhalter, Zusammenfassung, Analyse, Ergebnis, Prüfung, Prompts), `config/analysis.php`, Prompt-Dateien, Routen (POST Analyse, POST/PUT Zusammenfassung) mit `staff.selected`, Form Requests, Anpassung PROJ-7 (Lieferadresse intern behalten).
+- `.env.example`: `OPENAI_TOKEN=`, `ANTHROPIC_TOKEN=` (trägt der Product Owner ein).
+- Tests mit den Attrappen des SDK, nur erfundene Tickets: Varianten und Schwellen, Platzhalter hin und zurück, Zusammenfassung (veraltet, bearbeitet, wiederverwendet), Ergebnisprüfung (unbekannte IDs/Vorgänge/Kategorie), zweiter Versuch, Zeitüberschreitung, kein Name, keine Kontaktdaten im übertragenen Text und im Log.
+- Vor dem ersten echten Aufruf: verfügbare Modelle mit dem Token abfragen und Voreinstellung festlegen.
+
 
 ## QA Test Results
 _To be added by /qa_
