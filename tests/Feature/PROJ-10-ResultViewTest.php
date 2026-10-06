@@ -254,3 +254,46 @@ describe('ticket header', function () {
             ->assertSeeTextInOrder(['Kundengruppe', 'Foto-Fachhändler / Reseller', 'Zammad-Gruppe', 'Kundenservice']);
     });
 });
+
+describe('qa additions', function () {
+    test('an emptied draft is saved, shown empty and copy is disabled', function () {
+        CaseAgent::fake([resultAnswer()]);
+        $id = runAnalysis();
+
+        saveReply($id, ['text' => ''])->assertOk();
+
+        expect(app(AnalysisStore::class)->result($id)['reply_edit']['text'])->toBe('')
+            ->and($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())
+            ->toContain('x-bind:disabled="text.trim() === \'\'"')
+            ->toMatch('/aria-label="Antwortentwurf"[^>]*><\/textarea>/');
+    });
+
+    test('script in an edited draft or in ai output is escaped in textarea and alpine data', function () {
+        CaseAgent::fake([resultAnswer(['reply' => ['language' => 'Deutsch', 'text' => '</textarea><script>alert(1)</script>']])]);
+        $id = runAnalysis();
+
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent();
+        expect($html)->not->toContain('<script>alert(1)</script>');
+
+        saveReply($id, ['text' => '"><img src=x onerror=alert(1)>']);
+        expect($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())->not->toContain('<img src=x');
+    });
+
+    test('check notes are pointed out in the box and listed in their own section', function () {
+        CaseAgent::fake([resultAnswer(['knowledge_ids' => ['POLICY-999'], 'actions' => ['fliegen']])]);
+        runAnalysis();
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSeeTextInOrder(['Was ist zu tun?', 'Prüfhinweise vorhanden – siehe unten.', 'Antwortentwurf', 'Prüfhinweise (2)', 'Unbekannte Quelle „POLICY-999“ entfernt.']);
+    });
+
+    test('after an error the form stays open with the input', function () {
+        CaseAgent::fake([resultAnswer()]);
+        runAnalysis();
+        CaseAgent::fake(fn () => throw new Illuminate\Http\Client\ConnectionException('down'));
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Zweiter Versuch']);
+
+        expect($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())
+            ->toMatch('/<details id="analyse-details"[^>]*\sopen\s/');
+    });
+});

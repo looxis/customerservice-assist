@@ -1,6 +1,6 @@
 # PROJ-10: Ergebnisansicht
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -192,7 +192,83 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-10-ResultViewTest.php` (18 Fälle); drei PROJ-9-Tests an die neue Ansicht angepasst. Gesamte Suite: 727 grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-06
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (22 Fälle, KI und Zammad nachgestellt, nur erfundene Daten), Code-Review jedes Kriteriums, Rauchtest der Ticketseiten gegen die laufende App (#2138220, #2132884: 200). Der Product Owner hat die neue Ansicht an einem echten Fachhändler-Ticket geprüft (Chrome); die Rückmeldung zum Ticketkopf ist bereits umgesetzt. Kein Test in Firefox/Safari und auf Handy-/Tablet-Breite; die Ansicht nutzt nur einspaltige, umbrechende Layouts und bestehende Komponenten.
+
+### Acceptance Criteria Status
+
+#### Aufbau und Anordnung
+- [x] Ergebnis direkt unter dem Ticketkopf, vor Formular und Verlauf
+- [x] Formular eingeklappt auf „Analysiert mit: …“, klappt mit den damaligen Eingaben auf
+- [x] Kasten „Was ist zu tun?“ mit Maßnahme, Vorgängen, Befugnis in klarer Sprache, fehlenden Informationen, fehlendem Wissen (Einstufung und Confidence als Kennzeichen direkt rechts neben der Überschrift des Ergebnisses)
+- [x] Antwortentwurf direkt darunter
+- [x] Aufklappbare Abschnitte mit Anzahl, anfangs zu
+- [x] Schmale Bildschirme: alles untereinander (Code-Review)
+
+#### Antwortentwurf
+- [x] Bearbeitbares Feld mit Sprache, bekannte Platzhalter eingesetzt
+- [x] Hinweis „Von der App eingesetzt: …“
+- [x] Speichern beim Tippen mit Anzeige „Gespeichert“
+- [x] Bearbeitete Fassung nach Neuladen/für Kolleginnen mit „bearbeitet von … am …“
+- [x] „Original der KI wiederherstellen“ mit Rückfrage
+- [x] Kopieren als reiner Text, Bestätigung „Kopiert“
+- [x] „N Stellen noch ausfüllen“
+- [x] Nachfrage beim Kopieren mit offenen Stellen
+- [x] Speichern fehlgeschlagen: Text bleibt, Meldung, erneuter Versuch, Kopieren weiter möglich
+
+#### Quellen und Entwurfs-Wissen
+- [x] ID, Titel, Typ, „Entwurf“ je Quelle
+- [x] Text in der Fassung der Analyse, Link zur Knowledge-Übersicht
+- [x] „Seit der Analyse geändert“ / „nicht mehr vorhanden“
+- [x] Hinweis auf Entwurfs-Wissen im Kasten mit IDs
+
+#### Letzte Analyse wiederfinden
+- [ ] Jüngste Analyse erscheint beim Öffnen – Fehler nach später Bearbeitung (BUG-1)
+- [x] Hinweis auf neue Nachrichten mit „Neu analysieren“
+- [x] Ohne Analyse: Formular offen, kein Ergebnis
+- [x] Neue Analyse ersetzt die Anzeige, frühere bleibt gespeichert
+
+### Edge Cases Status
+- [x] Gleichzeitiges Bearbeiten: zuletzt gespeichert gilt
+- [x] Leerer Entwurf gespeichert, Kopieren gesperrt
+- [x] Langer Entwurf: Feld wächst mit, höchstens 20.000 Zeichen
+- [x] Abgelaufene oder ungültige Analyse: Formular offen, bei Link Hinweis „nicht mehr verfügbar“
+- [x] Testläufe nur beim eigenen Schnittpunkt
+- [x] Platzhalter-ähnlicher Text zählt als offene Stelle, Nachfrage bestätigbar
+- [x] Ohne Zwischenablage: Text markiert, Hinweis „Strg+C“
+- [x] Prüfhinweise: im Kasten „Prüfhinweise vorhanden“, Liste im Abschnitt
+- [x] Ältere Ergebnisse aus PROJ-9 werden weiter angezeigt
+- [x] Nach einem Fehler bleibt das Formular offen
+
+### Security Audit Results
+- [x] Speichern nur mit gewähltem Namen (409), nur für eine Analyse dieses Tickets (404), UUID-Prüfung in der Route
+- [x] CSRF: Hintergrundanfrage mit Token aus dem Seitenkopf, Formulare mit `@csrf`
+- [x] XSS: Entwurf, KI-Ausgabe und Quellen-Text escaped (Textfeld, Alpine-Daten, Knowledge-Darstellung); Test mit `</textarea><script>` und `<img onerror>`
+- [x] Eingaben begrenzt (20.000 Zeichen, `original` boolean)
+- [x] Entwürfe verschlüsselt gespeichert, nicht im Log
+- Hinweis: Ohne Login kann jede gewählte Person jeden Entwurf bearbeiten (wie im PRD vorgesehen). Kein Rate Limiting auf das Speichern; es entstehen keine Kosten, die Anfragen sind klein.
+
+### Regression
+- Gesamte Suite: 732 Tests grün; drei PROJ-9-Tests bewusst an die neue Ansicht angepasst, ein PROJ-6-Test an „Zammad-Gruppe“.
+- Seite „Über die App“: Schritt 7 „Prüfen und anpassen“ ohne „in Arbeit“, Text an die neue Ansicht angepasst; Schritt 8 (PROJ-12) bleibt „in Arbeit“.
+
+### Bugs Found
+
+#### BUG-1: Letzte Analyse verschwindet nach später Bearbeitung des Entwurfs
+- **Severity:** Low
+- **Steps to Reproduce:** Analyse am Tag 0, Entwurf am Tag 6 bearbeiten, Ticket am Tag 8 öffnen. Erwartet: Die Analyse (noch bis Tag 13 gespeichert) erscheint. Tatsächlich: kein Ergebnis, weil der Verweis „letzte Analyse“ nur bei der Analyse gesetzt wird und nach 7 Tagen abläuft. Die Analyse ist über ihren Link weiter erreichbar.
+- **Priority:** Fix in next sprint (erledigt sich spätestens mit PROJ-11)
+
+### Summary
+- **Acceptance Criteria:** 22/23 bestanden (1 mit BUG-1, Low)
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; BUG-1 bei Gelegenheit (Verweis beim Bearbeiten mit verlängern).
 
 ## Deployment
 _To be added by /deploy_
