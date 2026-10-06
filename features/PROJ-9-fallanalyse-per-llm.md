@@ -1,6 +1,6 @@
 # PROJ-9: Fallanalyse per LLM
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-06
 
@@ -255,7 +255,119 @@ Server (app/Analysis/)
 - **Tests:** `tests/Feature/PROJ-9-CaseAnalysisTest.php` (48 Fälle, Attrappen des SDK, nur erfundene Daten). Gesamte Suite grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-06
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (Laravel AI SDK mit Attrappen, Zammad/EOCS nachgestellt, nur erfundene Daten), Code-Review jedes Kriteriums, Rauchtest gegen die laufende App mit echten Tickets (#2138220, #2132884, #2137635: Seite lädt in 0,5–0,7 s; Vorschau „Was an die KI geht" ohne E-Mail-Adressen oder Telefonnummern, nur Platzhalter). Echte Analysen gegen OpenAI hat der Product Owner im Browser durchgeführt (Chrome, Desktop), dabei gefundene Punkte sind bereits behoben (Bestellnummer im Titel, Kundengruppe merken, Kundensignaturen). Andere Browser und Handy-/Tablet-Breiten nicht eigens geprüft; die Oberfläche nutzt nur bestehende, responsiv geprüfte Komponenten (PROJ-1).
+
+### Acceptance Criteria Status
+
+#### Analyse-Formular
+- [x] Bereich „Analyse" mit Kundengruppe, Produkten, Variante, Kontextfeld, „Analysieren"
+- [x] Vorschlag aus der EOCS-Bestellung; ohne Bestellung „Noch unklar" (zusätzlich: Wahl je Ticket und je Kunde gemerkt)
+- [x] Wahl des Nutzers entscheidet
+- [x] „Bestelldaten von Hand" ohne EOCS-Bestellung, geht als „vom Mitarbeiter eingetragen" mit
+- [x] Kontextfeld optional, höchstens 4.000 Zeichen
+- [x] Ohne Namen keine Analyse, Eingaben bleiben
+
+#### Ticketkontext: drei Varianten
+- [x] Drei Varianten zur Wahl
+- [x] Vorauswahl nach Schwelle (5 Nachrichten bzw. 3 mit über 6.000 Zeichen), Zusammenfassung wird vorgeschlagen
+- [x] Nur eine Nachricht: keine Varianten
+- [x] Vorschau zeigt den Ticketteil der gewählten Variante nach Ersetzung (dokumentierte Abweichung: Bestelldaten und Kontextfeld werden nur benannt, nicht angezeigt)
+- [x] Gleiche Bereinigung, interne Notizen als „INTERN" gekennzeichnet, Platzhalter für E-Mail/Telefon/Anschrift, Vorname bleibt
+
+#### Umkehrbare Platzhalter
+- [x] Zuordnung nur in der App (verschlüsselt mit dem Ergebnis), nie beim Anbieter
+- [x] `[LIEFERADRESSE]` bekannt, nicht übertragen
+- [x] Bekannte Platzhalter eingesetzt und markiert
+- [x] Unbekannte Platzhalter markiert „bitte ausfüllen"
+
+#### Zusammenfassung (Stufe 1)
+- [x] Eigener Aufruf über den Verlauf vor der letzten Kundennachricht inkl. interner Notizen
+- [x] Anzeige oberhalb der letzten Kundennachricht mit Abschnitten und „zusammengefasst bis …"
+- [x] Korrigieren und Übernehmen, Kennzeichnung „von Hand geändert"
+- [x] „Veraltet" bei neuen Nachrichten, von Hand geänderte Fassung wird nicht überschrieben
+- [x] Wiederverwendung ohne weiteren Aufruf
+- [x] Originalverlauf bleibt sichtbar
+- [x] 7 Tage vorübergehend, Kennzeichnung „vorübergehend gespeichert"
+
+#### Analyse (Stufe 2)
+- [x] Lade-Overlay „Ticket wird analysiert …", zweiter Klick gesperrt (im Browser)
+- [x] Eingabe vollständig, ohne Adressen und Zahlungsdaten, Wissen mit IDs und Entwurfskennzeichen; keine fachlichen Regeln im Prompt
+- [x] Alle Ergebnisteile vorhanden (zusätzlich „Fehlendes Wissen")
+- [x] „Unklar" mit fehlenden Informationen und Rückfrage
+- [x] Unbekannte Knowledge-IDs entfernt und angezeigt
+- [x] Unbekannte Vorgänge/Kategorie verworfen und angezeigt
+- [x] Entwurfs-Wissen je ID gekennzeichnet
+- [x] Antwortentwurf in Kundensprache, Rest Deutsch (echter Test: Italienisch, #2137635)
+- [x] Ergebnis schlicht unter dem Ticket, Formular bleibt mit Eingaben
+- [x] Metadaten: Nutzer, Zeitpunkt, Modell, Prompt-Version, Wissensstand, Fingerabdrücke, Variante, Dauer
+
+#### Fehler
+- [x] Zeitüberschreitung/nicht erreichbar: Meldung, Eingaben bleiben (siehe BUG-1: ohne eigenen Knopf „Erneut versuchen")
+- [x] Ungültige Struktur: ein zweiter Versuch, dann Meldung; Log ohne Inhalte
+- [x] Fehlender/ungültiger Zugang: Meldung ohne technische Details
+- [x] Zusammenfassung schlägt fehl: Hinweis mit Verweis auf andere Variante
+- [x] Meldungen ohne Zugangsdaten, Ticketinhalte oder Anbietertexte
+
+### Edge Cases Status
+- [x] Letzte Nachricht von uns: jüngste Kundennachricht gilt als letzte
+- [x] Keine Kundennachricht: Analyse möglich, nur „Ganzer Verlauf"
+- [ ] Sehr lange Tickets über der Modellgrenze: keine eigene Kürzung (BUG-3)
+- [x] Geschlossenes Ticket: Analyse möglich
+- [x] Mehrere Bestellungen: alle gehen mit
+- [x] „Noch unklar": Analyse mit allgemeingültigem Wissen
+- [ ] Wissen leer: Modell erhält „kein Wissen hinterlegt", in der Oberfläche aber kein eigener Hinweis (BUG-2)
+- [x] Gleichzeitige Analysen: unabhängig (je Ergebnis eigene ID)
+- [x] Veraltete, von Hand geänderte Zusammenfassung: „neu erstellen" oder „weiter verwenden"
+- [x] Platzhalter im Antwortentwurf: nur bekannte werden eingesetzt
+
+### Security Audit Results
+- [x] Name erforderlich für Analyse und Zusammenfassung (Middleware `staff.selected`); kein Login im MVP laut PRD
+- [x] CSRF: alle POST/PUT-Formulare mit `@csrf`, übrige Formulare GET
+- [x] Fremde Ergebnisse: Ergebnis-ID ist eine UUID und wird nur zum passenden Ticket angezeigt
+- [x] XSS: Modellausgaben, Platzhalterwerte und Kontextfeld werden escaped (Test mit `<script>`/`<img onerror>`)
+- [x] Datenschutz: Kontaktdaten ersetzt, Lieferadresse und Zahlungsdaten nie übertragen, OpenAI `store: false`, Ergebnisse und Zusammenfassungen verschlüsselt, Log ohne Inhalte
+- [x] Zugangsdaten nur serverseitig, nicht in Seiten oder Meldungen
+- [x] Eingaben validiert (Kundengruppe, Produkte, Variante aus festen Listen; Kontext begrenzt)
+- [ ] Rate Limiting: serverseitig keines auf Analyse und Zusammenfassung (BUG-4)
+- Hinweis (kein Bug): Prompt-Injection über Kundentext ist grundsätzlich möglich. Abgemildert durch feste Wertelisten, Prüfung des Ergebnisses, keine Aktionen der App und Prüfung durch einen Menschen.
+
+### Regression
+- Gesamte Suite: 695 Tests grün (PROJ-1 bis PROJ-7, PROJ-24, PROJ-25, PROJ-30, PROJ-32).
+- Seite „Über die App": Hinweis „in Arbeit" bei den Schritten 3 (Bestelldaten von Hand), 4 und 6 entfernt und Texte an den Stand angepasst; Schritte 7 und 8 bleiben „in Arbeit" (PROJ-10, PROJ-12).
+
+### Bugs Found
+
+#### BUG-1: Kein eigener Knopf „Erneut versuchen" bei Fehlern
+- **Severity:** Low
+- **Steps to Reproduce:** Analyse starten, während der Anbieter nicht erreichbar ist. Erwartet: Meldung mit „Erneut versuchen". Tatsächlich: Meldung ohne Knopf; das Formular mit allen Eingaben bleibt, ein erneuter Klick auf „Analysieren" funktioniert.
+- **Priority:** Nice to have (mit PROJ-10)
+
+#### BUG-2: Kein Hinweis in der Oberfläche, wenn kein Wissen passt
+- **Severity:** Low
+- **Steps to Reproduce:** Kundengruppe/Produkt wählen, für die kein Dokument gilt, analysieren. Erwartet: Hinweis „kein Wissen für diesen Fall". Tatsächlich: nur „Verwendetes Wissen: keines" und die Begründung des Modells; Warnungen der Wissensauswahl stehen nur in den Metadaten.
+- **Priority:** Fix in next sprint (mit PROJ-10)
+
+#### BUG-3: Keine Kürzung bei Überschreiten der Modellgrenze
+- **Severity:** Low
+- **Steps to Reproduce:** Ticket mit sehr langem Verlauf und „Ganzer Verlauf" analysieren. Erwartet laut Edge Case: zuerst Verlauf kürzen, nie die letzte Kundennachricht. Tatsächlich: keine Prüfung; bei Überschreitung käme „Die Analyse ist gerade nicht möglich". Bei der Kontextgröße aktueller Modelle praktisch nicht zu erwarten; die Zusammenfassung ist ab der Schwelle vorausgewählt.
+- **Priority:** Nice to have
+
+#### BUG-4: Kein serverseitiges Rate Limiting für KI-Aufrufe
+- **Severity:** Low
+- **Steps to Reproduce:** Analyse-Formular mehrfach schnell per Skript absenden. Erwartet: Begrenzung. Tatsächlich: jeder Aufruf geht an den Anbieter (Kosten). Im Browser verhindert das Formular Doppelklicks; die App ist nur intern erreichbar.
+- **Priority:** Bei `/deploy` mit einplanen (z. B. Begrenzung je Name/Browser)
+
+### Summary
+- **Acceptance Criteria:** 39/39 bestanden (eins mit dokumentierter Abweichung, eins mit BUG-1 als Low)
+- **Bugs Found:** 4 total (0 critical, 0 high, 0 medium, 4 low)
+- **Security:** Pass (Rate Limiting als Low für `/deploy`)
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; BUG-1/2 mit PROJ-10 erledigen, BUG-4 bei `/deploy`; Webserver-Zeitlimit ≥ 120 s bei `/deploy` beachten.
 
 ## Deployment
 _To be added by /deploy_

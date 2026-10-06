@@ -27,8 +27,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Approved |
 | P0 (MVP) | Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Approved |
 | P0 (MVP) | Bestellung aus EOCS laden (automatische Erkennung, manuelle Bestellnummer) | Approved |
-| P0 (MVP) | Bestelldaten manuell ergänzen (Fallback) – aufgegangen in der Fallanalyse | Planned |
-| P0 (MVP) | Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | In Progress |
+| P0 (MVP) | Bestelldaten manuell ergänzen (Fallback) – aufgegangen in der Fallanalyse | Approved |
+| P0 (MVP) | Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | Approved |
 | P0 (MVP) | Ergebnisansicht mit bearbeitbarem Antwortentwurf, Kopieren und einsehbaren Quellen | Roadmap |
 | P0 (MVP) | Analyse-Protokoll und Verlauf je Ticket | Roadmap |
 | P0 (MVP) | Feedback und Wissenslücke melden | Roadmap |

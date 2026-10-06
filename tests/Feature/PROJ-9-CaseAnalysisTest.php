@@ -558,3 +558,47 @@ describe('missing knowledge', function () {
             ->assertSeeText('Gilt für die KI als geprüfter Fakt. Allgemeine Regeln');
     });
 });
+
+describe('qa additions', function () {
+    test('internal notes go to the ai marked as internal, closed tickets can be analysed', function () {
+        CaseAgent::fake([caseAnswer()]);
+        fakeZammad([
+            zammadArticle(['id' => 1, 'body' => '<p>Tasse kaputt.</p>']),
+            zammadArticle(['id' => 2, 'sender' => 'Agent', 'internal' => true, 'from' => 'Kundenservice', 'body' => '<p>Produktion fragen.</p>', 'created_at' => '2026-10-01T08:00:00.000Z']),
+        ], ['state' => 'closed']);
+
+        analyze()->assertRedirect();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('INTERN, nicht für den Kunden') && $prompt->contains('Produktion fragen.'));
+    });
+
+    test('a failing summary shows a hint to choose another variant', function () {
+        SummaryAgent::fake(fn () => throw new ConnectionException('down'));
+        analysisTicket(longThread());
+
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.summary.create', ['number' => '2137942']))->assertRedirect();
+
+        $this->get('/tickets/2137942')->assertSeeText('Die Zusammenfassung konnte nicht erstellt werden.')->assertSeeText('Du kannst auch eine andere Variante wählen.');
+    });
+
+    test('the stored metadata names staff, time, model, prompt, knowledge state, fingerprints, variant and duration', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        parse_str((string) parse_url(analyze()->headers->get('Location'), PHP_URL_QUERY), $query);
+        $meta = app(AnalysisStore::class)->result($query['analyse'])['meta'];
+
+        expect($meta)->toHaveKeys(['staff', 'created_at', 'model', 'prompt_version', 'knowledge_state', 'knowledge_fingerprints', 'variant', 'duration_ms'])
+            ->and($meta['staff'])->toBe('Nele')
+            ->and($meta['knowledge_fingerprints'])->not->toBeEmpty();
+    });
+
+    test('ai output is escaped in the result', function () {
+        CaseAgent::fake([caseAnswer(['recommendation' => '<script>alert(1)</script>', 'reply' => ['language' => 'Deutsch', 'text' => '<img src=x onerror=alert(1)>']])]);
+        analysisTicket();
+
+        $html = $this->get(analyze()->headers->get('Location'))->getContent();
+
+        expect($html)->not->toContain('<script>alert(1)</script>')->not->toContain('<img src=x')->toContain('&lt;script&gt;');
+    });
+});
