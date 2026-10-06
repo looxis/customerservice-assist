@@ -1,6 +1,6 @@
 # PROJ-11: Analyse-Protokoll und Verlauf
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -95,12 +95,72 @@ Analysen, Zusammenfassungen und bearbeitete Entwürfe liegen bisher nur vorüber
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| MySQL-Datenbank statt Zwischenspeicher für Analysen, Zusammenfassungen, gemerkte Wahl je Ticket und Kundengruppe je Kunde | Dauerhaft, übersteht Neustarts und Leeren des Zwischenspeichers; Grundlage für Listen und Auswertungen (PROJ-14) | 2026-10-06 |
+| Kennzahlen in eigenen, unverschlüsselten Spalten; Kundeninhalte in verschlüsselten Feldern, die bei Bereinigung oder Löschen geleert werden | Auswertungen ohne Entschlüsseln; Löschen = Inhalte leeren, Kennzahlen bleiben | 2026-10-06 |
+| „Letzte Analyse“ wird abgefragt (jüngste erfolgreiche Analyse je Ticket bzw. Teststand) statt als eigener Verweis gespeichert | Kein Verweis, der ablaufen oder veralten kann (vgl. PROJ-10 BUG-1) | 2026-10-06 |
+| Bestehende Speicher-Schnittstelle (`AnalysisStore`) bleibt, liest und schreibt künftig die Datenbank | Controller, Ansicht und Tests aus PROJ-9/10/32 bleiben weitgehend unverändert | 2026-10-06 |
+| Tägliche Bereinigung als geplanter Befehl der App; Frist in der Konfiguration | Einfach, testbar; im Betrieb muss der Zeitplaner laufen (Hinweis für `/deploy`) | 2026-10-06 |
+| Löschen per eigener Formular-Aktion am Ticket, nur Admins (serverseitig geprüft wie PROJ-32) | Gleiche Schutzmechanik wie bisher, Rückfrage im Browser | 2026-10-06 |
+| Keine Übernahme der Zwischenspeicher-Daten | Nur Testdaten; vermeidet Übergangscode | 2026-10-06 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-11 zieht alles, was bisher 7 Tage im Zwischenspeicher lag, in die MySQL-Datenbank um. Die Oberfläche aus PROJ-9/10 bleibt; neu sind die Liste „Frühere Analysen“, der Abschnitt „Protokoll“ für Admins, die Löschfunktion und eine tägliche Bereinigung. Die bestehende Speicher-Schnittstelle bleibt erhalten und liest und schreibt künftig die Datenbank, damit Analyse, Ergebnisansicht und Testmodus nicht umgebaut werden müssen.
+
+### A) Bausteine
+```
+Ticketseite
++-- Ticketkopf
+|   +-- [Alle Analysen dieses Tickets löschen] (nur Admins, mit Rückfrage)
++-- Ergebnis (PROJ-10)
+|   +-- Zeile „Frühere Analysen (N)“ (aufklappbar)
+|   |   +-- je Analyse: Datum · Name · Kundengruppe · Variante · Einstufung · Confidence · ggf. Testlauf
+|   +-- Hinweis „Ältere Analyse vom … – zur neuesten“ (wenn eine ältere gewählt ist)
+|   +-- Antwortentwurf (ältere: nur lesen und kopieren)
+|   +-- … Abschnitte wie bisher …
+|   +-- Abschnitt „Protokoll“ (nur Admins): gesendeter Text, KI-Antwort, alle Metadaten
++-- Hinweis „Inhalte gelöscht von … am …“ (nach dem Löschen)
+
+Im Hintergrund
++-- Tägliche Bereinigung (Inhalte älter als 12 Monate leeren)
+```
+
+### B) Daten
+**Analyse** (eine Zeile je Analyse, auch fehlgeschlagene):
+- *Kennzahlen (bleiben dauerhaft):* öffentliche Kennung, Ticketnummer, Teststand (falls Testlauf), Name, Zeitpunkt, Zustand (fertig/fehlgeschlagen und Fehlerart), Kundengruppe, Produkte, Variante, Kategorie, Einstufung, Confidence, Vorgänge, Knowledge-IDs mit Fingerabdrücken, Anbieter, Modell, Prompt-Versionen, Wissensstand, Dauer, Tokens, Versuche.
+- *Kundeninhalte (verschlüsselt, werden nach 12 Monaten oder beim Löschen geleert):* vollständiges Ergebnis, Formulareingaben (inkl. Kontextfeld und Bestelldaten von Hand), eingesetzte Werte, Quellen-Texte, Stand des Verlaufs, Prüfhinweise, gesendeter Text, unveränderte KI-Antwort, bearbeiteter Entwurf mit Name und Zeit.
+- *Vermerke:* „Inhalte bereinigt am …“ bzw. „Inhalte gelöscht von … am …“.
+
+**Zusammenfassung** (eine je Ticket bzw. Teststand): Text (verschlüsselt), bis wann, Fingerabdruck, „von Hand geändert“, Modell, Prompt-Version, Zeitpunkte. Bereinigung 12 Monate nach letzter Änderung.
+
+**Gemerkte Wahl je Ticket:** Kundengruppe, Produkte, Name, Zeitpunkt. Bereinigung nach 12 Monaten.
+
+**Kundengruppe je Zammad-Kunde/Organisation:** Kundengruppe, Zeitpunkt; keine Fallinhalte. Bereinigung nach 365 Tagen wie bisher.
+
+Verschlüsselt mit dem Schlüssel der App; der Schlüssel muss bei `/deploy` gesichert werden (ohne ihn sind Inhalte nicht mehr lesbar).
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Datenbank statt Zwischenspeicher:** Der Zwischenspeicher darf jederzeit geleert werden; dauerhafte Daten gehören in die Datenbank, die laut Tech-Stack ohnehin vorgesehen ist.
+- **Getrennte Spalten für Kennzahlen:** Auswertungen (PROJ-14) können zählen und filtern, ohne Kundeninhalte zu entschlüsseln. Bereinigen heißt: verschlüsselte Inhalte leeren, Kennzahlen bleiben.
+- **„Letzte Analyse“ wird abgefragt:** Die jüngste erfolgreiche Analyse eines Tickets (bzw. Teststands) wird jedes Mal ermittelt. Ein Verweis, der ablaufen kann, entfällt.
+- **Schnittstelle bleibt:** Analyse, Ergebnisansicht, Entwurf-Speichern und Testmodus sprechen weiter mit derselben Speicher-Schnittstelle; nur deren Inneres wechselt zur Datenbank.
+- **Bereinigung:** Ein geplanter Befehl läuft täglich; er ist auch von Hand ausführbar. Im Betrieb muss der Zeitplaner der App laufen.
+- **Löschen:** Eigene Formular-Aktion am Ticket, nur für Admins (Prüfung auf dem Server, wie beim Testmodus), mit Rückfrage im Browser.
+- **Protokoll für Admins:** Der Abschnitt wird nur Admins angezeigt; die Daten liegen ohnehin verschlüsselt vor.
+
+### D) Abhängigkeiten
+Keine neuen Pakete (Datenbank und Zeitplaner sind Teil von Laravel).
+
+### E) Hinweise für /frontend und /backend
+- Tests mit eigener Testdatenbank (bereits in `phpunit.xml`); Tests aus PROJ-9/10/32, die den Zwischenspeicher direkt ansprechen, auf die Datenbank umstellen.
+- Fehlgeschlagene Analysen protokollieren, ohne Inhalte.
+- Ältere Analysen: Entwurf-Speichern serverseitig ablehnen (nicht nur in der Oberfläche sperren).
+- Vor PROJ-10 gab es Ergebnisse ohne Quellen-Texte – mit der Datenbank entfällt das (keine Übernahme).
+- Für `/deploy`: Migrationen ausführen, Zeitplaner einrichten, App-Schlüssel sichern.
 
 ## QA Test Results
 _To be added by /qa_
