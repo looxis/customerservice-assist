@@ -4,6 +4,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\StaffSelectionController;
+use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketController;
 use App\Zammad\SampleTicket;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,7 @@ Route::get('/knowledge/dokument/{path}', [KnowledgeController::class, 'show'])
 Route::get('/ueber-die-app', AboutController::class)->name('about');
 
 Route::post('/name', StaffSelectionController::class)->name('staff.select');
+Route::post('/testmodus', TestModeController::class)->name('test-mode.switch');
 
 Route::get('/tickets', [TicketController::class, 'lookup'])->name('tickets.lookup');
 Route::get('/tickets/{number}', [TicketController::class, 'show'])

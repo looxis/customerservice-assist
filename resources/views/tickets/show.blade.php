@@ -22,6 +22,10 @@
     @endif
 
     @if ($ticket)
+        @if ($rewindProblem ?? null)
+            <x-alert type="warning">{{ $rewindProblem }}</x-alert>
+        @endif
+
         <x-ticket.header :ticket="$ticket">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []"
@@ -29,14 +33,14 @@
             </x-slot:orders>
         </x-ticket.header>
         @isset($analysis)
-            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" />
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" />
 
             @if ($analysis['result'])
                 <x-analysis.result :result="$analysis['result']" />
             @endif
         @endisset
 
-        <x-ticket.thread :articles="$ticket->articles">
+        <x-ticket.thread :articles="$ticket->articles" :later="$later ?? []" :rewind-url="($testMode ?? false) ? fn (int $id): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selected ?? [], 'stand' => $id]).'#analyse' : null">
             @isset($analysis)
                 <x-slot:summary>
                     <x-analysis.summary :number="$number" :analysis="$analysis" :selected="$selected ?? []" />

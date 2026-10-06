@@ -30,6 +30,7 @@
 
             <form method="POST" action="{{ route('tickets.summary.update', ['number' => $number]) }}" x-show="editing" x-cloak class="mt-3 space-y-2">
                 @csrf
+                @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
                 @method('PUT')
                 @foreach ($selected as $value)<input type="hidden" name="bestellungen[]" value="{{ $value }}">@endforeach
                 <label for="zusammenfassung-text" class="sr-only">Zusammenfassung bearbeiten</label>
@@ -45,6 +46,7 @@
         <div class="mt-3 flex flex-wrap gap-2" x-show="! editing">
             <form method="POST" action="{{ route('tickets.summary.create', ['number' => $number]) }}" x-data x-on:submit="$dispatch('loading-start', { title: 'Zusammenfassung wird erstellt …' })">
                 @csrf
+                @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
                 @foreach ($selected as $value)<input type="hidden" name="bestellungen[]" value="{{ $value }}">@endforeach
                 <x-button type="submit" :variant="$summary ? 'secondary' : 'primary'">{{ $summary ? 'Neu erstellen' : 'Zusammenfassung erstellen' }}</x-button>
             </form>
@@ -53,6 +55,7 @@
                 @if ($stale && $summary->edited)
                     <form method="POST" action="{{ route('tickets.summary.update', ['number' => $number]) }}">
                         @csrf
+                        @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
                         @method('PUT')
                         @foreach ($selected as $value)<input type="hidden" name="bestellungen[]" value="{{ $value }}">@endforeach
                         <input type="hidden" name="zusammenfassung" value="{{ $summary->text }}">

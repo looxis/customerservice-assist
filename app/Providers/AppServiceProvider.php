@@ -8,6 +8,7 @@ use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Staff\StaffDirectory;
+use App\Staff\TestMode;
 use App\Zammad\MessageBody;
 use App\Zammad\ZammadClient;
 use Illuminate\Contracts\Foundation\Application;
@@ -43,10 +44,13 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show'], function (\Illuminate\View\View $view): void {
             $staff = app(StaffDirectory::class);
+            $testMode = app(TestMode::class);
 
             $view->with([
                 'staffNames' => $staff->names(),
                 'currentStaff' => $staff->current(request()),
+                'testModeAvailable' => $testMode->isAvailable(request()),
+                'testModeActive' => $testMode->isActive(request()),
             ]);
         });
     }

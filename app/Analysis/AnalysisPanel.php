@@ -32,7 +32,7 @@ class AnalysisPanel
     {
         $orders = collect($lookups)->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->values()->all();
         $context = new TicketContext($ticket);
-        $summary = $this->store->summary($ticket->number);
+        $summary = $this->store->summary($ticket->summaryKey());
         $pseudonymizer = app(Pseudonymizer::class);
 
         foreach ($orders as $order) {
@@ -63,6 +63,7 @@ class AnalysisPanel
             'defaultVariant' => $context->defaultVariant(),
             'suggestsSummary' => $context->suggestsSummary(),
             'previews' => $previews,
+            'stand' => $ticket->rewoundTo,
             'summary' => $summary,
             'summaryStale' => $summary?->isStale($context->earlierFingerprint()) ?? false,
             'summaryOffered' => $context->offersVariants(),

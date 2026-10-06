@@ -1,4 +1,4 @@
-@props(['articles'])
+@props(['articles', 'later' => [], 'rewindUrl' => null])
 
 @php
     $count = count($articles);
@@ -36,7 +36,21 @@
                 {{ $summary }}
             @endif
 
-            <x-ticket.article :article="$article" :latest="$index === $count - 1" />
+            <x-ticket.article :article="$article" :latest="$index === $count - 1" :rewind-url="$rewindUrl && $article->kind === \App\Zammad\ArticleKind::Customer && $article->id !== null ? $rewindUrl($article->id) : null" />
         @endforeach
+    @endif
+
+    @if ($later !== [])
+        <details class="group">
+            <summary class="flex cursor-pointer list-none items-center justify-center gap-2 rounded-lg border border-dashed border-warning-500/40 bg-warning-500/5 p-3 text-sm font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand group-open:mb-4 [&::-webkit-details-marker]:hidden">
+                <x-icon name="chevron-down" size="16" class="transition group-open:rotate-180" />
+                <span>{{ count($later) }} {{ count($later) === 1 ? 'spätere Nachricht' : 'spätere Nachrichten' }} (nicht an die KI)</span>
+            </summary>
+            <div class="space-y-4 opacity-60">
+                @foreach ($later as $article)
+                    <x-ticket.article :article="$article" />
+                @endforeach
+            </div>
+        </details>
     @endif
 </section>

@@ -19,6 +19,7 @@ use App\Knowledge\KnowledgeSelector;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
+use App\Staff\TestMode;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
 use Illuminate\Http\RedirectResponse;
@@ -30,7 +31,7 @@ class AnalysisController extends Controller
      * Run an analysis (stage 2, creating or refreshing the summary first when
      * that variant is chosen) and show the ticket with the result.
      */
-    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector): RedirectResponse
+    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -40,7 +41,7 @@ class AnalysisController extends Controller
             ->with('analysis_error', $message);
 
         try {
-            $ticket = $zammad->ticket($number);
+            $ticket = $testMode->rewind($zammad->ticket($number), $request, $request->input('stand'))['ticket'];
         } catch (ZammadException $exception) {
             return $back($exception->problem->message($number));
         }
@@ -53,13 +54,13 @@ class AnalysisController extends Controller
 
         $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request));
 
-        if ($request->validated('kundengruppe') !== 'unclear') {
+        if ($request->validated('kundengruppe') !== 'unclear' && $ticket->rewoundTo === null) {
             $store->putCustomerGroup($ticket->customerKey(), $request->validated('kundengruppe'));
         }
 
         $context = new TicketContext($ticket);
         $variant = in_array($request->variant(), $context->variants(), true) ? $request->variant() : ContextVariant::FullThread;
-        $summary = $variant === ContextVariant::LastWithSummary ? $store->summary($number) : null;
+        $summary = $variant === ContextVariant::LastWithSummary ? $store->summary($ticket->summaryKey()) : null;
 
         try {
             if ($variant === ContextVariant::LastWithSummary && ($summary === null || $summary->isStale($context->earlierFingerprint()))) {
@@ -91,12 +92,12 @@ class AnalysisController extends Controller
     /**
      * Create the summary of the earlier thread (stage 1), or create it anew.
      */
-    public function createSummary(string $number, Request $request, ZammadClient $zammad, Summarizer $summarizer): RedirectResponse
+    public function createSummary(string $number, Request $request, ZammadClient $zammad, Summarizer $summarizer, TestMode $testMode): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') + 30);
 
         try {
-            $ticket = $zammad->ticket($number);
+            $ticket = $testMode->rewind($zammad->ticket($number), $request, $request->input('stand'))['ticket'];
             $context = new TicketContext($ticket);
 
             if (! $context->offersVariants()) {
@@ -117,9 +118,16 @@ class AnalysisController extends Controller
      * Keep the employee's corrected summary. A summary of an older thread can
      * also be kept on purpose ("weiter verwenden").
      */
-    public function updateSummary(string $number, UpdateSummaryRequest $request, ZammadClient $zammad, AnalysisStore $store): RedirectResponse
+    public function updateSummary(string $number, UpdateSummaryRequest $request, ZammadClient $zammad, AnalysisStore $store, TestMode $testMode): RedirectResponse
     {
-        $summary = $store->summary($number);
+        try {
+            $ticket = $testMode->rewind($zammad->ticket($number), $request, $request->input('stand'))['ticket'];
+        } catch (ZammadException) {
+            $ticket = null;
+        }
+
+        $key = $ticket?->summaryKey() ?? $number;
+        $summary = $store->summary($key);
 
         if ($summary === null) {
             return redirect()->to($this->ticketUrl($number, $request, '#zusammenfassung'))->with('summary_error', 'Es gibt noch keine Zusammenfassung zum Bearbeiten.');
@@ -127,14 +135,13 @@ class AnalysisController extends Controller
 
         $updated = $summary->withText($request->validated('zusammenfassung'));
 
-        try {
-            $fingerprint = (new TicketContext($zammad->ticket($number)))->earlierFingerprint();
+        if ($ticket !== null) {
+            $fingerprint = (new TicketContext($ticket))->earlierFingerprint();
             $updated = new Summary($updated->text, $updated->until, $fingerprint, true, $updated->model, $updated->promptVersion, $updated->createdAt);
-        } catch (ZammadException) {
-            // Keep the old fingerprint; the summary may show as outdated.
         }
+        // Without the ticket the old fingerprint stays; the summary may show as outdated.
 
-        $store->putSummary($number, $updated);
+        $store->putSummary($key, $updated);
 
         return redirect()->to($this->ticketUrl($number, $request, '#zusammenfassung'))->with('summary_saved', true);
     }
@@ -163,7 +170,8 @@ class AnalysisController extends Controller
     private function ticketUrl(string $number, Request $request, string $anchor, array $extra = []): string
     {
         $selection = array_values(array_filter((array) $request->input('bestellungen', []), 'is_string'));
+        $stand = $request->input('stand');
 
-        return route('tickets.show', ['number' => $number, 'bestellungen' => $selection, ...$extra]).$anchor;
+        return route('tickets.show', ['number' => $number, 'bestellungen' => $selection, ...(is_string($stand) && $stand !== '' ? ['stand' => $stand] : []), ...$extra]).$anchor;
     }
 }

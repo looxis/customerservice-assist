@@ -9,6 +9,7 @@ use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
+use App\Staff\TestMode;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -40,6 +41,7 @@ class TicketController extends Controller
             ], $exception->problem->status());
         }
 
+        ['ticket' => $ticket, 'later' => $later, 'problem' => $rewindProblem] = $testMode->rewind($ticket, $request, $request->query('stand'));
         $selected = $this->selection($request, $detector);
         $suggestions = $detector->detect($ticket);
         $lookups = [];
@@ -54,6 +56,9 @@ class TicketController extends Controller
         return response()->view('tickets.show', [
             'number' => $number,
             'ticket' => $ticket,
+            'later' => $later,
+            'rewindProblem' => $rewindProblem,
+            'testMode' => $testMode->isActive($request),
             'selected' => array_map(fn (OrderNumber $order): string => $order->value, $selected),
             'suggestions' => array_slice($suggestions, 0, OrderNumberDetector::MAX_SUGGESTIONS),
             'moreSuggestions' => count($suggestions) > OrderNumberDetector::MAX_SUGGESTIONS,

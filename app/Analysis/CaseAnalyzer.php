@@ -71,6 +71,7 @@ class CaseAnalyzer
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
             'meta' => [
                 'staff' => $request->staffName,
+                'test_until' => $request->ticket->rewoundAt()?->toIso8601String(),
                 'created_at' => CarbonImmutable::now()->toIso8601String(),
                 'provider' => config('analysis.provider'),
                 'model' => $model,

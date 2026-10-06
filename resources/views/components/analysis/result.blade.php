@@ -21,6 +21,10 @@
             </div>
         </div>
 
+        @if ($meta['test_until'] ?? null)
+            <p class="mt-2 inline-flex rounded-md bg-warning-500/10 px-2 py-1 text-xs font-semibold text-warning-700">Testlauf (Stand bis Nachricht vom {{ \Carbon\CarbonImmutable::parse($meta['test_until'])->setTimezone(config('services.zammad.timezone', 'Europe/Berlin'))->format('d.m.Y, H:i') }})</p>
+        @endif
+
         @if (($result['notes'] ?? []) !== [])
             <x-alert type="warning" class="mt-4">
                 <p class="font-semibold">Hinweise zur Prüfung des Ergebnisses</p>

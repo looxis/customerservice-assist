@@ -38,7 +38,7 @@ class Summarizer
             createdAt: CarbonImmutable::now(),
         );
 
-        $this->store->putSummary($ticket->number, $summary);
+        $this->store->putSummary($ticket->summaryKey(), $summary);
 
         return $summary;
     }

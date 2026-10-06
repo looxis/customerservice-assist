@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class StaffDirectory
 {
     /**
-     * @param  array{names: list<string>, cookie: string, cookie_minutes: int}  $config
+     * @param  array{names: list<string>, cookie: string, cookie_minutes: int, admins?: list<string>, test_mode_cookie?: string}  $config
      */
     public function __construct(private readonly array $config) {}
 
@@ -45,6 +45,19 @@ class StaffDirectory
         $name = $request->cookie($this->config['cookie']);
 
         return is_string($name) && $this->isListed($name) ? $name : null;
+    }
+
+    /**
+     * Whether a listed name may use admin tools (PROJ-32 test mode).
+     */
+    public function isAdmin(?string $name): bool
+    {
+        return $this->isListed($name) && in_array($name, $this->config['admins'] ?? [], true);
+    }
+
+    public function testModeCookieName(): string
+    {
+        return $this->config['test_mode_cookie'] ?? 'test_mode';
     }
 
     public function cookieName(): string

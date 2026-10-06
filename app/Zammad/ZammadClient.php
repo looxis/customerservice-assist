@@ -176,6 +176,8 @@ class ZammadClient
                 body: $parsed['body'],
                 quote: $parsed['quote'],
                 signature: $parsed['signature'],
+                id: isset($article['id']) ? (int) $article['id'] : null,
+                order: $parsed['order'],
                 attachments: $this->attachments($article['attachments'] ?? []),
                 channel: $type === '' ? null : (self::CHANNEL_LABELS[$type] ?? ucfirst($type)),
                 automatic: $sender === 'system',

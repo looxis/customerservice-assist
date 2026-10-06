@@ -22,6 +22,11 @@
             <a href="{{ route('tickets.show', ['number' => $ticket->mergedIntoNumber]) }}" class="font-semibold underline">Ticket#{{ $ticket->mergedIntoNumber }}</a>
             zusammengeführt. Der aktuelle Verlauf steht dort.
         </x-alert>
+    @elseif ($ticket->rewoundTo !== null)
+        <x-alert type="warning" class="mt-4">
+            <p><span class="font-semibold">Testlauf:</span> Stand bis zur Kundennachricht vom {{ $ticket->rewoundAt()->format('d.m.Y, H:i') }} Uhr. Status und spätere Antworten werden ignoriert.</p>
+            <p class="mt-2"><a href="{{ route('tickets.show', ['number' => $ticket->number]) }}" class="font-semibold underline">Ganzen Verlauf zeigen</a></p>
+        </x-alert>
     @elseif ($ticket->closed)
         <x-alert class="mt-4">Dieses Ticket ist in Zammad geschlossen. Du kannst es trotzdem ansehen.</x-alert>
     @endif

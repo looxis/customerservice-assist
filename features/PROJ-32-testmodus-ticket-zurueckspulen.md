@@ -1,6 +1,6 @@
 # PROJ-32: Testmodus – Ticket zurückspulen
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -139,6 +139,15 @@ Keine neuen Pakete.
 - „Bis hierher testen" ist ein einfacher Link mit `?stand=…` (keine Datenänderung).
 - Eingeklappter Block nutzt dieselbe Aufklapp-Darstellung wie Zitate/Signatur.
 - Tests: Nicht-Admin mit `stand` in Adresse und Formular, fremde/ungültige Nachrichten-ID, Zusammenfassung getrennt, Kundengruppe je Kunde nicht gemerkt, Vorschau = gesendeter Text.
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-06**, Frontend und Backend in einem Durchgang.
+
+- **Admin und Schalter:** `config/staff.php` → `admins` (`['Etienne']`), Cookie `test_mode` (verschlüsselt, wie der Name). `StaffDirectory::isAdmin()`, `App\Staff\TestMode` (`isAvailable`, `isActive`, `rewind`). Route `POST /testmodus` (`test-mode.switch`, `TestModeController`, Form Request `SwitchTestModeRequest` mit Admin-Prüfung → 403 für andere). Schalter in der Kopfleiste links neben dem Namen, Hinweisband „Testmodus aktiv" unter der Kopfleiste.
+- **Zurückspulen:** `Ticket::rewoundTo(articleId)` liefert das gekürzte Ticket (bis einschließlich der Kundennachricht, Amazon-Bestellangaben nur aus diesen Nachrichten) und die späteren Nachrichten. `TicketArticle` trägt dafür `id` und `order`. Alle PROJ-9-Bausteine arbeiten unverändert auf dem gekürzten Ticket. `?stand=` in der Adresse; Analyse- und Zusammenfassungsformulare tragen `stand` verdeckt mit; Weiterleitungen behalten ihn.
+- **Trennung:** Zusammenfassung unter `Ticket::summaryKey()` (`{nummer}.stand-{id}`); Ergebnis-Metadaten `test_until`; Kundengruppe je Kunde wird im Testlauf nicht gemerkt, je Ticket schon.
+- **Oberfläche:** „Bis hierher testen" im Kopf jeder Kundennachricht; Testlauf-Hinweis im Ticketkopf mit „Ganzen Verlauf zeigen"; spätere Nachrichten eingeklappt und ausgegraut; Ergebnis mit „Testlauf (Stand bis Nachricht vom …)"; fester Testmodus-Hinweis über dem Kontextfeld (Text vom Product Owner bestätigt).
+- **Tests:** `tests/Feature/PROJ-32-TestModeTest.php` (14 Fälle, nur erfundene Daten). Gesamte Suite: 691 grün.
 
 ## QA Test Results
 _To be added by /qa_

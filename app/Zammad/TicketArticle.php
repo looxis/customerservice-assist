@@ -25,6 +25,8 @@ final readonly class TicketArticle
         public ?string $channel = null,
         public bool $automatic = false,
         public ?HtmlString $signature = null,
+        public ?int $id = null,
+        public ?OrderMention $order = null,
     ) {}
 
     public function hasText(): bool

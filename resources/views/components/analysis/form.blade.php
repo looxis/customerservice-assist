@@ -1,4 +1,4 @@
-@props(['number', 'analysis', 'selected' => []])
+@props(['number', 'analysis', 'selected' => [], 'testMode' => false])
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
@@ -21,6 +21,7 @@
               x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Ticket wird analysiert …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
+            @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
             @foreach ($selected as $value)
                 <input type="hidden" name="bestellungen[]" value="{{ $value }}">
             @endforeach
@@ -102,6 +103,12 @@
                     <p class="mt-2 text-xs text-slate-600">Dazu kommen Bestelldaten (ohne Adressen und Zahlungsdaten), Kundengruppe, Produkte, deine zusätzlichen Informationen und das passende Wissen.</p>
                 </div>
             </details>
+
+            @if ($testMode)
+                <x-alert type="warning">
+                    <span class="font-semibold">Testmodus:</span> Hier keine Regeln oder Antworten eintragen („das geht nicht“, „das machen wir immer so“) – sonst bleiben Lücken in der Wissensdatenbank unentdeckt. Fakten zum Fall (z. B. Ergebnis einer Fotoprüfung) sind erlaubt.
+                </x-alert>
+            @endif
 
             <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" hint="Optional. Gilt für die KI als geprüfter Fakt. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte als Wissenslücke an Etienne melden.">
                 <textarea name="kontext" id="kontext" rows="5" placeholder="Was du über diesen Fall weißt, das nicht im Ticket steht, z. B.:&#10;· Foto geprüft: Motiv ist verschoben gedruckt&#10;· Kundin am Telefon: braucht Ersatz bis zum 20.12.&#10;· Produktion bestätigt: Fehldruck in der Charge" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"

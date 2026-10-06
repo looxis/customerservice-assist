@@ -30,7 +30,56 @@ final readonly class Ticket
         public array $orders = [],
         public ?int $customerId = null,
         public ?int $organizationId = null,
+        public ?int $rewoundTo = null,
     ) {}
+
+    /**
+     * The ticket as it was up to and including one customer message (PROJ-32
+     * test mode), with the later messages. Null when the message is not a
+     * customer message of this ticket.
+     *
+     * @return array{0: self, 1: list<TicketArticle>}|null
+     */
+    public function rewoundTo(int $articleId): ?array
+    {
+        foreach ($this->articles as $index => $article) {
+            if ($article->id === $articleId && $article->kind === ArticleKind::Customer) {
+                $kept = array_slice($this->articles, 0, $index + 1);
+                $orders = [];
+
+                foreach ($kept as $earlier) {
+                    if ($earlier->order !== null) {
+                        $number = $earlier->order->number;
+                        $orders[$number] = isset($orders[$number]) ? $orders[$number]->merge($earlier->order) : $earlier->order;
+                    }
+                }
+
+                return [
+                    new self($this->number, $this->id, $this->title, $this->state, $this->closed, $this->mergedIntoNumber, $this->group, $this->customerName, $this->customerEmail, $this->createdAt, $kept, $this->zammadUrl, array_values($orders), $this->customerId, $this->organizationId, $articleId),
+                    array_slice($this->articles, $index + 1),
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Time of the customer message a rewound ticket ends with.
+     */
+    public function rewoundAt(): ?CarbonImmutable
+    {
+        return $this->rewoundTo === null || $this->articles === [] ? null : $this->articles[array_key_last($this->articles)]->createdAt;
+    }
+
+    /**
+     * Key under which the summary is kept: a rewound ticket has its own per
+     * cut point, so tests never touch the real summary.
+     */
+    public function summaryKey(): string
+    {
+        return $this->rewoundTo === null ? $this->number : "{$this->number}.stand-{$this->rewoundTo}";
+    }
 
     /**
      * Who the ticket is from, for remembering the customer group: the
