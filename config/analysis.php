@@ -67,6 +67,9 @@ return [
 
     'retention_days' => 7,
 
+    // Longest reply draft that is saved after editing (PROJ-10).
+    'max_reply_length' => 20_000,
+
     // Language model calls (analysis and summary) per name and browser
     // address per minute; protects against costs from repeated sending.
     'calls_per_minute' => 6,

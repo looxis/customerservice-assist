@@ -223,16 +223,19 @@ describe('running an analysis', function () {
 
         $this->withCookie('staff_name', 'Nele')->get($response->headers->get('Location'))
             ->assertSeeTextInOrder([
-                'Ergebnis der Analyse', 'Unklar', 'Confidence MITTEL',
-                'Die Tasse bleibt schwarz.', 'Ersatz', 'complaint', 'Thermoeffekt angeblich defekt',
-                'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
-                'Der Kundenservice darf selbst entscheiden.', 'Ohne Test kein Urteil.',
+                'Ergebnis der Analyse', 'Analyse von Nele', 'Unklar', 'Confidence MITTEL',
+                'Was ist zu tun?', 'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
+                'Du darfst das selbst entscheiden.',
                 'Foto der warmen Tasse', 'Rückfrage:', 'Bitte senden Sie ein Foto.',
-                'Bestellung gefunden', 'Antwort abwarten', 'POLICY-001', 'Entwurf',
-                'Antwortentwurf', 'Hallo Erika,',
+                'Beruht teilweise auf Entwurfs-Wissen', 'POLICY-001',
+                'Antwortentwurf', 'Von der App eingesetzt: Lieferadresse', 'Hallo Erika,',
+                'Begründung', 'Ohne Test kein Urteil.',
+                'Quellen', 'POLICY-001', 'Entwurf',
+                'Kurzfassung', 'Die Tasse bleibt schwarz.', 'Ersatz', 'complaint', 'Thermoeffekt angeblich defekt',
+                'Bestellung gefunden', 'Antwort abwarten',
                 'Nele', 'gpt-5.5', 'Prompt analysis-',
             ])
-            ->assertSee('<mark class="placeholder-filled" title="Von der App eingesetzt">Erika Beispiel<br>Musterweg 7<br>12345 Musterstadt<br>DE</mark>', false);
+            ->assertSee("ist diese Adresse korrekt: Erika Beispiel\nMusterweg 7\n12345 Musterstadt\nDE?", false);
     });
 
     test('the employee choice of group and products decides the knowledge', function () {
@@ -271,7 +274,8 @@ describe('running an analysis', function () {
         analysisTicket();
 
         $this->get(analyze()->headers->get('Location'))
-            ->assertSee('<mark class="placeholder-missing" title="Bitte ausfüllen">[KUNDENNUMMER]</mark>', false);
+            ->assertSee('Ihre Nummer [KUNDENNUMMER] ist notiert.', false)
+            ->assertSee('noch ausfüllen (in eckigen Klammern)', false);
     });
 
     test('an unusable answer is tried once more', function () {
@@ -478,6 +482,9 @@ describe('remembered choice', function () {
 
         analyze(['kundengruppe' => 'reseller', 'produkte' => ['magic-mug']]);
 
+        $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorbelegt: wie in der angezeigten Analyse');
+
+        Cache::forget('analysis.latest.2137942');
         $html = $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')
             ->assertSeeText('Vorbelegt: zuletzt gewählt von Nele am 06.10.2026, 14:05 Uhr')
             ->getContent();

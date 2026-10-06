@@ -15,6 +15,7 @@ final readonly class AnalysisRequest
      * @param  list<string>  $products
      * @param  list<EocsOrder>  $orders
      * @param  array<string, string>  $manualOrder  Order data typed in by hand when no EOCS order is loaded.
+     * @param  array<string, mixed>  $formInput  The form as sent, to reopen it with the same input (PROJ-10).
      */
     public function __construct(
         public Ticket $ticket,
@@ -26,5 +27,6 @@ final readonly class AnalysisRequest
         public string $employeeContext,
         public ContextVariant $variant,
         public ?Summary $summary,
+        public array $formInput = [],
     ) {}
 }

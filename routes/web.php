@@ -33,6 +33,7 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::post('/tickets/{number}/analyse', [AnalysisController::class, 'analyze'])->middleware('throttle:language-model')->name('tickets.analysis.run');
     Route::post('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'createSummary'])->middleware('throttle:language-model')->name('tickets.summary.create');
     Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
+    Route::put('/tickets/{number}/analyse/{analysis}/entwurf', [AnalysisController::class, 'updateReply'])->whereUuid('analysis')->name('tickets.analysis.reply');
 });
 
 if (app()->isLocal()) {

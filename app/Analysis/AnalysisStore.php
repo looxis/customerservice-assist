@@ -70,6 +70,29 @@ class AnalysisStore
     }
 
     /**
+     * Save a changed result, e.g. with the edited reply (PROJ-10).
+     *
+     * @param  array<string, mixed>  $result
+     */
+    public function updateResult(string $id, array $result): void
+    {
+        $this->put("analysis.result.{$id}", $result);
+    }
+
+    /**
+     * The latest analysis of a ticket (or of a test-run cut point, see Ticket::summaryKey()).
+     */
+    public function latest(string $ticketKey): ?string
+    {
+        return $this->get("analysis.latest.{$ticketKey}")['id'] ?? null;
+    }
+
+    public function putLatest(string $ticketKey, string $id): void
+    {
+        $this->put("analysis.latest.{$ticketKey}", ['id' => $id]);
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function result(string $id): ?array

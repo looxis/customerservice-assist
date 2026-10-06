@@ -15,6 +15,7 @@ use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\OrderLookup;
 use App\Http\Requests\AnalyzeTicketRequest;
+use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
 use App\Orders\OrderNumber;
@@ -23,6 +24,8 @@ use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -67,7 +70,6 @@ class AnalysisController extends Controller
         if ($variant === ContextVariant::FullThread && $context->offersVariants() && mb_strlen($context->text($variant)) > (int) config('analysis.max_input_characters')) {
             return $back('Der Verlauf ist zu lang für die KI. Bitte „Letzte Kundennachricht + Zusammenfassung“ wählen – die letzte Kundennachricht wird immer vollständig übertragen.');
         }
-
         try {
             if ($variant === ContextVariant::LastWithSummary && ($summary === null || $summary->isStale($context->earlierFingerprint()))) {
                 if ($summary?->edited) {
@@ -87,6 +89,7 @@ class AnalysisController extends Controller
                 employeeContext: (string) $request->validated('kontext', ''),
                 variant: $variant,
                 summary: $summary,
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
             ));
         } catch (AnalysisException $exception) {
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);
@@ -150,6 +153,31 @@ class AnalysisController extends Controller
         $store->putSummary($key, $updated);
 
         return redirect()->to($this->ticketUrl($number, $request, '#zusammenfassung'))->with('summary_saved', true);
+    }
+
+    /**
+     * Save the edited reply draft of an analysis in the background (PROJ-10),
+     * or go back to the draft of the language model.
+     */
+    public function updateReply(string $number, string $analysis, UpdateReplyRequest $request, AnalysisStore $store, StaffDirectory $staff): JsonResponse
+    {
+        $stored = $store->result($analysis);
+
+        if ($stored === null || ($stored['ticket'] ?? null) !== $number) {
+            return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
+        }
+
+        $now = CarbonImmutable::now();
+        $stored['reply_edit'] = $request->boolean('original')
+            ? null
+            : ['text' => (string) $request->validated('text', ''), 'staff' => (string) $staff->current($request), 'at' => $now->toIso8601String()];
+
+        $store->updateResult($analysis, $stored);
+
+        return response()->json([
+            'saved' => true,
+            'edited' => $stored['reply_edit'] === null ? null : 'bearbeitet von '.$stored['reply_edit']['staff'].' am '.$now->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',
+        ]);
     }
 
     /**

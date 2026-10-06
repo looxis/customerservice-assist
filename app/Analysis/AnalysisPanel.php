@@ -6,6 +6,8 @@ use App\Eocs\EocsOrder;
 use App\Eocs\EocsOrderItem;
 use App\Eocs\OrderLookup;
 use App\Knowledge\CustomerGroup;
+use App\Knowledge\KnowledgeLibrary;
+use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Zammad\Ticket;
@@ -22,6 +24,8 @@ class AnalysisPanel
         private readonly KnowledgeSelector $selector,
         private readonly KnowledgeSuggester $suggester,
         private readonly AnalysisStore $store,
+        private readonly KnowledgeLibrary $library,
+        private readonly KnowledgeMarkdown $markdown,
     ) {}
 
     /**
@@ -49,25 +53,35 @@ class AnalysisPanel
                 : $pseudonymizer->apply($context->text($variant, $summary?->text));
         }
 
+        $latestId = $resultId === null ? $this->store->latest($ticket->summaryKey()) : null;
+        $result = $this->result($ticket, $resultId ?? $latestId);
+        $inputs = $result['inputs'] ?? [];
+
         $choice = $this->store->caseChoice($ticket->number);
         [$group, $groupSource] = $this->suggestedGroup($ticket, $orders, $choice);
+
+        if (is_string($inputs['kundengruppe'] ?? null)) {
+            [$group, $groupSource] = [$inputs['kundengruppe'], 'wie in der angezeigten Analyse'];
+        }
 
         return [
             'groups' => $this->selector->customerGroups(),
             'products' => $this->selector->products(),
             'suggestedGroup' => $group,
             'groupSource' => $groupSource,
-            'suggestedProducts' => $choice['products'] ?? $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all())),
+            'suggestedProducts' => $inputs['produkte'] ?? $choice['products'] ?? $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all())),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
-            'defaultVariant' => $context->defaultVariant(),
+            'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
+            'inputs' => $inputs,
             'suggestsSummary' => $context->suggestsSummary(),
             'previews' => $previews,
             'stand' => $ticket->rewoundTo,
             'summary' => $summary,
             'summaryStale' => $summary?->isStale($context->earlierFingerprint()) ?? false,
             'summaryOffered' => $context->offersVariants(),
-            'result' => $resultId === null ? null : $this->result($ticket, $resultId),
+            'result' => $result,
+            'resultMissing' => $resultId !== null && $result === null,
         ];
     }
 
@@ -105,23 +119,95 @@ class AnalysisPanel
     }
 
     /**
+     * A stored analysis prepared for display: the reply with values put back
+     * (or as edited), the inserted values, the sources with their state and
+     * whether new messages came in since.
+     *
      * @return array<string, mixed>|null
      */
-    private function result(Ticket $ticket, string $id): ?array
+    private function result(Ticket $ticket, ?string $id): ?array
     {
-        $stored = $this->store->result($id);
+        $stored = $id === null ? null : $this->store->result($id);
 
         if ($stored === null || ($stored['ticket'] ?? null) !== $ticket->number) {
             return null;
         }
 
         $placeholders = Pseudonymizer::fromValues($stored['placeholders'] ?? []);
+        $reply = (string) ($stored['result']['reply']['text'] ?? '');
+        $original = $placeholders->restorePlain($reply);
+        $edit = $stored['reply_edit'] ?? null;
+        $last = $ticket->articles === [] ? null : $ticket->articles[array_key_last($ticket->articles)];
+        $lastSeen = $stored['thread']['last_article_id'] ?? null;
 
         return [
             ...$stored,
-            'reply_html' => $placeholders->restore((string) ($stored['result']['reply']['text'] ?? '')),
-            'reply_plain' => $placeholders->restorePlain((string) ($stored['result']['reply']['text'] ?? '')),
+            'id' => $id,
+            'reply_original' => $original,
+            'reply_text' => is_array($edit) ? (string) $edit['text'] : $original,
+            'reply_edited' => is_array($edit) ? 'bearbeitet von '.$edit['staff'].' am '.CarbonImmutable::parse($edit['at'])->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr' : null,
+            'inserted' => $this->inserted($reply, $stored['placeholders'] ?? []),
+            'sources' => $this->sources($stored),
+            'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen,
         ];
+    }
+
+    /**
+     * Names of the values the app put into the reply, e.g. "Lieferadresse".
+     *
+     * @param  array<string, string>  $values
+     * @return list<string>
+     */
+    private function inserted(string $reply, array $values): array
+    {
+        $names = [];
+
+        foreach (array_keys($values) as $placeholder) {
+            if (str_contains($reply, $placeholder)) {
+                $kind = preg_replace('/_\d+$/', '', trim($placeholder, '[]'));
+                $names[] = match ($kind) {
+                    'LIEFERADRESSE' => 'Lieferadresse',
+                    'E-MAIL' => 'E-Mail-Adresse',
+                    'TELEFON' => 'Telefonnummer',
+                    'ADRESSE' => 'Anschrift',
+                    default => ucfirst(strtolower((string) $kind)),
+                };
+            }
+        }
+
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * The cited knowledge as it was at the time of the analysis, marked when
+     * it changed since or no longer exists. Older results only know the IDs.
+     *
+     * @param  array<string, mixed>  $stored
+     * @return list<array<string, mixed>>
+     */
+    private function sources(array $stored): array
+    {
+        $snapshots = collect($stored['sources'] ?? [])->keyBy('id');
+        $drafts = $stored['draft_ids'] ?? [];
+
+        return array_map(function (string $id) use ($snapshots, $drafts): array {
+            $snapshot = $snapshots->get($id);
+            $current = $this->library->find($id);
+
+            return [
+                'id' => $id,
+                'title' => $snapshot['title'] ?? $current?->title,
+                'type' => $snapshot['type'] ?? $current?->type,
+                'draft' => $snapshot['draft'] ?? in_array($id, $drafts, true),
+                'html' => $snapshot !== null ? $this->markdown->render((string) $snapshot['body']) : null,
+                'state' => match (true) {
+                    $current === null => 'removed',
+                    $snapshot !== null && $current->fingerprint !== $snapshot['fingerprint'] => 'changed',
+                    default => 'same',
+                },
+                'url' => $current === null ? null : route('knowledge.show', ['path' => $current->path]),
+            ];
+        }, array_values(array_filter((array) ($stored['result']['knowledge_ids'] ?? []), 'is_string')));
     }
 
     public static function text(?string $value): HtmlString

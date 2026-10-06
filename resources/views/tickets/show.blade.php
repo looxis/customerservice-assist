@@ -33,11 +33,15 @@
             </x-slot:orders>
         </x-ticket.header>
         @isset($analysis)
-            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" />
+            @if ($analysis['resultMissing'])
+                <x-alert type="warning">Diese Analyse ist nicht mehr verfügbar.</x-alert>
+            @endif
 
             @if ($analysis['result'])
-                <x-analysis.result :result="$analysis['result']" />
+                <x-analysis.result :result="$analysis['result']" :number="$number" />
             @endif
+
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" />
         @endisset
 
         <x-ticket.thread :articles="$ticket->articles" :later="$later ?? []" :rewound="$ticket->rewoundTo !== null" :rewind-url="($testMode ?? false) ? fn (int $id): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selected ?? [], 'stand' => $id]).'#analyse' : null">

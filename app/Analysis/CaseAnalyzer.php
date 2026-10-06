@@ -63,8 +63,23 @@ class CaseAnalyzer
             }
         } while ($checked === null);
 
-        return $this->store->putResult([
+        $cited = array_flip($checked['result']['knowledge_ids']);
+        $last = $request->ticket->articles === [] ? null : $request->ticket->articles[array_key_last($request->ticket->articles)];
+
+        $id = $this->store->putResult([
             'ticket' => $request->ticket->number,
+            'sources' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): array => [
+                'id' => $entry->document->id,
+                'title' => $entry->document->title,
+                'type' => $entry->document->type,
+                'draft' => $entry->isDraft(),
+                'path' => $entry->document->path,
+                'body' => $entry->document->body,
+                'fingerprint' => $entry->document->fingerprint,
+            ], array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => isset($cited[$entry->document->id])))),
+            'thread' => ['last_article_id' => $last?->id, 'last_article_at' => $last?->createdAt->toIso8601String(), 'count' => count($request->ticket->articles)],
+            'inputs' => $request->formInput,
+            'reply_edit' => null,
             'result' => $checked['result'],
             'notes' => $checked['notes'],
             'placeholders' => $pseudonymizer->values(),
@@ -90,6 +105,10 @@ class CaseAnalyzer
                 'knowledge_warnings' => $selection->warnings,
             ],
         ]);
+
+        $this->store->putLatest($request->ticket->summaryKey(), $id);
+
+        return $id;
     }
 
     private function input(AnalysisRequest $request, KnowledgeSelection $selection, bool $hasDeliveryAddress): string

@@ -5,12 +5,30 @@
     $variant = $old('variante', $analysis['defaultVariant']->value);
     $chosenProducts = $old('produkte', $analysis['suggestedProducts']);
     $offers = count($analysis['variants']) > 1;
+    $inputs = $analysis['inputs'] ?? [];
+    $collapsible = ($analysis['result'] ?? null) !== null;
+    $startOpen = ! $collapsible || session('analysis_error') || $errors->any();
+    $usedGroup = collect($analysis['groups'])->firstWhere('key', $inputs['kundengruppe'] ?? $analysis['suggestedGroup'])?->label;
+    $usedProducts = collect($analysis['products'])->whereIn('slug', $inputs['produkte'] ?? [])->pluck('title')->all();
+    $usedVariant = \App\Analysis\ContextVariant::tryFrom((string) ($inputs['variante'] ?? ''))?->label();
 @endphp
 
 {{-- Analysis form (PROJ-9). Posts normally; Alpine only for variant preview, counter and the double-submit lock. --}}
 <section id="analyse" aria-labelledby="analysis-heading" class="scroll-mt-4">
     <x-card>
-        <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Analyse</h2>
+        @if ($collapsible)
+            <details id="analyse-details" class="group/form" @if ($startOpen) open @endif x-data x-on:open-analysis-form.window="$el.open = true; $nextTick(() => $el.scrollIntoView({ block: 'start' }))">
+                <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                    <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
+                    <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Analyse</h2>
+                    <span class="text-sm text-slate-600">
+                        Analysiert mit: {{ implode(' · ', array_filter([$usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
+                        – <span class="font-semibold text-brand">Eingaben ändern und neu analysieren</span>
+                    </span>
+                </summary>
+        @else
+            <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Analyse</h2>
+        @endif
 
         @if (session('analysis_error'))
             <x-alert type="error" class="mt-4" role="alert">
@@ -24,7 +42,7 @@
         @endif
 
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
-              x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', ''))) }"
+              x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))) }"
               x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Ticket wird analysiert …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
@@ -64,11 +82,11 @@
                         <x-icon name="chevron-down" size="16" class="inline transition group-open:rotate-180" /> Bestelldaten von Hand (keine EOCS-Bestellung geladen)
                     </summary>
                     <div class="grid gap-3 px-3 pb-3 md:grid-cols-2">
-                        <x-input name="bestellung_nummer" label="Bestellnummer" :value="old('bestellung_nummer')" maxlength="60" />
-                        <x-input name="bestellung_kanal" label="Kanal" :value="old('bestellung_kanal')" maxlength="60" />
-                        <x-input name="bestellung_datum" label="Bestelldatum" :value="old('bestellung_datum')" maxlength="30" />
-                        <x-input name="bestellung_produkt" label="Produkt" :value="old('bestellung_produkt')" maxlength="200" />
-                        <x-textarea name="bestellung_personalisierung" label="Personalisierung" class="md:col-span-2" rows="2" maxlength="2000">{{ old('bestellung_personalisierung') }}</x-textarea>
+                        <x-input name="bestellung_nummer" label="Bestellnummer" :value="old('bestellung_nummer', $inputs['bestellung_nummer'] ?? null)" maxlength="60" />
+                        <x-input name="bestellung_kanal" label="Kanal" :value="old('bestellung_kanal', $inputs['bestellung_kanal'] ?? null)" maxlength="60" />
+                        <x-input name="bestellung_datum" label="Bestelldatum" :value="old('bestellung_datum', $inputs['bestellung_datum'] ?? null)" maxlength="30" />
+                        <x-input name="bestellung_produkt" label="Produkt" :value="old('bestellung_produkt', $inputs['bestellung_produkt'] ?? null)" maxlength="200" />
+                        <x-textarea name="bestellung_personalisierung" label="Personalisierung" class="md:col-span-2" rows="2" maxlength="2000">{{ old('bestellung_personalisierung', $inputs['bestellung_personalisierung'] ?? '') }}</x-textarea>
                     </div>
                 </details>
             @endunless
@@ -119,7 +137,7 @@
 
             <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" hint="Optional. Gilt für die KI als geprüfter Fakt. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte als Wissenslücke an Etienne melden.">
                 <textarea name="kontext" id="kontext" rows="5" placeholder="Was du über diesen Fall weißt, das nicht im Ticket steht, z. B.:&#10;· Foto geprüft: Motiv ist verschoben gedruckt&#10;· Kundin am Telefon: braucht Ersatz bis zum 20.12.&#10;· Produktion bestätigt: Fehldruck in der Charge" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
-                          class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext') }}</textarea>
+                          class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', $inputs['kontext'] ?? '') }}</textarea>
                 <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>
             </x-field>
 
@@ -131,5 +149,8 @@
                 <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Analysieren</x-button>
             </div>
         </form>
+        @if ($collapsible)
+            </details>
+        @endif
     </x-card>
 </section>

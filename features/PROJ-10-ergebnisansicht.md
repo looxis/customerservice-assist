@@ -1,6 +1,6 @@
 # PROJ-10: Ergebnisansicht
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -176,6 +176,19 @@ Keine neuen Pakete.
 - „Original wiederherstellen“ setzt den bearbeiteten Entwurf zurück (gespeichert als „nicht bearbeitet“).
 - Der Ergebnis-Link `?analyse=…` bleibt gültig; ohne Link gilt der Verweis „letzte Analyse“.
 - Tests: Speichern (Name nötig, fremde Analyse/fremdes Ticket abgelehnt, Länge), Wiederfinden inkl. Testläufe, neue Nachrichten, Quellen geändert/entfernt, alte Ergebnisse ohne neue Felder.
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-06**, Frontend und Backend in einem Durchgang.
+
+- **Ergebnis** (`resources/views/components/analysis/result.blade.php`): Kopf mit „Analyse von … am …“, Testlauf-Kennzeichen, Hinweis auf neue Nachrichten mit „Neu analysieren“ (öffnet das Formular); Kasten „Was ist zu tun?“ (Maßnahme, Vorgänge, Befugnis in klarer Sprache, fehlende Informationen, fehlendes Wissen, kein Wissen, Entwurfs-Wissen, „Prüfhinweise vorhanden“); danach Antwortentwurf; aufklappbare Abschnitte (`analysis/section`) für Begründung, Quellen (N), Kurzfassung mit Kategorie und Fallmuster, Confidence-Gründe (N), Interne To-dos (N), Prüfhinweise (N), Details zur Analyse.
+- **Antwortentwurf** (`analysis/reply-editor`): Textfeld wächst mit; Speichern im Hintergrund 0,8 s nach dem letzten Tastendruck, bei Fehler alle 5 s erneut; Anzeige „wird gespeichert … / Gespeichert / Nicht gespeichert – wird erneut versucht“; „bearbeitet von … am …“; „Original der KI wiederherstellen“ mit Rückfrage; offene Platzhalter gezählt (gleiche Regel wie `Pseudonymizer::restore()`), Nachfrage beim Kopieren; leeres Feld nicht kopierbar; ohne Zwischenablage wird markiert.
+- **Route** `PUT /tickets/{n}/analyse/{uuid}/entwurf` (`tickets.analysis.reply`, `AnalysisController::updateReply`, Form Request `UpdateReplyRequest`, höchstens `analysis.max_reply_length` = 20.000 Zeichen), Name erforderlich (409 als JSON), fremdes Ticket oder unbekannte Analyse 404.
+- **Gespeichert mit der Analyse** (`CaseAnalyzer`): `sources` (Titel, Typ, Entwurf, Pfad, Text, Fingerabdruck der zitierten Dokumente), `thread` (letzte Nachricht), `inputs` (Formulareingaben), `reply_edit`. Verweis `analysis.latest.{Ticket::summaryKey()}` – Testläufe damit je Schnittpunkt getrennt.
+- **Panel** (`AnalysisPanel`): ohne `?analyse=` die letzte Analyse; Hinweis „Diese Analyse ist nicht mehr verfügbar“ bei ungültigem Link; Quellen mit Zustand gleich/geändert/entfernt (Abgleich mit der aktuellen Knowledge); „Von der App eingesetzt: …“; Formular vorbelegt mit den Eingaben der angezeigten Analyse.
+- **Formular** nach einer Analyse unter dem Ergebnis und eingeklappt auf „Analysiert mit: Gruppe · Produkte · Variante – Eingaben ändern und neu analysieren“; bei Fehlern offen.
+- **Ältere Ergebnisse** aus PROJ-9 werden weiter angezeigt (Quellen dann ohne Text: „Der Text aus der Zeit der Analyse ist nicht gespeichert.“).
+- **Abweichung:** Eingesetzte Werte sind im Textfeld nicht farbig markiert (technisch nicht möglich), stattdessen der Hinweis „Von der App eingesetzt: …“ wie in der Spec. `Pseudonymizer::restore()` (HTML mit Markierungen) wird in der Ansicht nicht mehr verwendet, bleibt aber getestet.
+- **Tests:** `tests/Feature/PROJ-10-ResultViewTest.php` (17 Fälle); drei PROJ-9-Tests an die neue Ansicht angepasst. Gesamte Suite: 727 grün.
 
 ## QA Test Results
 _To be added by /qa_
