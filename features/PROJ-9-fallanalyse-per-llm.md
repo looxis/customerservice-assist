@@ -1,6 +1,6 @@
 # PROJ-9: Fallanalyse per LLM
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-06
 
@@ -227,6 +227,24 @@ Server (app/Analysis/)
 - Tests mit den Attrappen des SDK, nur erfundene Tickets: Varianten und Schwellen, Platzhalter hin und zurück, Zusammenfassung (veraltet, bearbeitet, wiederverwendet), Ergebnisprüfung (unbekannte IDs/Vorgänge/Kategorie), zweiter Versuch, Zeitüberschreitung, kein Name, keine Kontaktdaten im übertragenen Text und im Log.
 - Vor dem ersten echten Aufruf: verfügbare Modelle mit dem Token abfragen und Voreinstellung festlegen.
 
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-06**, Frontend und Backend in einem Durchgang; gegen OpenAI mit echten Tickets geprüft (AVV abgeschlossen).
+
+- **Paket:** `laravel/ai` ^1.1 (offizielles Laravel AI SDK). Konfiguration `config/ai.php` veröffentlicht: Schlüssel aus `OPENAI_TOKEN` bzw. `ANTHROPIC_TOKEN`; **`store` für OpenAI fest auf `false`** (Standard des SDK war `true` – OpenAI hätte Anfragen samt Ticketinhalt aufbewahrt).
+- **Konfiguration** `config/analysis.php`: Anbieter `openai`, Modelle `ANALYSIS_MODEL` (Standard `gpt-5.5`) und `SUMMARY_MODEL` (Standard `gpt-5.4-mini`), Zeitlimit 90 s, Schwellen 5 / 3 / 6.000, Kontextfeld 4.000 Zeichen, Aufbewahrung 7 Tage.
+- **Prompts** `resources/prompts/analysis.md` und `summary.md` mit Versionszeile (`analysis-2026-10-06.1`, `summary-2026-10-06.1`); keine fachlichen Regeln.
+- **Bausteine** `app/Analysis/`: `TicketContext` (drei Varianten, letzte Kundennachricht, Schwelle, Fingerabdruck), `Pseudonymizer` (E-Mail, Telefon, Anschriften in deutscher, niederländischer, französischer und italienischer Schreibweise, Lieferadresse aus EOCS als `[LIEFERADRESSE]`; Einsetzen markiert, unbekannte Platzhalter „bitte ausfüllen"), `Summary`/`Summarizer`, `CaseAnalyzer` (Eingabe, ein zweiter Versuch bei unbrauchbarer Antwort), `ResultValidator`, `LanguageModel` (Fehlerarten, Log ohne Inhalte mit Dauer und Tokens), `AnalysisStore` (verschlüsselt im Cache, 7 Tage), `AnalysisPanel` (Daten für die Ticketseite), Agenten `SummaryAgent` und `CaseAgent` mit festem Schema (Kategorien, Vorgänge, Knowledge-IDs als Auswahllisten).
+- **Routen** (alle mit `staff.selected`): `POST /tickets/{n}/analyse`, `POST /tickets/{n}/zusammenfassung`, `PUT /tickets/{n}/zusammenfassung`; Ergebnis über `?analyse={id}` auf der Ticketseite. Form Requests `AnalyzeTicketRequest`, `UpdateSummaryRequest`.
+- **Oberfläche:** `analysis/form` (Kundengruppe und Produkte aus EOCS vorgeschlagen, Bestelldaten von Hand ohne EOCS-Bestellung, Varianten mit Empfehlung, Vorschau „Was an die KI geht", Kontextfeld mit Zähler, Lade-Overlay), `analysis/summary` (über der letzten Kundennachricht; erstellen, neu erstellen, bearbeiten, „weiter verwenden" bei veralteter eigener Fassung), `analysis/result` (alle Teile schlicht, Prüfhinweise, Metadaten).
+- **PROJ-7 angepasst:** `EocsOrder::$deliveryAddress` (nur intern für den Platzhalter).
+- **Arbeitsabläufe** (PROJ-30) gehen nicht an die KI.
+- **Gemessen mit echten Tickets:** Ticket#2137635 (Amazon, Italienisch, ganzer Verlauf): 25 s, 14.283 Eingabe-/1.955 Ausgabe-Tokens, gültig im ersten Versuch, Antwort auf Italienisch, keine Zusage außerhalb der Regeln. Ticket#2132884 (12 Nachrichten): Zusammenfassung 5 s mit `gpt-5.4-mini` (2.057/715 Tokens), Analyse mit Zusammenfassung 19 s (10.322/1.509 Tokens).
+- **Gefunden und behoben beim echten Test:** Telefonnummern am Satzende und niederländische Anschriften („Zonnedauwlaan 8, 1433WB Kudelstaart") wurden zunächst nicht ersetzt; Muster erweitert und getestet.
+- **Abweichung:** Die Vorschau „Was an die KI geht" zeigt den Ticketteil und nennt die übrigen Bestandteile; der Text des Kontextfelds wird vor dem Absenden nicht in die Vorschau übernommen.
+- **Offen für `/deploy`:** Webserver-Zeitlimit mindestens 120 s.
+- **`.env.example`:** `OPENAI_TOKEN=`, `ANTHROPIC_TOKEN=`, optional `ANALYSIS_MODEL=`, `SUMMARY_MODEL=` ergänzen (trägt der Product Owner ein).
+- **Tests:** `tests/Feature/PROJ-9-CaseAnalysisTest.php` (48 Fälle, Attrappen des SDK, nur erfundene Daten). Gesamte Suite grün.
 
 ## QA Test Results
 _To be added by /qa_

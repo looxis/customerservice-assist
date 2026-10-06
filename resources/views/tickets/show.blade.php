@@ -28,6 +28,20 @@
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
             </x-slot:orders>
         </x-ticket.header>
-        <x-ticket.thread :articles="$ticket->articles" />
+        @isset($analysis)
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" />
+
+            @if ($analysis['result'])
+                <x-analysis.result :result="$analysis['result']" />
+            @endif
+        @endisset
+
+        <x-ticket.thread :articles="$ticket->articles">
+            @isset($analysis)
+                <x-slot:summary>
+                    <x-analysis.summary :number="$number" :analysis="$analysis" :selected="$selected ?? []" />
+                </x-slot:summary>
+            @endisset
+        </x-ticket.thread>
     @endif
 </x-layouts.app>

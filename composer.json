@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.5",
+        "laravel/ai": "^1.1",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "symfony/html-sanitizer": "^8.1",

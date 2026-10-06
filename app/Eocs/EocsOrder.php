@@ -6,7 +6,9 @@ use Carbon\CarbonImmutable;
 
 /**
  * An order as the app sees it. Built per request, never stored. Customer
- * data (name, e-mail, addresses, payment) is deliberately not taken over.
+ * data (e-mail, billing, payment) is deliberately not taken over; only the
+ * delivery address is kept, never shown and never sent to the language
+ * model – it fills the [LIEFERADRESSE] placeholder of a reply (PROJ-9).
  */
 final readonly class EocsOrder
 {
@@ -14,6 +16,7 @@ final readonly class EocsOrder
      * @param  list<EocsShipment>  $shipments
      * @param  list<EocsOrderItem>  $items
      * @param  list<EocsClaim>  $claims
+     * @param  list<string>  $deliveryAddress  Lines of the delivery address (name, street, postcode and city, country).
      */
     public function __construct(
         public int $id,
@@ -28,11 +31,12 @@ final readonly class EocsOrder
         public array $items,
         public array $claims,
         public string $url,
+        public array $deliveryAddress = [],
     ) {}
 
     public function withClaims(array $claims): self
     {
-        return new self($this->id, $this->externalNumber, $this->channelName, $this->channel, $this->orderedAt, $this->statusName, $this->statusColor, $this->invoiceNumber, $this->shipments, $this->items, $claims, $this->url);
+        return new self($this->id, $this->externalNumber, $this->channelName, $this->channel, $this->orderedAt, $this->statusName, $this->statusColor, $this->invoiceNumber, $this->shipments, $this->items, $claims, $this->url, $this->deliveryAddress);
     }
 
     /**

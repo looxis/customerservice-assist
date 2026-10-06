@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Analysis\AnalysisPanel;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Http\Requests\AddOrderRequest;
@@ -28,7 +29,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -58,6 +59,7 @@ class TicketController extends Controller
             'moreSuggestions' => count($suggestions) > OrderNumberDetector::MAX_SUGGESTIONS,
             'lookups' => $lookups,
             'orderProblem' => $orderProblem,
+            'analysis' => $panel->build($ticket, $lookups, is_string($request->query('analyse')) ? $request->query('analyse') : null),
         ]);
     }
 

@@ -198,7 +198,25 @@ class EocsClient
             ), array_values(array_filter($order['order_items']['data'] ?? [], 'is_array'))),
             claims: [],
             url: $this->orderUrl((int) $order['id']),
+            deliveryAddress: $this->deliveryAddress((array) ($order['shipping'] ?? [])),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $shipping
+     * @return list<string>
+     */
+    private function deliveryAddress(array $shipping): array
+    {
+        $line = fn (array $parts): string => trim(implode(' ', array_filter(array_map(fn (mixed $part): string => trim((string) $part), $parts))));
+
+        return array_values(array_filter([
+            $line([$shipping['company'] ?? null]),
+            $line([$shipping['prefix'] ?? null, $shipping['first_name'] ?? null, $shipping['last_name'] ?? null]),
+            $line([$shipping['street'] ?? null, $shipping['street_no'] ?? null]),
+            $line([$shipping['zipcode'] ?? null, $shipping['city'] ?? null]),
+            $line([$shipping['country_code'] ?? null]),
+        ]));
     }
 
     private function orderUrl(int $id): string

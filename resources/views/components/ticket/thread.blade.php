@@ -4,6 +4,7 @@
     $count = count($articles);
     $collapse = $count > 10;
     $hidden = $collapse ? range(1, $count - 6) : [];
+    $lastCustomer = collect($articles)->keys()->filter(fn ($index) => $articles[$index]->kind === \App\Zammad\ArticleKind::Customer)->last();
 @endphp
 
 {{-- Ticket thread, oldest first (PROJ-6). Above 10 messages the middle part is collapsed. --}}
@@ -30,6 +31,10 @@
             @endif
 
             @continue(in_array($index, $hidden, true))
+
+            @if ($index === $lastCustomer && isset($summary))
+                {{ $summary }}
+            @endif
 
             <x-ticket.article :article="$article" :latest="$index === $count - 1" />
         @endforeach

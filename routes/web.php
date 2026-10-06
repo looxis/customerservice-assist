@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TicketController;
@@ -25,6 +26,12 @@ Route::get('/tickets/{number}', [TicketController::class, 'show'])
 Route::get('/tickets/{number}/bestellungen', [TicketController::class, 'addOrder'])
     ->where('number', '[0-9]{1,20}')
     ->name('tickets.orders.add');
+
+Route::middleware('staff.selected')->whereNumber('number')->group(function (): void {
+    Route::post('/tickets/{number}/analyse', [AnalysisController::class, 'analyze'])->name('tickets.analysis.run');
+    Route::post('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'createSummary'])->name('tickets.summary.create');
+    Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
+});
 
 if (app()->isLocal()) {
     Route::view('/styleguide', 'styleguide')->name('styleguide');
