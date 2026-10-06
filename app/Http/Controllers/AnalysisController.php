@@ -174,6 +174,12 @@ class AnalysisController extends Controller
 
         $store->updateResult($analysis, $stored);
 
+        // Keep "latest analysis" alive as long as the edited analysis itself.
+        $scope = (string) ($stored['scope'] ?? $number);
+        if (in_array($store->latest($scope), [null, $analysis], true)) {
+            $store->putLatest($scope, $analysis);
+        }
+
         return response()->json([
             'saved' => true,
             'edited' => $stored['reply_edit'] === null ? null : 'bearbeitet von '.$stored['reply_edit']['staff'].' am '.$now->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',

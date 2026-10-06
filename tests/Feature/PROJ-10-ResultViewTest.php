@@ -3,6 +3,7 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Analysis\AnalysisStore;
 use App\Knowledge\KnowledgeLibrary;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 
@@ -290,10 +291,32 @@ describe('qa additions', function () {
     test('after an error the form stays open with the input', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis();
-        CaseAgent::fake(fn () => throw new Illuminate\Http\Client\ConnectionException('down'));
+        CaseAgent::fake(fn () => throw new ConnectionException('down'));
         $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Zweiter Versuch']);
 
         expect($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())
             ->toMatch('/<details id="analyse-details"[^>]*\sopen\s/');
+    });
+});
+
+describe('bug fixes', function () {
+    test('editing the draft keeps the latest analysis findable as long as the analysis itself', function () {
+        CaseAgent::fake([resultAnswer()]);
+        $id = runAnalysis();
+        $this->travel(6)->days();
+        saveReply($id, ['text' => 'Spät bearbeitet']);
+        $this->travel(2)->days();
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Ergebnis der Analyse')->assertSee('Spät bearbeitet', false);
+    });
+
+    test('editing an older analysis does not replace a newer latest one', function () {
+        CaseAgent::fake([resultAnswer(), resultAnswer(['recommendation' => 'Neuer Vorschlag.'])]);
+        $first = runAnalysis();
+        runAnalysis();
+
+        saveReply($first, ['text' => 'Alt bearbeitet']);
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Neuer Vorschlag.');
     });
 });

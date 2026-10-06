@@ -68,6 +68,7 @@ class CaseAnalyzer
 
         $id = $this->store->putResult([
             'ticket' => $request->ticket->number,
+            'scope' => $request->ticket->summaryKey(),
             'sources' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): array => [
                 'id' => $entry->document->id,
                 'title' => $entry->document->title,

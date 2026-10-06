@@ -227,7 +227,7 @@ Keine neuen Pakete.
 - [x] Hinweis auf Entwurfs-Wissen im Kasten mit IDs
 
 #### Letzte Analyse wiederfinden
-- [ ] Jüngste Analyse erscheint beim Öffnen – Fehler nach später Bearbeitung (BUG-1)
+- [x] Jüngste Analyse erscheint beim Öffnen (BUG-1 behoben)
 - [x] Hinweis auf neue Nachrichten mit „Neu analysieren“
 - [x] Ohne Analyse: Formular offen, kein Ergebnis
 - [x] Neue Analyse ersetzt die Anzeige, frühere bleibt gespeichert
@@ -260,12 +260,13 @@ Keine neuen Pakete.
 
 #### BUG-1: Letzte Analyse verschwindet nach später Bearbeitung des Entwurfs
 - **Severity:** Low
+- **Status:** Behoben 2026-10-06 – beim Speichern des Entwurfs wird der Verweis „letzte Analyse“ mit verlängert, sofern er auf diese Analyse zeigt oder abgelaufen ist; eine neuere Analyse wird nicht verdrängt.
 - **Steps to Reproduce:** Analyse am Tag 0, Entwurf am Tag 6 bearbeiten, Ticket am Tag 8 öffnen. Erwartet: Die Analyse (noch bis Tag 13 gespeichert) erscheint. Tatsächlich: kein Ergebnis, weil der Verweis „letzte Analyse“ nur bei der Analyse gesetzt wird und nach 7 Tagen abläuft. Die Analyse ist über ihren Link weiter erreichbar.
 - **Priority:** Fix in next sprint (erledigt sich spätestens mit PROJ-11)
 
 ### Summary
 - **Acceptance Criteria:** 22/23 bestanden (1 mit BUG-1, Low)
-- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low) – behoben 2026-10-06
 - **Security:** Pass
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; BUG-1 bei Gelegenheit (Verweis beim Bearbeiten mit verlängern).
