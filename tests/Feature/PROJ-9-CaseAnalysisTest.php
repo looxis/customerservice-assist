@@ -469,3 +469,57 @@ describe('summary', function () {
         SummaryAgent::assertNeverPrompted();
     });
 });
+
+describe('remembered choice', function () {
+    test('group and products chosen for a ticket are preselected later with who chose them', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+        $this->travelTo(now()->setTimezone('Europe/Berlin')->setDate(2026, 10, 6)->setTime(14, 5));
+
+        analyze(['kundengruppe' => 'reseller', 'produkte' => ['magic-mug']]);
+
+        $html = $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')
+            ->assertSeeText('Vorbelegt: zuletzt gewählt von Nele am 06.10.2026, 14:05 Uhr')
+            ->getContent();
+
+        expect($html)->toMatch('/<option value="reseller"\s+selected/')
+            ->toMatch('/value="magic-mug"\s+checked/');
+    });
+
+    test('the choice for the ticket wins over the channel of a loaded order', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket(orders: [analysisOrder()]);
+
+        analyze(['kundengruppe' => 'reseller']);
+
+        expect($this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))->getContent())
+            ->toMatch('/<option value="reseller"\s+selected/');
+    });
+
+    test('a group chosen for a customer is suggested on their other tickets', function () {
+        app(AnalysisStore::class)->putCustomerGroup('customer-77', 'reseller');
+        analysisTicket();
+
+        $html = $this->get('/tickets/2137942')->assertSeeText('Vorbelegt: bei früheren Tickets dieses Kunden gewählt')->getContent();
+
+        expect($html)->toMatch('/<option value="reseller"\s+selected/');
+    });
+
+    test('an analysis remembers the group for the organization, but never "unclear"', function () {
+        CaseAgent::fake([caseAnswer(), caseAnswer()]);
+        fakeZammad(ticket: ['organization_id' => 12]);
+
+        analyze(['kundengruppe' => 'looxis-pro']);
+        analyze(['kundengruppe' => 'unclear']);
+
+        expect(app(AnalysisStore::class)->customerGroup('organization-12'))->toBe('looxis-pro')
+            ->and(app(AnalysisStore::class)->customerGroup('customer-77'))->toBeNull();
+    });
+
+    test('a remembered group that no longer exists is ignored', function () {
+        app(AnalysisStore::class)->putCustomerGroup('customer-77', 'gibt-es-nicht');
+        analysisTicket();
+
+        expect($this->get('/tickets/2137942')->assertDontSeeText('Vorbelegt:')->getContent())->toMatch('/<option value="unclear"\s+selected/');
+    });
+});

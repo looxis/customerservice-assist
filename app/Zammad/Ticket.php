@@ -28,7 +28,22 @@ final readonly class Ticket
         public array $articles,
         public string $zammadUrl,
         public array $orders = [],
+        public ?int $customerId = null,
+        public ?int $organizationId = null,
     ) {}
+
+    /**
+     * Who the ticket is from, for remembering the customer group: the
+     * organization when there is one, otherwise the customer.
+     */
+    public function customerKey(): ?string
+    {
+        return match (true) {
+            $this->organizationId !== null => "organization-{$this->organizationId}",
+            $this->customerId !== null => "customer-{$this->customerId}",
+            default => null,
+        };
+    }
 
     public function lastArticleAt(): ?CarbonImmutable
     {

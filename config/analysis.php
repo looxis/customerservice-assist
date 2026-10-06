@@ -67,4 +67,8 @@ return [
 
     'retention_days' => 7,
 
+    // The customer group chosen for a Zammad customer or organization is
+    // remembered for later tickets; it holds no case content.
+    'customer_group_retention_days' => 365,
+
 ];

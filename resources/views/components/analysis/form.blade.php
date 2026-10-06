@@ -26,7 +26,7 @@
             @endforeach
 
             <div class="grid gap-4 md:grid-cols-2">
-                <x-select name="kundengruppe" label="Kundengruppe" required>
+                <x-select name="kundengruppe" label="Kundengruppe" :hint="$analysis['groupSource'] ? 'Vorbelegt: '.$analysis['groupSource'] : null" required>
                     @foreach ($analysis['groups'] as $group)
                         <option value="{{ $group->key }}" @selected($old('kundengruppe', $analysis['suggestedGroup']) === $group->key)>{{ $group->label }}</option>
                     @endforeach

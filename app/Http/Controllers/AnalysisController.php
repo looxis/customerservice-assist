@@ -51,6 +51,12 @@ class AnalysisController extends Controller
             return $back($exception->problem->message());
         }
 
+        $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request));
+
+        if ($request->validated('kundengruppe') !== 'unclear') {
+            $store->putCustomerGroup($ticket->customerKey(), $request->validated('kundengruppe'));
+        }
+
         $context = new TicketContext($ticket);
         $variant = in_array($request->variant(), $context->variants(), true) ? $request->variant() : ContextVariant::FullThread;
         $summary = $variant === ContextVariant::LastWithSummary ? $store->summary($number) : null;

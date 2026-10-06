@@ -77,6 +77,8 @@ class ZammadClient
                 articles: $thread,
                 zammadUrl: $this->baseUrl()."/#ticket/zoom/{$data['id']}",
                 orders: array_values($this->orders),
+                customerId: isset($data['customer_id']) ? (int) $data['customer_id'] : null,
+                organizationId: isset($data['organization_id']) ? (int) $data['organization_id'] : null,
             );
         } catch (ZammadException $exception) {
             Log::warning('Zammad request failed', ['ticket' => $number, 'problem' => $exception->problem->value, 'status' => $exception->httpStatus]);
@@ -173,6 +175,7 @@ class ZammadClient
                 createdAt: $this->time($article['created_at'] ?? null),
                 body: $parsed['body'],
                 quote: $parsed['quote'],
+                signature: $parsed['signature'],
                 attachments: $this->attachments($article['attachments'] ?? []),
                 channel: $type === '' ? null : (self::CHANNEL_LABELS[$type] ?? ucfirst($type)),
                 automatic: $sender === 'system',

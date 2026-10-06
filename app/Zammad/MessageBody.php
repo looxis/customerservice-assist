@@ -37,6 +37,25 @@ class MessageBody
 
     private const array QUOTE_MARKERS = ['js-signatureMarker', 'gmail_quote', 'moz-cite-prefix', 'divRplyFwdMsg', 'appendonsend', 'OutlookMessageHeader', 'yahoo_quoted'];
 
+    /**
+     * Closing phrases after which a customer's signature follows, in the
+     * languages our customers write in. Matched as a line of its own,
+     * optionally followed by a name ("Viele Grüße, Anna").
+     */
+    private const array CLOSINGS = [
+        'mit freundlichen gr(?:ü|ue)(?:ß|ss)en', 'mit freundlichem gru(?:ß|ss)', 'freundliche gr(?:ü|ue)(?:ß|ss)e', '(?:viele|liebe|beste|herzliche|sch(?:ö|oe)ne) gr(?:ü|ue)(?:ß|ss)e', 'gr(?:ü|ue)(?:ß|ss)e', 'gru(?:ß|ss)', 'mfg', 'lg', 'vg',
+        '(?:best|kind|warm|kindest) regards', 'regards', 'best wishes', '(?:yours )?sincerely', 'thanks and regards', 'cheers',
+        '(?:met )?vriendelijke groet(?:en)?', 'hartelijke groet(?:en)?', 'groet(?:en|jes)?',
+        '(?:bien )?cordialement', 'bien (?:à|a) vous', '(?:meilleures |sinc(?:è|e)res )?salutations',
+        '(?:cordiali|distinti) saluti', 'saluti', 'un saluto',
+        'saludos', 'atentamente', 'un saludo',
+    ];
+
+    /**
+     * Lines after a closing phrase that stay visible: usually name and company.
+     */
+    private const int SIGNATURE_LINES_SHOWN = 2;
+
     private ?HtmlSanitizer $sanitizer = null;
 
     /**
@@ -54,7 +73,7 @@ class MessageBody
 
     /**
      * @param  bool  $ours  Message written by us: our signature is hidden.
-     * @return array{body: HtmlString, quote: HtmlString|null, order: OrderMention|null}
+     * @return array{body: HtmlString, quote: HtmlString|null, signature: HtmlString|null, order: OrderMention|null}
      */
     public function parse(?string $body, ?string $contentType, bool $ours = false): array
     {
@@ -72,12 +91,60 @@ class MessageBody
         }
 
         $quote = $quote === null ? '' : $this->sanitize($quote);
+        [$main, $signature] = $ours ? [$this->sanitize($main), null] : $this->splitSignature($this->sanitize($main));
 
         return [
-            'body' => new HtmlString($this->sanitize($main)),
+            'body' => new HtmlString($main),
             'quote' => trim(strip_tags($quote)) === '' ? null : new HtmlString($quote),
+            'signature' => $signature === null ? null : new HtmlString($signature),
             'order' => $order,
         ];
+    }
+
+    /**
+     * Split a customer's signature off sanitized HTML so it can be collapsed:
+     * after a closing phrase the next lines (name, company) stay visible and
+     * the rest is the signature; a "--" line starts the signature directly.
+     * Nothing is cut without message text before it or signature text after it.
+     *
+     * @return array{0: string, 1: string|null}
+     */
+    private function splitSignature(string $html): array
+    {
+        $parts = preg_split('/(<br\s*\/?>|<\/?(?:div|p|h[1-6]|ul|ol|li|blockquote|pre|table|tr)\b[^>]*>)/iu', $html, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE) ?: [];
+        $lines = array_values(array_filter(
+            array_map(fn (array $part): array => [trim(html_entity_decode(strip_tags($part[0]), ENT_QUOTES | ENT_HTML5), " \t\n\r\0\x0B\u{00A0}"), $part[1]], $parts),
+            fn (array $line): bool => $line[0] !== '',
+        ));
+        $closing = '/^(?:'.implode('|', self::CLOSINGS).')[\s,.!]*(?:[\p{L}][\p{L} .\'-]{0,30})?$/iu';
+        $cut = null;
+
+        foreach ($lines as $index => [$text, $offset]) {
+            if ($index === 0) {
+                continue;
+            }
+
+            if (preg_match('/^--\s*$/u', $text) === 1) {
+                $cut = $offset;
+
+                break;
+            }
+
+            if (mb_strlen($text) <= 60 && preg_match($closing, $text) === 1) {
+                $cut = $lines[$index + self::SIGNATURE_LINES_SHOWN + 1][1] ?? null;
+
+                break;
+            }
+        }
+
+        if ($cut === null) {
+            return [$html, null];
+        }
+
+        $main = $this->tidyBlankLines($this->sanitizer()->sanitize(substr($html, 0, $cut)));
+        $signature = $this->tidyBlankLines($this->sanitizer()->sanitize(substr($html, $cut)));
+
+        return trim(strip_tags($signature)) === '' ? [$html, null] : [$main, $signature];
     }
 
     public function sanitize(string $html): string

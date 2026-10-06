@@ -26,6 +26,39 @@ class AnalysisStore
     }
 
     /**
+     * The customer group and products chosen for a ticket, with who chose them.
+     *
+     * @return array{group: string, products: list<string>, staff: string, at: string}|null
+     */
+    public function caseChoice(string $ticketNumber): ?array
+    {
+        return $this->get("analysis.case.{$ticketNumber}");
+    }
+
+    /**
+     * @param  list<string>  $products
+     */
+    public function putCaseChoice(string $ticketNumber, string $group, array $products, string $staff): void
+    {
+        $this->put("analysis.case.{$ticketNumber}", ['group' => $group, 'products' => $products, 'staff' => $staff, 'at' => now()->toIso8601String()]);
+    }
+
+    /**
+     * The customer group last chosen for a Zammad customer or organization.
+     */
+    public function customerGroup(?string $customerKey): ?string
+    {
+        return $customerKey === null ? null : ($this->get("analysis.customer-group.{$customerKey}")['group'] ?? null);
+    }
+
+    public function putCustomerGroup(?string $customerKey, string $group): void
+    {
+        if ($customerKey !== null) {
+            $this->put("analysis.customer-group.{$customerKey}", ['group' => $group], (int) config('analysis.customer_group_retention_days'));
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $result
      */
     public function putResult(array $result): string
@@ -47,9 +80,9 @@ class AnalysisStore
     /**
      * @param  array<string, mixed>  $data
      */
-    private function put(string $key, array $data): void
+    private function put(string $key, array $data, ?int $days = null): void
     {
-        Cache::put($key, Crypt::encrypt($data), now()->addDays((int) config('analysis.retention_days')));
+        Cache::put($key, Crypt::encrypt($data), now()->addDays($days ?? (int) config('analysis.retention_days')));
     }
 
     /**

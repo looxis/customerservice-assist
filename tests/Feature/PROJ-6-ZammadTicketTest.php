@@ -1,7 +1,10 @@
 <?php
 
+use App\Analysis\ContextVariant;
+use App\Analysis\TicketContext;
 use App\Http\Requests\TicketLookupRequest;
 use App\Zammad\MessageBody;
+use App\Zammad\ZammadClient;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -304,6 +307,53 @@ describe('our signature', function () {
         fakeZammad([zammadArticle(['body' => '<p>Danke</p><div data-signature="true">Erika Beispiel<br>Musterweg 2</div>'])]);
 
         $this->get('/tickets/2137942')->assertSeeText('Musterweg 2');
+    });
+});
+
+describe('customer signature', function () {
+    test('after a closing phrase name and company stay visible, the rest is collapsed and not lost', function () {
+        $parsed = app(MessageBody::class)->parse(
+            '<div>Die Rechnung fehlt.</div><div><br></div><div>Mit freundlichen Grüßen</div><div>Herr Beispiel</div><div>Foto Beispiel Musterstadt</div><div>Impressum: Musterweg 1</div><div>Mit freundlichen Grüßen,</div><div>Max Beispiel</div>',
+            'text/html',
+        );
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Die Rechnung fehlt.')->toContain('Herr Beispiel')->toContain('Foto Beispiel Musterstadt')->not->toContain('Impressum')
+            ->and(strip_tags((string) $parsed['signature']))->toContain('Impressum: Musterweg 1')->toContain('Max Beispiel');
+    });
+
+    test('closing phrases are recognised in several languages, also with a name on the same line', function (string $closing) {
+        $parsed = app(MessageBody::class)->parse("Text\n{$closing}\nName\nFirma\nStraße 1\n12345 Ort", 'text/plain');
+
+        expect(strip_tags((string) $parsed['signature']))->toContain('Straße 1')->toContain('12345 Ort');
+    })->with(['Viele Grüße, Anna', 'Best regards', 'Kind regards,', 'Met vriendelijke groet', 'Cordiali saluti', 'Cordialement', 'Freundliche Grüsse', 'Saludos']);
+
+    test('a "--" line starts the signature directly', function () {
+        $parsed = app(MessageBody::class)->parse("Text\nMax Beispiel\n-- \nFirma\nStraße 1", 'text/plain');
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Max Beispiel')->not->toContain('Firma')
+            ->and(strip_tags((string) $parsed['signature']))->toContain('Firma')->toContain('Straße 1');
+    });
+
+    test('nothing is collapsed when only name and company follow, the phrase is mid-sentence or opens the message', function (string $text) {
+        expect(app(MessageBody::class)->parse($text, 'text/plain')['signature'])->toBeNull();
+    })->with([
+        'short closing' => "Text\nViele Grüße\nAnna Beispiel\nFirma",
+        'mid sentence' => "Viele Grüße an das Team, die Tasse ist toll.\nZeile\nZeile\nZeile\nZeile",
+        'first line' => "Viele Grüße\nZeile\nZeile\nZeile",
+    ]);
+
+    test('our own messages keep their signature handling', function () {
+        expect(app(MessageBody::class)->parse("Text\nViele Grüße\nA\nB\nC", 'text/plain', ours: true)['signature'])->toBeNull();
+    });
+
+    test('the ticket view collapses the signature behind "Signatur anzeigen" and it is not sent to the ai', function () {
+        fakeZammad([zammadArticle(['body' => '<p>Die Tasse ist kaputt.</p><p>Viele Grüße</p><p>Erika Beispiel</p><p>Beispiel GmbH</p><p>Geschäftsführer: Max Beispiel</p>'])]);
+
+        $this->get('/tickets/2137942')
+            ->assertSeeTextInOrder(['Die Tasse ist kaputt.', 'Beispiel GmbH', 'Signatur anzeigen', 'Geschäftsführer: Max Beispiel']);
+
+        expect((new TicketContext(app(ZammadClient::class)->ticket('2137942')))->text(ContextVariant::FullThread))
+            ->not->toContain('Geschäftsführer');
     });
 });
 

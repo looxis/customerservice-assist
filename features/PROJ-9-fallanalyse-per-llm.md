@@ -120,6 +120,7 @@
 - [ ] Frei formulierte Anschriften ohne Postleitzahl im Ticketverlauf werden von den Mustern nicht immer erkannt. Reicht das für den Start (Lieferadresse aus EOCS wird sicher erkannt)?
 - [ ] `OPENAI_TOKEN` ist in der laufenden App noch leer (Stand 2026-10-06, `.env` vermutlich nicht gespeichert); danach verfügbare Modelle abfragen und Voreinstellung festlegen.
 - [ ] Ist die Schwelle „ab 5 Nachrichten oder ab 3 Nachrichten mit über 6.000 Zeichen" passend? Nach den ersten echten Tickets nachschärfen.
+- [ ] Produktauswahl skaliert nicht: Bei Hunderten Produkt-Dateien wird die Liste der Kästchen unbrauchbar. Idee: Produkte aus Ticketverlauf und Bestellung vorschlagen und ein Suchfeld statt der ganzen Liste anbieten. Bewusst offen gelassen, bis es mehr Produkt-Dateien gibt (Product Owner, 2026-10-06).
 - [x] Postanschriften werden nie übertragen; über umkehrbare Platzhalter kann der Antwortentwurf sie trotzdem enthalten (z. B. zur Bestätigung der Lieferadresse), eingesetzt erst in der App (2026-10-06).
 
 ## Decision Log
@@ -143,6 +144,8 @@
 | Lieferadresse aus EOCS bleibt in der App (nicht angezeigt, nicht übertragen), nur für Platzhalter | Ändert die PROJ-7-Entscheidung „Kundendaten nicht übernehmen" gezielt für diesen Zweck | 2026-10-06 |
 | Start mit OpenAI; Modell und Prompts zunächst in Konfiguration/Repository, später auf der Einstellungsseite (PROJ-31) | Wunsch des Product Owners; bis dahin gleiche Struktur, damit nichts umgebaut werden muss | 2026-10-06 |
 | Auftragsverarbeitungsvertrag mit OpenAI abgeschlossen, Wiedervorlage ab 01.01.2027 | Voraussetzung laut PRD; Vorgabe des Product Owners | 2026-10-06 |
+| Kundengruppe und Produkte werden je Ticket gemerkt und beim nächsten Öffnen vorbelegt („zuletzt gewählt von … am …"); bis PROJ-11 vorübergehend 7 Tage, danach dauerhaft | Die Kundengruppe ändert sich bis zum Abschluss eines Tickets nicht; erneutes Auswählen kostet Zeit und führt zu Fehlern | 2026-10-06 |
+| Die Kundengruppe wird außerdem je Zammad-Kunde bzw. -Organisation gemerkt (365 Tage, ohne Fallinhalte) und bei weiteren Tickets vorgeschlagen; „noch unklar" wird nie gemerkt | Ein Fachhändler bleibt ein Fachhändler; ist keine EOCS-Bestellung geladen, gibt es sonst keinen Vorschlag. Reihenfolge: Wahl für dieses Ticket, Kanal der Bestellung, Wahl für diesen Kunden | 2026-10-06 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->
@@ -241,6 +244,7 @@ Server (app/Analysis/)
 - **Arbeitsabläufe** (PROJ-30) gehen nicht an die KI.
 - **Gemessen mit echten Tickets:** Ticket#2137635 (Amazon, Italienisch, ganzer Verlauf): 25 s, 14.283 Eingabe-/1.955 Ausgabe-Tokens, gültig im ersten Versuch, Antwort auf Italienisch, keine Zusage außerhalb der Regeln. Ticket#2132884 (12 Nachrichten): Zusammenfassung 5 s mit `gpt-5.4-mini` (2.057/715 Tokens), Analyse mit Zusammenfassung 19 s (10.322/1.509 Tokens).
 - **Gefunden und behoben beim echten Test:** Telefonnummern am Satzende und niederländische Anschriften („Zonnedauwlaan 8, 1433WB Kudelstaart") wurden zunächst nicht ersetzt; Muster erweitert und getestet.
+- **Nachgebessert nach dem ersten Test (2026-10-06):** Kundengruppe und Produkte werden je Ticket gemerkt und vorbelegt, mit Hinweis unter dem Feld („Vorbelegt: zuletzt gewählt von Nele am 06.10.2026, 14:05 Uhr" / „aus dem Kanal der Bestellung" / „bei früheren Tickets dieses Kunden gewählt"). Die Kundengruppe wird zusätzlich je Zammad-Organisation (oder Kunde ohne Organisation) gemerkt (`AnalysisStore::caseChoice`/`customerGroup`, `Ticket::customerKey()`, `config('analysis.customer_group_retention_days')`). Gemerkt wird beim Absenden der Analyse.
 - **Abweichung:** Die Vorschau „Was an die KI geht" zeigt den Ticketteil und nennt die übrigen Bestandteile; der Text des Kontextfelds wird vor dem Absenden nicht in die Vorschau übernommen.
 - **Offen für `/deploy`:** Webserver-Zeitlimit mindestens 120 s.
 - **`.env.example`:** `OPENAI_TOKEN=`, `ANTHROPIC_TOKEN=`, optional `ANALYSIS_MODEL=`, `SUMMARY_MODEL=` ergänzen (trägt der Product Owner ein).

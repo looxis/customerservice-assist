@@ -7,7 +7,8 @@ use Illuminate\Support\HtmlString;
 
 /**
  * One message of a ticket thread. The body is already sanitized HTML; a
- * quoted earlier message at its end is split off so it can be collapsed.
+ * quoted earlier message at its end and a customer's signature are split off
+ * so they can be collapsed.
  */
 final readonly class TicketArticle
 {
@@ -23,6 +24,7 @@ final readonly class TicketArticle
         public array $attachments = [],
         public ?string $channel = null,
         public bool $automatic = false,
+        public ?HtmlString $signature = null,
     ) {}
 
     public function hasText(): bool

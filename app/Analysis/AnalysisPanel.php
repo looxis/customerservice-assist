@@ -9,6 +9,7 @@ use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Zammad\Ticket;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -48,11 +49,15 @@ class AnalysisPanel
                 : $pseudonymizer->apply($context->text($variant, $summary?->text));
         }
 
+        $choice = $this->store->caseChoice($ticket->number);
+        [$group, $groupSource] = $this->suggestedGroup($ticket, $orders, $choice);
+
         return [
             'groups' => $this->selector->customerGroups(),
             'products' => $this->selector->products(),
-            'suggestedGroup' => $this->suggestedGroup($orders)->key,
-            'suggestedProducts' => $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all())),
+            'suggestedGroup' => $group,
+            'groupSource' => $groupSource,
+            'suggestedProducts' => $choice['products'] ?? $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all())),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
             'defaultVariant' => $context->defaultVariant(),
@@ -66,19 +71,36 @@ class AnalysisPanel
     }
 
     /**
+     * The group to preselect and why: chosen earlier for this ticket, from the
+     * channel of a loaded order, remembered for this customer, or unclear.
+     *
      * @param  list<EocsOrder>  $orders
+     * @param  array{group: string, staff: string, at: string}|null  $choice
+     * @return array{0: string, 1: string|null}
      */
-    private function suggestedGroup(array $orders): CustomerGroup
+    private function suggestedGroup(Ticket $ticket, array $orders, ?array $choice): array
     {
+        $known = array_map(fn (CustomerGroup $group): string => $group->key, $this->selector->customerGroups());
+
+        if ($choice !== null && in_array($choice['group'], $known, true)) {
+            return [$choice['group'], 'zuletzt gewählt von '.$choice['staff'].' am '.CarbonImmutable::parse($choice['at'])->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr'];
+        }
+
         foreach ($orders as $order) {
             foreach ($this->selector->customerGroups() as $group) {
                 if ($order->channel !== null && $group->salesChannel === $order->channel) {
-                    return $group;
+                    return [$group->key, 'aus dem Kanal der Bestellung'];
                 }
             }
         }
 
-        return $this->suggester->customerGroup(null);
+        $remembered = $this->store->customerGroup($ticket->customerKey());
+
+        if ($remembered !== null && in_array($remembered, $known, true)) {
+            return [$remembered, 'bei früheren Tickets dieses Kunden gewählt'];
+        }
+
+        return [$this->suggester->customerGroup(null)->key, null];
     }
 
     /**
