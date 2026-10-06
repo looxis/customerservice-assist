@@ -131,6 +131,7 @@
 |----------|-----------|------|
 | Eigener Baustein `app/Eocs/` nach dem Muster von `app/Zammad/`, Laravel-HTTP-Client | Einheitliche Struktur, Tests mit Attrappen, keine neuen Pakete | 2026-10-05 |
 | Kundendaten aus EOCS nicht ins Bestellobjekt übernehmen | Datensparsamkeit: werden weder angezeigt noch (bisher) für die Analyse gebraucht | 2026-10-05 |
+| Änderung durch PROJ-9: Lieferadresse wird intern übernommen (nicht angezeigt, nie an die KI), nur für den umkehrbaren Platzhalter `[LIEFERADRESSE]` im Antwortentwurf | Adressbestätigung im Antwortentwurf ohne Kopieren; Anbieter sieht die Adresse nie | 2026-10-06 |
 | Bestellnummern-Erkennung als eigener Baustein `app/Orders/` mit festen Mustern | Einzeln testbar, später durch den KI-Workflow ersetzbar | 2026-10-05 |
 | Auswahl der Bestellungen als Liste in der Adresse, höchstens 10 | Neuladen, Zurück, Link an Kollegen; keine Speicherung bis PROJ-11 | 2026-10-05 |
 | Reklamationsaufträge über Suche ohne `,exact`, gefiltert auf `R<n>-<Original>` und `origin_order_id` | EOCS hat keinen Filter für Folgeaufträge; doppelte Bedingung verhindert Fremdtreffer | 2026-10-05 |

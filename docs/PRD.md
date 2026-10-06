@@ -27,8 +27,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Approved |
 | P0 (MVP) | Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Approved |
 | P0 (MVP) | Bestellung aus EOCS laden (automatische Erkennung, manuelle Bestellnummer) | Approved |
-| P0 (MVP) | Bestelldaten manuell ergänzen (Fallback) | Roadmap |
-| P0 (MVP) | Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | Roadmap |
+| P0 (MVP) | Bestelldaten manuell ergänzen (Fallback) – aufgegangen in der Fallanalyse | Planned |
+| P0 (MVP) | Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | Planned |
 | P0 (MVP) | Ergebnisansicht mit bearbeitbarem Antwortentwurf, Kopieren und einsehbaren Quellen | Roadmap |
 | P0 (MVP) | Analyse-Protokoll und Verlauf je Ticket | Roadmap |
 | P0 (MVP) | Feedback und Wissenslücke melden | Roadmap |
@@ -36,6 +36,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Interne Arbeitsabläufe zum Fall (Dokumenttyp `procedure`, Vorschläge nach der Analyse) | Planned |
 | P1 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
 | P1 | Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
+| P1 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Roadmap |
 | P1 | Einstellungen für die Mail-Anzeige und Bestellnummern (zugelassene Links, Signaturen, Textbausteine, Bestellnummern-Formate) | Roadmap |
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | P1 | Gesamtliste aller Analysen, Feedbacks und Wissenslücken mit Filter | Roadmap |
