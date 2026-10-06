@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'admins' => ['Etienne'],
+    'admins' => ['Etienne', 'Johannes', 'Thomas'],
 
     'test_mode_cookie' => 'test_mode',
 

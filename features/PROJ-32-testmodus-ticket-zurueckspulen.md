@@ -77,7 +77,7 @@ Im Moment kommen wenige Tickets herein, und alle werden zügig beantwortet. Fris
 |----------|-----------|------|
 | Zurückspulen per Schaltfläche an jeder Kundennachricht | Auch spätere Stufen eines Falls (2. Reklamationsmail) testbar, nicht nur der Anfang | 2026-10-06 |
 | Spätere Nachrichten eingeklappt und aufklappbar statt ganz ausgeblendet | Direkter Vergleich mit der damals tatsächlich gesendeten Antwort | 2026-10-06 |
-| Nur Admins; Admin-Liste in der Konfiguration (zunächst Etienne), Testmodus zusätzlich je Browser ein-/ausschaltbar | Kein Login im MVP; Schalter verhindert Verwechslung bei echter Arbeit; bleibt dauerhaft als Admin-Werkzeug | 2026-10-06 |
+| Nur Admins; Admin-Liste in der Konfiguration (zunächst Etienne, seit 2026-10-06 auch Johannes und Thomas), Testmodus zusätzlich je Browser ein-/ausschaltbar | Kein Login im MVP; Schalter verhindert Verwechslung bei echter Arbeit; bleibt dauerhaft als Admin-Werkzeug | 2026-10-06 |
 | Testläufe gekennzeichnet, Zusammenfassung je Schnittpunkt getrennt, keine Merkung der Kundengruppe je Kunde | Tests dürfen echte Vorschläge und Zusammenfassungen nicht verfälschen | 2026-10-06 |
 | Bestellnummern-Vorschläge nur aus dem Stand bis zum Schnittpunkt | Test entspricht dem damaligen Wissensstand | 2026-10-06 |
 | Feature bleibt dauerhaft (nicht nur vorübergehend) | Wunsch des Product Owners; nützlich zum Prüfen neuen Wissens an alten Fällen | 2026-10-06 |
