@@ -1,6 +1,6 @@
 # PROJ-33: Produktvorschlag aus Kundenbegriffen
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-07
 **Last Updated:** 2026-10-07
 
@@ -91,12 +91,63 @@ Produkte werden heute nur aus Bestellpositionen vorgeschlagen (`order_keywords`)
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Keine Speicherung, keine Datenbank: Vorschläge werden bei jedem Laden der Ticketseite aus dem bereinigten Verlauf und der Knowledge berechnet | Immer aktuell zum Wissensstand und zum Verlauf; Textvergleich ist schnell | 2026-10-07 |
+| Erkennen im vorhandenen Vorschlags-Baustein der Knowledge (neben dem Bestellvorschlag), Text liefert der vorhandene Ticketkontext | Eine Stelle für alle Produktvorschläge; nutzt die Bereinigung aus PROJ-6 und den Schnittpunkt aus PROJ-32 automatisch | 2026-10-07 |
+| Treffer: Begriff am Wortanfang, ohne Groß-/Kleinschreibung; Produkttitel als ganze Wortfolge | Vorhersehbar für Autoren, deckt Pluralformen ab | 2026-10-07 |
+| Vorschläge tragen ihren Grund (Bestellung bzw. erkannter Begriff) bis ins Formular | Mitarbeiter sieht, warum ein Produkt angehakt ist | 2026-10-07 |
+| Prüfregeln für `customer_terms` analog zu `order_keywords` im vorhandenen Validator | Gleiche Logik und Meldungen, eine Stelle für Frontmatter-Regeln | 2026-10-07 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Kein neuer Bildschirm, keine Datenbank. PROJ-33 erweitert drei vorhandene Bausteine: die Prüfung der Knowledge (neues Feld), den Produktvorschlag (zusätzlich aus dem Tickettext) und das Analyse-Formular (Grund je Vorschlag, Vorschläge oben). Dazu kommen Anleitung, KI-Skill und Vorlage.
+
+### A) Bausteine
+```
+Knowledge-Prüfung (PROJ-3)
++-- Feld customer_terms: nur Produktdateien, Liste
++-- Warnungen: < 4 Zeichen · doppelt bei zwei Produkten · Überschneidung mit order_keywords
++-- ID-Übersicht / Sitzungsstart-Block: „Vergebene Kundenbegriffe je Produkt“
+
+Produktvorschlag (PROJ-4)
++-- aus Bestellpositionen (order_keywords) – wie bisher
++-- NEU aus dem Tickettext (customer_terms + Produkttitel)
+|   +-- Text: Ticket-Titel + bereinigte Kundennachrichten (bei Testlauf nur bis zum Schnittpunkt)
++-- Ergebnis je Produkt: Grund(e) „aus der Bestellung“ / „erkannt im Ticket: ‚…‘“
+
+Analyse-Formular (PROJ-9)
++-- Produktliste: vorgeschlagene oben, angehakt, mit Grund
++-- gemerkte Wahl / angezeigte Analyse hat Vorrang
+|   +-- zusätzlich erkannte: „im Ticket erwähnt: … – nicht ausgewählt“
+
+Authoring-Kit (PROJ-2)
++-- Anleitung: Frage nach früheren Namen, Synonymen, Kundenbegriffen; Unterschied zu order_keywords
++-- KI-Skill: gleiche Frage
++-- Produktvorlage: Feld customer_terms (leer)
+```
+
+### B) Daten
+Nichts wird gespeichert. Neu ist nur ein Frontmatter-Feld in Produktdateien:
+- **`customer_terms`**: Liste von Begriffen, mit denen Kunden das Produkt beschreiben (frühere Namen, Synonyme, Umgangssprache).
+
+Vorschläge werden bei jedem Laden der Ticketseite neu berechnet.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Berechnen statt speichern:** Ändert sich das Wissen oder kommt eine neue Kundennachricht, stimmt der Vorschlag sofort. Ein reiner Textvergleich kostet keine merkliche Zeit und keine KI-Aufrufe.
+- **Eine Stelle für Vorschläge:** Bestell- und Textvorschlag liegen im selben Baustein; das Formular bekommt eine Liste „Produkt + Grund“.
+- **Gleicher Text wie die Ansicht:** Durchsucht wird die bereinigte Fassung (ohne eingeklappte Zitate und Signaturen); ein zurückgespultes Ticket ist automatisch nur bis zum Schnittpunkt sichtbar.
+- **Prüfregeln wie bei `order_keywords`:** gleiche Art Meldungen, Autoren kennen sie schon.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Wortanfang heißt: vor dem Begriff steht kein Buchstabe oder keine Ziffer; danach darf das Wort weitergehen.
+- Analyse-Metadaten (PROJ-11) bekommen die Gründe der Vorschläge nicht; gespeichert wird wie bisher nur die tatsächliche Wahl.
+- Tests: Treffer im Titel, in Kundennachrichten; kein Treffer in Antworten, Notizen, Zitaten, Signaturen, mitten im Wort; Zusammenführen mit Bestellvorschlag; Vorrang der gemerkten Wahl mit Hinweis; Testmodus-Schnittpunkt; Prüfwarnungen; Übersicht.
 
 ## QA Test Results
 _To be added by /qa_
