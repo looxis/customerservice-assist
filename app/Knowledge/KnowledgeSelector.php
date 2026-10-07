@@ -104,6 +104,17 @@ class KnowledgeSelector
     }
 
     /**
+     * Why a document does not fit the customer group or the products, or null
+     * when it does. The same rule decides for knowledge and procedures (PROJ-30).
+     *
+     * @param  list<string>  $products
+     */
+    public function scopeExclusionReason(KnowledgeDocument $document, CustomerGroup $group, array $products): ?string
+    {
+        return $group->exclusionReason($document) ?? $this->productExclusionReason($document, $products);
+    }
+
+    /**
      * @param  list<string>  $products
      */
     private function productExclusionReason(KnowledgeDocument $document, array $products): ?string

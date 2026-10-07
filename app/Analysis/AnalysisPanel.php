@@ -6,10 +6,13 @@ use App\Eocs\EocsOrder;
 use App\Eocs\EocsOrderItem;
 use App\Eocs\OrderLookup;
 use App\Knowledge\CustomerGroup;
+use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
+use App\Knowledge\ProcedureFinder;
+use App\Knowledge\ProcedureRenderer;
 use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
@@ -59,6 +62,7 @@ class AnalysisPanel
         if ($result !== null) {
             $result['is_latest'] = $result['id'] === $latestId;
             $result['gaps_reported'] = app(KnowledgeGapLog::class)->reportedFor($result['id']);
+            $result['procedures'] = $this->procedures($result);
         }
         $inputs = $result['inputs'] ?? [];
 
@@ -196,6 +200,43 @@ class AnalysisPanel
             'suggestedProducts' => $chosen ?? $suggested,
             'productReasons' => $reasons,
             'mentionedProducts' => $chosen === null ? [] : array_values(array_diff(array_keys($fromText), $chosen)),
+        ];
+    }
+
+    /**
+     * Internal procedures for the shown analysis (PROJ-30): suggested ones
+     * from its category and actions, and all usable ones to pick by hand.
+     *
+     * @param  array<string, mixed>  $result
+     * @return array{all: array<string, array<string, mixed>>, suggested: list<string>, catalogue: array<string, list<array{id: string, fits: bool}>>}
+     */
+    private function procedures(array $result): array
+    {
+        $finder = app(ProcedureFinder::class);
+        $renderer = app(ProcedureRenderer::class);
+        $group = $this->selector->customerGroup((string) ($result['inputs']['kundengruppe'] ?? $result['meta']['customer_group'] ?? 'unclear'))
+            ?? $this->selector->customerGroup('unclear');
+        $products = array_values((array) ($result['meta']['products'] ?? []));
+        $catalogue = $finder->catalogue($group, $products);
+        $all = [];
+
+        foreach ($catalogue as $entries) {
+            foreach ($entries as $entry) {
+                $document = $entry['document'];
+                $all[$document->id] ??= [
+                    'id' => $document->id,
+                    'title' => $document->title,
+                    'draft' => $document->isDraft(),
+                    'actions' => array_map(fn (string $action): string => config("knowledge.actions.{$action}", $action), $document->actions()),
+                    'html' => $renderer->render($document),
+                ];
+            }
+        }
+
+        return [
+            'all' => $all,
+            'suggested' => array_map(fn (KnowledgeDocument $document): string => $document->id, $finder->suggested($group, $products, $result['result']['category'] ?? null, array_values((array) ($result['result']['actions'] ?? [])))),
+            'catalogue' => array_map(fn (array $entries): array => array_map(fn (array $entry): array => ['id' => $entry['document']->id, 'fits' => $entry['fits']], $entries), $catalogue),
         ];
     }
 

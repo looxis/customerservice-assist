@@ -1,6 +1,6 @@
 # PROJ-30: Interne Arbeitsabläufe zum Fall
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 
@@ -185,6 +185,16 @@ Keine neuen Pakete.
 - ID-Übersicht (`knowledge:overview`) nennt den Typ und die erlaubten Vorgänge; Knowledge-Übersicht zeigt „Arbeitsabläufe".
 - Vorlage `knowledge/templates/procedure.md`, Ordner `knowledge/procedures/`, Abschnitt „Arbeitsabläufe (`procedure`)" im Authoring Guide (Abgrenzung, Vorgangsliste, Abschnitte, Interviewfragen), README und KI-Skill ergänzt.
 - Tests: `tests/Feature/PROJ-30-ProcedureTest.php`; PROJ-2/PROJ-3-Tests an den neuen Typ angepasst.
+
+## Implementation Notes (Anzeige, Vorschläge, Auswahl)
+**Gebaut am 2026-10-07**, Frontend und Backend in einem Durchgang.
+
+- **`App\Knowledge\ProcedureFinder`:** `suggested()` (Vorgänge in der Reihenfolge des Ergebnisses, innerhalb nach ID, je Ablauf einmal; `categories` leer oder enthält die Fallkategorie; Geltungsbereich über `KnowledgeSelector::scopeExclusionReason()` – dieselbe Regel wie PROJ-4) und `catalogue()` (alle verwendbaren nach Vorgang, mit „passt“).
+- **`App\Knowledge\ProcedureRenderer`:** sichere Markdown-Darstellung (PROJ-24) mit Verlinkung der Knowledge-IDs; Kästchen an jedem Listeneintrag der Abschnitte „Arbeitsschritte“ und „Abschlusskontrolle“ (vorhandene Aufgaben-Kästchen aus `- [ ]` werden ersetzt), Abschnitt „Kritische Hinweise“ als Warnkasten, Zeilen „Achtung:“ als Warnung. Gestaltung in `resources/css/app.css` (`procedure-*`).
+- **Panel:** `AnalysisPanel::procedures()` je angezeigter Analyse (Kundengruppe aus den Eingaben, Produkte, Kategorie und Vorgänge aus dem Ergebnis).
+- **Oberfläche** `analysis/procedures`: eigener Bereich unter dem Ergebnis „Interne Abläufe – intern, nicht an den Kunden“; je Ablauf ID, Titel, Vorgänge, Entwurf, Entwurfshinweis, „Schließen“; ab drei Vorschlägen nur der erste offen; leer: „Kein passender Ablauf hinterlegt“ mit vorausgefülltem „Wissenslücke melden“ (PROJ-12); „Ablauf auswählen“ nach Vorgang gruppiert, „gilt nicht für diese Kundengruppe“. Gewählte und geschlossene Abläufe merkt sich der Browser je Ticket für die Sitzung (`sessionStorage`); Abhaken wird nicht gespeichert.
+- **Seite „Über die App“:** Schritt 7 nennt die internen Abläufe.
+- **Tests:** `tests/Feature/PROJ-30-ProcedureViewTest.php` (9 Fälle). Gesamte Suite: 812 grün. Geprüft mit `PROCEDURE-001` (15 Kästchen, kritische Hinweise, 3 Verweise).
 
 ## QA Test Results
 _To be added by /qa_

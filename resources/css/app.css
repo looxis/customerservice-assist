@@ -117,6 +117,44 @@
 }
 
 @layer components {
+    /* Internal procedure for working through it (see App\Knowledge\ProcedureRenderer, PROJ-30). */
+    .procedure-critical {
+        @apply rounded-md bg-warning-500/10 p-4 ring-1 ring-warning-500/30 ring-inset;
+
+        > * + * {
+            @apply mt-3;
+        }
+
+        h2 {
+            @apply mt-0 text-warning-700;
+        }
+    }
+
+    .procedure-warning {
+        @apply rounded-md bg-warning-500/10 px-3 py-2 font-medium text-warning-700 ring-1 ring-warning-500/30 ring-inset;
+    }
+
+    .knowledge-text li:has(> .procedure-check) {
+        @apply list-none;
+    }
+
+    .knowledge-text ol:has(> li > .procedure-check),
+    .knowledge-text ul:has(> li > .procedure-check) {
+        @apply pl-0;
+    }
+
+    .procedure-check {
+        @apply flex cursor-pointer items-start gap-2;
+
+        input {
+            @apply mt-0.5 size-4 shrink-0 rounded border-slate-300 text-brand focus:ring-brand;
+        }
+
+        input:checked + span {
+            @apply text-slate-500 line-through;
+        }
+    }
+
     /* Rendered Markdown of a knowledge document (see App\Knowledge\KnowledgeMarkdown). */
     .knowledge-text {
         @apply text-sm leading-relaxed text-slate-900 wrap-anywhere;
