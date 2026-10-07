@@ -248,6 +248,17 @@ describe('about page', function () {
     });
 });
 
+describe('bug fixes', function () {
+    test('a report sent with another ticket number in the address is refused and not stored', function () {
+        $id = feedbackAnalysis();
+
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.gaps.store', ['number' => '1111111', 'analysis' => $id]), ['missing' => 'x'])
+            ->assertSessionHas('gap_error', 'Diese Analyse ist nicht mehr verfügbar.');
+
+        expect(KnowledgeGap::query()->count())->toBe(0);
+    });
+});
+
 describe('qa additions', function () {
     test('texts of reports are escaped on the admin page and in the chat block', function () {
         KnowledgeGap::factory()->create(['content' => ['missing' => '<script>alert(1)</script>', 'solution' => '<img src=x onerror=alert(1)>', 'comment' => null]]);

@@ -17,9 +17,9 @@ class KnowledgeGapLog
     /**
      * @param  array{missing: string, solution?: string|null, comment?: string|null}  $texts
      */
-    public function report(string $analysisId, array $texts, ?string $topic, string $staff): ?KnowledgeGap
+    public function report(string $ticketNumber, string $analysisId, array $texts, ?string $topic, string $staff): ?KnowledgeGap
     {
-        $analysis = Analysis::query()->where('uuid', $analysisId)->whereNotNull('content')->first();
+        $analysis = Analysis::query()->where('uuid', $analysisId)->where('ticket_number', $ticketNumber)->whereNotNull('content')->first();
 
         if ($analysis === null) {
             return null;

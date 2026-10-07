@@ -22,10 +22,10 @@ class KnowledgeGapController extends Controller
      */
     public function store(string $number, string $analysis, StoreKnowledgeGapRequest $request, KnowledgeGapLog $gaps, StaffDirectory $staff): RedirectResponse
     {
-        $gap = $gaps->report($analysis, $request->validated(), $request->validated('topic'), (string) $staff->current($request));
+        $gap = $gaps->report($number, $analysis, $request->validated(), $request->validated('topic'), (string) $staff->current($request));
         $back = redirect()->to(route('tickets.show', array_filter(['number' => $number, 'analyse' => $analysis, 'stand' => $request->input('stand')])).'#ergebnis');
 
-        if ($gap === null || $gap->ticket_number !== $number) {
+        if ($gap === null) {
             return $back->with('gap_error', 'Diese Analyse ist nicht mehr verfügbar.');
         }
 

@@ -239,7 +239,7 @@ Keine neuen Pakete.
 - [x] CSRF: Meldung und Admin-Aktionen als Formulare mit `@csrf`, Feedback mit Token im Kopf der Hintergrundanfrage
 - [x] XSS: Meldungstexte, Chat-Textblock und KI-Lücken-Themen escaped (Tests mit `<script>`, `<img onerror>`, Anführungszeichen)
 - [x] Freitexte verschlüsselt, Thema der KI-Lücke nur als Hash; Log der Bereinigung nur mit Anzahlen
-- [ ] Meldung über eine Adresse mit falscher Ticketnummer wird gespeichert (BUG-1)
+- [x] Meldung über eine Adresse mit falscher Ticketnummer wird abgelehnt (BUG-1 behoben)
 - Hinweis: kein Rate Limiting für Feedback und Meldungen; intern, ohne Kosten.
 
 ### Regression
@@ -249,12 +249,13 @@ Keine neuen Pakete.
 
 #### BUG-1: Meldung mit nicht passender Ticketnummer in der Adresse wird trotzdem gespeichert
 - **Severity:** Low
+- **Status:** Behoben 2026-10-07 – die Analyse wird nur zusammen mit der Ticketnummer aus der Adresse gesucht; sonst Hinweis „nicht mehr verfügbar“, nichts gespeichert.
 - **Steps to Reproduce:** Das Meldeformular einer Analyse von Ticket A an `/tickets/B/analyse/{analyse-von-A}/wissensluecken` schicken (nur per Hand gebautem Formular möglich). Erwartet: abgelehnt. Tatsächlich: Meldung wird gespeichert (korrekt beim Ticket A), danach Hinweis „nicht mehr verfügbar“. Keine Datenpanne – die Meldung hängt am richtigen Ticket –, aber unsauber.
 - **Priority:** Nice to have
 
 ### Summary
 - **Acceptance Criteria:** 24/24 bestanden
-- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low) – behoben 2026-10-07
 - **Security:** Pass (BUG-1 Low)
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; Test mit echten Tickets nachholen, sobald Zammad wieder läuft.
