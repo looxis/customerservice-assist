@@ -1,6 +1,6 @@
 # PROJ-30: Interne Arbeitsabläufe zum Fall
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 
@@ -118,12 +118,63 @@
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Vorschläge werden beim Anzeigen des Ergebnisses berechnet (aus Kategorie und Vorgängen der angezeigten Analyse, Kundengruppe und Produkten ihrer Eingaben), nicht gespeichert | Deterministisch, immer zum aktuellen Wissensstand; neue Procedure-Dateien wirken sofort | 2026-10-07 |
+| Gleiche Regeln für Kundengruppe, Kanal und Produkt wie die Knowledge-Auswahl (PROJ-4), aus derselben Stelle | Keine zweite Auslegung des Geltungsbereichs | 2026-10-07 |
+| Alle verwendbaren Abläufe werden mit der Seite ausgeliefert; Auswählen und Schließen geschieht im Browser, die manuelle Wahl hält der Browser je Ticket für die Sitzung | Keine Serveranfrage, kein Speichern nötig (Spec: nicht gespeichert); bleibt bei Neuladen und neuer Analyse erhalten | 2026-10-07 |
+| Kästchen und Hervorhebung entstehen beim Aufbereiten des Markdown-Texts auf dem Server (Abschnitte „Arbeitsschritte“, „Abschlusskontrolle“, „Kritische Hinweise“, Zeilen „Achtung:“) | Autoren schreiben normales Markdown; Darstellung bleibt sicher (PROJ-24) und funktioniert ohne JavaScript lesbar | 2026-10-07 |
+| Abhaken nur im Browser, nicht gespeichert | Spec-Entscheidung; Speichern ggf. später | 2026-10-07 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Der Dokumenttyp und seine Prüfung sind seit 2026-10-05 gebaut. Jetzt kommt die Anzeige: Unter dem Ergebnis einer Analyse erscheint ein klar abgesetzter Bereich „Interne Abläufe – nicht an den Kunden“ mit den vorgeschlagenen Arbeitsabläufen und einer Auswahl aller übrigen. Keine Datenbank, keine neuen Pakete, keine KI.
+
+### A) Bausteine
+```
+Ergebnis (PROJ-10)
++-- … Was ist zu tun? · Antwortentwurf · Feedback · Abschnitte …
++-- Bereich „Interne Abläufe – nicht an den Kunden“ (eigene Karte, andere Farbe)
+    +-- Vorgeschlagene Abläufe (Reihenfolge der empfohlenen Vorgänge, dann ID)
+    |   +-- je Ablauf (ab drei: alle außer dem ersten eingeklappt)
+    |       +-- Kopf: ID · Titel · Vorgänge · „Entwurf“ · [Schließen]
+    |       +-- Hinweis bei Entwurf
+    |       +-- Kritische Hinweise / „Achtung:“-Zeilen deutlich als Warnung
+    |       +-- Voraussetzungen
+    |       +-- Arbeitsschritte mit Kästchen
+    |       +-- Abschlusskontrolle mit Kästchen
+    |       +-- Verweise auf Knowledge-IDs verlinkt
+    +-- leer: „Kein passender Ablauf hinterlegt“ + [Wissenslücke melden] (PROJ-12)
+    +-- [Ablauf auswählen] (aufklappbar)
+        +-- alle verwendbaren Abläufe nach Vorgang gruppiert: ID · Titel · Entwurf
+        +-- „gilt nicht für diese Kundengruppe“ bei unpassendem Geltungsbereich
+        +-- gewählte erscheinen zusätzlich oben
+```
+
+### B) Daten
+Nichts Neues wird gespeichert.
+- Grundlage der Vorschläge: Fallkategorie und Vorgänge aus dem gespeicherten Ergebnis (PROJ-9/11), Kundengruppe und Produkte aus den gespeicherten Eingaben der angezeigten Analyse.
+- Manuell gewählte Abläufe merkt sich der Browser je Ticket für die Sitzung (z. B. nach Neuladen oder neuer Analyse noch da), abgehakte Kästchen gar nicht.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Berechnen statt speichern:** Welche Abläufe passen, ergibt sich jedes Mal aus Ergebnis und aktuellem Wissen. Eine neue Procedure-Datei wirkt sofort, auch bei schon vorhandenen Analysen.
+- **Eine Regel für den Geltungsbereich:** Ob ein Ablauf zu Kundengruppe, Kanal und Produkt passt, entscheidet dieselbe Stelle wie bei der Knowledge-Auswahl (PROJ-4). Bei „Noch unklar“ passen nur Abläufe ohne Einschränkung.
+- **Auswählen im Browser:** Alle Abläufe kommen mit der Seite mit; Auswählen und Schließen blendet nur ein und aus. Das ist schnell und braucht keine Speicherung.
+- **Kästchen und Warnungen aus normalem Markdown:** Autoren schreiben nummerierte Schritte und Listen wie gewohnt; die App setzt beim Anzeigen die Kästchen und hebt „Kritische Hinweise“ und „Achtung:“-Zeilen hervor. Die sichere Markdown-Darstellung aus PROJ-24 bleibt.
+- **Unbekannte Vorgänge** im Ergebnis hat die Prüfung aus PROJ-9 schon verworfen und als Prüfhinweis protokolliert; sie spielen hier keine Rolle.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Verwendbar heißt: gültig und nicht `deprecated` (Entwurf wird angezeigt und gekennzeichnet).
+- Ein Ablauf für mehrere Vorgänge erscheint nur einmal (beim ersten passenden).
+- „Wissenslücke melden“ im leeren Zustand füllt das Meldeformular vor („Kein Arbeitsablauf für Vorgang …“).
+- Ältere Analysen (PROJ-11) zeigen die Abläufe zu ihrem eigenen Ergebnis.
+- Seite „Über die App“: Ablauf um die internen Abläufe ergänzen (kein „in Arbeit“-Schritt betroffen).
+- Tests: Vorschlagsregeln (Vorgang, Kategorie, Kundengruppe/Kanal/Produkt, „Noch unklar“), Reihenfolge und Doppelte, deprecated/fehlerhaft, leerer Zustand, manuelle Liste mit Kennzeichnung, Kästchen und Hervorhebung, Entwurfshinweis, Verlinkung, Trennung vom Antwortentwurf, Determinismus.
 
 ## Implementation Notes (vorgezogener Teil: Dokumenttyp und Prüfung)
 **Gebaut am 2026-10-05**, damit der Product Owner erste Arbeitsabläufe schreiben und prüfen kann, bevor PROJ-9/10 stehen. Vorschläge, manuelle Auswahl und Anzeige folgen mit dem Bau nach PROJ-10.
