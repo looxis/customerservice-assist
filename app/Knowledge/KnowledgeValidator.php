@@ -6,7 +6,7 @@ class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'actions', 'action'];
+    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'actions', 'action'];
 
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
@@ -16,12 +16,12 @@ class KnowledgeValidator
 
     private const array PERMISSION_FIELDS = ['action', 'agent_allowed', 'max_value_eur', 'approval_role'];
 
-    private const array PRODUCT_FIELDS = ['order_keywords'];
+    private const array PRODUCT_FIELDS = ['order_keywords', 'customer_terms'];
 
     private const array PROCEDURE_FIELDS = ['actions'];
 
     /**
-     * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, actions: array<string, string>, procedure_sections: list<string>, retired_values: array<string, array<string, string>>, customer_groups: array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>, min_order_keyword_length: int, max_body_length: int}  $config
+     * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, actions: array<string, string>, procedure_sections: list<string>, retired_values: array<string, array<string, string>>, customer_groups: array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>, min_order_keyword_length: int, min_customer_term_length?: int, max_body_length: int}  $config
      */
     public function __construct(private readonly array $config) {}
 
@@ -65,6 +65,7 @@ class KnowledgeValidator
             ...$this->references($parsed),
             ...$this->productFiles($parsed),
             ...$this->duplicateOrderKeywords($parsed),
+            ...$this->duplicateCustomerTerms($parsed),
         );
 
         return $issues;
@@ -246,11 +247,18 @@ class KnowledgeValidator
         }
 
         $minimum = $this->config['min_order_keyword_length'];
+        $termMinimum = $this->config['min_customer_term_length'] ?? 4;
 
-        return array_values(array_map(
-            fn (string $keyword): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Das Schlüsselwort `{$keyword}` in `order_keywords` ist kürzer als {$minimum} Zeichen und passt vermutlich auf viele Bestellpositionen."),
-            array_filter($document->orderKeywords(), fn (string $keyword): bool => mb_strlen($keyword) < $minimum),
-        ));
+        return [
+            ...array_values(array_map(
+                fn (string $keyword): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Das Schlüsselwort `{$keyword}` in `order_keywords` ist kürzer als {$minimum} Zeichen und passt vermutlich auf viele Bestellpositionen."),
+                array_filter($document->orderKeywords(), fn (string $keyword): bool => mb_strlen($keyword) < $minimum),
+            )),
+            ...array_values(array_map(
+                fn (string $term): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Der Kundenbegriff `{$term}` in `customer_terms` ist kürzer als {$termMinimum} Zeichen und passt vermutlich auf viele Texte."),
+                array_filter($document->customerTerms(), fn (string $term): bool => mb_strlen($term) < $termMinimum),
+            )),
+        ];
     }
 
     /**
@@ -529,6 +537,54 @@ class KnowledgeValidator
             foreach ($files as $document) {
                 $others = implode(', ', array_diff($products, [$document->productSlug()]));
                 $issues[] = KnowledgeIssue::warning($document->path, "Das Schlüsselwort `{$keyword}` in `order_keywords` steht auch beim Produkt {$others}. Der Produktvorschlag ist dann nicht eindeutig.");
+            }
+        }
+
+        return $issues;
+    }
+
+    /**
+     * A customer term at two products, or equal to another product's order
+     * keyword, makes the suggestion from the ticket text ambiguous (PROJ-33).
+     *
+     * @param  list<KnowledgeDocument>  $documents
+     * @return list<KnowledgeIssue>
+     */
+    private function duplicateCustomerTerms(array $documents): array
+    {
+        $terms = [];
+        $keywords = [];
+
+        foreach ($documents as $document) {
+            if ($document->productSlug() === null) {
+                continue;
+            }
+
+            foreach (array_unique(array_map('mb_strtolower', $document->customerTerms())) as $term) {
+                $terms[$term][] = $document;
+            }
+
+            foreach (array_unique(array_map('mb_strtolower', $document->orderKeywords())) as $keyword) {
+                $keywords[$keyword][] = $document->productSlug();
+            }
+        }
+
+        $issues = [];
+
+        foreach ($terms as $term => $files) {
+            $products = array_unique(array_map(fn (KnowledgeDocument $document): string => $document->productSlug(), $files));
+
+            foreach ($files as $document) {
+                $others = array_diff($products, [$document->productSlug()]);
+                $keywordOwners = array_diff(array_unique($keywords[$term] ?? []), [$document->productSlug()]);
+
+                if ($others !== []) {
+                    $issues[] = KnowledgeIssue::warning($document->path, "Der Kundenbegriff `{$term}` in `customer_terms` steht auch beim Produkt ".implode(', ', $others).'. Der Produktvorschlag ist dann nicht eindeutig.');
+                }
+
+                if ($keywordOwners !== []) {
+                    $issues[] = KnowledgeIssue::warning($document->path, "Der Kundenbegriff `{$term}` in `customer_terms` steht beim Produkt ".implode(', ', $keywordOwners).' in `order_keywords`. Der Produktvorschlag ist dann nicht eindeutig.');
+                }
             }
         }
 

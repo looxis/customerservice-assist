@@ -1,6 +1,6 @@
 # PROJ-33: Produktvorschlag aus Kundenbegriffen
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-07
 **Last Updated:** 2026-10-07
 
@@ -148,6 +148,18 @@ Keine neuen Pakete.
 - Wortanfang heißt: vor dem Begriff steht kein Buchstabe oder keine Ziffer; danach darf das Wort weitergehen.
 - Analyse-Metadaten (PROJ-11) bekommen die Gründe der Vorschläge nicht; gespeichert wird wie bisher nur die tatsächliche Wahl.
 - Tests: Treffer im Titel, in Kundennachrichten; kein Treffer in Antworten, Notizen, Zitaten, Signaturen, mitten im Wort; Zusammenführen mit Bestellvorschlag; Vorrang der gemerkten Wahl mit Hinweis; Testmodus-Schnittpunkt; Prüfwarnungen; Übersicht.
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-07**, Frontend und Backend in einem Durchgang.
+
+- **Feld:** `KnowledgeDocument::customerTerms()`; `customer_terms` als Listenfeld nur für Produktdateien (sonst „Unbekanntes Feld“ wie bei `order_keywords`).
+- **Prüfung** (`KnowledgeValidator`): Warnung unter `knowledge.min_customer_term_length` (4) Zeichen, bei gleichem Begriff an zwei Produkten und bei Überschneidung mit den `order_keywords` eines anderen Produkts (Vergleich ohne Groß-/Kleinschreibung).
+- **Übersicht** (`KnowledgeOverview`): neuer Block „Vergebene customer_terms je Produkt“ im Prüfbefehl, in der Knowledge-Übersicht und im Sitzungsstart-Block.
+- **Erkennen** (`KnowledgeSuggester::productsFromText()`): Begriff am Wortanfang (davor kein Buchstabe/keine Ziffer), Produkttitel als ganze Wortfolge, ohne Groß-/Kleinschreibung; nur verwendbare Dokumente. Text aus `TicketContext::customerTexts()` (Titel + bereinigte Kundennachrichten; zurückgespulte Tickets automatisch nur bis zum Schnittpunkt).
+- **Formular** (`AnalysisPanel::productSuggestions()`, `analysis/form`): Vorschläge aus Bestellung und Text zusammengeführt, vorausgewählt, oben in der Liste, Grund in Klammern („aus der Bestellung“, „erkannt im Ticket: ‚Glasstein‘“, höchstens zwei Begriffe); bei gemerkter Wahl bzw. angezeigter Analyse Hinweis „Im Ticket erwähnt: … – nicht ausgewählt“.
+- **Authoring-Kit:** `docs/KNOWLEDGE_AUTHORING_GUIDE.md` (Abschnitt zu `customer_terms`, Abgrenzung zu `order_keywords`, Frage beim Erfassen, Sitzungsstart-Block, Abschlussprüfung), `.claude/skills/knowledge/SKILL.md`, `knowledge/templates/product.md`.
+- **Tests:** `tests/Feature/PROJ-33-CustomerTermsTest.php` (16 Fälle). Gesamte Suite: 767 grün.
+- **Hinweis für den Product Owner:** Für das Verfassen im KI-Chat außerhalb des Repos die aktualisierte Fassung von `docs/KNOWLEDGE_AUTHORING_GUIDE.md` verwenden.
 
 ## QA Test Results
 _To be added by /qa_

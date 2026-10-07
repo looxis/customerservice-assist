@@ -109,6 +109,15 @@ So wird `categories` gesetzt:
 - Frage beim Erfassen jeder Produktdatei ausdrücklich: „Woran erkennt man das Produkt in einer Bestellung? Welche Artikelnummern oder Artikelbezeichnungen stehen auf der Bestellposition, auch ältere oder abweichende Schreibweisen?" Schlage passende Begriffe aus dem Gespräch vor (Produktname, gängige Synonyme), trage aber nur ein, was der Autor bestätigt.
 - Prüfe jeden Vorschlag gegen die vergebenen Schlüsselwörter. Ist ein Begriff zu allgemein (z. B. „Tasse", wenn es mehrere Tassen gibt), schlage einen genaueren vor.
 - Kennt der Autor die Bezeichnungen noch nicht, bleibt `order_keywords` leer; das Produkt wird dann nur nicht vorgeschlagen, der Mitarbeiter kann es trotzdem wählen.
+- In `order_keywords` gehören nur **bestätigte Bezeichnungen aus Bestellpositionen**, keine Begriffe aus Kundenanfragen.
+
+`customer_terms` (nur in Produktdateien): Wörter, mit denen **Kunden** das Produkt in ihren Nachrichten nennen – frühere Produktnamen, Synonyme, Umgangssprache (z. B. „Viamant", „Glasstein", „Hologramm"), dazu der heutige Kurzname, wenn Kunden ihn so schreiben („Zaubertasse"). Die App sucht diese Wörter im Ticket-Titel und in den Kundennachrichten (nicht in unseren Antworten, internen Notizen, Zitaten oder Signaturen) und schlägt das Produkt im Analyse-Formular vor, mit dem Grund „erkannt im Ticket: ‚…'". Der Titel der Produktdatei zählt als Ganzes automatisch mit.
+
+- Ein Begriff passt am **Wortanfang**, Groß- und Kleinschreibung spielt keine Rolle: „Glasstein" findet auch „Glassteine", aber nicht ein Wort, in dem er nur mitten drin steht. Andere Schreibweisen („Glas-Foto", „Glasfoto") und Umlaut-Umschreibungen („Glaswürfel", „Glaswuerfel") einzeln eintragen.
+- Mindestens vier Zeichen; denselben Begriff nicht bei zwei Produkten und nicht als `order_keywords` eines anderen Produkts eintragen. Die Prüfung warnt in allen Fällen. Welche Begriffe schon vergeben sind, steht im Sitzungsstart-Block.
+- **Unterschied zu `order_keywords`:** `order_keywords` werden in Bestellpositionen gesucht (auch mitten im Wort, also eng und präzise), `customer_terms` im Freitext des Kunden (am Wortanfang, darf breiter sein). Artikelnummern und ASINs gehören nur in `order_keywords`.
+- Die historische Zuordnung (welcher frühere Name welchem heutigen Produkt entspricht, Datum der Umbenennung) steht zusätzlich als Erklärung im Text, z. B. in einem Abschnitt „Frühere Bezeichnungen und Kundenbegriffe" – die KI braucht sie dort.
+- Frage beim Erfassen jeder Produktdatei ausdrücklich: „Wie nennen Kunden dieses Produkt? Gab es frühere Produktnamen, und seit wann heißt es anders? Welche Begriffe tauchen in Anfragen auf?" Schlage Begriffe aus dem Gespräch vor, trage aber nur ein, was der Autor bestätigt.
 
 `topics`: frei, aber sparsam. Zwei bis vier Werte pro Dokument, die das Fallmuster benennen (z. B. `customer-configuration`, `photo-quality`, `replacement`, `refund`).
 
@@ -255,6 +264,9 @@ Erlaubte Vorgänge (actions):
 Vergebene order_keywords je Produkt:
 (Liste oder „noch keine")
 
+Vergebene customer_terms je Produkt:
+(Liste oder „noch keine")
+
 Heute möchte ich erfassen:
 (Thema oder Fall)
 ```
@@ -269,6 +281,7 @@ Heute möchte ich erfassen:
 - `categories` ist vorhanden; bei Playbooks und Processes ist mindestens ein Wert gesetzt.
 - Arbeitsabläufe: `actions` aus der Vorgangsliste, Abschnitte Voraussetzungen, Arbeitsschritte, Abschlusskontrolle vorhanden, kritische Hinweise mit „Achtung:".
 - Produktdateien: nach `order_keywords` wurde gefragt; jedes Schlüsselwort hat mindestens drei Zeichen und ist bei keinem anderen Produkt vergeben.
+- Produktdateien: nach `customer_terms` wurde gefragt; jeder Begriff hat mindestens vier Zeichen, ist bei keinem anderen Produkt vergeben (weder als Kundenbegriff noch als `order_keywords`) und steht nicht in `order_keywords`, wenn er nur aus Kundenanfragen stammt.
 - Jede Aussage stammt vom Autor; nichts ist ergänzt oder geschätzt.
 - Keine personenbezogenen Daten.
 - Verweise zeigen nur auf bekannte IDs.

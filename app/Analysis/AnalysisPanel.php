@@ -72,11 +72,10 @@ class AnalysisPanel
 
         return [
             'groups' => $this->selector->customerGroups(),
-            'products' => $this->selector->products(),
             'suggestedGroup' => $group,
             'groupSource' => $groupSource,
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
-            'suggestedProducts' => $inputs['produkte'] ?? $choice['products'] ?? $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all())),
+            ...$this->productSuggestions($context, $orders, $inputs['produkte'] ?? $choice['products'] ?? null),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
             'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
@@ -158,6 +157,44 @@ class AnalysisPanel
             'inserted' => $this->inserted($reply, $stored['placeholders'] ?? []),
             'sources' => $this->sources($stored),
             'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen,
+        ];
+    }
+
+    /**
+     * Products suggested from the order lines and from the words in the
+     * ticket (PROJ-33), each with its reasons. A choice made for the ticket
+     * wins; products only mentioned are then pointed out.
+     *
+     * @param  list<EocsOrder>  $orders
+     * @param  list<string>|null  $chosen
+     * @return array{products: list<array{slug: string, title: string}>, suggestedProducts: list<string>, productReasons: array<string, list<string>>, mentionedProducts: list<string>}
+     */
+    private function productSuggestions(TicketContext $context, array $orders, ?array $chosen): array
+    {
+        $fromOrders = $this->suggester->products(array_map(fn (EocsOrderItem $item): array => ['article_number' => $item->itemNumber, 'description' => $item->name], collect($orders)->flatMap(fn (EocsOrder $order): array => $order->items)->all()));
+        $fromText = $this->suggester->productsFromText($context->customerTexts());
+
+        $reasons = [];
+
+        foreach ($fromOrders as $slug) {
+            $reasons[$slug][] = 'aus der Bestellung';
+        }
+
+        foreach ($fromText as $slug => $words) {
+            $reasons[$slug][] = 'erkannt im Ticket: '.implode(', ', array_map(fn (string $word): string => '‚'.$word.'‘', array_slice($words, 0, 2)));
+        }
+
+        $suggested = array_keys($reasons);
+        $products = collect($this->selector->products())
+            ->sortBy(fn (array $product): int => isset($reasons[$product['slug']]) ? 0 : 1)
+            ->values()
+            ->all();
+
+        return [
+            'products' => $products,
+            'suggestedProducts' => $chosen ?? $suggested,
+            'productReasons' => $reasons,
+            'mentionedProducts' => $chosen === null ? [] : array_values(array_diff(array_keys($fromText), $chosen)),
         ];
     }
 

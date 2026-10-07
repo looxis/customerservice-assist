@@ -51,8 +51,11 @@ class KnowledgeOverview
         $actions = array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys($this->config['actions'] ?? []), $this->config['actions'] ?? []);
         array_push($lines, '', 'Erlaubte Vorgänge (actions):', $actions === [] ? 'keine' : implode(', ', $actions));
 
-        $keywords = $this->orderKeywords($documents);
+        $keywords = $this->perProduct($documents, fn (KnowledgeDocument $document): array => $document->orderKeywords());
         array_push($lines, '', 'Vergebene order_keywords je Produkt:', ...($keywords === [] ? ['noch keine'] : $keywords));
+
+        $terms = $this->perProduct($documents, fn (KnowledgeDocument $document): array => $document->customerTerms());
+        array_push($lines, '', 'Vergebene customer_terms je Produkt:', ...($terms === [] ? ['noch keine'] : $terms));
 
         array_push($lines, '', 'Heute möchte ich erfassen:', '(Thema oder Fall)');
 
@@ -125,19 +128,20 @@ class KnowledgeOverview
 
     /**
      * One line per product, e.g. "magic-mug: Thermotasse, Zaubertasse", so a
-     * new product file does not reuse a keyword.
+     * new product file does not reuse a keyword or customer term.
      *
      * @param  Collection<int, KnowledgeDocument>  $documents
+     * @param  callable(KnowledgeDocument): list<string>  $values
      * @return list<string>
      */
-    private function orderKeywords(Collection $documents): array
+    private function perProduct(Collection $documents, callable $values): array
     {
         return $documents
-            ->filter(fn (KnowledgeDocument $document): bool => $document->productSlug() !== null && $document->orderKeywords() !== [])
+            ->filter(fn (KnowledgeDocument $document): bool => $document->productSlug() !== null && $values($document) !== [])
             ->groupBy(fn (KnowledgeDocument $document): string => $document->productSlug())
             ->sortKeys()
             ->map(fn (Collection $files, string $slug): string => $slug.': '.$files
-                ->flatMap(fn (KnowledgeDocument $document): array => $document->orderKeywords())
+                ->flatMap(fn (KnowledgeDocument $document): array => $values($document))
                 ->unique()
                 ->sort(SORT_NATURAL | SORT_FLAG_CASE)
                 ->implode(', '))

@@ -110,6 +110,20 @@ class TicketContext
         };
     }
 
+    /**
+     * Title and customer messages as cleaned text, where products are looked
+     * for by the words customers use (PROJ-33). Our replies and notes do not count.
+     *
+     * @return list<string>
+     */
+    public function customerTexts(): array
+    {
+        return [
+            $this->ticket->title,
+            ...array_map(fn (TicketArticle $article): string => $this->plain($article), array_values(array_filter($this->ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer))),
+        ];
+    }
+
     private function message(TicketArticle $article, ?string $title = null): string
     {
         $header = ($title ?? 'Nachricht').' – '.$article->kind->label()

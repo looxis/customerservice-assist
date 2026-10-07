@@ -191,6 +191,9 @@ return [
 
     'min_order_keyword_length' => 3,
 
+    // Customer terms (PROJ-33) are matched in free text, so they need a little more.
+    'min_customer_term_length' => 4,
+
     /*
     |--------------------------------------------------------------------------
     | Limits

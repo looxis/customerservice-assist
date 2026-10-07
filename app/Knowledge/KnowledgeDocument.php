@@ -118,6 +118,17 @@ final readonly class KnowledgeDocument
     }
 
     /**
+     * Words customers use for the product (former names, synonyms), looked
+     * for in the ticket text (PROJ-33).
+     *
+     * @return list<string>
+     */
+    public function customerTerms(): array
+    {
+        return $this->list('customer_terms');
+    }
+
+    /**
      * The product a product file describes: its file name, or the subfolder
      * name when the product is split into several files. Null for other types.
      */

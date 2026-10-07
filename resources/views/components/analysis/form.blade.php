@@ -68,9 +68,15 @@
                                 <label class="inline-flex min-h-9 items-center gap-2 text-sm text-slate-900">
                                     <input type="checkbox" name="produkte[]" value="{{ $product['slug'] }}" @checked(in_array($product['slug'], (array) $chosenProducts, true)) class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
                                     {{ $product['title'] }}
+                                    @if (($analysis['productReasons'][$product['slug']] ?? []) !== [])
+                                        <span class="text-xs text-slate-600">({{ implode(' · ', $analysis['productReasons'][$product['slug']]) }})</span>
+                                    @endif
                                 </label>
                             @endforeach
                         </div>
+                        @foreach ($analysis['mentionedProducts'] ?? [] as $mentioned)
+                            <p class="mt-1 text-xs font-medium text-warning-700">Im Ticket erwähnt: {{ collect($analysis['products'])->firstWhere('slug', $mentioned)['title'] ?? $mentioned }} ({{ implode(' · ', $analysis['productReasons'][$mentioned] ?? []) }}) – nicht ausgewählt</p>
+                        @endforeach
                         <p class="mt-1 text-xs text-slate-600">Nichts angehakt = kein Produktbezug / unklar.</p>
                     @endif
                 </fieldset>
