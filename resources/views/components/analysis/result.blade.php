@@ -14,6 +14,7 @@
     $notes = $result['notes'] ?? [];
     $mayDecide = $r['authority']['agent_may_decide'] ?? false;
     $isLatest = $result['is_latest'] ?? true;
+    $reported = $result['gaps_reported'] ?? ['topics' => [], 'all' => 0];
     $link = fn (?string $id): string => route('tickets.show', array_filter(['number' => $number, 'analyse' => $id, 'stand' => $stand])).'#ergebnis';
 @endphp
 
@@ -51,6 +52,7 @@
                             @if ($entry['assessment'])<x-badge compact :tone="$assessment[$entry['assessment']] ?? 'neutral'">{{ ucfirst($entry['assessment']) }}</x-badge>@endif
                             @if ($entry['confidence'])<x-badge compact :tone="$confidence[$entry['confidence']] ?? 'neutral'">{{ $entry['confidence'] }}</x-badge>@endif
                             @if ($entry['test'])<x-badge compact tone="warning">Testlauf</x-badge>@endif
+                            @if ($entry['feedback'] ?? null)<x-badge compact tone="info">{{ config('analysis.feedback_levels.'.$entry['feedback']) }}</x-badge>@endif
                             @if ($entry['id'] === $result['id'])<span class="text-xs font-semibold text-brand-700">angezeigt</span>@endif
                             @if ($entry['removed'] === 'purged')<span class="text-xs text-slate-600">Inhalte nach 12 Monaten gelöscht</span>@endif
                             @if ($entry['removed'] === 'deleted')<span class="text-xs text-slate-600">Inhalte gelöscht</span>@endif
@@ -116,10 +118,20 @@
             @if ($gaps !== [])
                 <x-alert type="warning">
                     <p class="font-semibold">Fehlendes Wissen</p>
-                    <p class="mt-1">Für diesen Fall fehlt eine Regel in der Wissensdatenbank. Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und die Lücke an Etienne melden.</p>
+                    <p class="mt-1">Für diesen Fall fehlt eine Regel in der Wissensdatenbank. Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und die Lücke mit „Lücke melden“ melden.</p>
                     <ul class="mt-2 space-y-2">
                         @foreach ($gaps as $gap)
-                            <li><span class="font-medium">{{ $gap['topic'] }}</span>@if ($gap['question'] ?? null)<br><span>Offene Frage: {{ $gap['question'] }}</span>@endif</li>
+                            @php($reportedBy = $reported['topics'][\App\Analysis\KnowledgeGapLog::topicHash($gap['topic'])] ?? null)
+                            <li>
+                                <span class="font-medium">{{ $gap['topic'] }}</span>@if ($gap['question'] ?? null)<br><span>Offene Frage: {{ $gap['question'] }}</span>@endif
+                                <br>
+                                @if ($reportedBy)
+                                    <span class="text-xs">bereits gemeldet von {{ $reportedBy }}</span>
+                                @else
+                                    <button type="button" class="mt-1 text-xs font-semibold underline"
+                                            x-data x-on:click="$dispatch('report-gap', { topic: @js($gap['topic']), missing: @js(trim($gap['topic'].(($gap['question'] ?? null) ? ': '.$gap['question'] : ''))) })">Lücke melden</button>
+                                @endif
+                            </li>
                         @endforeach
                     </ul>
                 </x-alert>
@@ -145,6 +157,17 @@
         </div>
 
         <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" />
+
+        <x-analysis.feedback :result="$result" :number="$number" />
+
+        @if (session('gap_reported'))
+            <x-alert type="success" class="mt-4">Wissenslücke gemeldet – danke.</x-alert>
+        @endif
+        @if (session('gap_error'))
+            <x-alert type="error" class="mt-4">{{ session('gap_error') }}</x-alert>
+        @endif
+
+        <x-analysis.gap-form :result="$result" :number="$number" :stand="$stand" />
 
         {{-- Reasoning and details --}}
         <div class="mt-6">

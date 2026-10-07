@@ -69,6 +69,19 @@ return [
     // emptied after this many months; the figures of an analysis stay.
     'content_retention_months' => 12,
 
+    // Feedback levels (PROJ-12). "Usable" counts towards the success figure
+    // of the PRD (unchanged plus slightly adapted, at least 70 %).
+    'feedback_levels' => [
+        'unchanged' => 'unverändert nutzbar',
+        'slight' => 'leicht angepasst',
+        'major' => 'stark angepasst',
+        'discarded' => 'verworfen',
+    ],
+
+    'feedback_usable_levels' => ['unchanged', 'slight'],
+
+    'feedback_success_days' => 28,
+
     // Longest reply draft that is saved after editing (PROJ-10).
     'max_reply_length' => 20_000,
 

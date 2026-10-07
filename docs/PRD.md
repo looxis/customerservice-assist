@@ -31,7 +31,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | Approved |
 | P0 (MVP) | Ergebnisansicht mit bearbeitbarem Antwortentwurf, Kopieren und einsehbaren Quellen | Approved |
 | P0 (MVP) | Analyse-Protokoll und Verlauf je Ticket | Approved |
-| P0 (MVP) | Feedback und Wissenslücke melden | Planned |
+| P0 (MVP) | Feedback und Wissenslücke melden | In Progress |
 | P0 (MVP) | Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Roadmap |
 | P0 (MVP) | Interne Arbeitsabläufe zum Fall (Dokumenttyp `procedure`, Vorschläge nach der Analyse) | Planned |
 | P0 (MVP) | Testmodus für Admins: beantwortete Tickets auf einen früheren Stand zurückspulen | Approved |

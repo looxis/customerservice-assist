@@ -50,11 +50,13 @@
                 await navigator.clipboard.writeText(this.text);
                 this.fallback = false;
                 this.copied = true;
+                this.$dispatch('reply-copied');
                 setTimeout(() => (this.copied = false), 2500);
             } catch (error) {
                 this.$refs.text.focus();
                 this.$refs.text.select();
                 this.fallback = true;
+                this.$dispatch('reply-copied');
             }
         },
     }"

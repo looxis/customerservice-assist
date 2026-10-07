@@ -242,6 +242,7 @@ Keine neuen Pakete (Datenbank und Zeitplaner sind Teil von Laravel).
 
 #### BUG-2: Bereinigung schreibt keinen Eintrag ins Log
 - **Severity:** Low
+- **Status:** Behoben 2026-10-07 (mit PROJ-12) – `analysis:purge` schreibt „Analysis content purged“ mit den Anzahlen ins Log.
 - **Steps to Reproduce:** `analysis:purge` ausführen oder vom Zeitplaner ausführen lassen. Erwartet laut Edge Case: Eintrag im Log (Anzahl bereinigter Inhalte), damit ein Ausfall auffällt. Tatsächlich: Ausgabe nur in der Konsole, die der Zeitplaner verwirft.
 - **Priority:** Fix before deployment (gehört zur Einrichtung des Zeitplaners bei `/deploy`)
 

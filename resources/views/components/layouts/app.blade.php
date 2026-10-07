@@ -25,7 +25,10 @@
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Hauptnavigation">
             <x-nav-item :href="route('tickets.analyze')" icon="sparkle" :active="request()->routeIs('tickets.*')">Ticket analysieren</x-nav-item>
-            <x-nav-item :href="route('knowledge.index')" icon="layers" :active="request()->routeIs('knowledge.*')">Knowledge</x-nav-item>
+            <x-nav-item :href="route('knowledge.index')" icon="layers" :active="request()->routeIs('knowledge.index', 'knowledge.show')">Knowledge</x-nav-item>
+            @if ($openGapCount !== null)
+                <x-nav-item :href="route('knowledge-gaps.index')" icon="warning" :active="request()->routeIs('knowledge-gaps.*')">Wissenslücken @if ($openGapCount > 0)<span class="ml-2 rounded-full bg-warning-500/15 px-2 text-xs font-semibold text-warning-700">{{ $openGapCount }}</span>@endif</x-nav-item>
+            @endif
         </nav>
 
         <nav class="shrink-0 space-y-1 border-t border-slate-200 px-3 py-3" aria-label="Weitere Seiten">

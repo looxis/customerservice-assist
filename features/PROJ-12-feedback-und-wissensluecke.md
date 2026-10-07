@@ -1,6 +1,6 @@
 # PROJ-12: Feedback und Wissenslücke
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-07
 **Last Updated:** 2026-10-07
 
@@ -170,6 +170,18 @@ Keine neuen Pakete.
 - „Bereits gemeldet“ je Analyse und Thema der KI-Lücke.
 - Seitenleiste: Anzahl offener Meldungen nur für Admins berechnen.
 - Tests: Vorschlagslogik (gleich/leicht/stark), Speichern/Ändern, Kommentar, Meldung mit Pflichtfeld, vorausgefüllte Lücke, „bereits gemeldet“, Admin-Liste mit Reitern, Erledigt/Verwerfen, Kopier-Textblock, Erfolgszahl ohne Testläufe, Bereinigung, Zugriff für Nicht-Admins.
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-07**, Frontend und Backend in einem Durchgang.
+
+- **Feedback:** Spalten `feedback_level`, `feedback_suggested`, `feedback_by`, `feedback_at`, `feedback_comment` (verschlüsselt) an `analyses` (Migration 2026_10_07_093954). Stufen in `config/analysis.php` (`feedback_levels`, `feedback_usable_levels`, `feedback_success_days` = 28). `AnalysisStore::putFeedback()`, `feedback()`, `successRate()`. Route `PUT /tickets/{n}/analyse/{uuid}/feedback` (`FeedbackController`, `StoreFeedbackRequest`), Name erforderlich.
+- **Oberfläche Feedback** (`analysis/feedback`): erscheint nach „Kopieren“ (Ereignis `reply-copied` aus dem Entwurfseditor) oder über „Vorschlag bewerten“; Vorschlag im Browser: gleicher Text (Leerraum egal) → unverändert, bis 20 % geändert (gemeinsamer Anfang/Ende) → leicht, sonst stark; Kommentar optional; danach „Danke – [Stufe] · Bewertet von … am …“ mit „ändern“. Stufe auch in „Frühere Analysen“.
+- **Wissenslücken:** Tabelle `knowledge_gaps` (Migration 2026_10_07_093955), Modell `KnowledgeGap` mit Factory, Freitexte verschlüsselt, Thema der KI-Lücke nur als Hash. Baustein `App\Analysis\KnowledgeGapLog` (melden, „bereits gemeldet“, Liste, Erledigt/Verwerfen/Wieder öffnen, Text für den KI-Chat). Routen `POST /tickets/{n}/analyse/{uuid}/wissensluecken` (`StoreKnowledgeGapRequest`), `GET /wissensluecken`, `PATCH /wissensluecken/{id}` (`ResolveKnowledgeGapRequest`, nur Admins).
+- **Oberfläche Meldung** (`analysis/gap-form`): aufklappbar „Wissenslücke melden“ unter dem Entwurf; „Lücke melden“ an jeder KI-Lücke füllt das Formular vor; „bereits gemeldet von …“; Danke-Hinweis.
+- **Admin-Seite** `knowledge-gaps/index`: Erfolgszahl, Reiter Offen/Erledigt/Verworfen mit Anzahl, je Meldung Details, „Für den KI-Chat kopieren“, Erledigt (Knowledge-ID), Verwerfen (Grund), Wieder öffnen. Seitenleiste „Wissenslücken (N)“ nur für Admins.
+- **Bereinigung:** `analysis:purge` leert Feedback-Kommentare mit den Analyse-Inhalten und erledigte/verworfene Meldungen 12 Monate nach Abschluss; schreibt jetzt einen Log-Eintrag mit den Anzahlen (behebt PROJ-11 BUG-2). Löschen eines Tickets (PROJ-11) leert auch den Feedback-Kommentar.
+- **Seite „Über die App“:** Schritt 8 ohne „in Arbeit“, Hinweis „Schritte mit ‚in Arbeit‘…“ entfernt (keiner mehr offen); Hinweise „an Etienne melden“ verweisen jetzt auf „Lücke melden“/„Wissenslücke melden“.
+- **Tests:** `tests/Feature/PROJ-12-FeedbackTest.php` (18 Fälle). Gesamte Suite: 797 grün.
 
 ## QA Test Results
 _To be added by /qa_

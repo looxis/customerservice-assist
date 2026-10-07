@@ -58,6 +58,7 @@ class AnalysisPanel
 
         if ($result !== null) {
             $result['is_latest'] = $result['id'] === $latestId;
+            $result['gaps_reported'] = app(KnowledgeGapLog::class)->reportedFor($result['id']);
         }
         $inputs = $result['inputs'] ?? [];
 

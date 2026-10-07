@@ -4,6 +4,7 @@ namespace App\Analysis;
 
 use App\Models\Analysis;
 use App\Models\CustomerGroupMemory;
+use App\Models\KnowledgeGap;
 use App\Models\TicketCaseChoice;
 use App\Models\TicketSummary;
 use Carbon\CarbonImmutable;
@@ -167,7 +168,7 @@ class AnalysisStore
     public function history(string $scopeKey): array
     {
         return $this->finished($scopeKey)
-            ->get(['uuid', 'created_at', 'staff_name', 'customer_group', 'variant', 'assessment', 'confidence', 'test_until', 'content_purged_at', 'content_deleted_at'])
+            ->get(['uuid', 'created_at', 'staff_name', 'customer_group', 'variant', 'assessment', 'confidence', 'test_until', 'content_purged_at', 'content_deleted_at', 'feedback_level'])
             ->map(fn (Analysis $analysis): array => [
                 'id' => $analysis->uuid,
                 'created_at' => CarbonImmutable::parse($analysis->created_at),
@@ -177,6 +178,7 @@ class AnalysisStore
                 'assessment' => $analysis->assessment,
                 'confidence' => $analysis->confidence,
                 'test' => $analysis->test_until !== null,
+                'feedback' => $analysis->feedback_level,
                 'removed' => match (true) {
                     $analysis->content_deleted_at !== null => 'deleted',
                     $analysis->content_purged_at !== null => 'purged',
@@ -204,6 +206,76 @@ class AnalysisStore
     }
 
     /**
+     * Save the feedback for an analysis with content (PROJ-12); the latest one counts.
+     */
+    public function putFeedback(string $id, string $level, ?string $suggested, ?string $comment, string $staff): ?array
+    {
+        $analysis = Analysis::query()->where('uuid', $id)->whereNotNull('content')->first();
+
+        if ($analysis === null) {
+            return null;
+        }
+
+        $analysis->update([
+            'feedback_level' => $level,
+            'feedback_suggested' => $suggested,
+            'feedback_comment' => $comment === null || trim($comment) === '' ? null : $comment,
+            'feedback_by' => $staff,
+            'feedback_at' => now(),
+        ]);
+
+        return $this->feedbackOf($analysis);
+    }
+
+    /**
+     * @return array{level: string, by: string, at: CarbonImmutable, comment: string|null}|null
+     */
+    public function feedback(string $id): ?array
+    {
+        $analysis = Analysis::query()->where('uuid', $id)->first();
+
+        return $analysis === null ? null : $this->feedbackOf($analysis);
+    }
+
+    /**
+     * Share of usable feedback among rated real analyses of the last days
+     * (no test runs), or null without any rating.
+     *
+     * @return array{share: int, rated: int}|null
+     */
+    public function successRate(): ?array
+    {
+        $rated = Analysis::query()
+            ->where('status', 'completed')
+            ->whereNull('test_until')
+            ->whereNotNull('feedback_level')
+            ->where('created_at', '>=', now()->subDays((int) config('analysis.feedback_success_days')));
+
+        $total = (clone $rated)->count();
+
+        if ($total === 0) {
+            return null;
+        }
+
+        $usable = (clone $rated)->whereIn('feedback_level', config('analysis.feedback_usable_levels'))->count();
+
+        return ['share' => (int) round($usable / $total * 100), 'rated' => $total];
+    }
+
+    /**
+     * @return array{level: string, by: string, at: CarbonImmutable, comment: string|null}|null
+     */
+    private function feedbackOf(Analysis $analysis): ?array
+    {
+        return $analysis->feedback_level === null ? null : [
+            'level' => $analysis->feedback_level,
+            'by' => (string) $analysis->feedback_by,
+            'at' => CarbonImmutable::parse($analysis->feedback_at),
+            'comment' => $analysis->feedback_comment,
+        ];
+    }
+
+    /**
      * The stored record of an analysis with content, plus its scope.
      *
      * @return array<string, mixed>|null
@@ -216,7 +288,7 @@ class AnalysisStore
 
         $analysis = Analysis::query()->where('uuid', $id)->whereNotNull('content')->first();
 
-        return $analysis === null ? null : [...$analysis->content, 'scope' => $analysis->scope_key];
+        return $analysis === null ? null : [...$analysis->content, 'scope' => $analysis->scope_key, 'feedback' => $this->feedbackOf($analysis)];
     }
 
     /**
@@ -226,7 +298,7 @@ class AnalysisStore
     public function deleteTicket(string $ticketNumber, string $staff): void
     {
         Analysis::query()->where('ticket_number', $ticketNumber)->where('status', 'completed')->whereNull('content_deleted_at')
-            ->update(['content' => null, 'content_deleted_at' => now(), 'content_deleted_by' => $staff]);
+            ->update(['content' => null, 'feedback_comment' => null, 'content_deleted_at' => now(), 'content_deleted_by' => $staff]);
 
         TicketSummary::query()->where('ticket_number', $ticketNumber)->delete();
         TicketCaseChoice::query()->where('ticket_number', $ticketNumber)->delete();
@@ -236,7 +308,7 @@ class AnalysisStore
      * Empty content older than the retention period; drop old summaries,
      * choices and customer memories.
      *
-     * @return array{analyses: int, summaries: int, choices: int, customers: int}
+     * @return array{analyses: int, gaps: int, summaries: int, choices: int, customers: int}
      */
     public function purge(): array
     {
@@ -244,6 +316,8 @@ class AnalysisStore
 
         return [
             'analyses' => Analysis::query()->whereNotNull('content')->where('created_at', '<', $before)
+                ->update(['content' => null, 'feedback_comment' => null, 'content_purged_at' => now()]),
+            'gaps' => KnowledgeGap::query()->whereIn('status', ['done', 'discarded'])->whereNotNull('content')->where('resolved_at', '<', $before)
                 ->update(['content' => null, 'content_purged_at' => now()]),
             'summaries' => TicketSummary::query()->where('updated_at', '<', $before)->delete(),
             'choices' => TicketCaseChoice::query()->where('updated_at', '<', $before)->delete(),

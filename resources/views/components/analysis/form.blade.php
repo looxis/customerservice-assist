@@ -141,7 +141,7 @@
                 </x-alert>
             @endif
 
-            <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" hint="Optional. Gilt für die KI als geprüfter Fakt. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte als Wissenslücke an Etienne melden.">
+            <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" hint="Optional. Gilt für die KI als geprüfter Fakt. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.">
                 <textarea name="kontext" id="kontext" rows="5" placeholder="Was du über diesen Fall weißt, das nicht im Ticket steht, z. B.:&#10;· Foto geprüft: Motiv ist verschoben gedruckt&#10;· Kundin am Telefon: braucht Ersatz bis zum 20.12.&#10;· Produktion bestätigt: Fehldruck in der Charge" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
                           class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', $inputs['kontext'] ?? '') }}</textarea>
                 <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>

@@ -13,9 +13,8 @@ Der Vorschlag stützt sich auf das Wissen unseres Unternehmens: Regeln, Produktw
 5. **Passendes Wissen auswählen.** Die App sucht aus der Knowledge genau die Dokumente heraus, die für diese Kundengruppe und dieses Produkt gelten. Das geschieht automatisch und nach festen Regeln, nicht durch die KI.
 6. **Vorschlag erstellen.** Ticket, Bestellung, deine Hinweise und das ausgewählte Wissen gehen an eine KI. Sie liefert den Vorschlag in einer festen Form. Vorher siehst du unter „Was an die KI geht", welcher Teil des Tickets übertragen wird; E-Mail-Adressen, Telefonnummern und Anschriften sind dabei ersetzt. Bei langen Verläufen erstellt die App auf Wunsch zuerst eine Zusammenfassung, die du prüfen und korrigieren kannst.
 7. **Prüfen und anpassen.** Oben steht, was zu tun ist und ob du das selbst entscheiden darfst, darunter der Antwortentwurf. Du passt ihn direkt in der App an – Änderungen werden automatisch gespeichert – und kopierst ihn mit einem Klick nach Zammad. Auf welche Knowledge-Dokumente sich der Vorschlag stützt, klappst du unter „Quellen“ auf. Öffnest du das Ticket später wieder, ist die letzte Analyse noch da.
-8. **Rückmeldung geben.** Du sagst kurz, wie brauchbar der Vorschlag war, und meldest fehlendes Wissen. So wird die Knowledge mit jedem Fall besser. [in Arbeit]
+8. **Rückmeldung geben.** Nach dem Kopieren fragt die App kurz, wie brauchbar der Vorschlag war – unverändert nutzbar, leicht angepasst, stark angepasst oder verworfen. Ein Klick genügt; einen Kommentar kannst du dazuschreiben. Fehlt der App eine Regel, meldest du mit „Wissenslücke melden“, was fehlt und wie wir den Fall lösen. So wird die Knowledge mit jedem Fall besser.
 
-Schritte mit „in Arbeit" gibt es noch nicht; sie kommen nach und nach dazu.
 
 # Ein Beispiel
 
@@ -46,7 +45,7 @@ Eine Kundin hat auf Amazon eine Zaubertasse gekauft. Sie schreibt: „Das Motiv 
 Die App soll nie raten oder etwas erfinden. Fehlt etwas, sagt sie es offen. Dabei unterscheidet sie zwei Fälle:
 
 - **Fehlende Informationen – uns fehlt etwas zum Fall.** Zum Beispiel ein Foto, die Bestellnummer oder eine Auskunft der Produktion. Die App nennt im Vorschlag unter „Fehlende Informationen", *was* fehlt, *von wem* es kommen muss (Kunde oder intern) und formuliert die passende **Rückfrage**. Bei Reklamationen lautet die Bewertung dann „unklar". Das ist kein Fehler, sondern genau richtig: erst nachfragen, dann entscheiden.
-- **Fehlendes Wissen – uns fehlt eine Regel.** Zum Beispiel fragt ein Kunde: „Können meine zwei Bestellungen zusammengeführt und mit einer Rechnung berechnet werden?" Steht dazu nichts in der Knowledge, zeigt die App oben im Vorschlag den Hinweis **„Fehlendes Wissen"** mit dem Thema und der offenen Frage. Der Vorschlag sagt dazu bewusst nichts zu. Entscheide dann nicht nach Gefühl, sondern frag nach und melde die Lücke an Etienne. Dann wird das Wissen ergänzt (siehe „Wissen ergänzen").
+- **Fehlendes Wissen – uns fehlt eine Regel.** Zum Beispiel fragt ein Kunde: „Können meine zwei Bestellungen zusammengeführt und mit einer Rechnung berechnet werden?" Steht dazu nichts in der Knowledge, zeigt die App oben im Vorschlag den Hinweis **„Fehlendes Wissen"** mit dem Thema und der offenen Frage. Der Vorschlag sagt dazu bewusst nichts zu. Entscheide dann nicht nach Gefühl, sondern frag nach und melde die Lücke mit „Lücke melden“ am Vorschlag. Dann wird das Wissen ergänzt (siehe „Wissen ergänzen").
 
 **Das Feld „Zusätzliche Informationen / eigene Einschätzung"** ist für **Fakten zum Fall** da, die nicht im Ticket stehen: „Foto geprüft: Motiv ist verschoben gedruckt", „Kundin am Telefon: braucht Ersatz bis zum 20.12.", „Produktion bestätigt Fehldruck". Die KI behandelt diese Angaben als geprüft und richtet sich danach.
 

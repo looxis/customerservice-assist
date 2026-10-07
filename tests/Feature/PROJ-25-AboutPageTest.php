@@ -160,7 +160,7 @@ describe('work in progress marker', function () {
 
         preg_match('/So funktioniert es.*?<\/ol>/s', $html, $flow);
 
-        expect(substr_count($flow[0], 'about-wip'))->toBe(1)
+        expect(substr_count($flow[0], 'about-wip'))->toBe(0)
             ->and(preg_match('/Vorschlag erstellen\.<\/strong>((?!<\/li>).)*about-wip/s', $flow[0]))->toBe(0)
             ->and(preg_match('/Kundengruppe und Produkt bestätigen\.<\/strong>((?!<\/li>).)*about-wip/s', $flow[0]))->toBe(0)
             ->and($flow[0])->toMatch('/Passendes Wissen auswählen\.<\/strong>((?!<\/li>).)*<\/li>/s')
