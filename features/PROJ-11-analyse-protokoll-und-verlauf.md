@@ -1,6 +1,6 @@
 # PROJ-11: Analyse-Protokoll und Verlauf
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-06
 
@@ -176,7 +176,81 @@ Keine neuen Pakete (Datenbank und Zeitplaner sind Teil von Laravel).
 - **Für `/deploy`:** Migrationen ausführen, Zeitplaner (`schedule:run` per Cron oder `schedule:work`) einrichten, `APP_KEY` sichern (ohne ihn sind Inhalte nicht lesbar).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-07
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests gegen die Testdatenbank (17 Fälle, KI und Zammad nachgestellt, nur erfundene Daten), Code-Review jedes Kriteriums, Prüfung von Migrationen, Zeitplan (`schedule:list`: täglich 03:15) und Bereinigungsbefehl gegen die lokale Datenbank. Der Product Owner hat die Funktion im Browser erfolgreich getestet (Chrome). Firefox/Safari und Handy-/Tablet-Breite nicht eigens geprüft; neue Elemente nutzen bestehende, umbrechende Muster.
+
+### Acceptance Criteria Status
+
+#### Dauerhaft speichern
+- [x] Analyse mit Kennzahlen in Spalten, Inhalten verschlüsselt, Testlauf-Kennzeichen
+- [x] Gesendeter Text (mit Platzhaltern) und unveränderte KI-Antwort festgehalten
+- [x] Fehlgeschlagene Analyse ohne Inhalte protokolliert (Fehlerart, Dauer, Name, Modell)
+- [x] Bearbeiteter Entwurf dauerhaft, KI-Original bleibt
+- [x] Zusammenfassung dauerhaft, Kennzeichnung „vorübergehend gespeichert“ entfällt
+- [x] Gemerkte Wahl je Ticket dauerhaft
+- [x] Übersteht geleerten Zwischenspeicher und mehr als 7 Tage
+
+#### Frühere Analysen je Ticket
+- [x] „Frühere Analysen (N)“ mit Datum, Name, Kundengruppe, Variante, Einstufung, Confidence, Testlauf
+- [x] Ältere Analyse mit Hinweis und „Zur neuesten“
+- [x] Ältere Analyse nur lesbar und kopierbar; Speichern serverseitig abgelehnt (409)
+- [x] Nur eine Analyse: keine Liste
+- [x] Testläufe nicht in der Liste des echten Tickets (siehe Abweichung in den Implementation Notes)
+
+#### Protokoll einsehen (Admin)
+- [x] Admins sehen gesendeten Text, KI-Antwort, Metadaten
+- [x] Andere sehen kein Protokoll, aber „Details zur Analyse“
+
+#### Aufbewahrung und Löschen
+- [x] Nach 12 Monaten Inhalte geleert, Kennzahlen bleiben
+- [x] Alte Zusammenfassungen und gemerkte Wahl gelöscht
+- [x] Bereinigte Analyse in der Liste „Inhalte nach 12 Monaten gelöscht“
+- [x] Admin löscht alle Analysen eines Tickets mit Rückfrage, Vermerk „Inhalte gelöscht von … am …“
+- [x] Nicht-Admins ohne Löschfunktion, Löschversuch 403
+
+### Edge Cases Status
+- [x] Fehlgeschlagene Analyse nicht in „Frühere Analysen“
+- [x] Ticket nicht ladbar: Analysen bleiben gespeichert (keine Abhängigkeit vom Abruf)
+- [x] Zusammengeführtes Ticket: Analysen bleiben beim alten Ticket
+- [x] Zwei Analysen gleichzeitig: beide gespeichert, zuletzt fertige ist die neueste
+- [x] Analyse nach dem Löschen: neue Analyse ersetzt den Vermerk; gelöschte bleibt in der Liste als „Inhalte gelöscht“
+- [ ] Bereinigung fällt aus: kein Eintrag im Log, Ausfall bliebe unbemerkt (BUG-2)
+- [x] Viele Analysen: alle, neueste zuerst
+
+### Security Audit Results
+- [x] Kundeninhalte verschlüsselt in der Datenbank (geprüft: Klartext nicht in `content`), Kennzahlen ohne Kontaktdaten
+- [x] Löschen nur für Admins (serverseitig, 403), Formular mit `@csrf` und `DELETE`
+- [x] Gelöschte/bereinigte Analysen weder anzeigbar noch bearbeitbar (404)
+- [x] Protokoll-Inhalte escaped (Test mit `<script>`)
+- [x] Keine Inhalte im Log
+- Hinweis für `/deploy`: Wer den App-Schlüssel kennt, kann Inhalte entschlüsseln; Schlüssel sichern und nicht teilen. Ohne Login kann jede Person „Etienne“, „Johannes“ oder „Thomas“ wählen und ist dann Admin (bekannt, PROJ-15).
+
+### Regression
+- Gesamte Suite: 751 Tests grün; Feature-Tests laufen jetzt mit frischer Testdatenbank (`RefreshDatabase`).
+- Seite „Über die App“: kein eigener Schritt für PROJ-11; Schritt 7 nennt bereits das Wiederfinden der letzten Analyse.
+
+### Bugs Found
+
+#### BUG-1: Link auf einen Testlauf zeigt außerhalb des Testmodus „Ältere Analyse“
+- **Severity:** Low
+- **Steps to Reproduce:** Im Testmodus einen Testlauf analysieren, den Link (`?analyse=…`) ohne Testmodus oder als Nicht-Admin öffnen. Erwartet: Testlauf gekennzeichnet, ohne „ältere Analyse“. Tatsächlich: Hinweis „Ältere Analyse vom … – nur lesbar“, weil die neueste Analyse des echten Tickets verglichen wird.
+- **Priority:** Nice to have
+
+#### BUG-2: Bereinigung schreibt keinen Eintrag ins Log
+- **Severity:** Low
+- **Steps to Reproduce:** `analysis:purge` ausführen oder vom Zeitplaner ausführen lassen. Erwartet laut Edge Case: Eintrag im Log (Anzahl bereinigter Inhalte), damit ein Ausfall auffällt. Tatsächlich: Ausgabe nur in der Konsole, die der Zeitplaner verwirft.
+- **Priority:** Fix before deployment (gehört zur Einrichtung des Zeitplaners bei `/deploy`)
+
+### Summary
+- **Acceptance Criteria:** 21/21 bestanden
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; BUG-2 vor `/deploy`, BUG-1 bei Gelegenheit.
 
 ## Deployment
 _To be added by /deploy_

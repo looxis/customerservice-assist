@@ -231,3 +231,48 @@ describe('retention and deletion', function () {
         expect(Analysis::query()->sole()->content)->not->toBeNull();
     });
 });
+
+describe('qa additions', function () {
+    test('failed analyses do not appear among earlier analyses', function () {
+        CaseAgent::fake([logAnswer()]);
+        logAnalysis();
+        CaseAgent::fake(fn () => throw new ConnectionException('down'));
+        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf']);
+
+        expect(Analysis::query()->count())->toBe(2);
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Analysen');
+    });
+
+    test('deleting also removes summaries of test runs; a new analysis afterwards replaces the note', function () {
+        CaseAgent::fake([logAnswer(), logAnswer(['recommendation' => 'Nach dem Löschen.'])]);
+        logAnalysis();
+        TicketSummary::query()->create(['scope_key' => '2137942.stand-1', 'ticket_number' => '2137942', 'content' => ['text' => 'x']]);
+
+        $this->withCookie('staff_name', 'Etienne')->delete(route('tickets.analyses.destroy', ['number' => '2137942']));
+        expect(TicketSummary::query()->count())->toBe(0);
+
+        $this->travel(1)->minutes();
+        logAnalysis();
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSeeText('Nach dem Löschen.')
+            ->assertDontSeeText('Inhalte gelöscht von')
+            ->assertSeeTextInOrder(['Frühere Analysen (1)', 'Inhalte gelöscht']);
+    });
+
+    test('a purged or deleted analysis cannot be opened or edited', function () {
+        CaseAgent::fake([logAnswer()]);
+        $id = logAnalysis();
+        $this->withCookie('staff_name', 'Etienne')->delete(route('tickets.analyses.destroy', ['number' => '2137942']));
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertSeeText('Diese Analyse ist nicht mehr verfügbar.');
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->putJson(route('tickets.analysis.reply', ['number' => '2137942', 'analysis' => $id]), ['text' => 'x'])->assertNotFound();
+    });
+
+    test('the log for admins escapes its content', function () {
+        CaseAgent::fake([logAnswer(['recommendation' => '<script>alert(1)</script>'])]);
+        logAnalysis();
+
+        expect($this->withCookie('staff_name', 'Etienne')->get('/tickets/2137942')->getContent())->not->toContain('<script>alert(1)</script>');
+    });
+});
