@@ -6,7 +6,6 @@ status: draft
 action: refund
 agent_allowed: true
 max_value_eur: 35
-limit_basis: original-product-price
 approval_role: managing-director
 topics:
 - refund
