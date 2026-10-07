@@ -185,7 +185,7 @@
         @endif
     </x-collapsible>
 
-    <x-collapsible title="Für den KI-Chat">
+    <x-collapsible title="Weiteres Wissen über den Chat mit Claude oder ChatGPT erfassen">
         <p class="text-sm text-slate-600">
             Vergebene IDs, nächste freie ID je Typ und verwendete Schlagwörter. Diesen Block zu Beginn einer Sitzung in den Chat einfügen, zusammen mit dem Authoring Guide.
         </p>

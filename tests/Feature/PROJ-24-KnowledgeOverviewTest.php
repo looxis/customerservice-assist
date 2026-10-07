@@ -143,7 +143,7 @@ describe('figures and knowledge state', function () {
         $this->get('/knowledge')
             ->assertOk()
             ->assertSeeText('Es ist kein Unternehmenswissen verfügbar')
-            ->assertSeeText('Für den KI-Chat')
+            ->assertSeeText('Weiteres Wissen über den Chat mit Claude oder ChatGPT erfassen')
             ->assertDontSee('name="q"', false);
     })->with(['missing' => [null], 'empty' => [['README.md' => '# leer']]]);
 });
@@ -252,7 +252,7 @@ describe('id overview', function () {
 
         $this->get('/knowledge')
             ->assertSee(e($library->overview()), false)
-            ->assertSeeInOrder(['Für den KI-Chat', '<textarea', 'readonly', 'Kopieren', 'Kopiert', 'bitte mit Strg+C kopieren'], false)
+            ->assertSeeInOrder(['Weiteres Wissen über den Chat mit Claude oder ChatGPT erfassen', '<textarea', 'readonly', 'Kopieren', 'Kopiert', 'bitte mit Strg+C kopieren'], false)
             ->assertSee('navigator.clipboard.writeText', false)
             ->assertSee('this.$refs.text.select()', false);
     });

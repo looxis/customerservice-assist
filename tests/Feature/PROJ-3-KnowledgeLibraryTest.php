@@ -1,6 +1,7 @@
 <?php
 
 use App\Knowledge\KnowledgeLibrary;
+use App\Knowledge\KnowledgeOverview;
 use App\Knowledge\KnowledgeState;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -441,7 +442,7 @@ describe('id overview', function () {
                 ->and($overview)->toContain($heading);
         }
 
-        expect($overview)->toStartWith('Vergebene IDs:')->toEndWith("Heute möchte ich erfassen:\n(Thema oder Fall)");
+        expect($overview)->toStartWith(KnowledgeOverview::INTRO."\n\nVergebene IDs:")->toEndWith("Heute möchte ich erfassen:\n(Thema oder Fall)");
     });
 
     test('the overview command prints the overview only', function () {

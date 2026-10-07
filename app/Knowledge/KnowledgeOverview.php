@@ -11,6 +11,11 @@ use Illuminate\Support\Collection;
 class KnowledgeOverview
 {
     /**
+     * Opening line of the session start block for the AI chat.
+     */
+    public const string INTRO = 'Wissensdatenbank für die Customer Service Assist App unter der Berücksichtigung des Authoring Guides. Der Authoring Guide sollte als KNOWLEDGE_AUTHORING_GUIDE.md vorliegen, falls nicht bitte um Mitteilung!';
+
+    /**
      * @param  array{types: array<string, array{folder: string, prefix: string}>}  $config
      */
     public function __construct(private readonly array $config) {}
@@ -20,7 +25,7 @@ class KnowledgeOverview
      */
     public function render(Collection $documents): string
     {
-        $lines = ['Vergebene IDs:'];
+        $lines = [self::INTRO, '', 'Vergebene IDs:'];
 
         foreach ($this->config['types'] as $type => $definition) {
             $assigned = $this->assigned($documents, $definition['prefix']);

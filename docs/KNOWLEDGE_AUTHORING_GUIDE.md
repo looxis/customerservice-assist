@@ -249,6 +249,8 @@ Nicht das ganze Unternehmen dokumentieren, sondern entlang echter Fälle vorgehe
 Der Autor erzeugt diesen Block im Repository mit `./vendor/bin/sail artisan knowledge:overview` und fügt die Ausgabe ein. Sie enthält zusätzlich die nächste freie ID je Typ und die verwendeten Werte für Kategorien, Kundenarten und Kanäle. Das Grundgerüst:
 
 ```text
+Wissensdatenbank für die Customer Service Assist App unter der Berücksichtigung des Authoring Guides. Der Authoring Guide sollte als KNOWLEDGE_AUTHORING_GUIDE.md vorliegen, falls nicht bitte um Mitteilung!
+
 Vergebene IDs:
 (Liste oder „noch keine")
 
