@@ -1,6 +1,6 @@
 # PROJ-12: Feedback und Wissenslücke
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-07
 **Last Updated:** 2026-10-07
 
@@ -98,12 +98,78 @@ Der Erfolg des MVP wird am Klick-Feedback gemessen (PRD: Anteil „unverändert 
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Feedback als Felder an der Analyse (eine Bewertung je Analyse), Kommentar verschlüsselt und mit den Analyse-Inhalten bereinigt | Passt zur Entscheidung „eine Bewertung, zuletzt gespeichert gilt“; Stufe ist Kennzahl ohne Kundendaten | 2026-10-07 |
+| Vorgeschlagene Stufe wird im Browser aus Original und aktuellem Entwurf berechnet und mit der gewählten Stufe gespeichert | Sofort sichtbar ohne Serveranfrage; gespeicherter Vorschlag erlaubt später, die Schwelle (offene Frage) an echten Daten zu prüfen | 2026-10-07 |
+| Eigene Tabelle für Wissenslücken mit Status offen/erledigt/verworfen, Freitexte verschlüsselt | Meldungen haben einen eigenen Lebenszyklus (Bearbeitung durch Admin), mehrere je Analyse möglich | 2026-10-07 |
+| Feedback per Hintergrundanfrage (wie Entwurf-Speichern), Meldung und Admin-Aktionen als normale Formulare | Feedback ist ein Klick ohne Seitenwechsel; Meldungen und Admin-Aktionen brauchen Rückmeldung und Fehlerbehandlung wie bisher | 2026-10-07 |
+| Seite „Wissenslücken“ nur für Admins, Prüfung serverseitig wie Testmodus und Löschen (PROJ-32/11) | Gleiche Mechanik bis PROJ-15 | 2026-10-07 |
+| Erfolgszahl wird bei jedem Aufruf aus den Analysen berechnet (letzte 28 Tage, ohne Testläufe) | Keine zusätzliche Datenhaltung; wenige Analysen je Tag | 2026-10-07 |
+| Bereinigung erweitert: Feedback-Kommentare mit den Analyse-Inhalten nach 12 Monaten; erledigte/verworfene Meldungen 12 Monate nach Abschluss leeren, offene bleiben | Datensparsamkeit, offene Lücken gehen nicht verloren | 2026-10-07 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-12 ergänzt das Ergebnis (PROJ-10) um Feedback und Meldungen und bringt eine neue Seite „Wissenslücken“ für Admins. Gespeichert wird in der Datenbank aus PROJ-11: das Feedback direkt an der Analyse, Wissenslücken in einer eigenen Tabelle.
+
+### A) Bausteine
+```
+Ergebnis (PROJ-10)
++-- Antwortentwurf
+|   +-- nach „Kopieren“: „Wie brauchbar war der Vorschlag?“
+|       +-- [unverändert nutzbar] [leicht angepasst] [stark angepasst] [verworfen]  (Vorschlag hervorgehoben)
+|       +-- „Kommentar hinzufügen“ (optional)
+|       +-- danach: „Danke – leicht angepasst · ändern“ / „Bewertet von … am …“
++-- Kasten „Was ist zu tun?“
+|   +-- Fehlendes Wissen: je Lücke [Lücke melden] bzw. „bereits gemeldet von …“
++-- [Wissenslücke melden] (immer)
+    +-- Formular: Was fehlt? · So lösen wir das · Kommentar · Hinweis „Bitte keine Kundendaten“
+
+Frühere Analysen (PROJ-11): Stufe je Zeile
+
+Seitenleiste: „Wissenslücken (N)“ – nur Admins
+
+Seite „Wissenslücken“ (nur Admins)
++-- Erfolgszahl: Anteil unverändert + leicht angepasst, letzte 28 Tage, ohne Testläufe
++-- Reiter: Offen · Erledigt · Verworfen
++-- je Meldung: Datum · Name · Ticket-Link · Kundengruppe · Produkte · Testlauf
+|   +-- Was fehlt? · So lösen wir das · Kommentar
+|   +-- [Für den KI-Chat kopieren] [Erledigt (Knowledge-ID)] [Verwerfen (Grund)]
++-- leerer Zustand: „Keine offenen Wissenslücken“
+
+Seite „Über die App“: Schritt 8 ohne „in Arbeit“
+```
+
+### B) Daten
+**An der Analyse (PROJ-11) zusätzlich:**
+- Feedback-Stufe, vorgeschlagene Stufe, wer und wann (Kennzahlen, dauerhaft)
+- Feedback-Kommentar (verschlüsselt, wird mit den Analyse-Inhalten nach 12 Monaten geleert)
+
+**Wissenslücke (neue Tabelle):**
+- Verweis auf Analyse und Ticketnummer, Name, Zeitpunkt, Kundengruppe, Produkte, Testlauf ja/nein
+- Thema der von der KI erkannten Lücke (falls vorausgefüllt), um „bereits gemeldet“ zu erkennen
+- Was fehlt?, So lösen wir das, Kommentar (verschlüsselt)
+- Status offen/erledigt/verworfen, wer und wann bearbeitet, Knowledge-ID bzw. Grund
+- Bereinigung: erledigte und verworfene Meldungen 12 Monate nach Abschluss geleert; offene bleiben
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Ein Klick fürs Feedback:** Die Stufe wird im Hintergrund gespeichert, ohne die Seite neu zu laden – wie das Speichern des Entwurfs. Die vorgeschlagene Stufe rechnet der Browser aus dem Unterschied zwischen KI-Entwurf und aktuellem Text (gleich → unverändert, bis 20 % geändert → leicht, darüber → stark). Gespeichert werden Vorschlag und Wahl, damit sich die Schwelle später an echten Daten prüfen lässt.
+- **Meldungen als Formular:** Abschicken lädt die Seite neu und zeigt „Wissenslücke gemeldet – danke“; Fehler (z. B. leeres „Was fehlt?“) erscheinen am Feld, Eingaben bleiben.
+- **Admin-Seite:** gleiche Admin-Prüfung wie Testmodus und Löschen; „Für den KI-Chat kopieren“ nutzt das bewährte Kopier-Verhalten (Zwischenablage, sonst markieren). Der Textblock folgt dem Aufbau des Authoring Guides.
+- **Erfolgszahl:** wird beim Aufruf aus den Analysen gezählt, keine eigene Speicherung.
+- **Bereinigung:** der nächtliche Befehl aus PROJ-11 übernimmt auch Feedback-Kommentare und abgeschlossene Meldungen.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Feedback und Meldungen nur mit gewähltem Namen; Admin-Aktionen nur für Admins (403).
+- Feedback zu Analysen ohne Inhalte (bereinigt/gelöscht) ist nicht möglich; vorhandene Stufen bleiben.
+- „Bereits gemeldet“ je Analyse und Thema der KI-Lücke.
+- Seitenleiste: Anzahl offener Meldungen nur für Admins berechnen.
+- Tests: Vorschlagslogik (gleich/leicht/stark), Speichern/Ändern, Kommentar, Meldung mit Pflichtfeld, vorausgefüllte Lücke, „bereits gemeldet“, Admin-Liste mit Reitern, Erledigt/Verwerfen, Kopier-Textblock, Erfolgszahl ohne Testläufe, Bereinigung, Zugriff für Nicht-Admins.
 
 ## QA Test Results
 _To be added by /qa_
