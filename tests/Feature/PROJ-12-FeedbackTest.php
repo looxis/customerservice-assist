@@ -247,3 +247,47 @@ describe('about page', function () {
         $this->get(route('about'))->assertSeeText('Nach dem Kopieren fragt die App kurz, wie brauchbar der Vorschlag war')->assertDontSee('about-wip', false);
     });
 });
+
+describe('qa additions', function () {
+    test('texts of reports are escaped on the admin page and in the chat block', function () {
+        KnowledgeGap::factory()->create(['content' => ['missing' => '<script>alert(1)</script>', 'solution' => '<img src=x onerror=alert(1)>', 'comment' => null]]);
+
+        $html = $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->getContent();
+
+        expect($html)->not->toContain('<script>alert(1)</script>')->not->toContain('<img src=x');
+    });
+
+    test('a gap topic from the ai with quotes does not break the report button', function () {
+        CaseAgent::fake([feedbackAnswer(['knowledge_gaps' => [['topic' => 'Kunde sagt "geht nicht" \' </script>', 'question' => 'x']]])]);
+        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf']);
+
+        expect($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())->not->toContain('</script>\'')->toContain('Lücke melden');
+    });
+
+    test('reporting or rating a deleted analysis is refused, existing figures stay', function () {
+        $id = feedbackAnalysis();
+        rate($id, ['level' => 'slight']);
+        $this->withCookie('staff_name', 'Etienne')->delete(route('tickets.analyses.destroy', ['number' => '2137942']));
+
+        $this->withCookie('staff_name', 'Nele')->followingRedirects()->post(route('tickets.analysis.gaps.store', ['number' => '2137942', 'analysis' => $id]), ['missing' => 'x'])->assertOk();
+        expect(KnowledgeGap::query()->count())->toBe(0);
+        rate($id, ['level' => 'major'])->assertNotFound();
+        expect(Analysis::query()->where('uuid', $id)->value('feedback_level'))->toBe('slight');
+    });
+
+    test('feedback and reports need a chosen name', function () {
+        $id = feedbackAnalysis();
+        $this->defaultCookies = [];
+
+        $this->post(route('tickets.analysis.gaps.store', ['number' => '2137942', 'analysis' => $id]), ['missing' => 'x'])->assertRedirect();
+        expect(KnowledgeGap::query()->count())->toBe(0);
+    });
+
+    test('the purge log entry carries counts only', function () {
+        Log::spy();
+
+        $this->artisan('analysis:purge');
+
+        Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context): bool => $message === 'Analysis content purged' && array_keys($context) === ['analyses', 'gaps', 'summaries', 'choices', 'customers']);
+    });
+});

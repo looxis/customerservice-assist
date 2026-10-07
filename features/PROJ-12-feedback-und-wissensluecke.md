@@ -1,6 +1,6 @@
 # PROJ-12: Feedback und Wissenslücke
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-07
 **Last Updated:** 2026-10-07
 
@@ -184,7 +184,80 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-12-FeedbackTest.php` (18 Fälle). Gesamte Suite: 797 grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-07
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (23 Fälle gegen die Testdatenbank, KI und Zammad nachgestellt, nur erfundene Daten), Code-Review jedes Kriteriums. Zammad war während der Abnahme wegen eines Updates nicht erreichbar; ein Test mit echten Tickets und im Browser steht noch aus (Product Owner). Firefox/Safari und Handy-/Tablet-Breite nicht eigens geprüft; alle Elemente umbrechen und nutzen bestehende Komponenten.
+
+### Acceptance Criteria Status
+
+#### Feedback
+- [x] Frage mit vier Stufen nach „Kopieren“
+- [x] Vorgeschlagene Stufe aus der Änderung (unverändert / bis 20 % leicht / sonst stark)
+- [x] Speichern mit Name und Zeitpunkt, Anzeige „Danke – …“ mit „ändern“
+- [x] Jederzeit auch ohne Kopieren („Vorschlag bewerten“)
+- [x] Optionaler Kommentar bis 2.000 Zeichen, verschlüsselt
+- [x] Neue Bewertung ersetzt die alte, „Bewertet von … am …“
+- [x] Ältere Analysen bewertbar
+- [x] Stufe in „Frühere Analysen“
+- [x] Ohne Namen nicht gespeichert (409)
+
+#### Wissenslücke melden
+- [x] „Lücke melden“ an jeder KI-Lücke, Formular vorausgefüllt
+- [x] Meldung von Hand auch ohne erkannte Lücke
+- [x] Felder mit Längen und Hinweis „Bitte keine Kundendaten eintragen“
+- [x] Leeres „Was fehlt?“ abgelehnt, Eingaben bleiben
+- [x] Ticket, Analyse, Kundengruppe, Produkte, Name, Zeitpunkt hängen dran; Danke-Hinweis
+- [x] „bereits gemeldet von …“
+
+#### Liste der Wissenslücken (Admins)
+- [x] Seitenleisten-Eintrag mit Anzahl nur für Admins
+- [x] Nicht-Admins: kein Eintrag, Zugriff 403
+- [x] Offene Meldungen neueste zuerst mit allen Angaben und „Testlauf“
+- [x] „Für den KI-Chat kopieren“ mit Textblock
+- [x] Erledigt mit Knowledge-ID
+- [x] Verwerfen mit Grund
+- [x] Leerer Zustand „Keine offenen Wissenslücken“
+- [x] Erfolgszahl der letzten 28 Tage ohne Testläufe
+
+#### Seite „Über die App“
+- [x] Schritt 8 ohne „in Arbeit“
+
+### Edge Cases Status
+- [x] Mehrfach kopieren: Frage nur ohne bisheriges Feedback
+- [x] Entwurf geleert und „verworfen“: zulässig
+- [x] Testläufe: gekennzeichnet, nicht in der Erfolgszahl
+- [x] Gelöschte/bereinigte Analyse: Stufe bleibt; neue Bewertung oder Meldung abgelehnt
+- [x] Gleichzeitige Bewertung: zuletzt gespeicherte gilt
+- [x] Netzwerkfehler: „Nicht gespeichert – bitte erneut klicken“
+- [x] Viele Meldungen: alle, neueste zuerst
+
+### Security Audit Results
+- [x] Name erforderlich für Feedback und Meldung; Admin-Seite und Admin-Aktionen serverseitig geprüft (403)
+- [x] CSRF: Meldung und Admin-Aktionen als Formulare mit `@csrf`, Feedback mit Token im Kopf der Hintergrundanfrage
+- [x] XSS: Meldungstexte, Chat-Textblock und KI-Lücken-Themen escaped (Tests mit `<script>`, `<img onerror>`, Anführungszeichen)
+- [x] Freitexte verschlüsselt, Thema der KI-Lücke nur als Hash; Log der Bereinigung nur mit Anzahlen
+- [ ] Meldung über eine Adresse mit falscher Ticketnummer wird gespeichert (BUG-1)
+- Hinweis: kein Rate Limiting für Feedback und Meldungen; intern, ohne Kosten.
+
+### Regression
+- Gesamte Suite: 802 Tests grün.
+
+### Bugs Found
+
+#### BUG-1: Meldung mit nicht passender Ticketnummer in der Adresse wird trotzdem gespeichert
+- **Severity:** Low
+- **Steps to Reproduce:** Das Meldeformular einer Analyse von Ticket A an `/tickets/B/analyse/{analyse-von-A}/wissensluecken` schicken (nur per Hand gebautem Formular möglich). Erwartet: abgelehnt. Tatsächlich: Meldung wird gespeichert (korrekt beim Ticket A), danach Hinweis „nicht mehr verfügbar“. Keine Datenpanne – die Meldung hängt am richtigen Ticket –, aber unsauber.
+- **Priority:** Nice to have
+
+### Summary
+- **Acceptance Criteria:** 24/24 bestanden
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass (BUG-1 Low)
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; Test mit echten Tickets nachholen, sobald Zammad wieder läuft.
 
 ## Deployment
 _To be added by /deploy_
