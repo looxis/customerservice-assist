@@ -21,9 +21,21 @@ class TicketController extends Controller
     /**
      * The input form: clean "Ticket#…" and go to the ticket's own address.
      */
-    public function lookup(TicketLookupRequest $request): RedirectResponse
+    public function lookup(TicketLookupRequest $request, ZammadClient $zammad): RedirectResponse
     {
-        return redirect()->route('tickets.show', ['number' => $request->number()]);
+        if ($request->zammadId() === null) {
+            return redirect()->route('tickets.show', ['number' => $request->number()]);
+        }
+
+        try {
+            $number = $zammad->numberForId($request->zammadId());
+        } catch (ZammadException $exception) {
+            return redirect()->route('tickets.analyze')
+                ->withInput()
+                ->withErrors(['ticket' => $exception->problem->messageForAddress()]);
+        }
+
+        return redirect()->route('tickets.show', ['number' => $number]);
     }
 
     /**

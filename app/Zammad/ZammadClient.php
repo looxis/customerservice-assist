@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -88,6 +89,32 @@ class ZammadClient
     }
 
     /**
+     * The number of the ticket with this Zammad ID, read without the search
+     * index. The pair is remembered so the ticket can be loaded by number
+     * even while Zammad's search does not know it yet.
+     *
+     * @throws ZammadException
+     */
+    public function numberForId(int $id): string
+    {
+        try {
+            $number = (string) ($this->get("tickets/{$id}")['number'] ?? '');
+        } catch (ZammadException $exception) {
+            Log::warning('Zammad request failed', ['zammad_id' => $id, 'problem' => $exception->problem->value, 'status' => $exception->httpStatus]);
+
+            throw $exception;
+        }
+
+        if ($number === '') {
+            throw new ZammadException(ZammadProblem::NotFound);
+        }
+
+        Cache::put("zammad.ticket-id.{$number}", $id, now()->addDays(90));
+
+        return $number;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function findByNumber(string $number): array
@@ -96,6 +123,17 @@ class ZammadClient
         $tickets = is_array($result) && array_is_list($result) ? $result : ($result['tickets'] ?? []);
 
         foreach ($tickets as $ticket) {
+            if (is_array($ticket) && (string) ($ticket['number'] ?? '') === $number) {
+                return $ticket;
+            }
+        }
+
+        // Not in the search index (yet): use the ID remembered from a pasted address.
+        $id = Cache::get("zammad.ticket-id.{$number}");
+
+        if (is_int($id)) {
+            $ticket = $this->get("tickets/{$id}", ['expand' => 'true']);
+
             if (is_array($ticket) && (string) ($ticket['number'] ?? '') === $number) {
                 return $ticket;
             }

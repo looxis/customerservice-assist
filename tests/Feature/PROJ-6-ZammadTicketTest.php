@@ -59,6 +59,59 @@ describe('input', function () {
     });
 });
 
+describe('ticket address from zammad', function () {
+    test('the address of a ticket in zammad leads to the ticket by its number', function (string $address) {
+        Http::preventStrayRequests();
+        Http::fake(['zammad.test/api/v1/tickets/38698' => Http::response(['id' => 38698, 'number' => '2138663'])]);
+
+        $this->get(route('tickets.lookup', ['ticket' => $address]))->assertRedirect(route('tickets.show', ['number' => '2138663']));
+    })->with([
+        'zoom link' => ['https://zammad.test/#ticket/zoom/38698'],
+        'with article' => ['https://zammad.test/#ticket/zoom/38698/123456'],
+        'upper case host and spaces' => ['  https://ZAMMAD.test/#ticket/zoom/38698 '],
+    ]);
+
+    test('a ticket that the zammad search does not know yet loads after its address was pasted', function () {
+        Http::preventStrayRequests();
+        Http::fake([
+            'zammad.test/api/v1/tickets/search*' => Http::response([]),
+            'zammad.test/api/v1/tickets/38698*' => Http::response(['id' => 38698, 'number' => '2138663', 'title' => 'Ganz neu', 'state' => 'new', 'group' => 'allg. Kunden', 'created_at' => '2026-10-07T08:33:36.000Z']),
+            'zammad.test/api/v1/ticket_articles/by_ticket/38698*' => Http::response([zammadArticle(['body' => '<p>Neue Anfrage</p>'])]),
+        ]);
+
+        $this->get('/tickets/2138663')->assertNotFound()->assertSeeText('dann stattdessen die Adresse des Tickets aus der Browserzeile von Zammad einfügen');
+
+        $this->get(route('tickets.lookup', ['ticket' => 'https://zammad.test/#ticket/zoom/38698']));
+
+        $this->get('/tickets/2138663')->assertOk()->assertSeeText('Ganz neu')->assertSeeText('Neue Anfrage');
+    });
+
+    test('an address of another site is refused without asking zammad', function () {
+        Http::preventStrayRequests();
+
+        $this->get(route('tickets.lookup', ['ticket' => 'https://evil.example/#ticket/zoom/38698']))
+            ->assertRedirect(route('tickets.analyze'))
+            ->assertSessionHasErrors(['ticket' => TicketLookupRequest::OTHER_HOST]);
+
+        Http::assertNothingSent();
+    });
+
+    test('an unknown or forbidden ticket id is reported at the field', function (int $status, string $message) {
+        Http::fake(['zammad.test/api/v1/tickets/38698' => Http::response(['error' => 'x'], $status)]);
+
+        $this->get(route('tickets.lookup', ['ticket' => 'https://zammad.test/#ticket/zoom/38698']))
+            ->assertRedirect(route('tickets.analyze'))
+            ->assertSessionHasErrors(['ticket' => $message]);
+    })->with([
+        'not found' => [404, 'Zu dieser Adresse gibt es in Zammad kein Ticket. Bitte die Adresse prüfen.'],
+        'forbidden' => [403, 'Auf dieses Ticket hat die App in Zammad keinen Zugriff. Bitte wende dich an den Entwickler.'],
+    ]);
+
+    test('the input explains that the address works as well', function () {
+        $this->get('/')->assertSee('Ticket#2137942 oder Adresse aus Zammad', false)->assertSeeText('oder die Adresse aus der Browserzeile kopieren');
+    });
+});
+
 describe('loading', function () {
     test('the ticket page asks zammad with the app token and shows the ticket', function () {
         fakeZammad();

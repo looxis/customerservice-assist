@@ -44,19 +44,25 @@ Alpine.store('staff', {
 
 /**
  * Ticket input (PROJ-6): accepts what Zammad's copy button produces
- * ("Ticket#2137942") and reduces it to the bare number before sending.
- * The server checks the number again.
+ * ("Ticket#2137942") and reduces it to the bare number before sending, or
+ * the ticket's address in Zammad (".../#ticket/zoom/38698"), sent as it is.
+ * The server checks both again.
  */
 Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
     value: initial,
     error: initialError,
     busy: false,
-    invalidMessage: 'Bitte eine Ticketnummer eingeben, z. B. Ticket#2137942.',
+    invalidMessage: 'Bitte eine Ticketnummer oder die Adresse des Tickets aus Zammad eingeben, z. B. Ticket#2137942.',
 
     normalize(raw) {
-        const match = String(raw ?? '').match(/^\s*(?:ticket\s*)?#?\s*(\d{1,20})\s*$/i);
+        const text = String(raw ?? '').trim();
+        const match = text.match(/^(?:ticket\s*)?#?\s*(\d{1,20})$/i);
 
-        return match ? match[1] : null;
+        if (match) {
+            return match[1];
+        }
+
+        return /^https?:\/\/[^/#\s]+[^#\s]*#ticket\/zoom\/\d{1,12}([/?]\S*)?$/i.test(text) ? text : null;
     },
 
     submit(event) {

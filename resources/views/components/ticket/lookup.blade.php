@@ -26,7 +26,7 @@
             x-model="value"
             x-on:input="error = ''"
             value="{{ old('ticket', $value) }}"
-            placeholder="Ticket#2137942"
+            placeholder="Ticket#2137942 oder Adresse aus Zammad"
             autocomplete="off"
             autofocus
             inputmode="text"
@@ -45,6 +45,6 @@
     </div>
     <p id="ticket-help" class="mt-2 text-sm" role="status" aria-live="polite">
         <span x-show="error" x-text="error" class="text-danger-700" @unless ($serverError) x-cloak @endunless>{{ $serverError }}</span>
-        <span x-show="! error" class="text-slate-600" @if ($serverError) x-cloak @endif>In Zammad am Ticket auf „Kopieren" klicken, dann hier „Einfügen".</span>
+        <span x-show="! error" class="text-slate-600" @if ($serverError) x-cloak @endif>In Zammad am Ticket auf „Kopieren" klicken (oder die Adresse aus der Browserzeile kopieren), dann hier „Einfügen".</span>
     </p>
 </form>
