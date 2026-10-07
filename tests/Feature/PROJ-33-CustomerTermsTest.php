@@ -147,3 +147,40 @@ describe('authoring kit', function () {
             ->and(file_get_contents(base_path('knowledge/templates/product.md')))->toContain("customer_terms:\n");
     });
 });
+
+describe('qa additions', function () {
+    test('several products in one ticket are all suggested; at most two terms are named per product', function () {
+        knowledgeBase([
+            'products/3d-glass-photo.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => '3D-Glasfoto', 'customer_terms' => ['Viamant', 'Glasstein', 'Hologramm']]),
+            'products/magic-mug.md' => knowledgeDoc(['id' => 'PRODUCT-002', 'type' => 'product', 'title' => 'Zaubertasse', 'customer_terms' => ['Zaubertasse']]),
+        ]);
+        $this->articles = [zammadArticle(['id' => 1, 'body' => '<p>Viamant, Glasstein, Hologramm und eine Zaubertasse.</p>'])];
+
+        $html = formHtml();
+
+        expect($html)->toMatch('/value="3d-glass-photo"\s+checked/')->toMatch('/value="magic-mug"\s+checked/')
+            ->toContain('(erkannt im Ticket: ‚Viamant‘, ‚Glasstein‘)')
+            ->not->toContain('‚Hologramm‘');
+    });
+
+    test('terms with special characters are matched literally', function () {
+        knowledgeBase(['products/3d-glass-photo.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => '3D-Glasfoto', 'customer_terms' => ['3D (Laser)', 'Glas.Foto']])]);
+        $this->articles = [zammadArticle(['id' => 1, 'body' => '<p>Ein 3D (Laser) Bild und GlasXFoto</p>'])];
+
+        expect(formHtml())->toContain('(erkannt im Ticket: ‚3D (Laser)‘)')->not->toContain('‚Glas.Foto‘');
+    });
+
+    test('suggestion reasons are escaped', function () {
+        knowledgeBase(['products/3d-glass-photo.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => '3D-Glasfoto', 'customer_terms' => ['<b>Viamant</b>']])]);
+        $this->articles = [zammadArticle(['id' => 1, 'body' => '<p>&lt;b&gt;Viamant&lt;/b&gt;</p>'])];
+
+        expect(formHtml())->not->toContain('‚<b>Viamant</b>‘');
+    });
+
+    test('without any customer message only the title is searched', function () {
+        $this->articles = [zammadArticle(['id' => 1, 'sender' => 'Agent', 'from' => 'Kundenservice', 'body' => '<p>Ihr Viamant ist unterwegs.</p>'])];
+        $this->title = 'Viamant Anfrage';
+
+        expect(formHtml())->toContain('(erkannt im Ticket: ‚Viamant‘)');
+    });
+});

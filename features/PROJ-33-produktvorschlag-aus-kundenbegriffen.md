@@ -1,6 +1,6 @@
 # PROJ-33: Produktvorschlag aus Kundenbegriffen
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-07
 **Last Updated:** 2026-10-07
 
@@ -162,7 +162,72 @@ Keine neuen Pakete.
 - **Hinweis für den Product Owner:** Für das Verfassen im KI-Chat außerhalb des Repos die aktualisierte Fassung von `docs/KNOWLEDGE_AUTHORING_GUIDE.md` verwenden.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-07
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (20 Fälle, nur erfundene Daten), Code-Review, Prüfung der echten Knowledge Base (`knowledge:check` 0 Fehler, `knowledge:overview` listet 14 Kundenbegriffe für `3d-glass-photo`) und Gegenprobe an echten Tickets: In 56 Tickets der Gruppe „allg. Kunden“ der letzten 10 Tage gab es keinen Vorschlag – also auch keine Fehltreffer durch kurze Begriffe wie „Mega“, „Nano“, „Giga“. Test des Product Owners an Ticket#2138663 (siehe BUG-1); der Text der Testmail allein ergibt den erwarteten Treffer („Viamant“, „Nano“). Ein zweiter Lauf gegen Zammad war wegen einer Zeitüberschreitung der Verbindung nicht möglich. Firefox/Safari und Handy-/Tablet-Breite nicht eigens geprüft.
+
+### Acceptance Criteria Status
+
+#### Neues Feld in Produktdateien
+- [x] `customer_terms` als gültiges Listenfeld in Produktdateien
+- [x] Außerhalb von Produktdateien gemeldet („Unbekanntes Feld“)
+- [x] Warnung unter vier Zeichen
+- [x] Warnung bei gleichem Begriff an zwei Produkten
+- [x] Warnung bei Überschneidung mit `order_keywords` eines anderen Produkts
+- [x] Übersicht listet vergebene Kundenbegriffe je Produkt
+
+#### Erkennen im Ticket
+- [x] Begriff in Kundennachricht: vorausgewählt mit Grund
+- [x] Produkttitel als Ganzes zählt
+- [x] Antworten, Notizen, Zitate, Signaturen zählen nicht
+- [x] Wortanfang ja, mitten im Wort nein
+- [x] Groß-/Kleinschreibung egal
+- [x] Bestell- und Textvorschlag zusammengeführt, je mit Grund
+- [x] Gemerkte Wahl hat Vorrang, Hinweis „im Ticket erwähnt – nicht ausgewählt“
+- [x] Vorgeschlagene Produkte oben
+- [x] Testmodus: nur bis zum Schnittpunkt
+- [x] `deprecated`/fehlerhafte Produktdateien nicht vorgeschlagen
+
+#### Anleitung
+- [x] Anleitung und KI-Skill fragen nach Kundenbegriffen und erklären den Unterschied zu `order_keywords`
+- [x] Produktvorlage enthält `customer_terms`
+
+### Edge Cases Status
+- [x] Mehrere Produkte im selben Ticket: alle vorgeschlagen
+- [x] Begriff mehrfach im Text: ein Vorschlag
+- [x] Mehrere Begriffe desselben Produkts: höchstens zwei im Grund genannt
+- [x] Schreibweisen/Umlaute: nur die eingetragene Schreibweise; Sonderzeichen werden wörtlich verglichen
+- [x] Verneinter Bezug: wird vorgeschlagen (wie spezifiziert)
+- [x] Lange Tickets: reiner Textvergleich, Ladezeit der echten Tickets unverändert (0,6–1,0 s)
+- [x] Keine Kundenbegriffe: Verhalten wie bisher; ohne Kundennachricht zählt nur der Titel
+
+### Security Audit Results
+- [x] Gründe und Begriffe werden escaped ausgegeben (Test mit `<b>`)
+- [x] Begriffe werden wörtlich verglichen (kein Ausdruck aus der Knowledge wird als Muster ausgeführt)
+- [x] Keine Inhalte im Log, keine KI-Aufrufe, keine neuen Eingaben von außen
+
+### Regression
+- Gesamte Suite: 779 Tests grün (u. a. PROJ-3 Prüfung, PROJ-4 Auswahl, PROJ-9 Formular, PROJ-32 Testmodus).
+
+### Bugs Found
+
+#### BUG-1: Mails von Adressen unserer Mitarbeiter gelten nicht als Kundennachricht
+- **Severity:** Low
+- **Steps to Reproduce:** Eine Testmail von der eigenen (in Zammad als Agent bekannten) Adresse an den Kundenservice schicken, Ticket in der App öffnen. Erwartet (aus Sicht des Testers): Produkt aus dem Text erkannt. Tatsächlich: Zammad führt die Nachricht als „Agent“, die App zeigt sie als unsere Nachricht, durchsucht sie nicht und kennt keine „letzte Kundennachricht“. Betrifft auch Kundenmails, die ein Mitarbeiter in Zammad weiterleitet. Bei echten Kundenmails tritt das nicht auf.
+- **Workaround:** Testmails von einer Adresse senden, die in Zammad kein Agent ist.
+- **Priority:** Nice to have (ggf. eigenes kleines Feature: eingehende E-Mails immer als Kundennachricht behandeln)
+
+**Hinweis (kein Bug):** Der Titel von `3d-glass-photo.md` („3D-Glasfotos: Produktfamilie, Formen und frühere Bezeichnungen“) ist für die Produktliste lang und passt als Wortfolge praktisch nie in einen Kundentext. Der Product Owner lässt ihn bewusst so.
+
+### Summary
+- **Acceptance Criteria:** 18/18 bestanden
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben.
 
 ## Deployment
 _To be added by /deploy_
