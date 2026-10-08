@@ -127,3 +127,58 @@ describe('view', function () {
         CaseAgent::assertPrompted(fn ($prompt): bool => ! $prompt->contains('PROCEDURE-'));
     });
 });
+
+describe('qa additions', function () {
+    test('markup in a procedure text is escaped, also after adding checkboxes', function () {
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'A <b>x</b>', 'actions' => ['return']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. <script>alert(1)</script> klicken\n2. <img src=x onerror=alert(1)>\n\n# Abschlusskontrolle\n\n- [ ] a"),
+        ]);
+
+        $html = procedureCase(['return']);
+
+        expect($html)->not->toContain('<script>alert(1)</script>')->not->toContain('<img src=x')->not->toContain('A <b>x</b>')
+            ->toContain('&lt;script&gt;alert(1)&lt;/script&gt; klicken');
+    });
+
+    test('a procedure without final check or critical notes is shown with what it has', function () {
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'Kurz', 'actions' => ['return']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. eins\n2. zwei"),
+        ]);
+
+        $section = str(procedureCase(['return']))->after('id="ablaeufe"')->toString();
+
+        expect(substr_count($section, 'class="procedure-check"'))->toBe(2)->and($section)->not->toContain('procedure-critical');
+    });
+
+    test('lists outside steps and final check get no checkboxes; an "Achtung:" line anywhere is highlighted', function () {
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'Kurz', 'actions' => ['return']], "x\n\n# Voraussetzungen\n\n- a\n- b\n\nAchtung: vorher prüfen.\n\n# Arbeitsschritte\n\n1. eins\n\n# Abschlusskontrolle\n\n- [ ] a"),
+        ]);
+
+        $section = str(procedureCase(['return']))->after('id="ablaeufe"')->toString();
+
+        expect(substr_count($section, 'class="procedure-check"'))->toBe(2)->and($section)->toContain('<p class="procedure-warning">Achtung: vorher prüfen.</p>');
+    });
+
+    test('an analysis without recommended actions suggests nothing but still offers all procedures', function () {
+        $html = procedureCase([]);
+
+        expect($html)->toContain('Kein passender Ablauf hinterlegt.')->toContain('Kein Arbeitsablauf für diesen Fall')->toContain('Ablauf auswählen');
+    });
+
+    test('a product-bound procedure is only suggested for its product', function () {
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'products/magic-mug.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Zaubertasse']),
+            'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'Tasse', 'actions' => ['return'], 'products' => ['magic-mug']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. a\n\n# Abschlusskontrolle\n\n- [ ] a"),
+        ]);
+        $finder = app(ProcedureFinder::class);
+        $group = app(KnowledgeSelector::class)->customerGroup('reseller');
+
+        expect($finder->suggested($group, [], 'complaint', ['return']))->toBe([])
+            ->and(count($finder->suggested($group, ['magic-mug'], 'complaint', ['return'])))->toBe(1);
+    });
+});

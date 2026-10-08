@@ -1,6 +1,6 @@
 # PROJ-30: Interne Arbeitsabläufe zum Fall
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 
@@ -197,7 +197,88 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-30-ProcedureViewTest.php` (9 Fälle). Gesamte Suite: 812 grün. Geprüft mit `PROCEDURE-001` (15 Kästchen, kritische Hinweise, 3 Verweise).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-08
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (14 Fälle zur Anzeige, dazu die bestehenden Tests zum Dokumenttyp; nur erfundene Daten), Code-Review, Prüfung gegen die echte Knowledge Base (`PROCEDURE-001`: vorgeschlagen für Fachhändler und looxis.de bei „Retoure“ und Reklamation; nicht für Amazon, „Noch unklar“ oder Produktfragen – wie im Dokument festgelegt) und Rauchtest der Seite von Ticket#2138663 (Bereich „Interne Abläufe“ vorhanden, leerer Zustand, Auswahl mit 15 Kästchen im wählbaren Ablauf). **Nicht geprüft:** das Verhalten im Browser (Auswählen, Schließen, Merken für die Sitzung, Abhaken) – es läuft im Browser und ist durch die automatischen Tests nicht abgedeckt; ebenso Firefox/Safari und Handy-/Tablet-Breite.
+
+### Acceptance Criteria Status
+
+#### Dokumenttyp und Prüfung (gebaut am 2026-10-05)
+- [x] Typ `procedure` gültig, erscheint unter „Arbeitsabläufe“
+- [x] `actions` Pflicht, nur Werte der Vorgangsliste (Fehler)
+- [x] Fehlende Abschnitte als Warnung, „Kritische Hinweise“ optional
+- [x] `permission.action` außerhalb der Liste als Warnung
+- [x] Neuer Vorgang in der Konfiguration ohne Programmänderung gültig
+- [x] Authoring Guide, Vorlage und KI-Skill beschreiben `procedure`
+
+#### Vorschläge nach der Analyse
+- [x] Vorschlag nach Vorgang, Geltungsbereich (wie PROJ-4) und Kategorie
+- [x] Reihenfolge der Vorgänge, innerhalb nach ID
+- [x] Leerer Zustand mit Auswahl und „Wissenslücke melden“ (vorausgefüllt)
+- [x] Gleiche Angaben → gleiche Vorschläge
+
+#### Manuelle Auswahl
+- [x] Alle verwendbaren Abläufe nach Vorgang gruppiert mit ID, Titel, Entwurf; unpassende gekennzeichnet (Wortlaut siehe BUG-2)
+- [x] Gewählter Ablauf zusätzlich angezeigt (Code-Review; im Browser noch zu prüfen)
+- [x] Schließen entfernt ihn aus dem Bereich (Code-Review; im Browser noch zu prüfen; siehe BUG-1)
+
+#### Anzeige eines Ablaufs
+- [x] ID, Titel, Status, Vorgänge, vollständiger Text
+- [x] „Kritische Hinweise“ und „Achtung:“-Zeilen hervorgehoben
+- [x] Kästchen an Schritten und Kontrollpunkten; nicht gespeichert
+- [x] Klar getrennt, „intern, nicht an den Kunden“
+- [x] Knowledge-IDs verlinkt
+- [x] Entwurfshinweis
+
+#### Erweiterbarkeit
+- [x] Neue Procedure-Datei wird ohne Programmänderung vorgeschlagen und wählbar (Vorschläge werden bei jedem Anzeigen berechnet)
+
+### Edge Cases Status
+- [x] Fehlerhaft oder `deprecated`: nie vorgeschlagen, nicht wählbar
+- [x] Ohne „Abschlusskontrolle“: angezeigt, ohne Kontroll-Kästchen
+- [x] Ab drei Vorschlägen nur der erste offen
+- [x] Unbekannter Vorgang im Ergebnis: von PROJ-9 verworfen und als Prüfhinweis protokolliert
+- [x] „Noch unklar“: nur Abläufe ohne Einschränkung
+- [x] Ablauf für mehrere Vorgänge nur einmal
+- [x] Neuer Analyselauf: Vorschläge neu, gewählte bleiben (Code-Review; im Browser noch zu prüfen)
+- [x] Analyse ohne empfohlene Vorgänge: leerer Zustand, Auswahl möglich
+- [x] Produktgebundener Ablauf nur bei gewähltem Produkt
+
+### Security Audit Results
+- [x] Text der Abläufe wird escaped ausgegeben, auch nach dem Einfügen der Kästchen (Test mit `<script>`, `<img onerror>`, Markup im Titel)
+- [x] Abläufe gehen nicht an die KI (Test)
+- [x] Keine neuen Eingaben an den Server, keine Speicherung; Auswahl nur im Browser der Person (`sessionStorage`, nur IDs)
+
+### Regression
+- Gesamte Suite: 817 Tests grün. Ergebnisansicht (PROJ-10), Feedback/Meldung (PROJ-12) und Knowledge-Auswahl (PROJ-4) unverändert.
+- Seite „Über die App“: Schritt 7 nennt die internen Abläufe; kein „in Arbeit“ mehr vorhanden.
+
+### Bugs Found
+
+#### BUG-1: Geschlossener Vorschlag bleibt für die Sitzung geschlossen, auch nach neuer Analyse
+- **Severity:** Low
+- **Steps to Reproduce:** Vorgeschlagenen Ablauf „Schließen“, Ticket erneut analysieren (gleicher Vorgang empfohlen). Erwartet: Vorschlag erscheint wieder. Tatsächlich: bleibt ausgeblendet, bis er über „Ablauf auswählen“ wieder gewählt oder der Browser-Tab neu geöffnet wird.
+- **Priority:** Nice to have
+
+#### BUG-2: Hinweis „gilt nicht für diese Kundengruppe“ auch bei unpassendem Produkt
+- **Severity:** Low
+- **Steps to Reproduce:** Ablauf mit `products: [magic-mug]`, Analyse ohne dieses Produkt, „Ablauf auswählen“ öffnen. Erwartet: zutreffender Hinweis (z. B. „gilt nur für Zaubertasse“). Tatsächlich: „gilt nicht für diese Kundengruppe“.
+- **Priority:** Nice to have
+
+#### BUG-3: Alle Abläufe werden mit jeder Ergebnisseite ausgeliefert
+- **Severity:** Low
+- **Steps to Reproduce:** Viele Procedure-Dateien anlegen, Ticket mit Analyse öffnen. Die Seite enthält den Text aller verwendbaren Abläufe (heute 1 Ablauf, unkritisch); bei vielen Dutzend wächst die Seite spürbar.
+- **Priority:** Später, wenn die Zahl der Abläufe wächst
+
+### Summary
+- **Acceptance Criteria:** 20/20 bestanden (3 davon nur per Code-Review, Browser-Test steht aus)
+- **Bugs Found:** 3 total (0 critical, 0 high, 0 medium, 3 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; Auswählen/Schließen/Abhaken einmal im Browser prüfen.
 
 ## Deployment
 _To be added by /deploy_
