@@ -117,8 +117,8 @@ describe('view', function () {
         ]);
 
         $section = str(procedureCase(['return']))->after('id="ablaeufe"')->toString();
-
-        expect(preg_match_all('/<details x-show="shown\([^)]*\)"\s*\n?\s*open/', $section))->toBe(1);
+        expect(preg_match_all('/<details data-procedure="PROCEDURE-00\d"\s+open/', $section))->toBe(1)
+            ->and(preg_match_all('/<details data-procedure="PROCEDURE-00\d"/', $section))->toBe(3);
     });
 
     test('procedures never go to the ai', function () {
@@ -180,5 +180,49 @@ describe('qa additions', function () {
 
         expect($finder->suggested($group, [], 'complaint', ['return']))->toBe([])
             ->and(count($finder->suggested($group, ['magic-mug'], 'complaint', ['return'])))->toBe(1);
+    });
+});
+
+describe('bug fixes', function () {
+    test('only suggested procedures come with the page; a picked one is loaded as a fragment', function () {
+        $html = procedureCase(['return']);
+
+        expect($html)->toContain('data-procedure="PROCEDURE-001"')->toContain('data-procedure="PROCEDURE-002"')
+            ->not->toContain('data-procedure="PROCEDURE-003"')
+            ->toContain('PROCEDURE-003');
+
+        $this->get(route('procedures.show', ['id' => 'PROCEDURE-003']))
+            ->assertOk()
+            ->assertSee('data-procedure="PROCEDURE-003"', false)
+            ->assertSee('data-close-procedure="PROCEDURE-003"', false)
+            ->assertSeeText('Erstattung')
+            ->assertSee('class="procedure-check"', false);
+    });
+
+    test('the fragment exists only for usable procedures', function () {
+        $this->get(route('procedures.show', ['id' => 'PROCEDURE-004']))->assertNotFound();
+        $this->get(route('procedures.show', ['id' => 'PROCEDURE-999']))->assertNotFound();
+        $this->get(route('procedures.show', ['id' => 'POLICY-001']))->assertNotFound();
+        $this->get('/ablaeufe/abc')->assertNotFound();
+    });
+
+    test('closed suggestions are remembered per analysis, picks per ticket', function () {
+        $html = procedureCase(['return']);
+
+        expect($html)->toMatch('/closedKey: .{0,8}procedures\.closed\.[0-9a-f-]{36}/')
+            ->toMatch('/pickedKey: .{0,8}procedures\.picked\.2137942/');
+    });
+
+    test('the note names the real reason: customer group or product', function () {
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'products/magic-mug.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Zaubertasse']),
+            'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'Tasse', 'actions' => ['return'], 'products' => ['magic-mug']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. a\n\n# Abschlusskontrolle\n\n- [ ] a"),
+            'procedures/procedure-002-b.md' => knowledgeDoc(['id' => 'PROCEDURE-002', 'type' => 'procedure', 'title' => 'Amazon', 'actions' => ['return'], 'sales_channels' => ['amazon']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. a\n\n# Abschlusskontrolle\n\n- [ ] a"),
+        ]);
+
+        $html = procedureCase(['return']);
+
+        expect($html)->toContain('gilt nur für: magic-mug')->toContain('gilt nicht für diese Kundengruppe');
     });
 });

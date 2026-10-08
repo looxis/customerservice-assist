@@ -204,39 +204,47 @@ class AnalysisPanel
     }
 
     /**
-     * Internal procedures for the shown analysis (PROJ-30): suggested ones
-     * from its category and actions, and all usable ones to pick by hand.
+     * Internal procedures for the shown analysis (PROJ-30): the suggested
+     * ones ready to show, and the list of all usable ones to pick by hand
+     * (their text is loaded when picked).
      *
      * @param  array<string, mixed>  $result
-     * @return array{all: array<string, array<string, mixed>>, suggested: list<string>, catalogue: array<string, list<array{id: string, fits: bool}>>}
+     * @return array{suggested: list<array<string, mixed>>, catalogue: array<string, list<array{id: string, title: string|null, draft: bool, note: string|null}>>}
      */
     private function procedures(array $result): array
     {
         $finder = app(ProcedureFinder::class);
-        $renderer = app(ProcedureRenderer::class);
         $group = $this->selector->customerGroup((string) ($result['inputs']['kundengruppe'] ?? $result['meta']['customer_group'] ?? 'unclear'))
             ?? $this->selector->customerGroup('unclear');
         $products = array_values((array) ($result['meta']['products'] ?? []));
-        $catalogue = $finder->catalogue($group, $products);
-        $all = [];
-
-        foreach ($catalogue as $entries) {
-            foreach ($entries as $entry) {
-                $document = $entry['document'];
-                $all[$document->id] ??= [
-                    'id' => $document->id,
-                    'title' => $document->title,
-                    'draft' => $document->isDraft(),
-                    'actions' => array_map(fn (string $action): string => config("knowledge.actions.{$action}", $action), $document->actions()),
-                    'html' => $renderer->render($document),
-                ];
-            }
-        }
 
         return [
-            'all' => $all,
-            'suggested' => array_map(fn (KnowledgeDocument $document): string => $document->id, $finder->suggested($group, $products, $result['result']['category'] ?? null, array_values((array) ($result['result']['actions'] ?? [])))),
-            'catalogue' => array_map(fn (array $entries): array => array_map(fn (array $entry): array => ['id' => $entry['document']->id, 'fits' => $entry['fits']], $entries), $catalogue),
+            'suggested' => array_map(
+                fn (KnowledgeDocument $document): array => self::procedureCard($document),
+                $finder->suggested($group, $products, $result['result']['category'] ?? null, array_values((array) ($result['result']['actions'] ?? []))),
+            ),
+            'catalogue' => array_map(fn (array $entries): array => array_map(fn (array $entry): array => [
+                'id' => $entry['document']->id,
+                'title' => $entry['document']->title,
+                'draft' => $entry['document']->isDraft(),
+                'note' => $entry['note'],
+            ], $entries), $finder->catalogue($group, $products)),
+        ];
+    }
+
+    /**
+     * What the card of a procedure needs.
+     *
+     * @return array{id: string, title: string|null, draft: bool, actions: list<string>, html: HtmlString}
+     */
+    public static function procedureCard(KnowledgeDocument $document): array
+    {
+        return [
+            'id' => (string) $document->id,
+            'title' => $document->title,
+            'draft' => $document->isDraft(),
+            'actions' => array_map(fn (string $action): string => config("knowledge.actions.{$action}", $action), $document->actions()),
+            'html' => app(ProcedureRenderer::class)->render($document),
         ];
     }
 

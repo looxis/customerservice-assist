@@ -50,10 +50,11 @@ class ProcedureFinder
 
     /**
      * All usable procedures grouped by action (in the order of the action
-     * list), each with whether it fits the customer group and products.
+     * list), each with a note when it does not fit the customer group or the
+     * chosen products.
      *
      * @param  list<string>  $products
-     * @return array<string, list<array{document: KnowledgeDocument, fits: bool}>>
+     * @return array<string, list<array{document: KnowledgeDocument, note: string|null}>>
      */
     public function catalogue(CustomerGroup $group, array $products): array
     {
@@ -62,12 +63,24 @@ class ProcedureFinder
         foreach (array_keys(config('knowledge.actions')) as $action) {
             foreach ($this->procedures() as $procedure) {
                 if (in_array($action, $procedure->actions(), true)) {
-                    $grouped[$action][] = ['document' => $procedure, 'fits' => $this->selector->scopeExclusionReason($procedure, $group, $products) === null];
+                    $grouped[$action][] = ['document' => $procedure, 'note' => match (true) {
+                        $group->exclusionReason($procedure) !== null => 'gilt nicht für diese Kundengruppe',
+                        $this->selector->scopeExclusionReason($procedure, $group, $products) !== null => 'gilt nur für: '.implode(', ', $procedure->boundProducts()),
+                        default => null,
+                    }];
                 }
             }
         }
 
         return $grouped;
+    }
+
+    /**
+     * A usable procedure by its ID, or null.
+     */
+    public function find(string $id): ?KnowledgeDocument
+    {
+        return collect($this->procedures())->first(fn (KnowledgeDocument $document): bool => $document->id === $id);
     }
 
     /**

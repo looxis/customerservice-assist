@@ -260,22 +260,25 @@ Keine neuen Pakete.
 
 #### BUG-1: Geschlossener Vorschlag bleibt für die Sitzung geschlossen, auch nach neuer Analyse
 - **Severity:** Low
+- **Status:** Behoben 2026-10-08 – geschlossene Vorschläge werden je Analyse gemerkt; eine neue Analyse zeigt ihre Vorschläge wieder. Selbst gewählte Abläufe bleiben je Ticket.
 - **Steps to Reproduce:** Vorgeschlagenen Ablauf „Schließen“, Ticket erneut analysieren (gleicher Vorgang empfohlen). Erwartet: Vorschlag erscheint wieder. Tatsächlich: bleibt ausgeblendet, bis er über „Ablauf auswählen“ wieder gewählt oder der Browser-Tab neu geöffnet wird.
 - **Priority:** Nice to have
 
 #### BUG-2: Hinweis „gilt nicht für diese Kundengruppe“ auch bei unpassendem Produkt
 - **Severity:** Low
+- **Status:** Behoben 2026-10-08 – bei unpassendem Produkt steht „gilt nur für: [Produkte]“.
 - **Steps to Reproduce:** Ablauf mit `products: [magic-mug]`, Analyse ohne dieses Produkt, „Ablauf auswählen“ öffnen. Erwartet: zutreffender Hinweis (z. B. „gilt nur für Zaubertasse“). Tatsächlich: „gilt nicht für diese Kundengruppe“.
 - **Priority:** Nice to have
 
 #### BUG-3: Alle Abläufe werden mit jeder Ergebnisseite ausgeliefert
 - **Severity:** Low
+- **Status:** Behoben 2026-10-08 – nur vorgeschlagene Abläufe kommen mit der Seite; ein selbst gewählter wird beim Auswählen nachgeladen (`GET /ablaeufe/{ID}`, nur verwendbare Arbeitsabläufe, sonst 404).
 - **Steps to Reproduce:** Viele Procedure-Dateien anlegen, Ticket mit Analyse öffnen. Die Seite enthält den Text aller verwendbaren Abläufe (heute 1 Ablauf, unkritisch); bei vielen Dutzend wächst die Seite spürbar.
 - **Priority:** Später, wenn die Zahl der Abläufe wächst
 
 ### Summary
 - **Acceptance Criteria:** 20/20 bestanden (3 davon nur per Code-Review, Browser-Test steht aus)
-- **Bugs Found:** 3 total (0 critical, 0 high, 0 medium, 3 low)
+- **Bugs Found:** 3 total (0 critical, 0 high, 0 medium, 3 low) – alle behoben 2026-10-08
 - **Security:** Pass
 - **Production Ready:** YES
 - **Recommendation:** Freigeben; Auswählen/Schließen/Abhaken einmal im Browser prüfen.

@@ -5,6 +5,7 @@ use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
+use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketController;
@@ -22,6 +23,8 @@ Route::get('/ueber-die-app', AboutController::class)->name('about');
 
 Route::post('/name', StaffSelectionController::class)->name('staff.select');
 Route::post('/testmodus', TestModeController::class)->name('test-mode.switch');
+
+Route::get('/ablaeufe/{id}', [ProcedureController::class, 'show'])->where('id', '[A-Z]+-[0-9]{3}')->name('procedures.show');
 
 Route::get('/wissensluecken', [KnowledgeGapController::class, 'index'])->name('knowledge-gaps.index');
 Route::patch('/wissensluecken/{gap}', [KnowledgeGapController::class, 'update'])->middleware('staff.selected')->whereNumber('gap')->name('knowledge-gaps.update');
