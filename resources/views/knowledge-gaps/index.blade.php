@@ -59,20 +59,18 @@
                     </details>
                 @endif
 
-                <div class="flex flex-wrap items-end gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     @if ($gap->status === 'open')
-                        <form method="POST" action="{{ route('knowledge-gaps.update', ['gap' => $gap->id]) }}" class="flex flex-wrap items-end gap-2">
+                        <form method="POST" action="{{ route('knowledge-gaps.update', ['gap' => $gap->id]) }}">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="done">
-                            <x-input name="knowledge_id" :id="'knowledge-id-'.$gap->id" label="Knowledge-ID (optional)" placeholder="z. B. POLICY-016" maxlength="40" />
                             <x-button type="submit"><x-icon name="check" size="16" /> Erledigt</x-button>
                         </form>
-                        <form method="POST" action="{{ route('knowledge-gaps.update', ['gap' => $gap->id]) }}" class="flex flex-wrap items-end gap-2">
+                        <form method="POST" action="{{ route('knowledge-gaps.update', ['gap' => $gap->id]) }}">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="discarded">
-                            <x-input name="reason" :id="'reason-'.$gap->id" label="Grund (optional)" placeholder="z. B. Doppelmeldung" maxlength="500" />
                             <x-button type="submit" variant="secondary"><x-icon name="x" size="16" /> Verwerfen</x-button>
                         </form>
                     @else

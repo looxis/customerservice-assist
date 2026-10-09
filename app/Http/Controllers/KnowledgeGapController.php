@@ -53,11 +53,11 @@ class KnowledgeGapController extends Controller
     }
 
     /**
-     * Mark a gap as done (with the knowledge ID), discard it or open it again.
+     * Mark a gap as done, discard it or open it again.
      */
     public function update(KnowledgeGap $gap, ResolveKnowledgeGapRequest $request, KnowledgeGapLog $gaps, StaffDirectory $staff): RedirectResponse
     {
-        $gaps->resolve($gap, $request->validated('status'), $request->validated('knowledge_id'), $request->validated('reason'), (string) $staff->current($request));
+        $gaps->resolve($gap, $request->validated('status'), (string) $staff->current($request));
 
         return redirect()->route('knowledge-gaps.index')->with('success', match ($request->validated('status')) {
             'done' => 'Wissenslücke als erledigt markiert.',

@@ -70,20 +70,16 @@ class KnowledgeGapLog
         return KnowledgeGap::query()->where('status', 'open')->count();
     }
 
-    public function resolve(KnowledgeGap $gap, string $status, ?string $knowledgeId, ?string $reason, string $staff): void
+    /**
+     * Mark a gap as done or discarded, or open it again: one click, who and
+     * when are kept. Nothing else is asked for.
+     */
+    public function resolve(KnowledgeGap $gap, string $status, string $staff): void
     {
-        $content = $gap->content ?? [];
-
-        if ($status === 'discarded') {
-            $content['reason'] = $this->filled($reason);
-        }
-
         $gap->update([
             'status' => $status,
-            'resolved_by' => $staff,
-            'resolved_at' => now(),
-            'knowledge_id' => $status === 'done' ? $this->filled($knowledgeId) : null,
-            'content' => $gap->content === null ? null : $content,
+            'resolved_by' => $status === 'open' ? null : $staff,
+            'resolved_at' => $status === 'open' ? null : now(),
         ]);
     }
 

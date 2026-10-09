@@ -23,8 +23,6 @@ class ResolveKnowledgeGapRequest extends FormRequest
     {
         return [
             'status' => ['required', 'string', Rule::in(['open', 'done', 'discarded'])],
-            'knowledge_id' => ['nullable', 'string', 'max:40'],
-            'reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

@@ -183,6 +183,9 @@ Keine neuen Pakete.
 - **Seite „Über die App“:** Schritt 8 ohne „in Arbeit“, Hinweis „Schritte mit ‚in Arbeit‘…“ entfernt (keiner mehr offen); Hinweise „an Etienne melden“ verweisen jetzt auf „Lücke melden“/„Wissenslücke melden“.
 - **Tests:** `tests/Feature/PROJ-12-FeedbackTest.php` (18 Fälle). Gesamte Suite: 797 grün.
 
+## Nachbesserung 2026-10-09 (Rückmeldung Product Owner)
+- **Erledigt und Verwerfen ohne Eingaben:** Die Felder „Knowledge-ID“ und „Grund“ sind entfernt; je ein Klick genügt, wer und wann wird automatisch festgehalten. Grund: Eine Lücke wird oft von vielen Dokumenten geschlossen (Rechnungen: zehn), das Feld fasste eine ID, und die Angaben wurden nirgends ausgewertet – Bürokratie ohne Mehrwert. Früher eingetragene IDs und Gründe werden weiter angezeigt. Die Kriterien „optional die ID … angibt“ und „mit kurzem Grund“ gelten damit nicht mehr.
+
 ## QA Test Results
 
 **Tested:** 2026-10-07

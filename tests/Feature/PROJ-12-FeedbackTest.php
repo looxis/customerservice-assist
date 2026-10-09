@@ -185,20 +185,32 @@ describe('list of gaps for admins', function () {
             ->assertSee('Ticket: 2137942', false);
     });
 
-    test('an admin marks a report done with the knowledge id, discards one with a reason, and reopens', function () {
+    test('an admin marks a report done or discards it with one click each, and can reopen it', function () {
         [$done, $discarded] = KnowledgeGap::factory()->count(2)->create();
 
-        $this->withCookie('staff_name', 'Etienne')->patch(route('knowledge-gaps.update', ['gap' => $done->id]), ['status' => 'done', 'knowledge_id' => 'POLICY-016'])->assertRedirect(route('knowledge-gaps.index'));
-        $this->withCookie('staff_name', 'Etienne')->patch(route('knowledge-gaps.update', ['gap' => $discarded->id]), ['status' => 'discarded', 'reason' => 'Doppelmeldung']);
+        $html = $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->getContent();
+        expect($html)->not->toContain('name="knowledge_id"')->not->toContain('name="reason"');
 
-        expect($done->fresh())->status->toBe('done')->knowledge_id->toBe('POLICY-016')->resolved_by->toBe('Etienne')
-            ->and($discarded->fresh()->content['reason'])->toBe('Doppelmeldung');
+        $this->withCookie('staff_name', 'Etienne')->patch(route('knowledge-gaps.update', ['gap' => $done->id]), ['status' => 'done'])->assertRedirect(route('knowledge-gaps.index'));
+        $this->withCookie('staff_name', 'Etienne')->patch(route('knowledge-gaps.update', ['gap' => $discarded->id]), ['status' => 'discarded']);
 
-        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'done']))->assertSeeTextInOrder(['Erledigt (1)', 'Erledigt von Etienne am', 'POLICY-016']);
+        expect($done->fresh())->status->toBe('done')->resolved_by->toBe('Etienne')->resolved_at->not->toBeNull()
+            ->and($discarded->fresh()->status)->toBe('discarded');
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'done']))->assertSeeTextInOrder(['Erledigt (1)', 'Erledigt von Etienne am']);
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'discarded']))->assertSeeTextInOrder(['Verworfen (1)', 'Verworfen von Etienne am']);
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertSeeText('Keine offenen Wissenslücken.');
 
         $this->withCookie('staff_name', 'Etienne')->patch(route('knowledge-gaps.update', ['gap' => $done->id]), ['status' => 'open']);
-        expect($done->fresh()->status)->toBe('open');
+        expect($done->fresh())->status->toBe('open')->resolved_by->toBeNull();
+    });
+
+    test('knowledge ids and reasons entered earlier are still shown', function () {
+        KnowledgeGap::factory()->create(['status' => 'done', 'resolved_by' => 'Etienne', 'resolved_at' => now(), 'knowledge_id' => 'POLICY-019']);
+        KnowledgeGap::factory()->create(['status' => 'discarded', 'resolved_by' => 'Etienne', 'resolved_at' => now(), 'content' => ['missing' => 'x', 'solution' => null, 'comment' => null, 'reason' => 'Doppelmeldung']]);
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'done']))->assertSeeText('POLICY-019');
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'discarded']))->assertSeeText('Doppelmeldung');
     });
 
     test('others cannot change reports', function () {
