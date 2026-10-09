@@ -4,6 +4,8 @@ Customer Service Assist hilft dir, Kundenservice-Tickets richtig zu bearbeiten. 
 
 Der Vorschlag stützt sich auf das Wissen unseres Unternehmens: Regeln, Produktwissen, Abläufe und bewährte Formulierungen. Dieses Wissen heißt in der App **Knowledge**. So musst du nicht erst erfahrene Kollegen fragen oder in Dokumenten suchen. Das gilt besonders, wenn du als Aushilfe oder Vertretung neu dabei bist.
 
+Neben Reklamationen und Fragen hilft die App auch bei **Angebots- und Auftragsanfragen**, die per E-Mail kommen: Ist die Anfrage noch nicht eindeutig, schlägt sie die Rückfragen vor; danach formuliert sie das Angebot oder die Auftragsbestätigung. Preise und Liefertermine rechnet oder rät sie nicht – sie stehen im Wissen, kommen von dir oder bleiben als Stelle zum Ausfüllen im Entwurf (z. B. „[PREIS]“).
+
 # So funktioniert es
 
 1. **Deinen Namen wählen.** Einmal pro Browser, damit nachvollziehbar ist, wer eine Analyse gestartet hat. Dein Name steht danach immer rechts oben; ein Klick darauf wechselt ihn.

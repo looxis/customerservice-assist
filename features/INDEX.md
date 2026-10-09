@@ -50,7 +50,8 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-31 | Einstellungen: KI-Modell und Prompts | Auf der Seite „Einstellungen": Modell je Aufruf (Analyse, Zusammenfassung) per Freitextfeld wählbar, darüber die aktuell beim Anbieter verfügbaren Modelle mit genauer Bezeichnung; Prompts für Zusammenfassung und Analyse ansehen und ändern, jede Änderung als neue Prompt-Version nachvollziehbar | P1 | PROJ-9, PROJ-11 | Roadmap | – | 2026-10-06 |
 | PROJ-32 | Testmodus – Ticket zurückspulen | Admin-Werkzeug (Admin-Liste in der Konfiguration, Schalter je Browser): beantwortete oder geschlossene Tickets auf den Stand einer Kundennachricht zurückspulen; nur Nachrichten bis dahin gehen in Analyse und Zusammenfassung, spätere eingeklappt zum Vergleich; Testläufe gekennzeichnet und von echten Daten getrennt | P0 | PROJ-5, PROJ-6, PROJ-9 | Approved | [Spec](PROJ-32-testmodus-ticket-zurueckspulen.md) | 2026-10-06 |
 | PROJ-33 | Produktvorschlag aus Kundenbegriffen | Neues Frontmatter-Feld `customer_terms` in Produktdateien (frühere Produktnamen, Synonyme, Kundenbegriffe wie „Viamant“); die App erkennt sie im Tickettext und schlägt das Produkt im Analyse-Formular vor, getrennt von `order_keywords` (nur Bestellpositionen) | P0 | PROJ-4, PROJ-6, PROJ-9 | Approved | [Spec](PROJ-33-produktvorschlag-aus-kundenbegriffen.md) | 2026-10-07 |
+| PROJ-34 | Angebotskalkulation | Preise für Angebote in der App berechnen: gepflegte Preislisten, Staffeln, Rabatte je Kundengruppe und Versandkosten als Daten, Berechnung durch die App (nicht durch die KI), Ergebnis als geprüfter Fakt für den Angebotsentwurf. Das Formulieren von Angeboten ohne Kalkulation ist seit 2026-10-09 Teil von PROJ-9 (Kategorie `quote-request`) | P2 | PROJ-9, PROJ-11 | Roadmap | – | 2026-10-09 |
 
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-34
+## Next Available ID: PROJ-35

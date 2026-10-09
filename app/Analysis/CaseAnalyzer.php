@@ -136,7 +136,7 @@ class CaseAnalyzer
                 .' ('.config("knowledge.types.{$entry->document->type}.label").($entry->isDraft() ? ', Entwurf' : '').")\n".$entry->document->body, $selection->selected)));
 
         $sections[] = "# Vorgaben\n"
-            .'Kategorien: '.implode(', ', config('knowledge.categories'))."\n"
+            .'Kategorien: '.implode(', ', array_map(fn (string $key): string => $key.' ('.config("knowledge.category_labels.{$key}", $key).')', config('knowledge.categories')))."\n"
             .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions')));
 
         return implode("\n\n", $sections);

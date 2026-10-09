@@ -12,6 +12,8 @@ Die App entscheidet und sendet nichts selbst. Ein Mensch prüft jeden Vorschlag 
 - **Aushilfen und Vertretungen** (Peaks, Wochenende, Urlaub, Krankheit): kennen Produkte, Produktionsprozesse und Befugnisse nicht ausreichend und sollen nicht aktiv in Dokumentation suchen müssen.
 - **Erfahrene Mitarbeiter und Geschäftsführung:** werden heute unnötig für Eskalationen gebraucht. Ihr Wissen soll in der Knowledge Base stehen.
 
+Seit 2026-10-09 unterstützt die App auch Angebots- und Auftragsanfragen, die per E-Mail über Zammad eingehen: Rückfragen bei unklaren Anfragen und das Formulieren von Angebot oder Auftragsbestätigung nach den Regeln der Knowledge Base.
+
 Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor allem bei unberechtigten Reklamationen, falschen Kundenerwartungen und Fällen, die Produkt- oder Prozesswissen zur Erklärung brauchen. WISMO und Spam sind bereits über n8n automatisiert und nicht Teil dieses Produkts.
 
 ## Core Features (Roadmap)
@@ -51,6 +53,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P2 | Automatische Analyse bei Ticket-Eingang | Roadmap |
 | P2 | Bildanalyse von Reklamationsfotos | Roadmap |
 | P2 | Semantisches Retrieval | Roadmap |
+| P2 | Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
@@ -84,7 +87,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - automatische Bearbeitung beim E-Mail-Eingang
 - automatische Änderungen an Bestellungen, Gutschriften, Erstattungen oder Ersatzaufträge
 - visuelle KI-Analyse von Reklamationsfotos (der Mitarbeiter beschreibt das Ergebnis im Kontextfeld)
-- Fachhändler-Erkennung, Customer Memory, Angebotskalkulation
+- Fachhändler-Erkennung, Customer Memory, Angebotskalkulation im MVP (das Formulieren von Angeboten und Auftragsbestätigungen mit Rückfragen ist seit 2026-10-09 enthalten; Preise nennt die App nur aus dem Wissen oder aus Angaben des Mitarbeiters, sonst als Platzhalter; die Kalkulation ist als P2 eingeplant)
 - semantische Vektorsuche als Voraussetzung
 - automatisches Lernen aus Mitarbeiterkorrekturen
 - komplexe Analytics-Dashboards

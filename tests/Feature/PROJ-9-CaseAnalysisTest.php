@@ -238,7 +238,7 @@ describe('running an analysis', function () {
                 'Antwortentwurf', 'Von der App eingesetzt: Lieferadresse', 'Hallo Erika,',
                 'Begründung', 'Ohne Test kein Urteil.',
                 'Quellen', 'POLICY-001', 'Entwurf',
-                'Kurzfassung', 'Die Tasse bleibt schwarz.', 'Ersatz', 'complaint', 'Thermoeffekt angeblich defekt',
+                'Kurzfassung', 'Die Tasse bleibt schwarz.', 'Ersatz', 'Reklamation', 'Thermoeffekt angeblich defekt',
                 'Bestellung gefunden', 'Antwort abwarten',
                 'Nele', 'gpt-5.5', 'Prompt analysis-',
             ])
@@ -752,5 +752,75 @@ describe('order numbers known from the ticket', function () {
         analyze();
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains((string) $prompt->agent->instructions(), 'Frage nie nach einer Bestellnummer, die dort genannt ist.'));
+    });
+});
+
+describe('quotes and order confirmations', function () {
+    test('the category and the two actions are known to the model with their meaning', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        analyze();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('quote-request (Angebots- oder Auftragsanfrage)')
+            && $prompt->contains('complaint (Reklamation)')
+            && $prompt->contains('quote (Angebot erstellen)')
+            && $prompt->contains('order-confirmation (Auftrag bestätigen)'));
+    });
+
+    test('the prompt forbids invented prices and dates and asks for placeholders instead', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        analyze();
+
+        CaseAgent::assertPrompted(function (AgentPrompt $prompt): bool {
+            $instructions = (string) $prompt->agent->instructions();
+
+            return str_contains($instructions, 'Nenne niemals einen Preis, Rabatt, Versandkostenbetrag oder Liefertermin')
+                && str_contains($instructions, '[PREIS]')
+                && str_contains($instructions, 'Eine Angebotsnummer gibt es nicht')
+                && str_contains($instructions, 'formuliere dann kein Angebot');
+        });
+    });
+
+    test('a quote result shows the german category, the actions and counts the price placeholders as open', function () {
+        CaseAgent::fake([caseAnswer([
+            'category' => 'quote-request', 'assessment' => null, 'actions' => ['quote'],
+            'recommendation' => 'Angebot mit Platzhaltern erstellen.',
+            'reply' => ['language' => 'Deutsch', 'text' => "Guten Tag,\ngern bieten wir Ihnen 50 Tassen zum Preis von [PREIS] an, Lieferung bis [LIEFERTERMIN]."],
+        ])]);
+        analysisTicket();
+
+        $html = $this->get(analyze()->headers->get('Location'))
+            ->assertSeeText('Angebot erstellen')
+            ->assertSeeText('Angebots- oder Auftragsanfrage')
+            ->getContent();
+
+        expect($html)->toContain('zum Preis von [PREIS] an, Lieferung bis [LIEFERTERMIN].');
+    });
+
+    test('the placeholders named in the prompt are all recognised as open places', function () {
+        $restored = (string) app(Pseudonymizer::class)->restore('[PREIS] [VERSANDKOSTEN] [LIEFERTERMIN] [GUELTIG-BIS]');
+
+        expect(substr_count($restored, 'placeholder-missing'))->toBe(4)
+            ->and(file_get_contents(resource_path('prompts/analysis.md')))->toContain('[GUELTIG-BIS]')->not->toContain('[GUELTIG_BIS]');
+    });
+
+    test('knowledge for quotes validates: category, actions for procedures and permissions', function () {
+        $library = knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Zahlungsbedingungen', 'categories' => ['quote-request']]),
+            'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'Auftrag anlegen', 'actions' => ['order-confirmation'], 'categories' => ['quote-request']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. a\n\n# Abschlusskontrolle\n\n- [ ] a"),
+        ]);
+
+        expect(messagesOf($library, 'error'))->toBe('')->and(messagesOf($library, 'warning'))->toBe('');
+    });
+
+    test('the authoring guide explains quotes, the category and the two actions', function () {
+        $guide = file_get_contents(base_path('docs/KNOWLEDGE_AUTHORING_GUIDE.md'));
+
+        expect($guide)->toContain('### Angebote und Auftragsbestätigungen (`quote-request`)')
+            ->toContain('| `quote` | Angebot erstellen |')->toContain('| `order-confirmation` | Auftrag bestätigen |')
+            ->toContain('Sie kalkuliert nicht.')->toContain('[PREIS]');
     });
 });

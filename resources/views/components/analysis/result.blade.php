@@ -207,7 +207,7 @@
                 <dl class="space-y-3">
                     <div><dt class="font-semibold">Was ist passiert?</dt><dd class="mt-1">{{ $text($r['summary']['incident'] ?? '') }}</dd></div>
                     <div><dt class="font-semibold">Was möchte der Kunde?</dt><dd class="mt-1">{{ $text($r['summary']['customer_wish'] ?? '') }}</dd></div>
-                    <div><dt class="font-semibold">Kategorie</dt><dd class="mt-1">{{ $r['category'] ?? '–' }}</dd></div>
+                    <div><dt class="font-semibold">Kategorie</dt><dd class="mt-1">{{ ($r['category'] ?? null) ? config('knowledge.category_labels.'.$r['category'], $r['category']) : '–' }}</dd></div>
                     <div><dt class="font-semibold">Fallmuster</dt><dd class="mt-1">{{ $r['case_pattern'] ?? '–' }}</dd></div>
                 </dl>
             </x-analysis.section>

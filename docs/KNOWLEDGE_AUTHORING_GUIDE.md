@@ -93,6 +93,7 @@ Die App wählt Dokumente über **exakte Übereinstimmung** dieser Werte aus. `3d
 | `complaint` | Reklamation |
 | `product-question` | Frage zum Produkt |
 | `order-process-question` | Frage zum Bestell- oder Produktionsablauf |
+| `quote-request` | Angebots- oder Auftragsanfrage (Kunde bittet per E-Mail um ein Angebot oder erteilt einen Auftrag) |
 
 So wird `categories` gesetzt:
 
@@ -202,6 +203,8 @@ Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Eur
 | `photo-request` | Foto anfordern |
 | `escalation` | Eskalation / Vier-Augen-Prüfung |
 | `invoice-send` | Rechnung versenden (vorhandene Rechnung als PDF) |
+| `quote` | Angebot erstellen |
+| `order-confirmation` | Auftrag bestätigen |
 
 Fehlt ein passender Vorgang, nicht selbst erfinden, sondern als neuen Wert vorschlagen. `customer_types`, `sales_channels`, `products` und `categories` funktionieren wie bei allen anderen Typen: Ein Ablauf nur für Amazon bekommt `sales_channels: [amazon]`.
 
@@ -224,6 +227,31 @@ Fragen beim Erfassen eines Arbeitsablaufs, eine nach der anderen:
 5. Was geht in der Praxis häufig schief?
 6. Woran erkennt man am Ende, dass alles richtig erledigt ist?
 7. Wer wird informiert, was wird im Ticket dokumentiert?
+
+### Angebote und Auftragsbestätigungen (`quote-request`)
+
+Kunden bitten per E-Mail um ein Angebot oder erteilen einen Auftrag, den sie im Shop nicht aufgeben können. Die App hilft in zwei Schritten: Sie stellt Rückfragen, solange die Anfrage nicht eindeutig ist, und formuliert danach das Angebot oder die Auftragsbestätigung. **Sie kalkuliert nicht.** Preise, Rabatte, Versandkosten und Liefertermine nennt sie nur, wenn sie im Wissen stehen oder der Mitarbeiter sie im Feld „Zusätzliche Informationen" einträgt; sonst setzt sie Platzhalter wie `[PREIS]`, `[VERSANDKOSTEN]`, `[LIEFERTERMIN]`, `[GUELTIG-BIS]`, die der Mitarbeiter vor dem Kopieren ausfüllt. Eine Angebotsnummer gibt es nicht; die Zuordnung läuft über die Ticketnummer.
+
+Alle Dokumente dafür bekommen `categories: [quote-request]` (zusätzlich zu anderen Kategorien, wenn sie auch dort gelten) und – wo es Unterschiede gibt – den Geltungsbereich je Kundengruppe (Privatkunde, Fachhändler, LOOXIS-Pro, masterpics). Welcher Dokumenttyp wofür:
+
+| Inhalt | Typ |
+|---|---|
+| Welche Angaben eine Anfrage enthalten muss, bevor ein Angebot möglich ist (Produkt, Ausführung, Menge, Motiv/Vorlage, Liefertermin, Liefer- und Rechnungsempfänger) | `process` |
+| Zahlungs- und Lieferbedingungen, Mindestmengen, Gültigkeitsdauer eines Angebots, Vorauszahlung, Storno eines Auftrags | `policy` |
+| Wer welchen Rabatt oder welche Sonderkondition zusagen darf (`action: quote` bzw. `order-confirmation`) | `permission` |
+| Typische Anfragemuster und der Umgang damit (z. B. „Fachhändler bestellt per E-Mail nach", „Firmenkunde fragt Staffelpreise an") | `playbook` |
+| Aufbau, Standardklauseln und Formulierungen eines Angebots und einer Auftragsbestätigung | `tone` |
+| Vollständige, bewährte Angebote und Auftragsbestätigungen als Muster (ohne Kundendaten, Preise als Platzhalter) | `example-good` |
+| Auftrag von Hand in EOCS anlegen, Angebot ablegen (`actions: [order-confirmation]` bzw. `[quote]`) | `procedure` |
+
+Frage beim Erfassen ausdrücklich:
+
+- „Welche Angaben braucht ihr mindestens, um ein Angebot zu schreiben? Was fragt ihr nach, wenn sie fehlen?"
+- „Welche Bedingungen gelten je Kundengruppe: Zahlungsart und -ziel, Vorauszahlung, Lieferzeit, Versand, Mindestmenge, Gültigkeit des Angebots?"
+- „Welche Sätze stehen in jedem Angebot und in jeder Auftragsbestätigung? Was darf nie fehlen, was nie zugesagt werden?"
+- „Wer darf Rabatte oder Sonderkonditionen zusagen, bis zu welcher Höhe?"
+
+Feste Preise und Preislisten nur aufnehmen, wenn der Autor sie ausdrücklich als verbindlich bestätigt und nennt, bis wann sie gelten; im Zweifel den Platzhalter `[PREIS]` vorsehen. Niemals Preise schätzen oder aus Beispielen ableiten.
 
 ## Inhaltliche Regeln
 

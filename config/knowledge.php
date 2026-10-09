@@ -72,7 +72,15 @@ return [
 
     'sales_channels' => ['looxis-de', 'amazon', 'fachhaendler', 'looxis-pro', 'masterpics'],
 
-    'categories' => ['complaint', 'product-question', 'order-process-question'],
+    'categories' => ['complaint', 'product-question', 'order-process-question', 'quote-request'],
+
+    // What the categories mean, for the language model and the result view.
+    'category_labels' => [
+        'complaint' => 'Reklamation',
+        'product-question' => 'Frage zum Produkt',
+        'order-process-question' => 'Frage zum Bestell- oder Produktionsablauf',
+        'quote-request' => 'Angebots- oder Auftragsanfrage',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -96,6 +104,8 @@ return [
         'photo-request' => 'Foto anfordern',
         'escalation' => 'Eskalation / Vier-Augen-Prüfung',
         'invoice-send' => 'Rechnung versenden',
+        'quote' => 'Angebot erstellen',
+        'order-confirmation' => 'Auftrag bestätigen',
     ],
 
     /*
