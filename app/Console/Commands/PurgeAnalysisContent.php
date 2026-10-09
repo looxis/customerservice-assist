@@ -18,7 +18,7 @@ class PurgeAnalysisContent extends Command
 
         Log::info('Analysis content purged', $counts);
 
-        $this->line("Analysen bereinigt: {$counts['analyses']}, Wissenslücken bereinigt: {$counts['gaps']}, Zusammenfassungen gelöscht: {$counts['summaries']}, gemerkte Auswahlen gelöscht: {$counts['choices']}, Kundengruppen je Kunde gelöscht: {$counts['customers']}");
+        $this->line("Analysen bereinigt: {$counts['analyses']}, Wissenslücken bereinigt: {$counts['gaps']}, Übersetzungen gelöscht: {$counts['translations']}, Zusammenfassungen gelöscht: {$counts['summaries']}, gemerkte Auswahlen gelöscht: {$counts['choices']}, Kundengruppen je Kunde gelöscht: {$counts['customers']}");
 
         return self::SUCCESS;
     }

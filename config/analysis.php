@@ -17,6 +17,7 @@ return [
     'models' => [
         'analysis' => env('ANALYSIS_MODEL', 'gpt-5.5'),
         'summary' => env('SUMMARY_MODEL', 'gpt-5.4-mini'),
+        'translation' => env('TRANSLATION_MODEL', env('SUMMARY_MODEL', 'gpt-5.4-mini')),
     ],
 
     'timeout' => (int) env('ANALYSIS_TIMEOUT', 90),
@@ -34,6 +35,7 @@ return [
     'prompts' => [
         'analysis' => resource_path('prompts/analysis.md'),
         'summary' => resource_path('prompts/summary.md'),
+        'translation' => resource_path('prompts/translation.md'),
     ],
 
     /*
@@ -68,6 +70,13 @@ return [
     // Customer content of analyses, summaries and remembered choices is
     // emptied after this many months; the figures of an analysis stay.
     'content_retention_months' => 12,
+
+    // Translation of messages (PROJ-28): texts shorter than min_length are
+    // not flagged as foreign; one call carries at most batch_characters.
+    'translation' => [
+        'min_length' => 20,
+        'batch_characters' => 12_000,
+    ],
 
     // Feedback levels (PROJ-12). "Usable" counts towards the success figure
     // of the PRD (unchanged plus slightly adapted, at least 70 %).

@@ -52,7 +52,11 @@ class AppServiceProvider extends ServiceProvider
             ->by((app(StaffDirectory::class)->current($request) ?? '').'|'.$request->ip())
             ->response(fn (Request $request): RedirectResponse => LocalRedirect::back($request, route('tickets.analyze'))
                 ->withInput()
-                ->with($request->routeIs('tickets.summary.*') ? 'summary_error' : 'analysis_error', 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.')));
+                ->with(match (true) {
+                    $request->routeIs('tickets.summary.*') => 'summary_error',
+                    $request->routeIs('tickets.translation.*') => 'translation_error',
+                    default => 'analysis_error',
+                }, 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.')));
 
         View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show'], function (\Illuminate\View\View $view): void {
             $staff = app(StaffDirectory::class);

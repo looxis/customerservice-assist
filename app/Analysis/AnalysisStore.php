@@ -5,6 +5,7 @@ namespace App\Analysis;
 use App\Models\Analysis;
 use App\Models\CustomerGroupMemory;
 use App\Models\KnowledgeGap;
+use App\Models\MessageTranslation;
 use App\Models\TicketCaseChoice;
 use App\Models\TicketSummary;
 use Carbon\CarbonImmutable;
@@ -302,13 +303,14 @@ class AnalysisStore
 
         TicketSummary::query()->where('ticket_number', $ticketNumber)->delete();
         TicketCaseChoice::query()->where('ticket_number', $ticketNumber)->delete();
+        MessageTranslation::query()->where('ticket_number', $ticketNumber)->delete();
     }
 
     /**
      * Empty content older than the retention period; drop old summaries,
      * choices and customer memories.
      *
-     * @return array{analyses: int, gaps: int, summaries: int, choices: int, customers: int}
+     * @return array{analyses: int, gaps: int, translations: int, summaries: int, choices: int, customers: int}
      */
     public function purge(): array
     {
@@ -319,6 +321,7 @@ class AnalysisStore
                 ->update(['content' => null, 'feedback_comment' => null, 'content_purged_at' => now()]),
             'gaps' => KnowledgeGap::query()->whereIn('status', ['done', 'discarded'])->whereNotNull('content')->where('resolved_at', '<', $before)
                 ->update(['content' => null, 'content_purged_at' => now()]),
+            'translations' => MessageTranslation::query()->where('created_at', '<', $before)->delete(),
             'summaries' => TicketSummary::query()->where('updated_at', '<', $before)->delete(),
             'choices' => TicketCaseChoice::query()->where('updated_at', '<', $before)->delete(),
             'customers' => CustomerGroupMemory::query()->where('updated_at', '<', now()->subDays((int) config('analysis.customer_group_retention_days')))->delete(),

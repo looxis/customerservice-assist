@@ -160,6 +160,11 @@ class AnalysisPanel
             'reply_text' => is_array($edit) ? (string) $edit['text'] : $original,
             'reply_edited' => is_array($edit) ? 'bearbeitet von '.$edit['staff'].' am '.CarbonImmutable::parse($edit['at'])->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr' : null,
             'inserted' => $this->inserted($reply, $stored['placeholders'] ?? []),
+            'reply_foreign' => ! str_starts_with(mb_strtolower(trim((string) ($stored['result']['reply']['language'] ?? 'Deutsch'))), 'deutsch'),
+            'reply_backtranslation' => isset($stored['reply_backtranslation']['text']) ? [
+                'text' => (string) $stored['reply_backtranslation']['text'],
+                'stale' => ($stored['reply_backtranslation']['fingerprint'] ?? null) !== hash('sha256', trim(is_array($edit) ? (string) $edit['text'] : $original)),
+            ] : null,
             'sources' => $this->sources($stored),
             'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen,
         ];

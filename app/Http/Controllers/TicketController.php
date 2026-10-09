@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisPanel;
+use App\Analysis\Translator;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Http\Requests\AddOrderRequest;
@@ -42,7 +43,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -53,6 +54,7 @@ class TicketController extends Controller
             ], $exception->problem->status());
         }
 
+        $full = $ticket;
         ['ticket' => $ticket, 'later' => $later, 'problem' => $rewindProblem] = $testMode->rewind($ticket, $request, $request->query('stand'));
         $selected = $this->selection($request, $detector);
         $suggestions = $detector->detect($ticket);
@@ -69,6 +71,8 @@ class TicketController extends Controller
             'number' => $number,
             'ticket' => $ticket,
             'later' => $later,
+            'translations' => $translator->translations($full),
+            'untranslated' => count($translator->pending($ticket)),
             'rewindProblem' => $rewindProblem,
             'testMode' => $testMode->isActive($request),
             'selected' => array_map(fn (OrderNumber $order): string => $order->value, $selected),

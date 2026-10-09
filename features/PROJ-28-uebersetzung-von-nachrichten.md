@@ -1,6 +1,6 @@
 # PROJ-28: Übersetzung von Nachrichten
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-08
 **Last Updated:** 2026-10-08
 
@@ -176,6 +176,20 @@ Keine neuen Pakete.
 - Fehlgeschlagene Aufrufe wie bei der Analyse behandeln (verständliche Meldung, Log ohne Inhalte).
 - Seite „Über die App“ um die Übersetzung ergänzen.
 - Tests: Erkennung (deutsch/fremd/kurz/unbestimmbar), Hinweis und Knopf, Speichern und Wiederverwenden, „bereits deutsch“, geänderte Nachricht, Teilfehler, Platzhalter, Anzeige mit Original, Gegenlesen mit „seither geändert“ und Wiederverwendung, Bereinigung/Löschen, Name und Admin-Prüfung.
+
+## Implementation Notes (Frontend + Backend)
+**Gebaut am 2026-10-09**, Frontend und Backend in einem Durchgang.
+
+- **Tabelle** `message_translations` (Migration 2026_10_09_061844): eine Zeile je Zammad-Nachricht mit Fingerabdruck des bereinigten Originaltexts, Zustand `translated`/`german`, Sprache, deutschem Text (verschlüsselt), Name, Modell, Prompt-Version. Modell `MessageTranslation` mit Factory.
+- **`App\Analysis\LanguageDetector`:** zählt häufige deutsche Wörter gegen häufige Wörter in Englisch, Französisch, Italienisch, Niederländisch, Spanisch; unter 20 Zeichen (`analysis.translation.min_length`) oder ohne erkennbare Wörter „unbestimmt“.
+- **`App\Analysis\Translator`:** `translations()` (nur gültige, Fingerabdruck passt), `pending()` (als fremd erkannt, ohne gültige Übersetzung), `translate()` (alle nicht als deutsch erkannten Nachrichten ohne Übersetzung, in Teilen zu höchstens `analysis.translation.batch_characters` = 12.000 Zeichen; Teilfehler lassen die übrigen gespeichert; „bereits deutsch“ wird gemerkt), `backTranslate()` (Rückübersetzung des Entwurfs, an der Analyse gespeichert, Wiederverwendung bei gleichem Text). Kontaktdaten über `Pseudonymizer` ersetzt und wieder eingesetzt.
+- **Agent und Prompt:** `Agents\TranslationAgent` (strukturierte Antwort je Nachricht-ID), `resources/prompts/translation.md` (`translation-2026-10-09.1`), Modell `analysis.models.translation` (`TRANSLATION_MODEL`, Standard wie die Zusammenfassung).
+- **Routen** (Name erforderlich, gleiche Begrenzung der KI-Aufrufe): `POST /tickets/{n}/uebersetzung` (`TranslateTicketRequest`; mit `nachricht` nur für Admins: einzelne Nachricht neu übersetzen), `POST /tickets/{n}/analyse/{uuid}/gegenlesen` (`BackTranslateReplyRequest`, JSON).
+- **Oberfläche:** Hinweis mit „Übersetzen“ und Lade-Overlay über dem Verlauf; Umschalter „Deutsch zuerst / Original zuerst“ (im Browser gemerkt); Nachricht mit „Übersetzt aus … · KI-Übersetzung“, Text als reiner Text, „Original anzeigen“; „Neu übersetzen“ für Admins. Originaltext ausgelagert in `ticket/article-body`. Am Entwurf „Auf Deutsch gegenlesen“ mit Kasten „Rückübersetzung zur Kontrolle – verschickt wird das Original“ und „Entwurf seither geändert – erneut gegenlesen“.
+- **Bereinigung/Löschen:** `analysis:purge` löscht Übersetzungen nach 12 Monaten; das Löschen aller Analysen eines Tickets löscht auch dessen Übersetzungen. Rückübersetzungen liegen im Analyse-Inhalt und werden mit ihm bereinigt.
+- **Seite „Über die App“:** Schritte 2 und 7 nennen Übersetzen und Gegenlesen.
+- **Gegenprobe der Erkennung an echten Tickets (ohne KI):** #2137635 (Italienisch, Amazon) 5 von 5 fremd, #2132884 13 von 15 fremd, zwei deutsche Tickets 0; von 40 Tickets der letzten fünf Tage 10 mit fremdsprachiger Nachricht.
+- **Tests:** `tests/Feature/PROJ-28-TranslationTest.php` (27 Fälle). Gesamte Suite: 848 grün. Eine echte Übersetzung gegen OpenAI wurde noch nicht ausgeführt.
 
 ## QA Test Results
 _To be added by /qa_

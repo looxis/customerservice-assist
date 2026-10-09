@@ -64,7 +64,7 @@ class TicketContext
 
         $threshold = config('analysis.summary_threshold');
         $count = count($this->earlier);
-        $length = array_sum(array_map(fn (TicketArticle $article): int => mb_strlen($this->plain($article)), $this->earlier));
+        $length = array_sum(array_map(fn (TicketArticle $article): int => mb_strlen(self::plainText($article)), $this->earlier));
 
         return $count >= $threshold['messages'] || ($count >= $threshold['long_messages'] && $length > $threshold['characters']);
     }
@@ -120,7 +120,7 @@ class TicketContext
     {
         return [
             $this->ticket->title,
-            ...array_map(fn (TicketArticle $article): string => $this->plain($article), array_values(array_filter($this->ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer))),
+            ...array_map(fn (TicketArticle $article): string => self::plainText($article), array_values(array_filter($this->ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer))),
         ];
     }
 
@@ -131,10 +131,10 @@ class TicketContext
             .($article->kind === ArticleKind::Internal ? ' – INTERN, nicht für den Kunden' : '')
             .($article->channel ? " – {$article->channel}" : '');
 
-        return "### {$header}\n".$this->plain($article);
+        return "### {$header}\n".self::plainText($article);
     }
 
-    private function plain(TicketArticle $article): string
+    public static function plainText(TicketArticle $article): string
     {
         $html = preg_replace('/<(br|\/p|\/div|\/li|\/tr|\/h\d|\/blockquote)\b[^>]*>/i', "\n", $article->body->toHtml()) ?? '';
         $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');

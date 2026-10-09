@@ -1,4 +1,4 @@
-@props(['article', 'latest' => false, 'latestLabel' => 'Neueste Nachricht', 'rewindUrl' => null])
+@props(['article', 'latest' => false, 'latestLabel' => 'Neueste Nachricht', 'rewindUrl' => null, 'translation' => null, 'retranslate' => null])
 
 @php
     $tone = match ($article->kind) {
@@ -40,22 +40,46 @@
     </header>
 
     <div class="mt-3">
-        @if ($article->hasText())
-            {{-- body, signature and quote are sanitized by App\Zammad (symfony/html-sanitizer). --}}
-            <div class="mail-text">{{ $article->body }}</div>
-
-            @if ($article->signature)
-                <details class="group mt-2">
-                    <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
-                        <x-icon name="chevron-down" size="16" class="transition group-open:rotate-180" />
-                        <span class="group-open:hidden">Signatur anzeigen</span>
-                        <span class="hidden group-open:inline">Signatur ausblenden</span>
-                    </summary>
-                    <div class="mail-text mt-2 text-slate-600">{{ $article->signature }}</div>
-                </details>
-            @endif
+        @if (($translation['status'] ?? null) === 'translated' && $article->hasText())
+            {{-- German translation first, original one click away (PROJ-28); "Original zuerst" is kept per browser. --}}
+            <div x-data="{ originalFirst: (() => { try { return localStorage.getItem('translation.originalFirst') === '1' } catch (error) { return false } })() }"
+                 x-on:translation-order.window="originalFirst = $event.detail">
+                <div x-show="! originalFirst">
+                    <p class="mb-2 inline-flex items-center gap-1 rounded-md bg-trust-500/10 px-2 py-0.5 text-xs font-medium text-trust-500">Übersetzt aus {{ $translation['language'] ?: 'einer anderen Sprache' }} · KI-Übersetzung</p>
+                    <div class="mail-text whitespace-pre-line">{{ $translation['text'] }}</div>
+                    <details class="group mt-2">
+                        <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                            <x-icon name="chevron-down" size="16" class="transition group-open:rotate-180" />
+                            <span class="group-open:hidden">Original anzeigen</span>
+                            <span class="hidden group-open:inline">Original ausblenden</span>
+                        </summary>
+                        <div class="mt-2 border-l-2 border-slate-200 pl-4"><x-ticket.article-body :article="$article" /></div>
+                    </details>
+                </div>
+                <div x-show="originalFirst" x-cloak>
+                    <x-ticket.article-body :article="$article" />
+                    <details class="group mt-2">
+                        <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                            <x-icon name="chevron-down" size="16" class="transition group-open:rotate-180" />
+                            <span class="group-open:hidden">Übersetzung anzeigen ({{ $translation['language'] ?: 'KI' }} → Deutsch)</span>
+                            <span class="hidden group-open:inline">Übersetzung ausblenden</span>
+                        </summary>
+                        <div class="mail-text mt-2 border-l-2 border-trust-500/30 pl-4 whitespace-pre-line">{{ $translation['text'] }}</div>
+                    </details>
+                </div>
+                @if ($retranslate)
+                    <form method="POST" action="{{ $retranslate['action'] }}" class="mt-2" x-data x-on:submit="$dispatch('loading-start', { title: 'Nachricht wird neu übersetzt …' })">
+                        @csrf
+                        <input type="hidden" name="nachricht" value="{{ $article->id }}">
+                        @foreach ($retranslate['fields'] as $name => $value)
+                            @foreach ((array) $value as $item)<input type="hidden" name="{{ $name }}{{ is_array($value) ? '[]' : '' }}" value="{{ $item }}">@endforeach
+                        @endforeach
+                        <button type="submit" class="text-xs font-semibold text-slate-600 underline hover:text-slate-900">Neu übersetzen</button>
+                    </form>
+                @endif
+            </div>
         @else
-            <p class="text-sm text-slate-600">(kein Text, nur Anhang)</p>
+            <x-ticket.article-body :article="$article" />
         @endif
 
         @if ($article->quote)

@@ -299,6 +299,6 @@ describe('qa additions', function () {
 
         $this->artisan('analysis:purge');
 
-        Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context): bool => $message === 'Analysis content purged' && array_keys($context) === ['analyses', 'gaps', 'summaries', 'choices', 'customers']);
+        Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context): bool => $message === 'Analysis content purged' && array_keys($context) === ['analyses', 'gaps', 'translations', 'summaries', 'choices', 'customers']);
     });
 });
