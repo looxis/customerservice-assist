@@ -46,7 +46,7 @@
             class="absolute right-0 z-40 mt-2 w-56 rounded-lg bg-white p-1 shadow-3 ring-1 ring-slate-200"
         >
             @csrf
-            <p class="px-3 pt-2 pb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Ich bin</p>
+            <p class="px-3 pt-2 pb-1 text-xs font-medium uppercase tracking-wide text-slate-600">Ich bin</p>
             @foreach ($names as $name)
                 <button
                     type="submit"

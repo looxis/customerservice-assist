@@ -276,3 +276,17 @@ describe('qa additions', function () {
         expect($this->withCookie('staff_name', 'Etienne')->get('/tickets/2137942')->getContent())->not->toContain('<script>alert(1)</script>');
     });
 });
+
+describe('bug fixes', function () {
+    test('a test run opened by its link outside the test mode is not called an older analysis', function () {
+        CaseAgent::fake([logAnswer(), logAnswer()]);
+        logAnalysis();
+        $this->withCookie('test_mode', '1');
+        $id = logAnalysis('Etienne', ['stand' => '1']);
+        $this->defaultCookies = [];
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)
+            ->assertSeeText('Testlauf (Stand bis Nachricht vom')
+            ->assertDontSeeText('Ältere Analyse');
+    });
+});

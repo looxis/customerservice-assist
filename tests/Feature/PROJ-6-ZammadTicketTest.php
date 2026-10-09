@@ -59,6 +59,21 @@ describe('input', function () {
     });
 });
 
+describe('mails from people who are agents in zammad', function () {
+    test('a mail written by the ticket customer from their own address counts as customer message, although zammad files it under agent', function () {
+        fakeZammad([
+            zammadArticle(['id' => 1, 'sender' => 'Agent', 'type' => 'email', 'created_by_id' => 77, 'from' => 'Erika Beispiel <erika@example.org>', 'body' => '<p>Ich möchte einen Nano Viamant bestellen.</p>']),
+            zammadArticle(['id' => 2, 'sender' => 'Agent', 'type' => 'email', 'created_by_id' => 77, 'from' => 'LOOXIS Kundenservice <service@looxis.test>', 'body' => '<p>Unsere Antwort.</p>', 'created_at' => '2026-10-02T07:00:00.000Z']),
+            zammadArticle(['id' => 3, 'sender' => 'Agent', 'type' => 'note', 'internal' => true, 'created_by_id' => 77, 'from' => 'Erika Beispiel <erika@example.org>', 'body' => '<p>Notiz.</p>', 'created_at' => '2026-10-03T07:00:00.000Z']),
+            zammadArticle(['id' => 4, 'sender' => 'Agent', 'type' => 'email', 'created_by_id' => 5, 'from' => 'Erika Beispiel <erika@example.org>', 'body' => '<p>Von jemand anderem angelegt.</p>', 'created_at' => '2026-10-04T07:00:00.000Z']),
+        ]);
+
+        $kinds = array_map(fn ($article) => $article->kind->name, app(ZammadClient::class)->ticket('2137942')->articles);
+
+        expect($kinds)->toBe(['Customer', 'Agent', 'Internal', 'Agent']);
+    });
+});
+
 describe('ticket address from zammad', function () {
     test('the address of a ticket in zammad leads to the ticket by its number', function (string $address) {
         Http::preventStrayRequests();

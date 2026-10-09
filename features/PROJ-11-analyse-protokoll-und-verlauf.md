@@ -237,6 +237,7 @@ Keine neuen Pakete (Datenbank und Zeitplaner sind Teil von Laravel).
 
 #### BUG-1: Link auf einen Testlauf zeigt außerhalb des Testmodus „Ältere Analyse“
 - **Severity:** Low
+- **Status:** Behoben 2026-10-09 – „neueste“ wird im eigenen Bereich der Analyse (Ticket bzw. Teststand) verglichen.
 - **Steps to Reproduce:** Im Testmodus einen Testlauf analysieren, den Link (`?analyse=…`) ohne Testmodus oder als Nicht-Admin öffnen. Erwartet: Testlauf gekennzeichnet, ohne „ältere Analyse“. Tatsächlich: Hinweis „Ältere Analyse vom … – nur lesbar“, weil die neueste Analyse des echten Tickets verglichen wird.
 - **Priority:** Nice to have
 

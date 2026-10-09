@@ -60,7 +60,9 @@ class AnalysisPanel
         $result = $this->result($ticket, $resultId ?? $latestId);
 
         if ($result !== null) {
-            $result['is_latest'] = $result['id'] === $latestId;
+            // Compared within the analysis' own scope, so a test run opened by its
+            // link outside the test mode is not taken for an older analysis.
+            $result['is_latest'] = $result['id'] === (($result['scope'] ?? $ticket->summaryKey()) === $ticket->summaryKey() ? $latestId : $this->store->latest((string) $result['scope']));
             $result['gaps_reported'] = app(KnowledgeGapLog::class)->reportedFor($result['id']);
             $result['procedures'] = $this->procedures($result);
         }

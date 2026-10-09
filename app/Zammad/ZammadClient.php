@@ -62,7 +62,7 @@ class ZammadClient
             $customer = isset($data['customer_id']) ? $this->customer((int) $data['customer_id']) : null;
             $state = strtolower((string) ($data['state'] ?? ''));
             $this->orders = [];
-            $thread = $this->articles(is_array($articles) ? $articles : []);
+            $thread = $this->articles(is_array($articles) ? $articles : [], isset($data['customer_id']) ? (int) $data['customer_id'] : null, $customer['email'] ?? null);
 
             return new Ticket(
                 number: (string) $data['number'],
@@ -189,12 +189,21 @@ class ZammadClient
      * @param  list<array<string, mixed>>  $articles
      * @return list<TicketArticle>
      */
-    private function articles(array $articles): array
+    private function articles(array $articles, ?int $customerId = null, ?string $customerEmail = null): array
     {
         usort($articles, fn (array $a, array $b): int => [(string) ($a['created_at'] ?? ''), (int) ($a['id'] ?? 0)] <=> [(string) ($b['created_at'] ?? ''), (int) ($b['id'] ?? 0)]);
 
-        return array_map(function (array $article): TicketArticle {
+        return array_map(function (array $article) use ($customerId, $customerEmail): TicketArticle {
             $sender = strtolower((string) ($article['sender'] ?? ''));
+
+            // Zammad files a mail under "Agent" when its sender is also an agent
+            // (a colleague writing in, a forwarded customer mail, a test mail).
+            // A mail written by the ticket's customer from the customer's own
+            // address is the customer's message all the same.
+            if ($sender === 'agent' && ! ($article['internal'] ?? false) && $customerId !== null && (int) ($article['created_by_id'] ?? 0) === $customerId
+                && filled($customerEmail) && str_contains(strtolower((string) ($article['from'] ?? '')), strtolower((string) $customerEmail))) {
+                $sender = 'customer';
+            }
             $parsed = $this->messageBody->parse($article['body'] ?? '', $article['content_type'] ?? 'text/plain', ours: $sender !== 'customer');
 
             if ($parsed['order'] !== null) {

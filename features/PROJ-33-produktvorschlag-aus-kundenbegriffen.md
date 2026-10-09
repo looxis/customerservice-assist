@@ -216,6 +216,7 @@ Keine neuen Pakete.
 
 #### BUG-1: Mails von Adressen unserer Mitarbeiter gelten nicht als Kundennachricht
 - **Severity:** Low
+- **Status:** Behoben 2026-10-09 (in PROJ-6) – eine nicht interne Nachricht, die der Kunde des Tickets von seiner eigenen Adresse geschrieben hat, gilt als Kundennachricht, auch wenn Zammad sie wegen der Agenten-Rolle des Absenders unter „Agent“ führt. Geprüft an Ticket#2138663.
 - **Steps to Reproduce:** Eine Testmail von der eigenen (in Zammad als Agent bekannten) Adresse an den Kundenservice schicken, Ticket in der App öffnen. Erwartet (aus Sicht des Testers): Produkt aus dem Text erkannt. Tatsächlich: Zammad führt die Nachricht als „Agent“, die App zeigt sie als unsere Nachricht, durchsucht sie nicht und kennt keine „letzte Kundennachricht“. Betrifft auch Kundenmails, die ein Mitarbeiter in Zammad weiterleitet. Bei echten Kundenmails tritt das nicht auf.
 - **Workaround:** Testmails von einer Adresse senden, die in Zammad kein Agent ist.
 - **Priority:** Nice to have (ggf. eigenes kleines Feature: eingehende E-Mails immer als Kundennachricht behandeln)

@@ -35,7 +35,7 @@
             <x-nav-item :href="route('about')" icon="help" :active="request()->routeIs('about')">Über die App</x-nav-item>
         </nav>
 
-        <div class="shrink-0 border-t border-slate-200 p-4 font-mono text-xs text-slate-400">
+        <div class="shrink-0 border-t border-slate-200 p-4 font-mono text-xs text-slate-600">
             Version {{ config('app.version') }}
         </div>
     </aside>

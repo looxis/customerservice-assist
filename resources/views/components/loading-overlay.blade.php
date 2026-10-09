@@ -1,7 +1,10 @@
 {{-- Full-screen overlay for long-running actions. Trigger from anywhere:
-     $dispatch('loading-start', { title: '…', text: '…' }) / $dispatch('loading-stop') --}}
+     $dispatch('loading-start', { title: '…', text: '…' }) / $dispatch('loading-stop').
+     While it is open the page behind cannot be used, by mouse or keyboard. --}}
 <div
+    data-loading-overlay
     x-data="{ open: false, title: '', text: '' }"
+    x-effect="[...document.body.children].forEach((element) => { if (! element.hasAttribute('data-loading-overlay')) { element.inert = open } }); if (open) { $nextTick(() => $refs.box.focus()) }"
     x-on:loading-start.window="title = $event.detail?.title ?? 'Bitte warten …'; text = $event.detail?.text ?? ''; open = true"
     x-on:loading-stop.window="open = false"
     x-on:pageshow.window="open = false"
@@ -9,7 +12,7 @@
     x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4"
 >
-    <div role="alert" aria-live="assertive" class="flex w-full max-w-sm flex-col items-center gap-3 rounded-lg bg-white p-8 text-center shadow-3">
+    <div x-ref="box" tabindex="-1" role="alert" aria-live="assertive" class="outline-none "flex w-full max-w-sm flex-col items-center gap-3 rounded-lg bg-white p-8 text-center shadow-3">
         <x-icon name="refresh" size="28" class="animate-spin text-brand" />
         <p class="text-base font-semibold text-slate-900" x-text="title"></p>
         <p class="text-sm text-slate-600" x-show="text" x-text="text"></p>

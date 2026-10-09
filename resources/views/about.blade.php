@@ -13,19 +13,19 @@
         <h2 class="text-base font-semibold text-slate-900">Aktueller Stand</h2>
         <dl class="mt-4 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">App-Version</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">App-Version</dt>
                 <dd class="mt-1 font-mono text-sm text-slate-900">{{ $version }}</dd>
             </div>
             <div class="sm:col-span-2 md:col-span-1">
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Wissensstand</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Wissensstand</dt>
                 <dd class="mt-1 font-mono text-sm text-slate-900">{{ $state->label() }}</dd>
             </div>
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Verwendbare Dokumente</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Verwendbare Dokumente</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['usable'] }}</dd>
             </div>
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Davon Entwürfe</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Davon Entwürfe</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['draft'] }}</dd>
             </div>
         </dl>

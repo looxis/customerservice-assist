@@ -392,3 +392,8 @@ Legende: [x] bestanden (automatisiert oder per Abruf geprüft) · [~] umgesetzt 
 - `APP_VERSION` beim Ausliefern setzen (Git-Kurz-Hash und Datum), `APP_ENV=production`, `APP_DEBUG=false`, eigener `APP_KEY`.
 - HTTPS am Server, damit `Strict-Transport-Security` greift.
 - Fehler-Tracking nach `docs/production/error-tracking.md`.
+
+## Nachbesserung 2026-10-09 (offene Reste aus der Abnahme)
+- Deutsche Seiten für 405 („So geht das nicht“) und 419 („Die Seite war zu lange offen“).
+- Lade-Overlay sperrt die Seite dahinter für Maus und Tastatur (`inert`) und nimmt den Fokus.
+- Kleine graue Beschriftungen nutzen `text-slate-600` statt `text-slate-400` (Kontrast); ein Test verhindert Rückfälle. Symbole und Platzhalter bleiben heller.

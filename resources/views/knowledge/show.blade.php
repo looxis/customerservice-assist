@@ -49,7 +49,7 @@
 
             @if ($document->topics() !== [])
                 <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="text-sm text-slate-400">Themen:</span>
+                    <span class="text-sm text-slate-600">Themen:</span>
                     @foreach ($document->topics() as $topic)
                         <x-badge compact>{{ $topic }}</x-badge>
                     @endforeach
@@ -58,7 +58,7 @@
 
             @if ($document->relatedKnowledge() !== [])
                 <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                    <span class="text-slate-400">Verweise:</span>
+                    <span class="text-slate-600">Verweise:</span>
                     @foreach ($document->relatedKnowledge() as $reference)
                         @isset($links[$reference])
                             <a href="{{ $links[$reference] }}" class="font-mono font-medium text-brand hover:text-brand-hover">{{ $reference }}</a>
@@ -72,17 +72,17 @@
             @if ($document->type === 'permission')
                 <dl class="mt-6 grid gap-4 border-t border-slate-100 pt-4 text-sm sm:grid-cols-2 md:grid-cols-4">
                     <div>
-                        <dt class="text-slate-400">Maßnahme</dt>
+                        <dt class="text-slate-600">Maßnahme</dt>
                         <dd class="mt-1 font-mono text-slate-900">{{ implode(', ', $document->list('action')) ?: '–' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-slate-400">Kundenservice entscheidet selbst</dt>
+                        <dt class="text-slate-600">Kundenservice entscheidet selbst</dt>
                         <dd class="mt-1 font-semibold text-slate-900">
                             {{ match ($document->frontmatter['agent_allowed'] ?? null) { true => 'Ja', false => 'Nein', default => '–' } }}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-slate-400">Wertgrenze</dt>
+                        <dt class="text-slate-600">Wertgrenze</dt>
                         <dd class="mt-1 font-semibold text-slate-900">
                             @if (is_numeric($limit = $document->frontmatter['max_value_eur'] ?? null))
                                 {{ number_format($limit, fmod((float) $limit, 1.0) === 0.0 ? 0 : 2, ',', '.') }} €
@@ -92,7 +92,7 @@
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-slate-400">Freigabe durch</dt>
+                        <dt class="text-slate-600">Freigabe durch</dt>
                         <dd class="mt-1 font-mono text-slate-900">{{ $document->string('approval_role') ?? '–' }}</dd>
                     </div>
                 </dl>

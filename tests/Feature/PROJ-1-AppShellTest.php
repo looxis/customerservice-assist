@@ -299,3 +299,33 @@ describe('loading overlay', function () {
         $this->get('/')->assertSee('loading-start.window', false);
     });
 });
+
+describe('leftovers fixed', function () {
+    test('a wrong request method shows a german page', function () {
+        config(['app.debug' => false]);
+
+        $this->get('/name')->assertStatus(405)->assertSeeText('So geht das nicht')->assertSeeText('Zur Startseite');
+    });
+
+    test('the expired form page is german', function () {
+        expect(view('errors.419')->render())->toContain('Die Seite war zu lange offen')->toContain('lade die Seite neu');
+    });
+
+    test('the loading overlay locks the page behind it for mouse and keyboard', function () {
+        $html = $this->withoutVite()->get('/')->getContent();
+
+        expect($html)->toContain('data-loading-overlay')->toContain('element.inert = open')->toContain('$refs.box.focus()');
+    });
+
+    test('small grey text uses a colour with enough contrast', function () {
+        foreach (File::allFiles(resource_path('views')) as $file) {
+            foreach (explode("\n", $file->getContents()) as $line) {
+                if (str_contains($line, 'text-slate-400') && ! str_contains($line, 'x-icon') && ! str_contains($line, 'placeholder:text-slate-400')) {
+                    $this->fail("text-slate-400 for text in {$file->getRelativePathname()}");
+                }
+            }
+        }
+
+        expect(true)->toBeTrue();
+    });
+});

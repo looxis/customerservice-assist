@@ -7,7 +7,7 @@
 
     <x-card>
         <h2 class="text-base font-semibold text-slate-900">Farben</h2>
-        <p class="mt-4 text-xs font-medium uppercase tracking-wide text-slate-400">Brand</p>
+        <p class="mt-4 text-xs font-medium uppercase tracking-wide text-slate-600">Brand</p>
         <div class="mt-2 grid grid-cols-5 gap-2 sm:grid-cols-10">
             <div class="h-10 rounded-md bg-brand-50 ring-1 ring-inset ring-slate-200" title="brand-50"></div>
             <div class="h-10 rounded-md bg-brand-100" title="brand-100"></div>
@@ -20,7 +20,7 @@
             <div class="h-10 rounded-md bg-brand-800" title="brand-800"></div>
             <div class="h-10 rounded-md bg-brand-900" title="brand-900"></div>
         </div>
-        <p class="mt-4 text-xs font-medium uppercase tracking-wide text-slate-400">Slate</p>
+        <p class="mt-4 text-xs font-medium uppercase tracking-wide text-slate-600">Slate</p>
         <div class="mt-2 grid grid-cols-5 gap-2 sm:grid-cols-10">
             <div class="h-10 rounded-md bg-slate-50 ring-1 ring-inset ring-slate-200" title="slate-50"></div>
             <div class="h-10 rounded-md bg-slate-100" title="slate-100"></div>
@@ -33,7 +33,7 @@
             <div class="h-10 rounded-md bg-slate-800" title="slate-800"></div>
             <div class="h-10 rounded-md bg-slate-900" title="slate-900"></div>
         </div>
-        <p class="mt-4 text-xs font-medium uppercase tracking-wide text-slate-400">Status</p>
+        <p class="mt-4 text-xs font-medium uppercase tracking-wide text-slate-600">Status</p>
         <div class="mt-2 grid grid-cols-5 gap-2 sm:grid-cols-10">
             <div class="h-10 rounded-md bg-success-500" title="success-500"></div>
             <div class="h-10 rounded-md bg-warning-500" title="warning-500"></div>
@@ -51,7 +51,7 @@
             <p class="text-sm font-semibold text-slate-900">Unterüberschrift, betonter Wert, 14 px</p>
             <p class="text-sm text-slate-900">Fließtext – Manrope, 14 px. Franz jagt im komplett verwahrlosten Taxi quer durch Bayern.</p>
             <p class="text-sm text-slate-600">Sekundärtext und Feld-Hinweis in slate-600.</p>
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Abschnitts-Label</p>
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-600">Abschnitts-Label</p>
             <p class="font-mono text-sm text-slate-900">JetBrains Mono – POLICY-003 · #4711 · 97af4ee</p>
             <p><a href="#" class="text-sm font-medium text-brand hover:text-brand-hover">Primärer Link</a></p>
         </div>

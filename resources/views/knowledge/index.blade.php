@@ -13,19 +13,19 @@
     <x-card>
         <dl class="grid grid-cols-2 gap-6 md:grid-cols-4">
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Dokumente</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Dokumente</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['total'] }}</dd>
             </div>
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Verwendbar</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Verwendbar</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['usable'] }}</dd>
             </div>
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Entwurf</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Entwurf</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['draft'] }}</dd>
             </div>
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-400">Aktiv</dt>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Aktiv</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['active'] }}</dd>
             </div>
         </dl>
@@ -142,7 +142,7 @@
         @endforelse
     @endif
 
-    <p class="pt-2 text-xs font-medium uppercase tracking-wide text-slate-400">Für die Pflege der Knowledge Base</p>
+    <p class="pt-2 text-xs font-medium uppercase tracking-wide text-slate-600">Für die Pflege der Knowledge Base</p>
 
     <x-collapsible title="Prüfergebnis" :open="$errors_->isNotEmpty()">
         <x-slot:meta>
