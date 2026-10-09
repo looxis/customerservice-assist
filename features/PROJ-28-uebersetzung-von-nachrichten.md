@@ -1,6 +1,6 @@
 # PROJ-28: Übersetzung von Nachrichten
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-08
 **Last Updated:** 2026-10-08
 
@@ -106,12 +106,76 @@
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Eigene Tabelle für Übersetzungen je Zammad-Nachricht, Text verschlüsselt, mit Fingerabdruck des Originaltexts | Einmal übersetzt, für alle und in jedem Stand des Tickets (auch Testmodus) sichtbar; geänderte Nachricht wird am Fingerabdruck erkannt | 2026-10-08 |
+| Rückübersetzung des Antwortentwurfs wird an der Analyse gespeichert, mit Fingerabdruck des Entwurfstexts | Gehört zur Analyse, wird mit ihr bereinigt; „seither geändert“ am Fingerabdruck erkennbar | 2026-10-08 |
+| Spracherkennung ohne KI über häufige Wörter (Deutsch gegen die übrigen Sprachen), nur für den Hinweis | Kostet nichts; die endgültige Sprache nennt das Sprachmodell bei der Übersetzung | 2026-10-08 |
+| Ein strukturierter KI-Aufruf für mehrere Nachrichten, bei langen Verläufen in Teilen; günstiges Modell wie bei der Zusammenfassung, eigener versionierter Prompt | Wenige Aufrufe, klare Zuordnung je Nachricht, austauschbar über die Konfiguration | 2026-10-08 |
+| Übersetzt wird der bereinigte Text (wie er an die Analyse ginge), Kontaktdaten über dieselbe Ersetzung wie PROJ-9 | Gleicher Datenschutz, keine Zitate/Signaturen/Textbausteine im Aufruf | 2026-10-08 |
+| „Übersetzen“ als normales Formular mit Lade-Overlay; „Auf Deutsch gegenlesen“ als Hintergrundanfrage | Verlauf wird nach dem Übersetzen ohnehin neu aufgebaut; Gegenlesen soll den Entwurf nicht verlieren | 2026-10-08 |
+| „Original zuerst“ merkt sich der Browser | Persönliche Vorliebe, keine Serverdaten nötig | 2026-10-08 |
+| Bereinigung und Löschen über die Wege aus PROJ-11 | Eine Stelle für Fristen und Löschbegehren | 2026-10-08 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+PROJ-28 ergänzt den Verlauf (PROJ-6) um gespeicherte Übersetzungen und den Antwortentwurf (PROJ-10) um eine Rückübersetzung. Es nutzt die vorhandene Anbindung an das Sprachmodell samt Ersetzung der Kontaktdaten (PROJ-9) und die Datenbank mit Fristen und Löschen (PROJ-11). Keine neuen Pakete.
+
+### A) Bausteine
+```
+Ticketseite
++-- Verlauf (PROJ-6)
+|   +-- Hinweis „N Nachrichten sind nicht auf Deutsch“ + [Übersetzen]   (nur wenn nötig)
+|   +-- Schalter „Deutsch zuerst / Original zuerst“                     (nur wenn Übersetzungen da sind)
+|   +-- Nachricht mit Übersetzung
+|       +-- Kennzeichen „Übersetzt aus Italienisch · KI-Übersetzung“
+|       +-- deutscher Text
+|       +-- „Original anzeigen“ (aufklappbar)   bzw. umgekehrt bei „Original zuerst“
+|       +-- [Neu übersetzen] (nur Admins)
++-- Ergebnis (PROJ-10)
+    +-- Antwortentwurf (nicht deutsch)
+        +-- [Auf Deutsch gegenlesen]
+        +-- Kasten „Rückübersetzung zur Kontrolle – verschickt wird das Original“
+            +-- Hinweis „Entwurf seither geändert – erneut gegenlesen“
+
+Im Hintergrund
++-- Spracherkennung ohne KI (für den Hinweis)
++-- Übersetzer: bereinigter Text → Kontaktdaten ersetzen → Sprachmodell → einsetzen → speichern
++-- Bereinigung und Löschen wie PROJ-11
+```
+
+### B) Daten
+**Übersetzung einer Nachricht** (eine je Zammad-Nachricht):
+- Ticketnummer, Kennung der Nachricht in Zammad, Fingerabdruck des bereinigten Originaltexts
+- erkannte Sprache, Zustand (übersetzt / bereits deutsch)
+- deutscher Text (verschlüsselt)
+- wer, wann, Modell, Prompt-Version
+- wird nach 12 Monaten und beim Löschen aller Analysen des Tickets entfernt
+
+**Rückübersetzung des Antwortentwurfs** (an der Analyse, verschlüsselt mit ihren Inhalten):
+- deutscher Text, Fingerabdruck des Entwurfstexts, wer, wann, Modell
+
+**Im Browser:** die Wahl „Deutsch zuerst / Original zuerst“.
+
+### C) Technische Entscheidungen (für Nicht-Entwickler)
+- **Einmal je Nachricht:** Die Übersetzung hängt an der Nachricht aus Zammad, nicht am Aufruf. Wer das Ticket später öffnet – auch im Testmodus – sieht sie sofort.
+- **Fingerabdruck:** Ändert sich der Text einer Nachricht in Zammad, passt der Fingerabdruck nicht mehr; die Nachricht wird erneut zum Übersetzen angeboten. Beim Antwortentwurf zeigt derselbe Vergleich „seither geändert“.
+- **Erkennen ohne KI:** Die App zählt häufige deutsche Wörter gegen häufige Wörter anderer Sprachen. Das reicht für den Hinweis; die genaue Sprache nennt das Sprachmodell beim Übersetzen. Stuft das Modell eine Nachricht als deutsch ein, wird das gemerkt und nicht erneut gefragt.
+- **Ein Aufruf für viele Nachrichten:** Alle offenen Nachrichten gehen gemeinsam an das Modell und kommen einzeln zugeordnet zurück; bei sehr langen Verläufen in mehreren Teilen. Gelingt ein Teil nicht, bleiben die anderen gespeichert.
+- **Gleicher Datenschutz wie die Analyse:** bereinigter Text, Kontaktdaten als Platzhalter, in der App wieder eingesetzt; gleiche Begrenzung der KI-Aufrufe.
+- **Analyse unverändert:** Sie arbeitet weiter mit dem Original.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Hinweise für /frontend und /backend
+- Übersetzen und Gegenlesen nur mit gewähltem Namen; „Neu übersetzen“ nur für Admins.
+- Übersetzungen werden als reiner Text mit Zeilenumbrüchen angezeigt (kein HTML aus dem Modell).
+- Fehlgeschlagene Aufrufe wie bei der Analyse behandeln (verständliche Meldung, Log ohne Inhalte).
+- Seite „Über die App“ um die Übersetzung ergänzen.
+- Tests: Erkennung (deutsch/fremd/kurz/unbestimmbar), Hinweis und Knopf, Speichern und Wiederverwenden, „bereits deutsch“, geänderte Nachricht, Teilfehler, Platzhalter, Anzeige mit Original, Gegenlesen mit „seither geändert“ und Wiederverwendung, Bereinigung/Löschen, Name und Admin-Prüfung.
 
 ## QA Test Results
 _To be added by /qa_
