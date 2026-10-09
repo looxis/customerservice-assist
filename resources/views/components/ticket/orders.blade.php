@@ -7,45 +7,52 @@
     $inputError = isset($errors) ? $errors->first('bestellnummer') : null;
 @endphp
 
-{{-- Orders of the ticket (PROJ-7): suggestions from the thread, manual input, loaded EOCS orders. --}}
+{{-- Orders of the ticket (PROJ-7): each order number found gets one box with one button to load it
+     from EOCS; the manual input is folded away when a number was found. Loaded orders follow below. --}}
 <section class="mt-6 border-t border-slate-100 pt-4" aria-labelledby="orders-heading">
     <h3 id="orders-heading" class="text-sm font-semibold text-slate-900">Bestellungen</h3>
 
-    @if ($suggestions !== [])
-        <div class="mt-3 flex flex-wrap items-center gap-2" aria-label="Gefundene Bestellnummern">
-            <span class="text-sm text-slate-600">Im Ticket gefunden:</span>
-            @foreach ($suggestions as $suggestion)
-                @if (in_array($suggestion->value, $selected, true))
-                    <span class="inline-flex min-h-9 items-center gap-1 rounded-md bg-brand-tint px-3 font-mono text-sm text-brand-700" aria-current="true">
-                        <x-icon name="check" size="14" /> {{ $suggestion->value }}
-                    </span>
-                @else
-                    <a href="{{ $url([...$selected, $suggestion->value]) }}" x-data x-on:click="$dispatch('loading-start', { title: 'Bestellung wird geladen …' })"
-                       class="inline-flex min-h-9 items-center gap-2 rounded-md bg-white px-3 text-sm text-slate-900 shadow-1 ring-1 ring-slate-300 ring-inset hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-brand">
-                        <span class="font-mono">{{ $suggestion->value }}</span>
-                        <span class="text-xs text-slate-600">{{ $suggestion->format->label() }}</span>
-                    </a>
-                @endif
+    @php
+        // One entry per order number that is known but not loaded: found in the
+        // text and/or named in Amazon's notice (which also carries the product).
+        $known = collect($suggestions)->mapWithKeys(fn ($suggestion) => [$suggestion->value => ['number' => $suggestion->value, 'label' => $suggestion->format->label(), 'items' => []]]);
+        foreach ($mentions as $mention) {
+            $known[$mention->number] = ['number' => $mention->number, 'label' => $known[$mention->number]['label'] ?? null, 'source' => $mention->source, 'items' => $mention->items];
+        }
+        $open = $known->reject(fn ($entry) => in_array($entry['number'], $loadedNumbers, true) || in_array($entry['number'], $selected, true));
+        $anyKnown = $known->isNotEmpty() || $selected !== [];
+    @endphp
+
+    @if ($open->isNotEmpty())
+        <div class="mt-3 space-y-3" aria-label="Im Ticket gefundene Bestellungen">
+            @foreach ($open as $entry)
+                <x-ticket.mention-block :number="$entry['number']" :label="$entry['label']" :source="$entry['source'] ?? null" :items="$entry['items']" :load-url="$url([...$selected, $entry['number']])" />
             @endforeach
             @if ($moreSuggestions)
-                <span class="text-xs text-slate-600">weitere bitte von Hand eintragen</span>
+                <p class="text-xs text-slate-600">Weitere Bestellnummern bitte von Hand eintragen.</p>
             @endif
         </div>
-    @else
-        <p class="mt-3 text-sm text-slate-600">Keine Bestellnummer gefunden – bitte von Hand eintragen.</p>
+    @elseif (! $anyKnown)
+        <p class="mt-3 text-sm text-slate-600">Im Ticket wurde keine Bestellnummer gefunden.</p>
     @endif
 
+    @if ($anyKnown)
+        <details class="group/manual mt-3" @if ($inputError) open @endif>
+            <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                <x-icon name="chevron-right" size="16" class="transition group-open/manual:rotate-90" /> Andere Bestellnummer eingeben
+            </summary>
+    @endif
     <form method="GET" action="{{ route('tickets.orders.add', ['number' => $number]) }}" class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-start"
           x-data x-on:submit="$dispatch('loading-start', { title: 'Bestellung wird geladen …' })">
         @foreach ($selected as $value)
             <input type="hidden" name="bestellungen[]" value="{{ $value }}">
         @endforeach
         <div class="min-w-0 flex-1">
-            <label for="bestellnummer" class="sr-only">Bestellnummer von Hand</label>
-            <input type="text" name="bestellnummer" id="bestellnummer" value="{{ old('bestellnummer') }}" placeholder="Bestellnummer, z. B. 402-4907715-1581912" autocomplete="off"
+            <label for="bestellnummer" @class(['block text-sm font-medium text-slate-900', 'sr-only' => $anyKnown])>Bestellnummer von Hand eingeben</label>
+            <input type="text" name="bestellnummer" id="bestellnummer" value="{{ old('bestellnummer') }}" placeholder="z. B. 402-4907715-1581912" autocomplete="off"
                    @if ($inputError) aria-invalid="true" aria-describedby="bestellnummer-error" @endif
                    @class([
-                       'block w-full rounded-md border-0 bg-white px-3 py-2 font-mono text-sm text-slate-900 shadow-1 ring-1 ring-inset placeholder:font-body placeholder:text-slate-400 focus:ring-2 focus:ring-inset',
+                       'mt-1 block w-full rounded-md border-0 bg-white px-3 py-2 font-mono text-sm text-slate-900 shadow-1 ring-1 ring-inset placeholder:font-body placeholder:text-slate-400 focus:ring-2 focus:ring-inset',
                        'ring-slate-300 focus:ring-brand' => ! $inputError,
                        'ring-danger-500 focus:ring-danger-500' => $inputError,
                    ])>
@@ -53,8 +60,11 @@
                 <p id="bestellnummer-error" class="mt-1 text-sm text-danger-700">{{ $inputError }}</p>
             @endif
         </div>
-        <x-button type="submit" variant="secondary" class="min-h-10">Laden</x-button>
+        <x-button type="submit" variant="secondary" @class(['min-h-10', 'sm:mt-7' => ! $anyKnown, 'sm:mt-1' => $anyKnown])>Abrufen</x-button>
     </form>
+    @if ($anyKnown)
+        </details>
+    @endif
 
     @if ($problem)
         <x-alert type="error" class="mt-4">
@@ -82,9 +92,5 @@
             @endif
         @endforeach
 
-        @foreach ($mentions as $mention)
-            @continue(in_array($mention->number, $loadedNumbers, true) || in_array($mention->number, $selected, true))
-            <x-ticket.mention-block :mention="$mention" :load-url="$url([...$selected, $mention->number])" />
-        @endforeach
     </div>
 </section>

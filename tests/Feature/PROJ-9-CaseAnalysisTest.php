@@ -687,3 +687,70 @@ describe('bug fixes', function () {
         CaseAgent::assertPrompted(fn () => true);
     });
 });
+
+describe('order numbers known from the ticket', function () {
+    test('an order number found in the ticket is loaded from eocs for the analysis without being asked for', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Meine Bestellung 402-0000000-0000001 ist defekt.</p>'])], [analysisOrder()]);
+
+        $response = analyze();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('## Bestellung 402-0000000-0000001 (aus EOCS)') && $prompt->contains('Fototasse Schwarz (Art.-Nr. 11281)'));
+        expect(urldecode((string) $response->headers->get('Location')))->toContain('bestellungen[0]=402-0000000-0000001');
+    });
+
+    test('with the opt-out eocs is not asked, but the analysis still knows the number and the product from the amazon notice', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket([zammadArticle(['id' => 1, 'body' => amazonNotice('Wo bekomme ich die Rechnung?', '305-0000000-0000001', [['B000TEST01', 'Mauspad mit Foto']])])], [analysisOrder()]);
+
+        analyze(['ohne_bestelldetails' => '1']);
+
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'eocs.test'));
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('## Bestellung 305-0000000-0000001 (im Ticket genannt, nicht aus EOCS geladen)')
+            && $prompt->contains('Kanal laut Nummernformat: Amazon')
+            && $prompt->contains('- laut Benachrichtigung im Ticket: Mauspad mit Foto (ASIN B000TEST01)')
+            && ! $prompt->contains('Keine Bestellung geladen.'));
+    });
+
+    test('an order eocs does not know reaches the analysis as a known number, with a note in the result', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000009 fehlt.</p>'])], [analysisOrder()]);
+
+        $this->get(analyze()->headers->get('Location'))
+            ->assertSeeText('Bestellung 402-0000000-0000009 wurde in EOCS nicht gefunden; die Analyse kennt nur die Nummer.');
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('## Bestellung 402-0000000-0000009 (im Ticket genannt, nicht aus EOCS geladen)'));
+    });
+
+    test('when eocs is down the analysis runs with the number only and says so', function () {
+        CaseAgent::fake([caseAnswer()]);
+        fakeZammad([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000001 ist defekt.</p>'])]);
+        Http::fake(['eocs.test/*' => Http::response('down', 500)]);
+
+        $this->get(analyze()->assertRedirect()->headers->get('Location'))
+            ->assertSeeText('Die Bestelldetails konnten nicht aus EOCS geladen werden')
+            ->assertSeeText('Ergebnis der Analyse');
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('402-0000000-0000001 (im Ticket genannt, nicht aus EOCS geladen)'));
+    });
+
+    test('the form announces the automatic loading and offers the opt-out only when a found number is not loaded', function () {
+        analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000001 ist defekt.</p>'])], [analysisOrder()]);
+
+        $this->get('/tickets/2137942')
+            ->assertSeeText('Vor der Analyse ruft die App die Bestelldetails aus EOCS ab: 402-0000000-0000001')
+            ->assertSee('name="ohne_bestelldetails"', false);
+
+        $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
+            ->assertDontSee('name="ohne_bestelldetails"', false);
+    });
+
+    test('the prompt tells the model never to ask for an order number it was given', function () {
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        analyze();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains((string) $prompt->agent->instructions(), 'Frage nie nach einer Bestellnummer, die dort genannt ist.'));
+    });
+});

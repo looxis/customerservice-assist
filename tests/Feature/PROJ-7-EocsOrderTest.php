@@ -105,13 +105,12 @@ describe('order number formats', function () {
         ]);
 
         $this->get('/tickets/2137942')->assertSeeTextInOrder([
-            'Im Ticket gefunden:',
-            '402-0000000-0000001', 'Amazon',
-            '7JI-0WC1-6M49', 'looxis.de / Fachhändler',
+            '402-0000000-0000001', 'Amazon · aus Amazon-Nachricht', 'Bestelldetails aus EOCS abrufen',
+            '7JI-0WC1-6M49', 'looxis.de / Fachhändler · im Ticket gefunden',
             '30019578', 'LOOXIS-Pro',
             '700411247', 'looxis.fr',
             'LmagQ9PV25', 'masterpics',
-            'Bestellnummer von Hand',
+            'Andere Bestellnummer eingeben',
         ]);
 
         Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'eocs.test'));
@@ -120,28 +119,27 @@ describe('order number formats', function () {
     test('a number in the ticket title is suggested too, before the thread', function () {
         fakeZammad([zammadArticle(['body' => '<p>Bestellnummer Tasse: 7JJ-0LQH-1RB6</p>'])], ['title' => 'Bestellung 7JJ-0LFR-2GU7']);
 
-        $html = $this->get('/tickets/2137942')->getContent();
-        preg_match('/aria-label="Gefundene Bestellnummern">(.*?)<\/div>/s', $html, $suggestions);
-
-        expect($suggestions[1])->toMatch('/7JJ-0LFR-2GU7.*7JJ-0LQH-1RB6/s');
+        $this->get('/tickets/2137942')->assertSee('aria-label="Bestellung 7JJ-0LFR-2GU7"', false)
+            ->assertSeeInOrder(['aria-label="Bestellung 7JJ-0LFR-2GU7"', 'aria-label="Bestellung 7JJ-0LQH-1RB6"'], false);
     });
 
     test('tracking numbers, phone numbers, postcodes and links are not suggested', function () {
         ticketWith('<p>Sendung CM983471129DE, Tracking 00340434171079990018, Tel. 0031626176737, PLZ 32423, Code ABCDEFGHIJ, <a href="https://x.example/?o=402-4907715-1581912">Link</a>, Wort Bestellung1</p>');
 
         $this->get('/tickets/2137942')
-            ->assertSeeText('Keine Bestellnummer gefunden – bitte von Hand eintragen.')
-            ->assertDontSeeText('Im Ticket gefunden:');
+            ->assertSeeText('Im Ticket wurde keine Bestellnummer gefunden.')
+            ->assertSeeText('Bestellnummer von Hand eingeben')
+            ->assertDontSeeText('Andere Bestellnummer eingeben')
+            ->assertDontSee('aria-label="Bestellung', false);
     });
 
     test('at most ten suggestions are shown', function () {
         $numbers = implode(' ', array_map(fn (int $i): string => sprintf('402-0000000-%07d', $i), range(1, 12)));
         ticketWith("<p>{$numbers}</p>");
 
-        $html = $this->get('/tickets/2137942')->assertSeeText('weitere bitte von Hand eintragen')->getContent();
-        preg_match('/aria-label="Gefundene Bestellnummern">(.*?)<\/div>/s', $html, $suggestions);
+        $html = $this->get('/tickets/2137942')->assertSeeText('Weitere Bestellnummern bitte von Hand eintragen.')->getContent();
 
-        expect($suggestions[1])->toContain('402-0000000-0000010')->not->toContain('402-0000000-0000011');
+        expect($html)->toContain('aria-label="Bestellung 402-0000000-0000010"')->not->toContain('aria-label="Bestellung 402-0000000-0000011"');
     });
 });
 
@@ -245,7 +243,7 @@ describe('loading orders', function () {
 
         $html = $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
             ->assertSeeTextInOrder(['402-0000000-0000001', 'Amazon.it', 'LX26-00001', 'Zaubertasse schwarz', 'ASIN B000TEST01'])
-            ->assertDontSeeText('Aus EOCS laden')
+            ->assertDontSee('aria-label="Im Ticket gefundene Bestellungen"', false)
             ->getContent();
 
         expect(substr_count($html, 'aria-label="Bestellung 402-0000000-0000001"'))->toBe(1);
@@ -359,7 +357,7 @@ describe('errors', function () {
             ->assertOk()
             ->assertSeeText($message)
             ->assertSeeText('Bestellung 402-0000000-0000001')
-            ->assertSeeText('Im Ticket gefunden:');
+            ->assertSeeText('Andere Bestellnummer eingeben');
 
         $retry ? $response->assertSeeText('Erneut versuchen') : $response->assertDontSeeText('Erneut versuchen');
     })->with([

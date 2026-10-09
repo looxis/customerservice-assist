@@ -13,7 +13,7 @@ use App\Analysis\Summary;
 use App\Analysis\TicketContext;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
-use App\Eocs\OrderLookup;
+use App\Eocs\EocsOrder;
 use App\Http\Requests\AnalyzeTicketRequest;
 use App\Http\Requests\DeleteAnalysesRequest;
 use App\Http\Requests\UpdateReplyRequest;
@@ -23,6 +23,7 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Zammad\OrderMentionItem;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
 use Carbon\CarbonImmutable;
@@ -52,11 +53,42 @@ class AnalysisController extends Controller
             return $back($exception->problem->message($number), $exception->problem->canRetry());
         }
 
+        // Order numbers found in the ticket are loaded from EOCS without being
+        // asked for, unless the employee opted out. Whatever EOCS does not
+        // deliver still reaches the analysis as a known order number.
+        $requested = $this->orderNumbers($request, $detector);
+        $found = array_slice($detector->detect($ticket), 0, OrderNumberDetector::MAX_SUGGESTIONS);
+        // Looking up an EOCS ID takes several seconds, so those are only loaded when chosen by hand.
+        $automatic = array_values(array_filter($found, fn (OrderNumber $order): bool => ! $order->isEocsId()));
+        $toLoad = collect($request->boolean('ohne_bestelldetails') ? $requested : [...$requested, ...$automatic])
+            ->unique(fn (OrderNumber $order): string => $order->value)->take(OrderNumberDetector::MAX_SUGGESTIONS)->values()->all();
+        $orders = [];
+        $inputNotes = [];
+
         try {
-            $orders = collect($eocs->lookup($this->orderNumbers($request, $detector)))->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->values()->all();
+            foreach ($eocs->lookup($toLoad) as $lookup) {
+                $orders = [...$orders, ...$lookup->orders];
+
+                if (! $lookup->found()) {
+                    $inputNotes[] = "Bestellung {$lookup->number->value} wurde in EOCS nicht gefunden; die Analyse kennt nur die Nummer.";
+                }
+            }
         } catch (EocsException $exception) {
-            return $back($exception->problem->message(), $exception->problem->canRetry());
+            $orders = [];
+            $inputNotes[] = 'Die Bestelldetails konnten nicht aus EOCS geladen werden ('.rtrim($exception->problem->message(), '.').'). Die Analyse kennt nur die Bestellnummern aus dem Ticket.';
         }
+
+        $loaded = array_map(fn (EocsOrder $order): string => $order->externalNumber, $orders);
+        $mentions = collect($ticket->orders)->keyBy('number');
+        $mentioned = collect([...$requested, ...$found])
+            ->unique(fn (OrderNumber $order): string => $order->value)
+            ->reject(fn (OrderNumber $order): bool => in_array($order->value, $loaded, true))
+            ->map(fn (OrderNumber $order): array => [
+                'number' => $order->value,
+                'channel' => $order->format->label(),
+                'items' => array_map(fn (OrderMentionItem $item): string => $item->name.($item->asin ? " (ASIN {$item->asin})" : ''), $mentions->get($order->value)?->items ?? []),
+            ])->values()->all();
+        $shown = array_values(array_unique([...array_map(fn (OrderNumber $order): string => $order->value, $requested), ...array_map(fn (OrderNumber $order): string => $order->value, array_filter($toLoad, fn (OrderNumber $order): bool => in_array($order->value, $loaded, true)))]));
 
         $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request));
 
@@ -91,12 +123,14 @@ class AnalysisController extends Controller
                 variant: $variant,
                 summary: $summary,
                 formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
+                mentionedOrders: $mentioned,
+                notes: $inputNotes,
             ));
         } catch (AnalysisException $exception) {
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);
         }
 
-        return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $id]))->withInput();
+        return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $id, 'bestellungen' => $shown]))->withInput();
     }
 
     /**

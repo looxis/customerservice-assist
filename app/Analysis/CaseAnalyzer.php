@@ -87,7 +87,7 @@ class CaseAnalyzer
             'sent_input' => $input,
             'raw_response' => $answer['data'],
             'result' => $checked['result'],
-            'notes' => $checked['notes'],
+            'notes' => [...$request->notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
             'meta' => [
@@ -167,6 +167,15 @@ class CaseAnalyzer
 
             foreach ($order->claims as $claim) {
                 $lines[] = "Reklamationsauftrag {$claim->externalNumber}".($claim->orderedAt ? ' vom '.$claim->orderedAt->format('d.m.Y') : '').', Status: '.($claim->statusName ?? '–');
+            }
+        }
+
+        foreach ($request->mentionedOrders as $mention) {
+            $lines[] = "## Bestellung {$mention['number']} (im Ticket genannt, nicht aus EOCS geladen)";
+            $lines[] = 'Kanal laut Nummernformat: '.($mention['channel'] ?? 'unbekannt').' · Status, Versand und Positionen sind nicht bekannt.';
+
+            foreach ($mention['items'] as $item) {
+                $lines[] = "- laut Benachrichtigung im Ticket: {$item}";
             }
         }
 

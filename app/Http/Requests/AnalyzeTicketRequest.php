@@ -42,6 +42,7 @@ class AnalyzeTicketRequest extends FormRequest
             'variante' => ['required', 'string', Rule::enum(ContextVariant::class)],
             'kontext' => ['nullable', 'string', 'max:'.config('analysis.max_context_length')],
             'stand' => ['nullable', 'integer'],
+            'ohne_bestelldetails' => ['sometimes', 'boolean'],
             'bestellungen' => ['sometimes', 'array', 'max:10'],
             'bestellungen.*' => ['string', 'max:40'],
             'bestellung_nummer' => ['nullable', 'string', 'max:60'],

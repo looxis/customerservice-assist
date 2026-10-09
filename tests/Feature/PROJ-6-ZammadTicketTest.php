@@ -469,7 +469,7 @@ describe('amazon notice', function () {
         $html = $this->get('/tickets/2137942')
             ->assertSeeTextInOrder([
                 'Bestellungen',
-                '402-0000000-0000001', 'aus Amazon-Nachricht', 'Aus EOCS laden',
+                '402-0000000-0000001', 'aus Amazon-Nachricht', 'Bestelldetails aus EOCS abrufen',
                 'Zaubertasse schwarz', 'ASIN B000TEST01',
                 'Fototasse weiß', 'ASIN B000TEST02',
                 'Erste Frage', 'Zweite Frage',
@@ -489,11 +489,13 @@ describe('amazon notice', function () {
         $this->get('/tickets/2137942')->assertSeeTextInOrder(['402-0000000-0000001', '302-0000000-0000002']);
     });
 
-    test('a ticket without amazon notice has no order block', function () {
+    test('a ticket without amazon notice shows the order number found in the text once, without product', function () {
         fakeZammad([zammadArticle(['body' => '<p>Meine Bestellnummer ist 402-0000000-0000001.</p>'])]);
 
         $this->get('/tickets/2137942')
-            ->assertDontSee('aria-label="Bestellung', false)
+            ->assertSee('aria-label="Bestellung 402-0000000-0000001"', false)
+            ->assertSeeText('Amazon · im Ticket gefunden')
+            ->assertDontSeeText('ASIN')
             ->assertSeeText('Meine Bestellnummer ist 402-0000000-0000001.');
     });
 

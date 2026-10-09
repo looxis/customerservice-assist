@@ -1,4 +1,4 @@
-@props(['number', 'analysis', 'selected' => [], 'testMode' => false])
+@props(['number', 'analysis', 'selected' => [], 'testMode' => false, 'unloadedOrders' => []])
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
@@ -150,6 +150,16 @@
             @error('kundengruppe') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
             @error('produkte.*') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
             @error('variante') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
+
+            @if ($unloadedOrders !== [])
+                <div class="rounded-md bg-slate-50 p-3 text-sm ring-1 ring-slate-200 ring-inset">
+                    <p class="text-slate-900">Vor der Analyse ruft die App die Bestelldetails aus EOCS ab: <span class="font-mono">{{ implode(', ', $unloadedOrders) }}</span></p>
+                    <label class="mt-2 inline-flex items-center gap-2 text-slate-700">
+                        <input type="checkbox" name="ohne_bestelldetails" value="1" @checked(old('ohne_bestelldetails')) class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
+                        Bestelldetails nicht abrufen (die Analyse kennt dann nur die Bestellnummer)
+                    </label>
+                </div>
+            @endif
 
             <div class="flex justify-end">
                 <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Analysieren</x-button>

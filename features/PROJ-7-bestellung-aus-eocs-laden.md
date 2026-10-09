@@ -226,6 +226,12 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-7-EocsOrderTest.php` (40 Fälle, EOCS nachgestellt, nur erfundene Daten). Gesamte Suite grün.
 - **Empfehlung an EOCS:** Index bzw. schnellere Abfrage für `filter[id]` oder Freigabe von `GET /api/v1/orders/{id}` für den Token; ein Filter für Folgeaufträge (`origin_order_id`) würde die R1-Abfragen ersetzen.
 
+## Nachbesserung 2026-10-09 (Rückmeldung Product Owner, Ticket#2138702)
+- **Ein Knopf statt drei:** Jede im Ticket gefundene Bestellnummer erscheint einmal als Kasten (Nummer, Kanal, Herkunft „aus Amazon-Nachricht“ bzw. „im Ticket gefunden“, ggf. Produkt aus der Amazon-Benachrichtigung) mit einem Knopf „Bestelldetails aus EOCS abrufen“. Die frühere Zeile „Im Ticket gefunden:“ mit eigenen Knöpfen entfällt.
+- **Textfeld nach Bedarf:** Wurde eine Nummer gefunden, liegt die Eingabe eingeklappt hinter „Andere Bestellnummer eingeben“; wurde keine gefunden, steht „Bestellnummer von Hand eingeben“ direkt da.
+- **Automatisches Laden beim Analysieren** und Übergabe bekannter Nummern an die KI: siehe PROJ-9.
+- Tests in `PROJ-6-ZammadTicketTest.php` und `PROJ-7-EocsOrderTest.php` angepasst.
+
 ## QA Test Results
 
 **Tested:** 2026-10-05
