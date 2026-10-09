@@ -34,12 +34,22 @@ Ist eine Zaubertasse bestellt und zeigt das Foto nur den kalten Zustand, folgt d
 
 # Lösung
 
-Den Thermoeffekt einfach erklären und den Kunden bitten, sich durch Einfüllen heißen Wassers selbst davon zu überzeugen. Den Test nach PROCESS-004 anbieten. Wird anschließend eine Fehlfunktion gemeldet, mit PLAYBOOK-004 weiterprüfen.
+Den Thermoeffekt einfach erklären und den Kunden bitten, sich durch Einfüllen heißen Wassers selbst davon zu überzeugen.
+
+Für einen aussagekräftigen Test PROCESS-004 verwenden. Der Kunde soll Wasser mit mindestens 80 °C verwenden und die Tasse bis ungefähr 1 bis 1,5 cm unterhalb des Tassenrands füllen.
+
+Wird anschließend eine Fehlfunktion gemeldet, mit PLAYBOOK-004 weiterprüfen.
 
 # Formulierungshilfe
 
-„Es tut uns leid, dass die Tasse zunächst anders aussieht, als Sie erwartet haben. Sie haben eine Zaubertasse mit Thermoeffekt bestellt: Im kalten Zustand ist sie außen schwarz. Sobald heißes Wasser die Tasse erwärmt, wird Ihr Motiv sichtbar. Genau dieser Effekt ist die Besonderheit des angebotenen Produkts. Bitte probieren Sie es mit heißem Wasser aus; der Druck wird beim Erwärmen meist von unten nach oben sichtbar.“
+„Es tut uns leid, dass die Tasse zunächst anders aussieht, als Sie erwartet haben. Sie haben eine Zaubertasse mit Thermoeffekt bestellt: Im kalten Zustand ist sie außen schwarz. Sobald heißes Wasser die Tasse erwärmt, wird Ihr Motiv sichtbar. Genau dieser Effekt ist die Besonderheit des angebotenen Produkts.
+
+Für die Prüfung füllen Sie die Tasse bitte mit mindestens 80 °C heißem Wasser bis ungefähr 1 bis 1,5 cm unterhalb des Tassenrands. Warten Sie anschließend kurz. Der Druck wird beim Erwärmen üblicherweise schrittweise von unten nach oben sichtbar.“
 
 # Noch nicht entscheidbar
 
-Fehlt die Produktzuordnung, zuerst die Bestellung intern prüfen. Zeigt ein Foto nur die kalte Tasse, für eine behauptete Fehlfunktion den Test und das Foto nach PROCESS-004 anfordern. Eine Rückmeldung darf nicht als Beweis für einen Mangel oder dessen Ausschluss vorweggenommen werden.
+Fehlt die Produktzuordnung, zuerst die Bestellung intern prüfen.
+
+Zeigt ein Foto nur die kalte Tasse oder eine deutlich zu niedrige Füllhöhe, für die Beurteilung einer behaupteten Fehlfunktion den korrekten Test und das Foto nach PROCESS-004 anfordern.
+
+Eine Rückmeldung darf nicht als Beweis für einen Mangel oder dessen Ausschluss vorweggenommen werden.
