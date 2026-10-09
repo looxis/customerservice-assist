@@ -262,21 +262,25 @@ Keine neuen Pakete.
 
 #### BUG-1: Änderung am Entwurf geht verloren, wenn währenddessen „Auf Deutsch gegenlesen“ läuft
 - **Severity:** Medium
+- **Status:** Behoben 2026-10-09 – Entwurf und Rückübersetzung werden jeweils auf den aktuellen Stand der Analyse geschrieben (lesen und schreiben unter einer Sperre, `AnalysisStore::changeResult()`).
 - **Steps to Reproduce:** „Auf Deutsch gegenlesen“ klicken und während der Wartezeit (einige Sekunden) den Entwurf weiter bearbeiten; die Änderung wird im Hintergrund gespeichert. Ist die Rückübersetzung fertig, schreibt sie den Analyse-Inhalt mit dem Stand von vor der Änderung zurück. Erwartet: Änderung bleibt gespeichert. Tatsächlich: auf dem Server steht wieder der alte Entwurf; im Browser ist der neue Text noch sichtbar, nach dem Neuladen aber weg (sofern nicht erneut getippt wurde). Mit einem Probe-Test bestätigt.
 - **Priority:** Fix before deployment
 
 #### BUG-2: Nachrichten ohne erkennbare Sprache werden mitgeschickt
 - **Severity:** Low
+- **Status:** Behoben 2026-10-09 – Nachrichten ohne ein Wort aus mindestens drei Buchstaben werden nie gesendet.
 - **Steps to Reproduce:** Ticket mit einer fremdsprachigen Nachricht und einer Nachricht, die nur aus Nummern besteht, übersetzen. Erwartet laut Edge Case: keine Übersetzung für die Nummern-Nachricht. Tatsächlich: sie geht mit an das Modell und kann als „Übersetzt aus …“ erscheinen.
 - **Priority:** Nice to have
 
 #### BUG-3: Wer wann übersetzt hat, ist nicht sichtbar
 - **Severity:** Low
+- **Status:** Behoben 2026-10-09 – Name und Zeitpunkt stehen im Kennzeichen der Übersetzung.
 - **Steps to Reproduce:** Übersetzte Nachricht ansehen. Zeitpunkt, Name, Modell und Prompt-Version sind gespeichert, werden aber nirgends angezeigt.
 - **Priority:** Nice to have
 
 #### BUG-4: Gleichzeitiges Übersetzen desselben Tickets kann für einen der beiden mit einem Fehler enden
 - **Severity:** Low
+- **Status:** Behoben 2026-10-09 – eine im selben Moment gespeicherte Übersetzung wird ersetzt statt einen Fehler auszulösen.
 - **Steps to Reproduce:** Zwei Personen klicken im selben Moment „Übersetzen“. Beide Aufrufe laufen; beim Speichern derselben Nachricht kann der zweite auf einen Datenbankfehler laufen (Fehlerseite statt Meldung). Die Übersetzung des ersten bleibt. Nicht nachgestellt, aus dem Code abgeleitet.
 - **Priority:** Nice to have
 
@@ -284,7 +288,7 @@ Keine neuen Pakete.
 
 ### Summary
 - **Acceptance Criteria:** 24/24 bestanden (3 nur per Code-Review, Browser-Test steht aus)
-- **Bugs Found:** 4 total (0 critical, 0 high, 1 medium, 3 low)
+- **Bugs Found:** 4 total (0 critical, 0 high, 1 medium, 3 low) – alle behoben 2026-10-09
 - **Security:** Pass
 - **Production Ready:** YES (kein kritischer oder hoher Bug)
 - **Recommendation:** BUG-1 vor dem Einsatz beheben; Umschalter und Gegenlesen einmal im Browser prüfen.

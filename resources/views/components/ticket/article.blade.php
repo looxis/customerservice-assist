@@ -45,7 +45,7 @@
             <div x-data="{ originalFirst: (() => { try { return localStorage.getItem('translation.originalFirst') === '1' } catch (error) { return false } })() }"
                  x-on:translation-order.window="originalFirst = $event.detail">
                 <div x-show="! originalFirst">
-                    <p class="mb-2 inline-flex items-center gap-1 rounded-md bg-trust-500/10 px-2 py-0.5 text-xs font-medium text-trust-500">Übersetzt aus {{ $translation['language'] ?: 'einer anderen Sprache' }} · KI-Übersetzung</p>
+                    <p class="mb-2 inline-flex items-center gap-1 rounded-md bg-trust-500/10 px-2 py-0.5 text-xs font-medium text-trust-500">Übersetzt aus {{ $translation['language'] ?: 'einer anderen Sprache' }} · KI-Übersetzung<span class="font-normal text-slate-600"> · {{ $translation['staff'] }}, {{ $translation['at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span></p>
                     <div class="mail-text whitespace-pre-line">{{ $translation['text'] }}</div>
                     <details class="group mt-2">
                         <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">

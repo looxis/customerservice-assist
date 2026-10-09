@@ -8,6 +8,7 @@ use App\Models\MessageTranslation;
 use App\Zammad\Ticket;
 use App\Zammad\TicketArticle;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 /**
  * Translates messages of a ticket into German once and keeps the result for
@@ -20,6 +21,7 @@ class Translator
     public function __construct(
         private readonly LanguageModel $model,
         private readonly LanguageDetector $detector,
+        private readonly AnalysisStore $store,
     ) {}
 
     /**
@@ -78,7 +80,7 @@ class Translator
         $articles = array_values(array_filter($ticket->articles, fn (TicketArticle $article): bool => $article->id !== null && $article->hasText() && match (true) {
             $onlyArticleId !== null => $article->id === $onlyArticleId,
             isset($known[$article->id]) => false,
-            default => $this->detector->isForeign(TicketContext::plainText($article)) !== false,
+            default => $this->worthTranslating(TicketContext::plainText($article)),
         }));
 
         $counts = ['translated' => 0, 'german' => 0, 'failed' => 0];
@@ -141,10 +143,22 @@ class Translator
         }
 
         $text = $pseudonymizer->restorePlain($text);
-        $content['reply_backtranslation'] = ['text' => $text, 'fingerprint' => $fingerprint, 'staff' => $staff, 'at' => now()->toIso8601String(), 'model' => $model, 'prompt_version' => $prompt->version];
-        $analysis->update(['content' => $content]);
+        $backTranslation = ['text' => $text, 'fingerprint' => $fingerprint, 'staff' => $staff, 'at' => now()->toIso8601String(), 'model' => $model, 'prompt_version' => $prompt->version];
+
+        // Written onto the record as it is now, not as it was before the call:
+        // the draft may have been edited and saved in the meantime.
+        $this->store->changeResult($analysisId, fn (array $current): array => [...$current, 'reply_backtranslation' => $backTranslation]);
 
         return ['text' => $text, 'reused' => false];
+    }
+
+    /**
+     * Not known to be German and with at least one word: a message of
+     * numbers only (order number, tracking number) is never sent.
+     */
+    private function worthTranslating(string $text): bool
+    {
+        return $this->detector->isForeign($text) !== false && preg_match('/\p{L}{3,}/u', $text) === 1;
     }
 
     public static function fingerprint(TicketArticle $article): string
@@ -182,7 +196,7 @@ class Translator
                 continue;
             }
 
-            MessageTranslation::query()->updateOrCreate(['article_id' => $article->id], [
+            $this->keep(['article_id' => $article->id], [
                 'ticket_number' => $ticket->number,
                 'fingerprint' => self::fingerprint($article),
                 'status' => $german ? 'german' : 'translated',
@@ -197,6 +211,22 @@ class Translator
         }
 
         return $statuses;
+    }
+
+    /**
+     * Store a translation; when someone else stored the same message in the
+     * same moment, theirs is replaced instead of failing.
+     *
+     * @param  array<string, mixed>  $key
+     * @param  array<string, mixed>  $values
+     */
+    private function keep(array $key, array $values): void
+    {
+        try {
+            MessageTranslation::query()->updateOrCreate($key, $values);
+        } catch (UniqueConstraintViolationException) {
+            MessageTranslation::query()->where($key)->first()?->update($values);
+        }
     }
 
     /**

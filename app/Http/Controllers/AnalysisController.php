@@ -173,11 +173,11 @@ class AnalysisController extends Controller
         }
 
         $now = CarbonImmutable::now();
-        $stored['reply_edit'] = $request->boolean('original')
+        $edit = $request->boolean('original')
             ? null
             : ['text' => (string) $request->validated('text', ''), 'staff' => (string) $staff->current($request), 'at' => $now->toIso8601String()];
 
-        $store->updateResult($analysis, $stored);
+        $stored = $store->changeResult($analysis, fn (array $content): array => [...$content, 'reply_edit' => $edit]) ?? $stored;
 
         return response()->json([
             'saved' => true,

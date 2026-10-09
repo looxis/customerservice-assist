@@ -10,6 +10,7 @@ use App\Models\TicketCaseChoice;
 use App\Models\TicketSummary;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -150,6 +151,31 @@ class AnalysisStore
         unset($result['scope']);
 
         Analysis::query()->where('uuid', $id)->whereNotNull('content')->first()?->update(['content' => $result]);
+    }
+
+    /**
+     * Change the stored record of an analysis in one step: the record is read
+     * and written under a lock, so two changes arriving at the same time
+     * (e.g. saving the draft while a back translation finishes) never
+     * overwrite each other.
+     *
+     * @param  callable(array<string, mixed>): array<string, mixed>  $change
+     * @return array<string, mixed>|null The changed record, or null when the analysis has no content.
+     */
+    public function changeResult(string $id, callable $change): ?array
+    {
+        return DB::transaction(function () use ($id, $change): ?array {
+            $analysis = Analysis::query()->where('uuid', $id)->whereNotNull('content')->lockForUpdate()->first();
+
+            if ($analysis === null) {
+                return null;
+            }
+
+            $content = $change($analysis->content);
+            $analysis->update(['content' => $content]);
+
+            return $content;
+        });
     }
 
     /**

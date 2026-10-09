@@ -392,3 +392,48 @@ describe('qa additions', function () {
         translateTicket()->assertSessionHas('translation_done', 3);
     });
 });
+
+describe('bug fixes after qa', function () {
+    test('an edit saved while the back translation runs is kept', function () {
+        $id = foreignAnalysis();
+        TranslationAgent::fake(function () use ($id) {
+            test()->withCredentials()->withCookie('staff_name', 'Nele')->putJson(route('tickets.analysis.reply', ['number' => '2137942', 'analysis' => $id]), ['text' => 'WAEHREND GETIPPT'])->assertOk();
+
+            return translationAnswer([['id' => 'entwurf', 'translation' => 'Rückübersetzt']]);
+        });
+
+        checkReply($id, 'Buongiorno, ci invii una foto per favore.')->assertOk();
+
+        $content = Analysis::query()->where('uuid', $id)->first()->content;
+        expect($content['reply_edit']['text'])->toBe('WAEHREND GETIPPT')->and($content['reply_backtranslation']['text'])->toBe('Rückübersetzt');
+    });
+
+    test('a message of numbers only is never sent for translation', function () {
+        $this->articles[] = zammadArticle(['id' => 9, 'body' => '<p>402-1234567-1234567 / 11282 / 2026-10-01</p>', 'created_at' => '2026-10-05T08:00:00.000Z']);
+        TranslationAgent::fake([translationAnswer([['id' => '1', 'translation' => 'A'], ['id' => '2', 'translation' => 'B']])]);
+
+        translateTicket()->assertSessionHas('translation_done', 2);
+
+        TranslationAgent::assertPrompted(fn (AgentPrompt $prompt): bool => ! $prompt->contains('### Nachricht 9'));
+    });
+
+    test('a translation shows who created it and when', function () {
+        $this->travelTo(now()->setTimezone('Europe/Berlin')->setDate(2026, 10, 9)->setTime(10, 12));
+        TranslationAgent::fake([translationAnswer([['id' => '1', 'translation' => 'A'], ['id' => '2', 'translation' => 'B']])]);
+        translateTicket([], 'Thomas');
+
+        ticketPage()->assertSeeText('KI-Übersetzung · Thomas, 09.10.2026, 10:12 Uhr');
+    });
+
+    test('a translation stored by someone else in the same moment is replaced instead of failing', function () {
+        TranslationAgent::fake(function () {
+            MessageTranslation::factory()->create(['ticket_number' => '2137942', 'article_id' => 1, 'content' => ['text' => 'von der Kollegin']]);
+
+            return translationAnswer([['id' => '1', 'translation' => 'A'], ['id' => '2', 'translation' => 'B']]);
+        });
+
+        translateTicket()->assertSessionHas('translation_done', 2);
+
+        expect(MessageTranslation::query()->where('article_id', 1)->count())->toBe(1);
+    });
+});
