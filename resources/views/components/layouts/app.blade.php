@@ -20,7 +20,15 @@
 <body class="flex h-dvh overflow-hidden">
     <aside class="hidden w-[250px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
         <div class="flex h-[60px] shrink-0 items-center px-6">
-            <a href="{{ route('tickets.analyze') }}" class="truncate font-display text-lg font-semibold text-slate-900">{{ config('app.name') }}</a>
+            {{-- The name on two lines so it is never cut off: the last word goes to the second line, a trailing "App" is left out. --}}
+            @php
+                $nameWords = preg_split('/\s+/', trim(preg_replace('/\s+App$/i', '', (string) config('app.name'))));
+                $nameLast = count($nameWords) > 1 ? array_pop($nameWords) : null;
+            @endphp
+            <a href="{{ route('tickets.analyze') }}" class="font-display text-base leading-tight font-semibold text-slate-900">
+                <span class="block">{{ implode(' ', $nameWords) }}</span>
+                @if ($nameLast)<span class="block">{{ $nameLast }}</span>@endif
+            </a>
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Hauptnavigation">

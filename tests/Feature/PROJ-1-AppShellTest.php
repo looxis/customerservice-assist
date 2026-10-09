@@ -329,3 +329,12 @@ describe('leftovers fixed', function () {
         expect(true)->toBeTrue();
     });
 });
+
+test('the app name in the sidebar is shown on two lines and never cut off, without a trailing "App"', function (string $name) {
+    config(['app.name' => $name]);
+
+    $html = $this->withoutVite()->get('/')->getContent();
+
+    expect($html)->toContain('<span class="block">Customer Service</span>')->toContain('<span class="block">Assist</span>')
+        ->not->toContain('truncate font-display');
+})->with(['Customer Service Assist', 'Customer Service Assist App']);
