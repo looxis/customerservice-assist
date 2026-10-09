@@ -197,10 +197,11 @@ Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Eur
 | `reproduction` | Neuproduktion |
 | `refund` | Erstattung |
 | `partial-refund` | Teilerstattung / Kulanz |
-| `cancellation` | Storno |
+| `cancellation` | Storno einer Bestellung (nicht einer Rechnung) |
 | `address-change` | Adressänderung |
 | `photo-request` | Foto anfordern |
 | `escalation` | Eskalation / Vier-Augen-Prüfung |
+| `invoice-send` | Rechnung versenden (vorhandene Rechnung als PDF) |
 
 Fehlt ein passender Vorgang, nicht selbst erfinden, sondern als neuen Wert vorschlagen. `customer_types`, `sales_channels`, `products` und `categories` funktionieren wie bei allen anderen Typen: Ein Ablauf nur für Amazon bekommt `sales_channels: [amazon]`.
 

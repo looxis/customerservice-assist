@@ -95,6 +95,7 @@ return [
         'address-change' => 'Adressänderung',
         'photo-request' => 'Foto anfordern',
         'escalation' => 'Eskalation / Vier-Augen-Prüfung',
+        'invoice-send' => 'Rechnung versenden',
     ],
 
     /*
