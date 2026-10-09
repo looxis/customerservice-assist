@@ -189,7 +189,8 @@ Keine neuen Pakete.
 - **Bereinigung/Löschen:** `analysis:purge` löscht Übersetzungen nach 12 Monaten; das Löschen aller Analysen eines Tickets löscht auch dessen Übersetzungen. Rückübersetzungen liegen im Analyse-Inhalt und werden mit ihm bereinigt.
 - **Seite „Über die App“:** Schritte 2 und 7 nennen Übersetzen und Gegenlesen.
 - **Gegenprobe der Erkennung an echten Tickets (ohne KI):** #2137635 (Italienisch, Amazon) 5 von 5 fremd, #2132884 13 von 15 fremd, zwei deutsche Tickets 0; von 40 Tickets der letzten fünf Tage 10 mit fremdsprachiger Nachricht.
-- **Tests:** `tests/Feature/PROJ-28-TranslationTest.php` (27 Fälle). Gesamte Suite: 848 grün. Eine echte Übersetzung gegen OpenAI wurde noch nicht ausgeführt.
+- **Fehler beim ersten echten Test behoben (2026-10-09, Ticket#2137635):** „4 Nachrichten konnten nicht übersetzt werden“ – die Ersetzung der Kontaktdaten hatte die Überschrift „### Nachricht 82186“ für Postleitzahl und Ort gehalten und durch `[ADRESSE_n]` ersetzt; das Modell gab die Übersetzungen unter dieser Kennung zurück, die App konnte sie nicht zuordnen. Jetzt wird nur der Nachrichtentext ersetzt, die Überschrift mit der Kennung kommt danach dazu (ebenso beim Gegenlesen).
+- **Tests:** `tests/Feature/PROJ-28-TranslationTest.php` (28 Fälle). Gesamte Suite: 848 grün. Eine echte Übersetzung gegen OpenAI wurde noch nicht ausgeführt.
 
 ## QA Test Results
 _To be added by /qa_

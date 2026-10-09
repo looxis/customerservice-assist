@@ -128,7 +128,7 @@ class Translator
         $prompt = Prompt::load('translation');
         $model = (string) config('analysis.models.translation');
         $pseudonymizer = app(Pseudonymizer::class);
-        $answer = $this->model->ask(new TranslationAgent($prompt->text), $pseudonymizer->apply("### Nachricht entwurf\n".trim($reply)), $model, 'back-translation', $ticketNumber);
+        $answer = $this->model->ask(new TranslationAgent($prompt->text), "### Nachricht entwurf\n".$pseudonymizer->apply(trim($reply)), $model, 'back-translation', $ticketNumber);
         $entry = collect($answer['data']['messages'] ?? [])->first(fn (mixed $message): bool => is_array($message));
         $text = trim((string) ($entry['translation'] ?? ''));
 
@@ -163,9 +163,11 @@ class Translator
         $prompt = Prompt::load('translation');
         $model = (string) config('analysis.models.translation');
         $pseudonymizer = app(Pseudonymizer::class);
-        $input = implode("\n\n", array_map(fn (TicketArticle $article): string => "### Nachricht {$article->id}\n".TicketContext::plainText($article), $batch));
+        // Contact data is replaced in the message text only: the heading with
+        // the ID is added afterwards, so it can never be taken for an address.
+        $input = implode("\n\n", array_map(fn (TicketArticle $article): string => "### Nachricht {$article->id}\n".$pseudonymizer->apply(TicketContext::plainText($article)), $batch));
 
-        $answer = $this->model->ask(new TranslationAgent($prompt->text), $pseudonymizer->apply($input), $model, 'translation', $ticket->number);
+        $answer = $this->model->ask(new TranslationAgent($prompt->text), $input, $model, 'translation', $ticket->number);
         $byId = collect($answer['data']['messages'] ?? [])->filter(fn (mixed $message): bool => is_array($message))->keyBy(fn (array $message): string => trim((string) ($message['id'] ?? '')));
         $statuses = [];
 

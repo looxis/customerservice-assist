@@ -29,7 +29,13 @@ class Pseudonymizer
     /**
      * Postcode and town: German/French/Italian (5 digits) and Dutch (4 digits, 2 letters).
      */
-    private const string ZIP_CITY = '/\b(?:\d{5}|\d{4}\s?[A-Z]{2})\s+[A-ZÄÖÜ][\wäöüßéèêàç\-]+(?:\s[A-ZÄÖÜ][\wäöüßéèêàç\-]+)?/u';
+    /**
+     * Postal code and town on one line. Not a number that a label marks as
+     * something else ("Artikel 11282 Zaubertasse", "Nachricht 82186") and not
+     * a number followed by a unit ("12345 Stück").
+     */
+    private const string ZIP_CITY = '/(?<!Nr\. |Nr |Nr\.: |Artikel |Art\. |Nachricht |Menge |Anzahl |ID |ID: |Rechnung |Bestellung |Auftrag |Ticket |Position |Charge |\#|\-)'
+        .'\b(?:\d{5}|\d{4}\s?[A-Z]{2})[ \t]+(?!(?:Stück|Stk|Euro|EUR|Exemplare|Tassen|Mal|Tage|Uhr|Bilder|Fotos|Artikel|Pakete)\b)[A-ZÄÖÜ][\wäöüßéèêàç\-]+(?:[ \t][A-ZÄÖÜ][\wäöüßéèêàç\-]+)?/u';
 
     /** @var array<string, string> Placeholder => original value. */
     private array $values = [];

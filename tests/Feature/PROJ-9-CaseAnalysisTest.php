@@ -177,6 +177,12 @@ describe('contact data', function () {
         'date' => ['am 05.10.2026 bestellt'],
         'looxis pro order' => ['Auftrag 30019578'],
         'amount' => ['Preis 49,90 Euro'],
+        'article number with product name' => ['Artikel 11282 Zaubertasse bestellt'],
+        'article number after label' => ['Art.-Nr. 11281 Fototasse'],
+        'quantity with unit' => ['Menge 12345 Stück'],
+        'number with unit' => ['20 Stück, 11282 Tassen bestellt'],
+        'heading with message id' => ["### Nachricht 82186\nHello, your order"],
+        'number at line end, capital word on next line' => ["Bestellnummer 30012\nMinden ist schön"],
     ]);
 
     test('placeholders are put back for display, unknown ones are marked', function () {

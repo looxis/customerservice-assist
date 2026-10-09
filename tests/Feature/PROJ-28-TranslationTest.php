@@ -141,6 +141,26 @@ describe('hint and trigger', function () {
     });
 });
 
+describe('bug fixes', function () {
+    test('message ids as zammad assigns them reach the model unchanged and are matched', function () {
+        $this->articles = [
+            zammadArticle(['id' => 82186, 'body' => '<p>Hello, your order has been shipped. Kind regards, we have sent it with DHL.</p>', 'sender' => 'Agent', 'from' => 'Kundenservice']),
+            zammadArticle(['id' => 82577, 'body' => '<p>Buongiorno, la tazza che ho ricevuto non funziona, grazie.</p>', 'created_at' => '2026-10-02T08:00:00.000Z']),
+            zammadArticle(['id' => 82584, 'body' => '<p>Grazie, vorrei una sostituzione per la tazza che non funziona.</p>', 'created_at' => '2026-10-03T08:00:00.000Z']),
+        ];
+        TranslationAgent::fake([translationAnswer([
+            ['id' => '82186', 'language' => 'Englisch', 'translation' => 'Hallo, Ihre Bestellung wurde versendet.'],
+            ['id' => '82577', 'translation' => 'Guten Tag, die Tasse funktioniert nicht.'],
+            ['id' => '82584', 'translation' => 'Danke, ich möchte Ersatz.'],
+        ])]);
+
+        translateTicket()->assertSessionHas('translation_done', 3);
+
+        TranslationAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('### Nachricht 82186') && $prompt->contains('### Nachricht 82577') && $prompt->contains('### Nachricht 82584') && ! $prompt->contains('### Nachricht [ADRESSE'));
+        expect(MessageTranslation::query()->count())->toBe(3);
+    });
+});
+
 describe('errors', function () {
     test('a failing model shows a message and keeps what is stored', function () {
         MessageTranslation::factory()->create(['ticket_number' => '2137942', 'article_id' => 99]);
