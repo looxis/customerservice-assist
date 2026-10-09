@@ -1,6 +1,6 @@
 # PROJ-28: Übersetzung von Nachrichten
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-08
 **Last Updated:** 2026-10-08
 
@@ -193,7 +193,101 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-28-TranslationTest.php` (28 Fälle). Gesamte Suite: 848 grün. Eine echte Übersetzung gegen OpenAI wurde noch nicht ausgeführt.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-09
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+
+**Vorgehen:** Automatisierte Feature-Tests (34 Fälle, KI und Zammad nachgestellt, nur erfundene Daten), Code-Review, Gegenprobe der Spracherkennung an echten Tickets (ohne KI) und eine echte Übersetzung von Ticket#2137635 über OpenAI: alle 5 Nachrichten gespeichert (4 Italienisch, 1 Englisch), die Seite zeigt 5 Kennzeichen „KI-Übersetzung“, 5-mal „Original anzeigen“, keinen offenen Hinweis und den Umschalter. Der Product Owner hatte beim ersten Test den Fehler „4 Nachrichten konnten nicht übersetzt werden“ gefunden; er ist behoben (siehe Implementation Notes). **Nicht geprüft:** die Richtigkeit der Übersetzungen (kein Lesen der Inhalte), das Verhalten im Browser (Umschalter „Original zuerst“, Lade-Anzeige, „Auf Deutsch gegenlesen“) sowie Firefox/Safari und Handy-/Tablet-Breite.
+
+### Acceptance Criteria Status
+
+#### Erkennen und Auslösen
+- [x] Hinweis „N Nachrichten sind nicht auf Deutsch“ mit „Übersetzen“, Erkennung ohne KI
+- [x] Kein Hinweis bei deutschen oder bereits übersetzten Nachrichten
+- [x] Lade-Overlay, zweiter Klick gesperrt (Code-Review)
+- [x] Ein Klick übersetzt alle offenen Nachrichten (Kunde, eigene Antworten, Notizen) und speichert sie
+- [x] „Bereits deutsch“ wird gemerkt und nicht erneut vorgeschlagen
+- [x] Ohne Namen keine Übersetzung
+- [x] Neue fremdsprachige Nachricht: Hinweis nur für sie
+
+#### Anzeige im Verlauf
+- [x] Deutscher Text mit „Übersetzt aus [Sprache] · KI-Übersetzung“, „Original anzeigen“
+- [x] Original unverändert aufklappbar
+- [x] Umschalter „Original zuerst“, je Browser gemerkt (Code-Review)
+- [x] Gespeicherte Übersetzungen erscheinen ohne neuen KI-Aufruf, auch für andere
+- [x] Kontaktdaten in der Übersetzung lesbar, nicht an den Anbieter gesendet
+
+#### Antwortentwurf gegenlesen
+- [x] Knopf nur bei nicht deutschem Entwurf
+- [x] Rückübersetzung mit Kennzeichen „verschickt wird das Original“
+- [x] „Entwurf seither geändert – erneut gegenlesen“
+- [x] Gleicher Text: gespeicherte Rückübersetzung ohne neuen Aufruf
+- [x] Deutscher Entwurf: kein Knopf
+
+#### Speicherung und Schutz
+- [x] Kontaktdaten durch Platzhalter ersetzt und in der App eingesetzt
+- [x] Geänderte Nachricht: Übersetzung veraltet, erneut vorgeschlagen
+- [x] Löschen nach 12 Monaten und mit den Analysen des Tickets
+- [x] Zeitpunkt, Name, Modell und Prompt-Version gespeichert (in der Oberfläche nicht sichtbar, siehe BUG-3)
+
+#### Fehler
+- [x] Modell nicht erreichbar: Meldung, Gespeichertes bleibt
+- [x] Teilfehler: übrige gespeichert, Hinweis bleibt für die fehlenden
+- [x] Begrenzung der KI-Aufrufe mit verständlicher Meldung
+
+### Edge Cases Status
+- [x] Gemischte Sprachen: als fremdsprachig behandelt
+- [x] Sehr kurze Nachrichten: nicht als Hinweis gezählt, aber mitübersetzt
+- [x] Langer Verlauf in Teilen, Teilfehler ohne Verlust
+- [x] Nur der bereinigte Text wird übersetzt
+- [ ] Zwei Mitarbeiter gleichzeitig: nicht geprüft; Risiko siehe BUG-4
+- [x] Testmodus: Übersetzungen sichtbar, Hinweis nur bis zum Schnittpunkt
+- [ ] Sprache nicht bestimmbar (z. B. nur Nummern): wird trotzdem mitgeschickt (BUG-2)
+- [x] „Neu übersetzen“ nur für Admins
+
+### Security Audit Results
+- [x] Name erforderlich; „Neu übersetzen“ nur für Admins (403); Gegenlesen nur für eine Analyse des Tickets (404)
+- [x] CSRF: Formulare mit `@csrf`, Gegenlesen mit Token im Kopf der Hintergrundanfrage
+- [x] XSS: Übersetzung und Sprachname werden escaped (Test mit `<script>`, `<img onerror>`)
+- [x] Anweisungen in Kundennachrichten gehen als Inhalt unter der Nachrichten-Überschrift; der Prompt verbietet, ihnen zu folgen; das Ergebnis wird nur als Text angezeigt
+- [x] Kontaktdaten nicht beim Anbieter, Übersetzungen verschlüsselt, Log ohne Inhalte
+- [x] Fremde Nachrichten-ID: nichts wird übersetzt
+
+### Regression
+- Gesamte Suite: 861 Tests grün. Die geschärfte Adress-Erkennung (PROJ-9) ist mit neuen Fällen abgedeckt; Analyse, Zusammenfassung und Ergebnisansicht unverändert grün.
+- Seite „Über die App“: Übersetzen und Gegenlesen in den Schritten 2 und 7.
+
+### Bugs Found
+
+#### BUG-1: Änderung am Entwurf geht verloren, wenn währenddessen „Auf Deutsch gegenlesen“ läuft
+- **Severity:** Medium
+- **Steps to Reproduce:** „Auf Deutsch gegenlesen“ klicken und während der Wartezeit (einige Sekunden) den Entwurf weiter bearbeiten; die Änderung wird im Hintergrund gespeichert. Ist die Rückübersetzung fertig, schreibt sie den Analyse-Inhalt mit dem Stand von vor der Änderung zurück. Erwartet: Änderung bleibt gespeichert. Tatsächlich: auf dem Server steht wieder der alte Entwurf; im Browser ist der neue Text noch sichtbar, nach dem Neuladen aber weg (sofern nicht erneut getippt wurde). Mit einem Probe-Test bestätigt.
+- **Priority:** Fix before deployment
+
+#### BUG-2: Nachrichten ohne erkennbare Sprache werden mitgeschickt
+- **Severity:** Low
+- **Steps to Reproduce:** Ticket mit einer fremdsprachigen Nachricht und einer Nachricht, die nur aus Nummern besteht, übersetzen. Erwartet laut Edge Case: keine Übersetzung für die Nummern-Nachricht. Tatsächlich: sie geht mit an das Modell und kann als „Übersetzt aus …“ erscheinen.
+- **Priority:** Nice to have
+
+#### BUG-3: Wer wann übersetzt hat, ist nicht sichtbar
+- **Severity:** Low
+- **Steps to Reproduce:** Übersetzte Nachricht ansehen. Zeitpunkt, Name, Modell und Prompt-Version sind gespeichert, werden aber nirgends angezeigt.
+- **Priority:** Nice to have
+
+#### BUG-4: Gleichzeitiges Übersetzen desselben Tickets kann für einen der beiden mit einem Fehler enden
+- **Severity:** Low
+- **Steps to Reproduce:** Zwei Personen klicken im selben Moment „Übersetzen“. Beide Aufrufe laufen; beim Speichern derselben Nachricht kann der zweite auf einen Datenbankfehler laufen (Fehlerseite statt Meldung). Die Übersetzung des ersten bleibt. Nicht nachgestellt, aus dem Code abgeleitet.
+- **Priority:** Nice to have
+
+**Hinweis (kein Bug):** Eine unvollständige Übersetzung erkennt die App nicht von selbst (beim ersten echten Lauf war eine gespeicherte Übersetzung deutlich kürzer als das Original). Idee: Übersetzungen, die viel kürzer sind als das Original, als „bitte prüfen“ kennzeichnen.
+
+### Summary
+- **Acceptance Criteria:** 24/24 bestanden (3 nur per Code-Review, Browser-Test steht aus)
+- **Bugs Found:** 4 total (0 critical, 0 high, 1 medium, 3 low)
+- **Security:** Pass
+- **Production Ready:** YES (kein kritischer oder hoher Bug)
+- **Recommendation:** BUG-1 vor dem Einsatz beheben; Umschalter und Gegenlesen einmal im Browser prüfen.
 
 ## Deployment
 _To be added by /deploy_
