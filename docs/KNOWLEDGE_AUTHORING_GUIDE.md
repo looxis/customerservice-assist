@@ -106,6 +106,8 @@ So wird `categories` gesetzt:
 
 `products`: ein Slug pro Produkt, identisch mit dem Dateinamen in `knowledge/products/` (bei einem auf mehrere Dateien aufgeteilten Produkt: dem Namen des Unterordners). Gilt ein Dokument für alle Produkte, bleibt `products` leer. Dokumente mit `products` verwendet die App nur, wenn der Mitarbeiter eines dieser Produkte gewählt hat.
 
+`exclude_products` (optional): Produkte, für die das Dokument **nicht** gilt, z. B. ein Farb- und Druck-Dokument mit `exclude_products: [2d-glass-photo, 3d-glass-photo]`, weil Glasfotos gelasert und nicht bedruckt werden. Anders als `products` bleibt das Dokument sichtbar, wenn kein Produkt oder ein Produkt außerhalb der Liste gewählt ist; es entfällt nur, wenn **alle** gewählten Produkte in der Liste stehen (bei zwei Produkten, von denen eines nicht ausgeschlossen ist, gilt das Dokument weiter). Dasselbe Produkt darf nicht zugleich in `products` stehen; Produktdateien haben das Feld nicht. Frage beim Erfassen: „Gibt es Produkte, für die das ausdrücklich nicht gilt?“ Nur eintragen, was der Autor bestätigt.
+
 `order_keywords` (nur in Produktdateien): Artikelnummern oder Bezeichnungen, an denen die App das Produkt in einer Bestellposition erkennt und es vorschlägt. Groß- und Kleinschreibung spielt keine Rolle; ein Schlüsselwort passt, wenn es irgendwo in Artikelnummer oder Bezeichnung vorkommt. Deshalb eindeutige Begriffe wählen (mindestens drei Zeichen) und denselben Begriff nicht bei zwei Produkten eintragen; die Prüfung warnt in beiden Fällen. Welche Schlüsselwörter schon vergeben sind, steht im Sitzungsstart-Block.
 
 - Frage beim Erfassen jeder Produktdatei ausdrücklich: „Woran erkennt man das Produkt in einer Bestellung? Welche Artikelnummern oder Artikelbezeichnungen stehen auf der Bestellposition, auch ältere oder abweichende Schreibweisen?" Schlage passende Begriffe aus dem Gespräch vor (Produktname, gängige Synonyme), trage aber nur ein, was der Autor bestätigt.
@@ -152,7 +154,7 @@ Die App schickt der KI nicht alles, was zur Kundengruppe und zum Produkt passt, 
   ```
 
   Mehrere Bestellbedingungen gelten für **dieselbe** Bestellung. Fehlende Daten sind „unbekannt“: Bei `triggered` ruft das Dokument dann nicht ab; bei `binding` wird es vorsorglich mit dem Hinweis „Voraussetzung nicht geprüft“ mitgegeben, und die KI darf die Regel nicht als erfüllt behandeln. Beachte: Sendungen enthalten keine Positionszuordnung (Teillieferungen sind nicht sicher erkennbar), und `has_claim` heißt nur „Folgebestellung nach dem Schema R<n>-… gefunden“. Bestellwert und Zahlart gibt es nicht.
-- `actions`: Vorgänge aus der Vorgangsliste, an die eine verbindliche Regel gebunden ist (z. B. `partial-refund`). Gilt auch außerhalb von Arbeitsabläufen.
+- `actions`: Vorgänge aus der Vorgangsliste, an die eine verbindliche Regel gebunden ist (z. B. `goodwill-reproduction`). Gilt auch außerhalb von Arbeitsabläufen. Die Maßnahme muss genau zur Regel passen: Eine Kulanzregel für Kundenfehler hängt an `goodwill-reproduction`, nie an `reproduction` (das wäre jede berechtigte Neuproduktion).
 
 **Fragen, die du zu jedem Dokument stellst** (eine nach der anderen):
 
@@ -237,9 +239,10 @@ Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Eur
 |---|---|
 | `return` | Retoure |
 | `reshipment` | Neuversand |
-| `reproduction` | Neuproduktion |
+| `reproduction` | Neuproduktion (kostenfrei, bei berechtigter Reklamation) |
+| `goodwill-reproduction` | Kulanz-Neuanfertigung (kostenpflichtig oder vergünstigt, weil der Fehler beim Kunden lag) |
 | `refund` | Erstattung |
-| `partial-refund` | Teilerstattung / Kulanz |
+| `partial-refund` | Teilerstattung / Preisnachlass ohne Neuanfertigung |
 | `cancellation` | Storno einer Bestellung (nicht einer Rechnung) |
 | `address-change` | Adressänderung |
 | `photo-request` | Foto anfordern |

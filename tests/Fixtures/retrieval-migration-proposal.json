@@ -1,14 +1,11 @@
 {
  "GLOSSARY-001": {
   "actions": [],
-  "exclude_triggers": [
-   "Glasfoto",
-   "Glas",
-   "Gravur",
-   "Lasergravur",
-   "Kristall",
-   "3D-Foto"
+  "exclude_products": [
+   "2d-glass-photo",
+   "3d-glass-photo"
   ],
+  "exclude_triggers": [],
   "retrieval": "triggered",
   "summary": "Erklärt Farbwiedergabe und Helligkeit bei bedruckten Produkten. Gilt, wenn Farben oder Helligkeit eines Drucks beanstandet werden; gilt nicht für gelaserte Glasfotos (dafür GLOSSARY-004).",
   "triggers": [
@@ -114,6 +111,7 @@
  },
  "PERMISSION-003": {
   "actions": [
+   "goodwill-reproduction",
    "partial-refund"
   ],
   "exclude_triggers": [],
@@ -127,14 +125,11 @@
  },
  "PLAYBOOK-001": {
   "actions": [],
-  "exclude_triggers": [
-   "Glasfoto",
-   "Glas",
-   "Gravur",
-   "Lasergravur",
-   "Kristall",
-   "3D-Foto"
+  "exclude_products": [
+   "2d-glass-photo",
+   "3d-glass-photo"
   ],
+  "exclude_triggers": [],
   "retrieval": "triggered",
   "summary": "Druck zu dunkel, zu hell oder mit abweichenden Farben. Gilt bei Farb- und Helligkeitsbeanstandungen bedruckter Produkte; gilt nicht für gelaserte Glasfotos (dafür PLAYBOOK-009).",
   "triggers": [
@@ -541,7 +536,7 @@
  },
  "POLICY-005": {
   "actions": [
-   "partial-refund"
+   "goodwill-reproduction"
   ],
   "exclude_triggers": [],
   "retrieval": "binding",
@@ -558,7 +553,7 @@
  },
  "POLICY-006": {
   "actions": [
-   "partial-refund"
+   "goodwill-reproduction"
   ],
   "exclude_triggers": [],
   "retrieval": "binding",
@@ -575,6 +570,7 @@
  },
  "POLICY-007": {
   "actions": [
+   "goodwill-reproduction",
    "partial-refund"
   ],
   "exclude_triggers": [],
@@ -594,7 +590,7 @@
  },
  "POLICY-008": {
   "actions": [
-   "partial-refund"
+   "goodwill-reproduction"
   ],
   "exclude_triggers": [],
   "retrieval": "binding",
@@ -611,6 +607,7 @@
  },
  "POLICY-009": {
   "actions": [
+   "goodwill-reproduction",
    "partial-refund"
   ],
   "exclude_triggers": [],
@@ -1119,14 +1116,11 @@
  },
  "PROCESS-002": {
   "actions": [],
-  "exclude_triggers": [
-   "Glasfoto",
-   "Glas",
-   "Gravur",
-   "Lasergravur",
-   "Kristall",
-   "3D-Foto"
+  "exclude_products": [
+   "2d-glass-photo",
+   "3d-glass-photo"
   ],
+  "exclude_triggers": [],
   "retrieval": "triggered",
   "summary": "Farb- und Helligkeitsbeanstandungen bedruckter Produkte anhand der Bilddateien prüfen. Gilt nicht für gelaserte Glasfotos.",
   "triggers": [

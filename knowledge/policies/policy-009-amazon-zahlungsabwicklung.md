@@ -25,6 +25,7 @@ triggers:
 exclude_triggers:
 when:
 actions:
+- goodwill-reproduction
 - partial-refund
 ---
 

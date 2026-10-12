@@ -31,7 +31,7 @@ triggers:
 exclude_triggers:
 when:
 actions:
-- partial-refund
+- goodwill-reproduction
 ---
 
 Gilt nur für Privatkunden im eigenen LOOXIS-Onlineshop.

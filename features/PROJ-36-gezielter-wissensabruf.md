@@ -188,8 +188,8 @@ Zurückgestellt, bis die Werte gesammelt oder abgestimmt sind: `order_status` (f
 - [ ] Eignet sich die Satzgrenze für Ausschlüsse auch bei kurzen, unvollständigen Kundensätzen? Anhand der Tests beurteilen.
 - [ ] Fachliche Prüfung der Freigabegrenze in PERMISSION-001 (35 €) vor der Produktivaktivierung (Vergleich mit PERMISSION-003: 100 €, PROCESS-005: Vier-Augen-Prüfung über 100 €); Datei bleibt unverändert.
 - [ ] POLICY-023 später aufteilen in „Angebotsgültigkeit“ (bei jedem Angebot) und „Saison-Einschränkungen“ (nur mit Weihnachts-/Terminwörtern); bis dahin verbindlich bei Angeboten.
-- [ ] Farb- und Druckdokumente (PLAYBOOK-001, PROCESS-002, GLOSSARY-001) nach Produkt eingrenzen: Übergang über Satzausschlüsse; sauber nur mit einem neuen Feld `exclude_products` (Entfall nur, wenn ein gewähltes Produkt darin steht), Zustimmung steht aus.
-- [ ] Eigene Maßnahme „Kulanz“ in `config/knowledge.php` prüfen (Kulanzregeln hängen heute an `partial-refund`).
+- [x] Farb- und Druckdokumente nach Produkt eingrenzen → neues Feld `exclude_products` (Entfall nur, wenn alle gewählten Produkte darin stehen; bei unbekanntem Produkt kein Ausschluss); PLAYBOOK-001, PROCESS-002, GLOSSARY-001 schließen die Glasfotos aus, die Satzausschlüsse sind entfallen (2026-10-12).
+- [x] Eigene Maßnahme für kostenpflichtige Kulanz-Neuanfertigung → `goodwill-reproduction`, getrennt von `reproduction` und `partial-refund`; der Prompt nennt sie mit Unterscheidungssätzen (`knowledge.action_hints`); POLICY-005/-006/-008 hängen nur daran (2026-10-12).
 - [ ] Statusnamen aus EOCS sammeln, um `order_status` später sicher anbieten zu können.
 
 ## Decision Log
@@ -413,3 +413,6 @@ _To be added by /deploy_
 
 ## Migration der Wissensdateien (2026-10-12)
 Das Frontmatter der 75 Dokumente (ohne Arbeitsabläufe) trägt jetzt `summary`, `retrieval`, `triggers`, `exclude_triggers`, `when` und `actions` nach `features/PROJ-36-migration-vorschlag.md` (fachlich geprüft, zweimal korrigiert); kein Text geändert, `knowledge:check` ohne Fehler (eine bekannte Warnung zu PRODUCT-003), 1131 Tests grün. `KNOWLEDGE_RETRIEVAL_ACTIVE` und `KNOWLEDGE_RETRIEVAL_REQUIRED` bleiben aus bis zur Kalibrierung der Zeichengrenzen am echten Modell und zur Freigabe. Abruftests mit synthetischen Anfragen: `tests/Feature/PROJ-36-MigrationRetrievalTest.php` (nutzt `tests/Fixtures/retrieval-migration-proposal.json`; nach der Übernahme gleichwertig zu den Dateien).
+
+### Nachtrag 2026-10-12
+`exclude_products` (Dokument, Selektor `productExclusionReason`, Validator: Konflikt mit `products` = Fehler, Produktdatei = Fehler, unbekannter Slug = Warnung, Authoring Guide, Vorlagen) und Maßnahme `goodwill-reproduction` (Konfiguration, Hinweissätze im Prompt-Teil „Vorgaben“, Frontmatter von POLICY-005 bis -009 und PERMISSION-003). Tests: `PROJ-36-ExcludeProductsTest.php`, Abschnitte in `PROJ-36-MigrationRetrievalTest.php` und `PROJ-36-AnalysisIntegrationTest.php`.

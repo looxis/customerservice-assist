@@ -14,6 +14,9 @@ related_knowledge:
 customer_types:
 sales_channels:
 products:
+exclude_products:
+- 2d-glass-photo
+- 3d-glass-photo
 summary: "Farb- und Helligkeitsbeanstandungen bedruckter Produkte anhand der Bilddateien prüfen. Gilt nicht für gelaserte Glasfotos."
 retrieval: triggered
 triggers:
@@ -30,12 +33,6 @@ triggers:
 - blass
 - verblasst
 exclude_triggers:
-- Glasfoto
-- Glas
-- Gravur
-- Lasergravur
-- Kristall
-- 3D-Foto
 when:
 actions:
 ---

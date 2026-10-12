@@ -152,6 +152,12 @@ class KnowledgeSelector
      */
     private function productExclusionReason(KnowledgeDocument $document, array $products): ?string
     {
+        $excluded = $document->excludedProducts();
+
+        if ($excluded !== [] && $products !== [] && array_diff($products, $excluded) === []) {
+            return ($products === $excluded ? 'nicht für Produkt ' : 'nicht für die gewählten Produkte ').implode(', ', $products);
+        }
+
         $bound = $document->boundProducts();
 
         if ($bound === [] || array_intersect($bound, $products) !== []) {

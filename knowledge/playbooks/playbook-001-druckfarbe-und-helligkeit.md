@@ -25,6 +25,9 @@ related_knowledge:
 customer_types:
 sales_channels:
 products:
+exclude_products:
+- 2d-glass-photo
+- 3d-glass-photo
 summary: "Druck zu dunkel, zu hell oder mit abweichenden Farben. Gilt bei Farb- und Helligkeitsbeanstandungen bedruckter Produkte; gilt nicht für gelaserte Glasfotos (dafür PLAYBOOK-009)."
 retrieval: triggered
 triggers:
@@ -41,12 +44,6 @@ triggers:
 - blass
 - verblasst
 exclude_triggers:
-- Glasfoto
-- Glas
-- Gravur
-- Lasergravur
-- Kristall
-- 3D-Foto
 when:
 actions:
 ---

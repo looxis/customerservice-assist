@@ -10,6 +10,7 @@ customer_types:
 sales_channels:
 
 products:
+exclude_products:
 categories:
 topics:
 

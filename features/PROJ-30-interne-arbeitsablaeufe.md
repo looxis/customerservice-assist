@@ -22,7 +22,7 @@
 | `reshipment` | Neuversand |
 | `reproduction` | Neuproduktion |
 | `refund` | Erstattung |
-| `partial-refund` | Teilerstattung / Kulanz |
+| `partial-refund` | Teilerstattung / Preisnachlass (seit PROJ-36; zusätzlich `goodwill-reproduction` = Kulanz-Neuanfertigung) |
 | `cancellation` | Storno |
 | `address-change` | Adressänderung |
 | `photo-request` | Foto anfordern |

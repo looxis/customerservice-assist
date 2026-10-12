@@ -97,8 +97,9 @@ return [
         'return' => 'Retoure',
         'reshipment' => 'Neuversand',
         'reproduction' => 'Neuproduktion',
+        'goodwill-reproduction' => 'Kulanz-Neuanfertigung',
         'refund' => 'Erstattung',
-        'partial-refund' => 'Teilerstattung / Kulanz',
+        'partial-refund' => 'Teilerstattung / Preisnachlass',
         'cancellation' => 'Storno',
         'address-change' => 'Adressänderung',
         'photo-request' => 'Foto anfordern',
@@ -106,6 +107,23 @@ return [
         'invoice-send' => 'Rechnung versenden',
         'quote' => 'Angebot erstellen',
         'order-confirmation' => 'Auftrag bestätigen',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Action hints
+    |--------------------------------------------------------------------------
+    |
+    | One sentence per action that tells the model when to name it. Sent with the
+    | list of actions; the labels above are for people. Keeps similar actions apart
+    | (a free replacement is not a paid goodwill reproduction).
+    |
+    */
+
+    'action_hints' => [
+        'reproduction' => 'kostenfreie Neuproduktion oder Ersatz bei einer berechtigten Reklamation (Mangel, eigener Fehler)',
+        'goodwill-reproduction' => 'kostenpflichtige oder vergünstigte Neuanfertigung aus Kulanz, weil der Fehler beim Kunden lag (Kundenfehler, Dateifehler, Tippfehler); nie bei berechtigter Reklamation',
+        'partial-refund' => 'Teilerstattung oder Preisnachlass ohne Neuanfertigung',
     ],
 
     /*

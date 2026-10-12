@@ -603,3 +603,49 @@ describe('the retrieval in the result view', function () {
         expect(Analysis::query()->count())->toBe(0);
     });
 });
+
+describe('the goodwill reproduction as its own measure', function () {
+    beforeEach(function () {
+        config(['knowledge.retrieval.active' => true]);
+        knowledgeBase(retrDoc(1, ['retrieval' => 'core']) + retrDoc(20, ['retrieval' => 'binding', 'actions' => ['goodwill-reproduction']], "Kulanz-Neuanfertigung nur bei Kundenfehler.\n\n# Regel\n\nKostenpflichtig."));
+        retrTicket('Die Tasse hat einen kleinen Kratzer.');
+    });
+
+    test('the model is told the measure and when to name it', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['reproduction'], 'knowledge_ids' => ['POLICY-001']])]);
+
+        retrAnalyze();
+
+        expect(retrSent())->toContain('goodwill-reproduction (Kulanz-Neuanfertigung)')
+            ->toContain('goodwill-reproduction = kostenpflichtige oder vergünstigte Neuanfertigung aus Kulanz')
+            ->toContain('reproduction = kostenfreie Neuproduktion');
+    });
+
+    test('a free reproduction does not load the goodwill rule and costs no second call', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['reproduction'], 'knowledge_ids' => ['POLICY-001']])]);
+
+        retrAnalyze();
+
+        CaseAgent::assertPromptedTimes(1);
+
+        expect(retrSent())->not->toContain('## POLICY-020')
+            ->and(retrStored()->content['retrieval']['safeguard']['loaded'])->toBe([]);
+    });
+
+    test('the goodwill reproduction returned by the model is kept and loads the goodwill rule', function () {
+        CaseAgent::fake([
+            retrAnswer(['actions' => ['goodwill-reproduction'], 'knowledge_ids' => ['POLICY-001']]),
+            retrAnswer(['actions' => ['goodwill-reproduction'], 'knowledge_ids' => ['POLICY-020']]),
+        ]);
+
+        retrAnalyze();
+
+        $stored = retrStored();
+
+        CaseAgent::assertPromptedTimes(2);
+
+        expect($stored->content['result']['actions'])->toBe(['goodwill-reproduction'])
+            ->and($stored->content['sent_input'])->toContain('## POLICY-020')
+            ->and($stored->content['retrieval']['safeguard'])->toMatchArray(['loaded' => ['POLICY-020'], 'load_actions' => ['goodwill-reproduction'], 'failed' => false]);
+    });
+});

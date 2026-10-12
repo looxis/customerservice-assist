@@ -191,14 +191,29 @@ describe('action safeguard for binding documents', function () {
             ->and($reseller)->toContain('PERMISSION-002')->and($reseller)->not->toContain('POLICY-008');
     });
 
-    test('a recommended goodwill or partial refund loads the goodwill rules of the customer group', function () use ($complaint) {
-        $shop = migrationSafeguard('private-looxis-de', $complaint, ['partial-refund'], ['magic-mug']);
-        $amazon = migrationSafeguard('private-amazon', $complaint, ['partial-refund'], ['magic-mug']);
-        $reseller = migrationSafeguard('reseller', $complaint, ['partial-refund'], ['magic-mug']);
+    test('a free reproduction loads neither the customer-error goodwill rules nor the discount and payment rules', function () use ($complaint) {
+        foreach (['private-looxis-de', 'private-amazon', 'reseller'] as $group) {
+            expect(migrationSafeguard($group, $complaint, ['reproduction'], ['magic-mug']))
+                ->not->toContain('POLICY-005', 'POLICY-006', 'POLICY-007', 'POLICY-008', 'POLICY-009', 'PERMISSION-003');
+        }
+    });
 
-        expect($shop)->toContain('POLICY-005', 'POLICY-007')->and($shop)->not->toContain('POLICY-006', 'PERMISSION-003')
+    test('a paid goodwill reproduction loads the goodwill rules of the customer group', function () use ($complaint) {
+        $shop = migrationSafeguard('private-looxis-de', $complaint, ['goodwill-reproduction'], ['magic-mug']);
+        $amazon = migrationSafeguard('private-amazon', $complaint, ['goodwill-reproduction'], ['magic-mug']);
+        $reseller = migrationSafeguard('reseller', $complaint, ['goodwill-reproduction'], ['magic-mug']);
+
+        expect($shop)->toContain('POLICY-005', 'POLICY-007')->and($shop)->not->toContain('POLICY-006', 'PERMISSION-003', 'PERMISSION-002')
             ->and($amazon)->toContain('POLICY-006', 'POLICY-007', 'POLICY-009', 'PERMISSION-003')->and($amazon)->not->toContain('POLICY-005')
             ->and($reseller)->toContain('POLICY-008')->and($reseller)->not->toContain('POLICY-005', 'POLICY-007');
+    });
+
+    test('a partial refund alone loads the discount and payment rules, not the reproduction goodwill rules', function () use ($complaint) {
+        $shop = migrationSafeguard('private-looxis-de', $complaint, ['partial-refund'], ['magic-mug']);
+        $amazon = migrationSafeguard('private-amazon', $complaint, ['partial-refund'], ['magic-mug']);
+
+        expect($shop)->toContain('POLICY-007')->and($shop)->not->toContain('POLICY-005', 'POLICY-006', 'POLICY-008')
+            ->and($amazon)->toContain('POLICY-009', 'PERMISSION-003')->and($amazon)->not->toContain('POLICY-006');
     });
 
     test('a regular refund loads the refund authority, neither the Amazon goodwill authority nor the no-return rule', function () use ($complaint) {
@@ -244,4 +259,26 @@ test('migration: an unclear damage to the lunchbox is not read as a broken snap 
     expect($unclear)->toContain('PRODUCT-005')->and($unclear)->not->toContain('PLAYBOOK-013')
         ->and($fastener)->toContain('PLAYBOOK-013')
         ->and($closure)->toContain('PLAYBOOK-013');
+});
+
+test('migration: the colour documents skip glass photos by product, but not an unknown or another product', function () {
+    $text = 'Die Farben sind zu dunkel und es gibt einen Farbstich.';
+    $glass = migrationRetrieve('private-looxis-de', $text, ['3d-glass-photo']);
+    $both = migrationRetrieve('private-looxis-de', $text, ['3d-glass-photo', 'magic-mug']);
+    $mug = migrationRetrieve('private-looxis-de', $text, ['magic-mug']);
+    $unknown = migrationRetrieve('private-looxis-de', $text);
+
+    expect($glass)->not->toContain('PLAYBOOK-001', 'PROCESS-002', 'GLOSSARY-001')
+        ->and($both)->toContain('PLAYBOOK-001', 'GLOSSARY-001')
+        ->and($mug)->toContain('PLAYBOOK-001', 'PROCESS-002', 'GLOSSARY-001')
+        ->and($unknown)->toContain('PLAYBOOK-001', 'PROCESS-002', 'GLOSSARY-001');
+});
+
+test('the analysis prompt names the goodwill reproduction apart from the free one', function () {
+    $actions = config('knowledge.actions');
+    $hints = config('knowledge.action_hints');
+
+    expect($actions)->toHaveKeys(['reproduction', 'goodwill-reproduction', 'partial-refund'])
+        ->and($hints['goodwill-reproduction'])->toContain('Kulanz')->toContain('nie bei berechtigter Reklamation')
+        ->and($hints['reproduction'])->toContain('berechtigten Reklamation');
 });

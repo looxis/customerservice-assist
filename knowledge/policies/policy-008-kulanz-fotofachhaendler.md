@@ -31,7 +31,7 @@ triggers:
 exclude_triggers:
 when:
 actions:
-- partial-refund
+- goodwill-reproduction
 ---
 
 Gilt für Foto-Fachhändler, die über fachhaendler.looxis.de bestellen (Kanal `fachhaendler`). Die Regel gilt nicht für LOOXIS-Pro-Kunden und deren Handelswarenbestellungen.

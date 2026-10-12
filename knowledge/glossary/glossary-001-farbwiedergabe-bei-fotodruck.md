@@ -6,6 +6,9 @@ status: draft
 customer_types:
 sales_channels:
 products:
+exclude_products:
+- 2d-glass-photo
+- 3d-glass-photo
 categories:
 topics:
   - color-reproduction
@@ -26,12 +29,6 @@ triggers:
 - blass
 - verblasst
 exclude_triggers:
-- Glasfoto
-- Glas
-- Gravur
-- Lasergravur
-- Kristall
-- 3D-Foto
 when:
 actions:
 ---

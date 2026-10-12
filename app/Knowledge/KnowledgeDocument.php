@@ -75,6 +75,16 @@ final readonly class KnowledgeDocument
         return $this->list('products');
     }
 
+    /**
+     * Products for which the document does not apply. Only matters when products are chosen and all of them are listed.
+     *
+     * @return list<string>
+     */
+    public function excludedProducts(): array
+    {
+        return $this->list('exclude_products');
+    }
+
     /** @return list<string> */
     public function categories(): array
     {

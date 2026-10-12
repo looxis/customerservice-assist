@@ -6,11 +6,11 @@ class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'actions', 'action', 'triggers', 'exclude_triggers'];
+    private const array LIST_FIELDS = ['products', 'exclude_products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'actions', 'action', 'triggers', 'exclude_triggers'];
 
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
-        'products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge',
+        'products', 'exclude_products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge',
         'priority', 'risk_level', 'owner', 'reviewed_by', 'last_reviewed',
         'summary', 'retrieval', 'triggers', 'exclude_triggers', 'when', 'actions',
     ];
@@ -64,6 +64,7 @@ class KnowledgeValidator
                 ...$this->missingCategories($document),
                 ...$this->filename($document),
                 ...$this->slugs($document),
+                ...$this->excludedProducts($document),
                 ...$this->unknownFields($document),
                 ...$this->personalData($document),
             );
@@ -491,12 +492,34 @@ class KnowledgeValidator
         return [];
     }
 
+    /**
+     * `exclude_products` narrows a scope; it must not contradict `products` and has no meaning in a product file.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function excludedProducts(KnowledgeDocument $document): array
+    {
+        $excluded = $document->excludedProducts();
+
+        if ($excluded === []) {
+            return [];
+        }
+
+        if ($document->folderType === 'product') {
+            return [KnowledgeIssue::error($document->path, 'Eine Produktdatei darf kein `exclude_products` haben: Sie gilt immer für ihr eigenes Produkt.')];
+        }
+
+        $both = array_values(array_intersect($excluded, $document->products()));
+
+        return $both === [] ? [] : [KnowledgeIssue::error($document->path, 'Produkt in `products` und in `exclude_products` zugleich: '.implode(', ', $both).'.')];
+    }
+
     /** @return list<KnowledgeIssue> */
     private function slugs(KnowledgeDocument $document): array
     {
         $issues = [];
 
-        foreach (['products', 'topics'] as $field) {
+        foreach (['products', 'exclude_products', 'topics'] as $field) {
             foreach ($document->list($field) as $value) {
                 if (! preg_match(self::SLUG, $value)) {
                     $issues[] = KnowledgeIssue::warning($document->path, "Wert `{$value}` in `{$field}` ist kein Slug (nur Kleinbuchstaben, Ziffern, Bindestriche).");
@@ -636,6 +659,10 @@ class KnowledgeValidator
 
             foreach (array_diff($document->products(), $known) as $product) {
                 $issues[] = KnowledgeIssue::warning($document->path, "Für das Produkt `{$product}` gibt es keine Produktdatei in products/.");
+            }
+
+            foreach (array_diff($document->excludedProducts(), $known) as $product) {
+                $issues[] = KnowledgeIssue::warning($document->path, "Für das Produkt `{$product}` in `exclude_products` gibt es keine Produktdatei in products/.");
             }
         }
 

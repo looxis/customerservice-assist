@@ -432,8 +432,19 @@ class CaseAnalyzer
             'ticket' => "# Ticket\n".(new TicketContext($request->ticket))->text($request->variant, $request->summary?->text),
             'rules' => "# Vorgaben\n"
                 .'Kategorien: '.implode(', ', array_map(fn (string $key): string => $key.' ('.config("knowledge.category_labels.{$key}", $key).')', config('knowledge.categories')))."\n"
-                .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions'))),
+                .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions')))
+                .$this->actionHints(),
         ];
+    }
+
+    /**
+     * Which of the similar actions to name when; empty when no hints are configured.
+     */
+    private function actionHints(): string
+    {
+        $hints = array_filter(config('knowledge.action_hints', []), fn (string $key): bool => array_key_exists($key, config('knowledge.actions')), ARRAY_FILTER_USE_KEY);
+
+        return $hints === [] ? '' : "\nZur Unterscheidung ähnlicher Vorgänge: ".implode('; ', array_map(fn (string $key, string $hint): string => "{$key} = {$hint}", array_keys($hints), $hints)).'.';
     }
 
     /**
