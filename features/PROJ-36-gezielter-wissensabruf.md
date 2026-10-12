@@ -382,6 +382,12 @@ Keine neuen Pakete.
 - **Hinweis:** Die Zeichenlimits (`analysis.limits`, Zielumfang) sind vorläufig und werden vor der Aktivierung anhand des tatsächlichen Modells und der gespeicherten Tokenzahlen kalibriert.
 - **Tests:** 16 weitere Tests in `PROJ-36-AnalysisIntegrationTest.php` (insgesamt 39: Anweisungen und Versionen, alle Zweige der Regelprüfung, Sperre und Bestätigung, Ansicht, Zuschalten, ID-Prüfung); komplette Suite 1092 grün.
 
+### Schritt 6: Authoring Guide, Vorlagen, Chat-Handbuch (2026-10-13)
+- **Authoring Guide** (`docs/KNOWLEDGE_AUTHORING_GUIDE.md`): neuer Abschnitt „Abruf“ mit Pflichtfeldern `summary` und `retrieval`, den drei Klassen (Budget des Grundwissens), `triggers` (Wortanfang, Zusammensetzungen einzeln, keine Allerweltswörter, mehrsprachig), `exclude_triggers`, `when` (UND/ODER/NICHT, dieselbe Bestellung, unbekannt, Grenzen von Sendungs- und Folgebestellungsdaten), `actions` und den fünf Fragen je Dokument. Hinweis, dass `categories` heute noch nichts filtert. Sitzungsstart-Block und Abschlussprüfung um den Abruf ergänzt.
+- **Vorlagen** (`knowledge/templates/*.md`): alle zehn tragen die leeren Felder `summary`, `retrieval`, `triggers`, `exclude_triggers`, `when`, `actions` (bei Arbeitsabläufen nur einmal) mit Hinweiszeile.
+- **Chat-Handbuch** `docs/KNOWLEDGE_CHAT_HANDBUCH.md` (eine Seite): zwei Stufen, drei Klassen, Pflichtfelder, Fragen, Prüfung nach jeder Charge mit `knowledge:select --text`. Der KI-Skill `/knowledge` verweist darauf.
+- **Tests:** `tests/Feature/PROJ-36-AuthoringKitTest.php` (Vorlagen, Inhalte des Guides einschließlich der im Beispiel genannten `when`-Schlüssel, Länge des Handbuchs).
+
 ## QA Test Results
 _To be added by /qa_
 

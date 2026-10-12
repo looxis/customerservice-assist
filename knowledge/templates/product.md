@@ -15,6 +15,13 @@ customer_terms:
 categories:
 topics:
 
+# Abruf (docs/KNOWLEDGE_AUTHORING_GUIDE.md, Abschnitt „Abruf“): summary + retrieval sind Pflicht
+summary:
+retrieval:
+triggers:
+exclude_triggers:
+when:
+actions:
 owner:
 reviewed_by:
 last_reviewed:

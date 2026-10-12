@@ -101,6 +101,7 @@ So wird `categories` gesetzt:
 - **Leer heißt: gilt für alle Falltypen.** Das ist richtig für Dokumente, die bei jedem Fall gebraucht werden: Permissions, allgemeine Tonalität, Glossar und übergreifende Policies (z. B. „Kundenart und Kanal vor der Entscheidung prüfen").
 - **Gefüllt wird es, wenn das Dokument nur bei bestimmten Falltypen eine Rolle spielt.** Eine Policy zu Ersatz und Erstattung bei Mängeln bekommt `complaint`. Passt ein Dokument zu zwei Falltypen, stehen beide Werte in der Liste (eine Lieferverzögerung kann als Reklamation oder als Frage zum Ablauf eintreffen).
 - **Playbooks und Processes bekommen immer mindestens einen Wert.** Sie beschreiben ein konkretes Fallmuster; ohne Kategorie kann die App sie keinem Falltyp zuordnen.
+- **Wichtig:** `categories` filtert Wissen heute noch nicht; ob ein Dokument im Prompt landet, entscheidet der Abruf (nächster Abschnitt). Das Feld bleibt Pflicht, weil es später als Zusatzfilter genutzt wird.
 - Frage beim Erfassen: „Bei welcher Art von Anfrage wird dieses Dokument gebraucht: Reklamation, Produktfrage, Frage zum Ablauf, oder bei allen?"
 
 `products`: ein Slug pro Produkt, identisch mit dem Dateinamen in `knowledge/products/` (bei einem auf mehrere Dateien aufgeteilten Produkt: dem Namen des Unterordners). Gilt ein Dokument für alle Produkte, bleibt `products` leer. Dokumente mit `products` verwendet die App nur, wenn der Mitarbeiter eines dieser Produkte gewählt hat.
@@ -121,6 +122,47 @@ So wird `categories` gesetzt:
 - Frage beim Erfassen jeder Produktdatei ausdrücklich: „Wie nennen Kunden dieses Produkt? Gab es frühere Produktnamen, und seit wann heißt es anders? Welche Begriffe tauchen in Anfragen auf?" Schlage Begriffe aus dem Gespräch vor, trage aber nur ein, was der Autor bestätigt.
 
 `topics`: frei, aber sparsam. Zwei bis vier Werte pro Dokument, die das Fallmuster benennen (z. B. `customer-configuration`, `photo-quality`, `replacement`, `refund`).
+
+### Abruf: `summary`, `retrieval`, `triggers`, `exclude_triggers`, `when`, `actions`
+
+Die App schickt der KI nicht alles, was zur Kundengruppe und zum Produkt passt, sondern ruft Wissen **gezielt nach dem Anliegen des Falls** ab. Je mehr Wissen es gibt, desto wichtiger ist, dass jedes Dokument sagt, **wann es gebraucht wird – und wann nicht**. Kundengruppe, Kanal und Produkt legen nur fest, **wo** ein Dokument überhaupt in Frage kommt (Geltungsbereich). Ein Produkt ist **kein Auslöser**: Ein Playbook zu „3D-Glasfoto“ kommt nicht schon mit, weil das Produkt gewählt ist, sondern wenn das Anliegen dazu passt.
+
+**Pflicht in jeder Datei:** `summary` und `retrieval`. Fehlt `retrieval`, gilt das Dokument als „nicht klassifiziert“; die Prüfung listet es, und nach der Umstellung ist es ein Fehler.
+
+- `summary`: ein bis zwei Sätze, wann das Dokument gebraucht wird und wann nicht (in Anführungszeichen, wenn ein Doppelpunkt vorkommt). Beispiel: „Gilt, wenn der Kunde fragt, ob er ein Motiv verwenden darf, das ihm nicht gehört. Gilt nicht, wenn ein Geschäftskunde sein eigenes Logo für eine Mengenbestellung liefert.“
+- `retrieval`: genau einer von
+  - `core` – **Grundwissen**, in jedem Prompt (z. B. „Kundenart und Kanal prüfen“, Tonalität, Befugnistabelle). **Sehr sparsam**: Alles Grundwissen zusammen soll rund 15.000 Zeichen nicht übersteigen, Produktgrundlagen je Produkt rund 6.000. Die Prüfung meldet einen Fehler, wenn das Budget überschritten wird. Eine Produktdatei (`product`) ist meist `core` und bleibt kurz; Sonderfälle zum Produkt gehören in eigene Dokumente.
+  - `triggered` – kommt **bei Bedarf**, wenn ein Auslöser im aktuellen Anliegen vorkommt oder die Bedingung erfüllt ist. Der Normalfall für Playbooks, Processes, Spezial-Policies, Glossar, Ton zu bestimmten Anliegen.
+  - `binding` – **verbindlich**: darf nicht übersehen werden und wird nie wegen Platzmangel weggelassen. Nur für Regeln, die bei erfüllter Voraussetzung zuverlässig greifen müssen (Befugnisgrenzen, Pflichten, Fristen). Ein verbindliches Dokument ohne `triggers`, `when` und `actions` gilt immer im Geltungsbereich (dann auch in den Pflichtumfang gerechnet). Mit `actions` wird es nachgeladen, sobald die KI diese Maßnahme empfiehlt, auch wenn der Kunde sie nicht verlangt hat.
+- `triggers`: Wörter und Wendungen, **wie Kunden das Anliegen schreiben**. Regeln:
+  - Eine Zeile pro Wort oder Wendung, mindestens vier Zeichen, höchstens etwa 25 je Dokument.
+  - Die Suche trifft am **Wortanfang** und ignoriert Groß- und Kleinschreibung: „Urheberrecht“ findet „urheberrechtlich“. Zusammensetzungen werden **nicht** in der Mitte gefunden: „Logo“ findet „Firmenlogo“ nicht. Zusammensetzungen und Schreibvarianten einzeln eintragen.
+  - Fremdsprachige Kunden: Wörter in den Sprachen eintragen, in denen Kunden schreiben (Italienisch, Französisch, Englisch). Liegt eine deutsche Übersetzung vor, wird sie zusätzlich durchsucht.
+  - **Keine Allerweltswörter** („Foto“, „Logo“, „Bestellung“, „Tasse“) allein als Auslöser. Besser konkrete Wendungen („geschütztes Motiv“, „Markenrecht“, „Bildrechte“). Soll ein allgemeines Wort doch auslösen, schränkt `exclude_triggers` ein.
+  - Derselbe Auslöser darf in mehreren Dokumenten stehen; dann kommen alle passenden mit.
+- `exclude_triggers`: Wendungen, die einen Treffer **im selben Satz** unterdrücken, z. B. bei einem Rechte-Dokument „unser Logo“, „eigenes Logo“. Ausschlüsse wirken nie in Fragen („Ist unser Logo geschützt?“ löst weiter aus) und sind bei `binding` nicht erlaubt.
+- `when`: strukturierte Bedingung aus Fall- und Bestelldaten, wenn das Dokument nur unter Voraussetzungen gilt. Alle Schlüssel gelten zusammen (UND); mehrere Werte eines Schlüssels heißen „einer davon“; `any_of` bildet Alternativen, `not` verneint; Zahlen als Wert oder `min`/`max`. Die erlaubten Schlüssel stehen im Sitzungsstart-Block. Beispiel:
+
+  ```yaml
+  when:
+    order_channel: [amazon]
+    days_since_shipped: { min: 14 }
+    not:
+      has_claim: true
+  ```
+
+  Mehrere Bestellbedingungen gelten für **dieselbe** Bestellung. Fehlende Daten sind „unbekannt“: Bei `triggered` ruft das Dokument dann nicht ab; bei `binding` wird es vorsorglich mit dem Hinweis „Voraussetzung nicht geprüft“ mitgegeben, und die KI darf die Regel nicht als erfüllt behandeln. Beachte: Sendungen enthalten keine Positionszuordnung (Teillieferungen sind nicht sicher erkennbar), und `has_claim` heißt nur „Folgebestellung nach dem Schema R<n>-… gefunden“. Bestellwert und Zahlart gibt es nicht.
+- `actions`: Vorgänge aus der Vorgangsliste, an die eine verbindliche Regel gebunden ist (z. B. `partial-refund`). Gilt auch außerhalb von Arbeitsabläufen.
+
+**Fragen, die du zu jedem Dokument stellst** (eine nach der anderen):
+
+1. Wann wird das Dokument gebraucht? Welche Wörter schreibt ein Kunde dann (auch auf Italienisch, Französisch, Englisch)?
+2. Gilt es immer, nur unter Bedingungen (Kanal, Alter der Bestellung, Tage seit Versand, Status), oder nur wenn danach gefragt wird?
+3. Muss die Regel unbedingt greifen (`binding`) oder reicht Abruf bei Bedarf (`triggered`)? Hängt sie an einer Maßnahme (`actions`)?
+4. Welcher ähnliche Fall soll sie **ausdrücklich nicht** auslösen? (Daraus entstehen `exclude_triggers` und der Satz „Gilt nicht, wenn …“ im Text und in der `summary`.)
+5. Gehört das wirklich zum Grundwissen? Wenn nicht, `triggered` oder `binding`.
+
+Die Zusammenfassung und die Auslöser bleiben in Frontmatter und Text widerspruchsfrei: Was die `summary` ausschließt, schließt auch der Text aus. Ändert der Autor nur diese Angaben an einer bestehenden Datei, bleibt der Text unverändert.
 
 ### Geltungsbereich: `customer_types`, `sales_channels`
 
@@ -298,6 +340,9 @@ Vergebene order_keywords je Produkt:
 Vergebene customer_terms je Produkt:
 (Liste oder „noch keine")
 
+Klassen für retrieval, Grundwissen mit Zeichenzahl, vergebene triggers, Schlüssel für when und noch nicht klassifizierte Dokumente:
+(Liste)
+
 Heute möchte ich erfassen:
 (Thema oder Fall)
 ```
@@ -310,6 +355,7 @@ Heute möchte ich erfassen:
 - Alle Schlagwörter sind vorhandene Werte oder ausdrücklich als neu genannt.
 - `customer_types` und `sales_channels` sind gesetzt, wenn das Dokument eingeschränkt gilt, sonst leer; der Text nennt denselben Geltungsbereich.
 - `categories` ist vorhanden; bei Playbooks und Processes ist mindestens ein Wert gesetzt.
+- Abruf: `summary` und `retrieval` sind gesetzt; `summary` sagt, wann das Dokument gebraucht wird und wann nicht. `core` nur für echtes Grundwissen (Budget beachten). `triggered` hat `triggers` oder `when`; `binding` hat keine `exclude_triggers`. Auslöser sind konkrete Wendungen (mindestens vier Zeichen, keine Allerweltswörter), Zusammensetzungen einzeln eingetragen. `when` nutzt nur Schlüssel aus dem Sitzungsstart-Block.
 - Arbeitsabläufe: `actions` aus der Vorgangsliste, Abschnitte Voraussetzungen, Arbeitsschritte, Abschlusskontrolle vorhanden, kritische Hinweise mit „Achtung:".
 - Produktdateien: nach `order_keywords` wurde gefragt; jedes Schlüsselwort hat mindestens drei Zeichen und ist bei keinem anderen Produkt vergeben.
 - Produktdateien: nach `customer_terms` wurde gefragt; jeder Begriff hat mindestens vier Zeichen, ist bei keinem anderen Produkt vergeben (weder als Kundenbegriff noch als `order_keywords`) und steht nicht in `order_keywords`, wenn er nur aus Kundenanfragen stammt.

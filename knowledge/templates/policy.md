@@ -13,6 +13,13 @@ products:
 categories:
 topics:
 
+# Abruf (docs/KNOWLEDGE_AUTHORING_GUIDE.md, Abschnitt „Abruf“): summary + retrieval sind Pflicht
+summary:
+retrieval:
+triggers:
+exclude_triggers:
+when:
+actions:
 priority:
 owner:
 reviewed_by:

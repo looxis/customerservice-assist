@@ -18,7 +18,8 @@ This skill contains no authoring rules of its own. Before anything else, read:
 1. `docs/KNOWLEDGE_AUTHORING_GUIDE.md` — binding rules: IDs, file names, tags, scope fields, content rules, final check
 2. `docs/KNOWLEDGE_BASE_DESIGN.md` — document types and their sections (wins on conflict)
 3. `knowledge/templates/` — the template of the type you are about to write
-4. Every existing file in `knowledge/` except `README.md` and `templates/`
+4. `docs/KNOWLEDGE_CHAT_HANDBUCH.md` — how the app retrieves knowledge; every new file needs `summary`, `retrieval` and, where it applies, `triggers`, `exclude_triggers`, `when`, `actions` (guide section "Abruf")
+5. Every existing file in `knowledge/` except `README.md` and `templates/`
 
 The guide was written for a chat that cannot see the repository. Where it says the author supplies the list of assigned IDs and tags, you determine them yourself from the files on disk instead.
 
@@ -30,6 +31,7 @@ From the frontmatter of the existing files, collect:
 - existing values of `products`, `categories`, `topics`, `customer_types`, `sales_channels`
 - existing `order_keywords` per product file
 - existing `customer_terms` per product file
+- existing `triggers` (the same trigger in several files is allowed), the core knowledge with its size (`knowledge:overview`) and the keys allowed in `when`
 - titles, so you notice when a rule already exists
 
 If two files share an ID, report it and stop until the author has decided.
