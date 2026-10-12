@@ -54,6 +54,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P2 | Bildanalyse von Reklamationsfotos | Roadmap |
 | P2 | Semantisches Retrieval | Roadmap |
 | P2 | Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
+| – | Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
