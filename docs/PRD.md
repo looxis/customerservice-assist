@@ -43,7 +43,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P1 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Roadmap |
 | P1 | Einstellungen für die Mail-Anzeige und Bestellnummern (zugelassene Links, Signaturen, Textbausteine, Bestellnummern-Formate) | Roadmap |
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
-| P1 | Gesamtliste aller Analysen, Feedbacks und Wissenslücken mit Filter | Roadmap |
+| – | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Planned |
 | P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
 | P1 | Tickettext manuell einfügen (Fallback ohne Zammad) | Roadmap |
 | P1 | Zweiter LLM-Anbieter zum Vergleich | Roadmap |
