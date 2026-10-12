@@ -114,16 +114,14 @@
  },
  "PERMISSION-003": {
   "actions": [
-   "partial-refund",
-   "refund"
+   "partial-refund"
   ],
   "exclude_triggers": [],
   "retrieval": "binding",
   "summary": "Befugnis für die Amazon-Kulanz-Teilerstattung bis 100 Euro. Gilt nur auf Amazon, sobald eine Kulanzerstattung gewünscht oder empfohlen wird.",
   "triggers": [
    "Teilerstattung",
-   "Kulanz",
-   "Erstattung"
+   "Kulanz"
   ],
   "when": null
  },
@@ -341,13 +339,17 @@
   "actions": [],
   "exclude_triggers": [],
   "retrieval": "triggered",
-  "summary": "Schnappverschluss der Lunchbox gebrochen. Gilt nur für die Lunchbox.",
+  "summary": "Schnappverschluss der Lunchbox gebrochen. Gilt nur, wenn der Verschluss ausdrücklich als gebrochen oder kaputt genannt wird; ein unklar beschriebener Schaden („Stück abgebrochen“) genügt nicht.",
   "triggers": [
-   "gebrochen",
-   "abgebrochen",
    "Schnappverschluss",
+   "Verschluss gebrochen",
+   "Verschluss ist gebrochen",
+   "Verschluss abgebrochen",
+   "Verschluss ist abgebrochen",
    "Verschluss kaputt",
-   "Clip"
+   "Verschluss ist kaputt",
+   "Verschlüsse gebrochen",
+   "Draht gebrochen"
   ],
   "when": null
  },
@@ -476,7 +478,6 @@
  "POLICY-001": {
   "actions": [
    "return",
-   "refund",
    "cancellation"
   ],
   "exclude_triggers": [],
@@ -494,9 +495,7 @@
    "umtauschen",
    "gefällt nicht",
    "gefällt mir nicht",
-   "Nichtgefallen",
-   "Rückerstattung",
-   "Geld zurück"
+   "Nichtgefallen"
   ],
   "when": null
  },
@@ -542,7 +541,6 @@
  },
  "POLICY-005": {
   "actions": [
-   "reproduction",
    "partial-refund"
   ],
   "exclude_triggers": [],
@@ -554,15 +552,12 @@
    "Tippfehler",
    "Rechtschreibfehler",
    "mein Fehler",
-   "falsche Datei",
-   "Neuanfertigung",
-   "Neuproduktion"
+   "falsche Datei"
   ],
   "when": null
  },
  "POLICY-006": {
   "actions": [
-   "reproduction",
    "partial-refund"
   ],
   "exclude_triggers": [],
@@ -574,10 +569,7 @@
    "Tippfehler",
    "Rechtschreibfehler",
    "mein Fehler",
-   "falsche Datei",
-   "Neuanfertigung",
-   "Neuproduktion",
-   "Nachbestellung"
+   "falsche Datei"
   ],
   "when": null
  },
@@ -595,8 +587,6 @@
    "Rechtschreibfehler",
    "mein Fehler",
    "falsche Datei",
-   "Neuanfertigung",
-   "Neuproduktion",
    "Rabatt",
    "Nachlass"
   ],
@@ -604,7 +594,6 @@
  },
  "POLICY-008": {
   "actions": [
-   "reproduction",
    "partial-refund"
   ],
   "exclude_triggers": [],
@@ -616,9 +605,7 @@
    "Tippfehler",
    "Rechtschreibfehler",
    "mein Fehler",
-   "falsche Datei",
-   "Neuanfertigung",
-   "Neuproduktion"
+   "falsche Datei"
   ],
   "when": null
  },

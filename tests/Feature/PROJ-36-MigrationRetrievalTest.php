@@ -162,3 +162,86 @@ test('migration: an unrelated greeting retrieves only the core and no triggered 
     expect($ids)->toContain('POLICY-004', 'TONE-002')
         ->and($ids)->not->toContain('POLICY-017', 'POLICY-018', 'POLICY-016', 'PROCESS-001', 'TONE-003', 'PROCESS-003');
 });
+
+/**
+ * IDs the action safeguard would load after the analysis recommended the actions.
+ *
+ * @param  list<string>  $actions
+ * @param  list<string>  $products
+ * @return list<string>
+ */
+function migrationSafeguard(string $group, string $text, array $actions, array $products = []): array
+{
+    return array_map(
+        fn ($document): string => (string) $document->id,
+        migrationResult($group, $text, $products)->safeguardDocuments($actions),
+    );
+}
+
+describe('action safeguard for binding documents', function () {
+    $complaint = 'Die Tasse ist beschädigt angekommen, der Henkel ist gesprungen.';
+
+    test('a justified complaint with a free reproduction loads the authority but not the customer-error goodwill rules', function () use ($complaint) {
+        $shop = migrationSafeguard('private-looxis-de', $complaint, ['reproduction'], ['magic-mug']);
+        $amazon = migrationSafeguard('private-amazon', $complaint, ['reproduction'], ['magic-mug']);
+        $reseller = migrationSafeguard('reseller', $complaint, ['reproduction'], ['magic-mug']);
+
+        expect($shop)->toContain('PERMISSION-002')->and($shop)->not->toContain('POLICY-005', 'POLICY-006', 'POLICY-007', 'POLICY-008')
+            ->and($amazon)->toContain('PERMISSION-002')->and($amazon)->not->toContain('POLICY-006', 'POLICY-009')
+            ->and($reseller)->toContain('PERMISSION-002')->and($reseller)->not->toContain('POLICY-008');
+    });
+
+    test('a recommended goodwill or partial refund loads the goodwill rules of the customer group', function () use ($complaint) {
+        $shop = migrationSafeguard('private-looxis-de', $complaint, ['partial-refund'], ['magic-mug']);
+        $amazon = migrationSafeguard('private-amazon', $complaint, ['partial-refund'], ['magic-mug']);
+        $reseller = migrationSafeguard('reseller', $complaint, ['partial-refund'], ['magic-mug']);
+
+        expect($shop)->toContain('POLICY-005', 'POLICY-007')->and($shop)->not->toContain('POLICY-006', 'PERMISSION-003')
+            ->and($amazon)->toContain('POLICY-006', 'POLICY-007', 'POLICY-009', 'PERMISSION-003')->and($amazon)->not->toContain('POLICY-005')
+            ->and($reseller)->toContain('POLICY-008')->and($reseller)->not->toContain('POLICY-005', 'POLICY-007');
+    });
+
+    test('a regular refund loads the refund authority, neither the Amazon goodwill authority nor the no-return rule', function () use ($complaint) {
+        $ids = migrationSafeguard('private-amazon', $complaint, ['refund'], ['magic-mug']);
+
+        expect($ids)->toContain('PERMISSION-001')->and($ids)->not->toContain('PERMISSION-003', 'POLICY-001');
+    });
+
+    test('a return or cancellation loads the no-return rule', function () use ($complaint) {
+        expect(migrationSafeguard('private-looxis-de', $complaint, ['return']))->toContain('POLICY-001')
+            ->and(migrationSafeguard('private-looxis-de', $complaint, ['cancellation']))->toContain('POLICY-001');
+    });
+
+    test('a refund request by the customer is not read as a wish to return the goods', function () {
+        $ids = migrationRetrieve('private-looxis-de', 'Die Lieferung ist defekt, ich möchte mein Geld zurück.');
+
+        expect($ids)->toContain('PERMISSION-001')->and($ids)->not->toContain('POLICY-001');
+    });
+
+    test('an explicit wish to return because of dislike loads the no-return rule at once', function () {
+        expect(migrationRetrieve('private-looxis-de', 'Das Motiv gefällt mir nicht, ich möchte es zurückgeben.'))->toContain('POLICY-001');
+    });
+
+    test('a new 3D interpretation approval comes with a reproduction only for 3D glass photos', function () use ($complaint) {
+        expect(migrationSafeguard('private-looxis-de', $complaint, ['reproduction'], ['3d-glass-photo']))->toContain('PROCESS-007')
+            ->and(migrationSafeguard('private-looxis-de', $complaint, ['reproduction'], ['magic-mug']))->not->toContain('PROCESS-007');
+    });
+
+    test('the quote and order rules wait for their actions', function () {
+        $text = 'Guten Tag, ich habe eine Frage zum Produkt.';
+
+        expect(migrationSafeguard('private-looxis-de', $text, ['quote']))->toContain('POLICY-024', 'POLICY-025', 'POLICY-026')
+            ->and(migrationSafeguard('private-looxis-de', $text, ['order-confirmation']))->toContain('PROCESS-011')
+            ->and(migrationSafeguard('private-looxis-de', $text, ['reproduction']))->not->toContain('PROCESS-011', 'POLICY-024');
+    });
+});
+
+test('migration: an unclear damage to the lunchbox is not read as a broken snap fastener', function () {
+    $unclear = migrationRetrieve('private-looxis-de', 'Ein Stück meiner Lunchbox ist abgebrochen.', ['lunchbox-wood-lid']);
+    $fastener = migrationRetrieve('private-looxis-de', 'Der Schnappverschluss meiner Lunchbox ist gebrochen.', ['lunchbox-wood-lid']);
+    $closure = migrationRetrieve('private-looxis-de', 'Der Verschluss ist abgebrochen.', ['lunchbox-wood-lid']);
+
+    expect($unclear)->toContain('PRODUCT-005')->and($unclear)->not->toContain('PLAYBOOK-013')
+        ->and($fastener)->toContain('PLAYBOOK-013')
+        ->and($closure)->toContain('PLAYBOOK-013');
+});
