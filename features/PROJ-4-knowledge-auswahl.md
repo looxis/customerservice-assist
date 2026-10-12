@@ -2,10 +2,12 @@
 
 ## Status: Approved
 **Created:** 2026-10-02
-**Last Updated:** 2026-10-05
+**Last Updated:** 2026-10-13 (Auswahl nach Anliegen ausgelagert, siehe PROJ-36)
 
 ## Dependencies
 - Requires: PROJ-3 (Knowledge Base einlesen und prüfen) – liefert die verwendbaren Dokumente, den Wissensstand und die Fingerabdrücke
+
+PROJ-4 liefert den **Geltungsbereich** (Kundengruppe und Produkt). Seit 2026-10-13 gilt: Ob ein Dokument im Geltungsbereich auch abgerufen wird, entscheidet die zweite Stufe in PROJ-36 (Gezielter Wissensabruf: Klassen `core`/`triggered`/`binding`, Auslöser, Bedingungen, Budget). Bis PROJ-36 umgesetzt ist, gilt die Auswahl dieser Spec unverändert.
 
 PROJ-4 hat keine eigene Seite. Es liefert die Auswahl-Logik, die Wertelisten für die Eingabefelder und Vorschläge aus Bestelldaten. Die Felder „Kundengruppe" und „Produkt" selbst erscheinen im Analyse-Formular (PROJ-9).
 
@@ -34,9 +36,9 @@ PROJ-4 hat keine eigene Seite. Es liefert die Auswahl-Logik, die Wertelisten fü
 - Abruf der Bestelldaten aus EOCS – PROJ-7. PROJ-4 arbeitet mit den Bestellpositionen, die es übergeben bekommt.
 - Anzeige der verwendeten Quellen und des Entwurfs-Hinweises im Ergebnis – PROJ-10.
 - Speichern der Auswahl zur Analyse – PROJ-11.
-- Auswahl nach Art der Anfrage (Reklamation, Produktfrage, Frage zum Ablauf) oder nach Themen. Die Felder `categories` und `topics` bleiben in den Dokumenten und werden dem Sprachmodell mitgegeben, schließen aber nichts aus.
+- Auswahl nach Anliegen (Auslöser im Ticket-Text, Bedingungen aus Fall- und Bestelldaten, Klassen, Budget) – **PROJ-36** (ersetzt die frühere Entscheidung „kein Filter nach Art der Anfrage oder Themen“). Fallarten als Zusatzfilter über `categories` folgen mit PROJ-37. Bis dahin schließen `categories` und `topics` nichts aus.
 - Semantische Suche, Embeddings, Gewichtung nach Ähnlichkeit – PROJ-22.
-- Vorstufe mit dem Sprachmodell zur Bestimmung der Anfrageart; kommt erst, wenn die Knowledge Base zu groß wird.
+- Vorstufe mit dem Sprachmodell zur Bestimmung der Anfrageart – **PROJ-37** (Router mit begrenzter Vorauswahl).
 - Automatische Erkennung von Fachhändlern (PRD, Non-Goal). Die Kundengruppe wählt der Mitarbeiter.
 - Seite in der App für die Vorschau der Auswahl. Im MVP gibt es dafür einen Terminal-Befehl.
 
@@ -137,7 +139,8 @@ PROJ-4 hat keine eigene Seite. Es liefert die Auswahl-Logik, die Wertelisten fü
 | Bei „Noch unklar" nur allgemeingültige Dokumente | Verhindert, dass eine Verbraucher-Regel auf einen Händler angewendet wird; das Ergebnis ist dann die richtige Rückfrage (POLICY-004) | 2026-10-02 |
 | Vier Kanäle: `shop`, `amazon`, `fachhaendler`, `looxis-pro`; jede Kundengruppe hat genau einen | Fachhändler bestellen über fachhaendler.looxis.de, LOOXIS-Pro über einen eigenen Kanal; damit gilt für alle Gruppen dieselbe Auswahlregel | 2026-10-02 |
 | Die Übersetzung der EOCS-Kanalbezeichnung in den Kanal steht in der Konfiguration | Der genaue Wortlaut aus EOCS ist noch unbekannt und kann sich ändern | 2026-10-02 |
-| Kein Filter nach Art der Anfrage oder Themen | Die Anfrageart steht erst nach der Analyse fest; eine Vorauswahl durch eine Aushilfe könnte das richtige Playbook ausblenden. Tragbar, solange die Knowledge Base überschaubar ist | 2026-10-02 |
+| Kein Filter nach Art der Anfrage oder Themen | Die Anfrageart steht erst nach der Analyse fest; eine Vorauswahl durch eine Aushilfe könnte das richtige Playbook ausblenden. Tragbar, solange die Knowledge Base überschaubar ist. **Überholt am 2026-10-13:** Gemessen waren es 44 Dokumente und 90.523 Zeichen je Prompt ohne wirksame Obergrenze; die Auswahl nach Anliegen übernimmt PROJ-36, ohne Vorauswahl durch den Mitarbeiter | 2026-10-02 |
+| Geltungsbereich (Kundengruppe, Produkt) bleibt Aufgabe von PROJ-4, der Abruf nach Anliegen wird PROJ-36 | Zwei Stufen mit getrennter Verantwortung: PROJ-4 sagt, wo ein Dokument in Frage kommt; PROJ-36, ob es für diesen Fall gebraucht wird. Produkt ist dabei Geltungsbereich, kein Auslöser | 2026-10-13 |
 | Produkt wird vom Mitarbeiter gewählt, vorbelegt über Schlüsselwörter in der Produktdatei | Gleiches Muster wie bei der Kundengruppe; funktioniert vor der EOCS-Anbindung und bei neuen Artikeln | 2026-10-02 |
 | Die Zuordnung Bestellposition → Produkt steht in der Produktdatei (`order_keywords`), nicht im Code | Der Autor pflegt sie zusammen mit dem Produktwissen; ein neues Produkt braucht keine Programmänderung | 2026-10-02 |
 | Referenzfälle sind in der Anzahl begrenzt und fallen bei Überschreitung des Umfangs zuerst weg | Beispiele haben den niedrigsten Rang und sind laut Design-Dokument „wenige"; verbindliches Wissen wird nie stillschweigend gekürzt | 2026-10-02 |
