@@ -57,7 +57,7 @@ PROJ-35 zeigt je **Ticket**, wie weit die Arbeit mit der App ging. Es fehlt die 
 - [x] Angenommen gewählte Filter, wenn die Seite neu geladen oder die Adresse weitergegeben wird, dann bleibt die Auswahl erhalten (Filter stehen in der Adresse)
 - [x] Angenommen gewählte Filter, wenn der Admin „Zurücksetzen“ wählt, dann gilt wieder die Standardansicht
 - [x] Angenommen die Schalter „Testläufe anzeigen“ und „Fehlgeschlagene anzeigen“, wenn sie ausgeschaltet sind (Standard), dann fehlen diese Zeilen in Liste und Kennzahlen; eingeschaltet erscheinen sie mit Kennzeichen „Testlauf“ bzw. „Fehlgeschlagen“ (mit Fehlergrund, ohne Inhalt)
-- [ ] Angenommen ein ungültiger Filterwert in der Adresse, wenn die Seite aufgerufen wird, dann wird er ignoriert und die Seite zeigt ohne ihn eine Liste (teilweise: Werte, die nicht zu den Daten passen, werden ignoriert; Werte falscher Form führen zu einer Weiterleitung, siehe BUG-1)
+- [x] Angenommen ein ungültiger Filterwert in der Adresse, wenn die Seite aufgerufen wird, dann wird er ignoriert und die Seite zeigt ohne ihn eine Liste (nach Behebung von BUG-1)
 
 ### Kennzahlen
 - [x] Angenommen eine gefilterte Menge, wenn die Seite angezeigt wird, dann stehen darüber: Anzahl Analysen, Anteil „unverändert nutzbar“ oder „leicht angepasst“ an den bewerteten, Anteil „verworfen“ an den bewerteten, Anteil ohne Feedback, Anteil 1:1 kopiert an den kopierten, Anzahl gemeldeter Wissenslücken
@@ -228,7 +228,7 @@ _To be added by /deploy_
 - [x] Auswahl bleibt in der Adresse erhalten (Test)
 - [x] „Zurücksetzen“ nur bei abweichender Auswahl, führt zur Standardansicht (Test)
 - [x] Schalter Testläufe und Fehlgeschlagene mit Kennzeichen und Fehlergrund (Test)
-- [ ] Ungültiger Filterwert wird ignoriert – nur teilweise, siehe BUG-1
+- [x] Ungültiger Filterwert wird ignoriert (BUG-1 behoben)
 
 #### Kennzahlen
 - [x] Alle sechs Kennzahlen gelten für die ganze gefilterte Menge (Test mit 200 Analysen)
@@ -262,20 +262,20 @@ _To be added by /deploy_
 
 #### BUG-1: Ungültig geformte Adresswerte führen zu einer Weiterleitung statt ignoriert zu werden
 - **Severity:** Low
-- **Status:** Offen
+- **Status:** Behoben 2026-10-12 – die Form Request entfernt vor der Prüfung Werte falscher Form (Listen, Texte über 120 Zeichen, eine Seite, die keine positive Zahl ist); die Seitenzahl wird vom Controller selbst übergeben, eine zu große Seite zeigt die letzte; die Seitenlinks tragen nur die bereinigten Filter. Vier Tests.
 - **Steps to Reproduce:** `/analysen?page=abc`, `?page=-3`, `?produkt[]=a`, `?testlaeufe=11` oder ein Wert über 120 Zeichen aufrufen. Erwartet: Die Seite zeigt die Liste ohne den ungültigen Wert. Tatsächlich: Antwort 302 zurück auf die vorherige Seite (ohne Verweis auf die Startseite).
 - **Ursache:** Die Form Request prüft Form und Länge der Werte und leitet bei Verstößen um, statt zu bereinigen.
 - **Priority:** Nice to have
 
 #### BUG-2: Voreingestellter Zeitraum wird ignoriert, solange „Von“ oder „Bis“ gefüllt ist
 - **Severity:** Low
-- **Status:** Offen
+- **Status:** Behoben 2026-10-12 – das Feld „Zeitraum“ hat die Option „Von–Bis (eigener Zeitraum)“; ein gewählter fester Zeitraum gilt immer vor Von/Bis, und die Seite leert Von/Bis beim Wechsel auf einen festen Zeitraum bzw. springt auf „eigener Zeitraum“, sobald ein Datum eingegeben wird (Alpine.js). Ohne `tage` oder mit `tage=eigen` gilt Von–Bis wie zuvor.
 - **Steps to Reproduce:** Von–Bis wählen und filtern; danach im Feld „Zeitraum“ „Letzte 7 Tage“ wählen und erneut filtern, ohne „Von“ und „Bis“ zu leeren. Erwartet: Es gelten die letzten 7 Tage. Tatsächlich: Das alte Von–Bis gilt weiter, die Auswahl wirkt wirkungslos.
 - **Priority:** Nice to have
 
 ### Summary
-- **Acceptance Criteria:** 19/20 bestanden (1 teilweise, BUG-1)
-- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Acceptance Criteria:** 20/20 bestanden
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low) – beide behoben 2026-10-12
 - **Security:** Pass
 - **Production Ready:** YES (Browser- und Responsive-Test steht aus und sollte beim ersten Einsatz nachgeholt werden)
-- **Recommendation:** Freigeben; beide Bugs bei Gelegenheit beheben.
+- **Recommendation:** Freigeben.

@@ -13,14 +13,16 @@
             @endif
 
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <x-select name="tage" label="Zeitraum">
-                    @foreach (config('analysis.overview_periods') as $days => $label)
-                        <option value="{{ $days }}" @selected($filter->days === $days)>Letzte {{ $label }}</option>
-                    @endforeach
-                    @if ($filter->days === null)<option value="" selected>Von–Bis</option>@endif
-                </x-select>
-                <x-input name="von" type="date" label="Von" :value="$filter->from?->format('Y-m-d')" />
-                <x-input name="bis" type="date" label="Bis" :value="$filter->to?->format('Y-m-d')" />
+                <div class="contents" x-data="{ period: @js($filter->days === null ? 'eigen' : (string) $filter->days) }">
+                    <x-select name="tage" label="Zeitraum" x-model="period" x-on:change="if (period !== 'eigen') { $refs.von.value = ''; $refs.bis.value = '' }">
+                        @foreach (config('analysis.overview_periods') as $days => $label)
+                            <option value="{{ $days }}" @selected($filter->days === $days)>Letzte {{ $label }}</option>
+                        @endforeach
+                        <option value="eigen" @selected($filter->days === null)>Von–Bis (eigener Zeitraum)</option>
+                    </x-select>
+                    <x-input name="von" type="date" label="Von" :value="$filter->from?->format('Y-m-d')" x-ref="von" x-on:input="period = 'eigen'" />
+                    <x-input name="bis" type="date" label="Bis" :value="$filter->to?->format('Y-m-d')" x-ref="bis" x-on:input="period = 'eigen'" />
+                </div>
                 <x-select name="kundengruppe" label="Kundengruppe">
                     <option value="">Alle</option>
                     @foreach ($options['groups'] as $group)

@@ -35,8 +35,9 @@ class AnalysisOverview
     {
         $options ??= $this->options();
         $text = fn (string $key, array $allowed): ?string => is_string($input[$key] ?? null) && in_array($input[$key], $allowed, true) ? $input[$key] : null;
-        $from = $this->date($input['von'] ?? null);
-        $to = $this->date($input['bis'] ?? null);
+        $days = is_string($input['tage'] ?? null) && array_key_exists((int) $input['tage'], config('analysis.overview_periods')) ? (int) $input['tage'] : null;
+        $from = $days === null ? $this->date($input['von'] ?? null) : null;
+        $to = $days === null ? $this->date($input['bis'] ?? null) : null;
         $problem = null;
 
         if ($from !== null && $to !== null && $from->greaterThan($to)) {
@@ -47,7 +48,6 @@ class AnalysisOverview
             $from = $to = null;
         }
 
-        $days = is_string($input['tage'] ?? null) && array_key_exists((int) $input['tage'], config('analysis.overview_periods')) ? (int) $input['tage'] : null;
         $custom = $from !== null || $to !== null;
 
         return new AnalysisFilter(
@@ -92,14 +92,15 @@ class AnalysisOverview
     /**
      * @return LengthAwarePaginator<int, Analysis>
      */
-    public function page(AnalysisFilter $filter): LengthAwarePaginator
+    public function page(AnalysisFilter $filter, int $page = 1): LengthAwarePaginator
     {
-        return $this->query($filter)
+        $rows = $this->query($filter)
             ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'content_purged_at', 'content_deleted_at', 'created_at'])
             ->withCount('gaps')
             ->orderByDesc('created_at')->orderByDesc('id')
-            ->paginate(self::PER_PAGE)
-            ->withQueryString();
+            ->paginate(self::PER_PAGE, page: max(1, $page));
+
+        return $page > $rows->lastPage() && $rows->lastPage() > 0 ? $this->page($filter, $rows->lastPage()) : $rows;
     }
 
     /**

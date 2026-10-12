@@ -98,6 +98,50 @@ describe('the page', function () {
     });
 });
 
+describe('bug fixes', function () {
+    test('values of the wrong shape are ignored and the list is shown', function () {
+        Analysis::factory()->create(['created_at' => now()->subDay(), 'ticket_number' => '2100001']);
+
+        foreach (['page=abc', 'page=-3', 'page=0', 'page=99999999', 'produkt[]=a', 'testlaeufe[]=1', 'kundengruppe='.str_repeat('a', 300), 'tage[]=7', 'feedback[x]=y'] as $query) {
+            $this->withCookie('staff_name', 'Etienne')->get('/analysen?'.$query)->assertOk()->assertSeeText('Ticket#2100001');
+        }
+    });
+
+    test('a page beyond the last shows the last page', function () {
+        Analysis::factory()->count(55)->create(['created_at' => now()->subDay()]);
+
+        $this->withCookie('staff_name', 'Etienne')->get('/analysen?page=99999')->assertOk()->assertSee('aria-current="page"', false)->assertDontSeeText('Keine Analysen für diese Auswahl');
+    });
+
+    test('the page links keep only the cleaned filters', function () {
+        Analysis::factory()->count(55)->create(['created_at' => now()->subDay(), 'category' => 'complaint']);
+
+        $page = $this->withCookie('staff_name', 'Etienne')->get('/analysen?kategorie=complaint&produkt[]=a&unsinn=1')->assertOk();
+
+        $page->assertSee('kategorie=complaint&amp;page=2', false)->assertDontSee('unsinn', false)->assertDontSee('produkt%5B', false);
+    });
+
+    test('a chosen preset period wins over an old range; without a preset the range applies', function () {
+        Analysis::factory()->create(['ticket_number' => '2100001', 'created_at' => now()->subDays(3)]);
+        Analysis::factory()->create(['ticket_number' => '2100002', 'created_at' => now()->subDays(60)]);
+
+        expect(rows(['tage' => '7', 'von' => '2026-08-01', 'bis' => '2026-08-31']))->toBe(['2100001'])
+            ->and(rows(['tage' => 'eigen', 'von' => '2026-08-01', 'bis' => '2026-08-31']))->toBe(['2100002'])
+            ->and(rows(['von' => '2026-08-01', 'bis' => '2026-08-31']))->toBe(['2100002']);
+
+        $filter = app(AnalysisOverview::class)->filter(['tage' => '7', 'von' => '2026-08-01']);
+
+        expect($filter)->days->toBe(7)->from->toBeNull();
+    });
+
+    test('the period field offers the own range and is selected for a range', function () {
+        $page = $this->withCookie('staff_name', 'Etienne')->get('/analysen?von=2026-08-01&bis=2026-08-31')->assertOk();
+
+        $page->assertSee('<option value="eigen" selected', false)->assertSee('value="2026-08-01"', false);
+        $this->withCookie('staff_name', 'Etienne')->get('/analysen?tage=7&von=2026-08-01')->assertOk()->assertSee('<option value="7" selected', false)->assertDontSee('value="2026-08-01"', false);
+    });
+});
+
 describe('standard view', function () {
     test('it shows finished real analyses of the last 28 days, newest first', function () {
         overviewAnalyses(['ticket_number' => '2100001', 'created_at' => now()->subDays(3)]);

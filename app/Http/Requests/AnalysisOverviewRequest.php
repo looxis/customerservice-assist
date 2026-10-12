@@ -17,6 +17,19 @@ class AnalysisOverviewRequest extends FormRequest
     }
 
     /**
+     * Values of the wrong shape (lists, over-long texts, a page that is no number) are
+     * dropped before validation, so a hand-changed address shows the list without them.
+     */
+    protected function prepareForValidation(): void
+    {
+        $clean = array_filter($this->query(), fn (mixed $value, string $key): bool => is_string($value)
+            && mb_strlen($value) <= ($key === 'page' ? 5 : 120)
+            && ($key !== 'page' || preg_match('/^[1-9]\d*$/', $value) === 1), ARRAY_FILTER_USE_BOTH);
+
+        $this->query->replace($clean);
+    }
+
+    /**
      * Shape only; values that do not fit are dropped when the filter is built.
      *
      * @return array<string, list<ValidationRule|string>>
@@ -37,9 +50,9 @@ class AnalysisOverviewRequest extends FormRequest
             'mitarbeiter' => $text,
             'modell' => $text,
             'prompt' => $text,
-            'testlaeufe' => ['nullable', 'string', 'max:1'],
-            'fehlgeschlagen' => ['nullable', 'string', 'max:1'],
-            'page' => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'testlaeufe' => ['nullable', 'string'],
+            'fehlgeschlagen' => ['nullable', 'string'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

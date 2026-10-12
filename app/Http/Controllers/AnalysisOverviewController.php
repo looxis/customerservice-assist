@@ -6,6 +6,7 @@ use App\Analysis\AnalysisOverview;
 use App\Http\Requests\AnalysisOverviewRequest;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
+use Illuminate\Support\Arr;
 use Illuminate\View\View;
 
 class AnalysisOverviewController extends Controller
@@ -20,7 +21,7 @@ class AnalysisOverviewController extends Controller
 
         return view('analysis-overview.index', [
             'filter' => $filter,
-            'rows' => $overview->page($filter),
+            'rows' => $overview->page($filter, (int) $request->validated('page', 1))->appends(Arr::except($request->validated(), 'page')),
             'figures' => $overview->figures($filter),
             'options' => $options,
             'overview' => $overview,
