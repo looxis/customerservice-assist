@@ -57,20 +57,17 @@ class KnowledgeSelector
             ->all();
     }
 
-    public function select(CaseContext $context): KnowledgeSelection
+    /**
+     * The documents that apply to the case by customer group and product (the
+     * scope), in knowledge base precedence, and those that do not with the
+     * reason. Nothing is capped or cut here; the retrieval of PROJ-36 builds
+     * on this.
+     *
+     * @return array{selected: list<KnowledgeSelectionEntry>, excluded: list<KnowledgeSelectionEntry>}
+     */
+    public function scope(CaseContext $context): array
     {
-        $knownProducts = $this->library->all()
-            ->map(fn (KnowledgeDocument $document): ?string => $document->productSlug())
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-        $usableProducts = array_column($this->products(), 'slug');
-
-        $unknownProducts = array_values(array_diff($context->products, $knownProducts));
-        $productsWithoutKnowledge = array_values(array_diff($context->products, $unknownProducts, $usableProducts));
-        $products = array_values(array_diff($context->products, $unknownProducts));
-
+        $products = $this->productsInScope($context);
         $selected = [];
         $excluded = [];
 
@@ -87,6 +84,42 @@ class KnowledgeSelector
                 $excluded[] = new KnowledgeSelectionEntry($document, $reason);
             }
         }
+
+        return ['selected' => $selected, 'excluded' => $excluded];
+    }
+
+    /**
+     * The chosen products that have a product file; the others are ignored.
+     *
+     * @return list<string>
+     */
+    private function productsInScope(CaseContext $context): array
+    {
+        $knownProducts = $this->library->all()
+            ->map(fn (KnowledgeDocument $document): ?string => $document->productSlug())
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return array_values(array_diff($context->products, array_values(array_diff($context->products, $knownProducts))));
+    }
+
+    public function select(CaseContext $context): KnowledgeSelection
+    {
+        $knownProducts = $this->library->all()
+            ->map(fn (KnowledgeDocument $document): ?string => $document->productSlug())
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $usableProducts = array_column($this->products(), 'slug');
+
+        $unknownProducts = array_values(array_diff($context->products, $knownProducts));
+        $productsWithoutKnowledge = array_values(array_diff($context->products, $unknownProducts, $usableProducts));
+        $products = array_values(array_diff($context->products, $unknownProducts));
+
+        ['selected' => $selected, 'excluded' => $excluded] = $this->scope($context);
 
         [$selected, $capped] = $this->capExamples($selected, $products);
         [$selected, $dropped, $warnings] = $this->limitLength($selected);

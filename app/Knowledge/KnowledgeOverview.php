@@ -62,9 +62,69 @@ class KnowledgeOverview
         $terms = $this->perProduct($documents, fn (KnowledgeDocument $document): array => $document->customerTerms());
         array_push($lines, '', 'Vergebene customer_terms je Produkt:', ...($terms === [] ? ['noch keine'] : $terms));
 
+        array_push($lines, ...$this->retrieval($documents));
+
         array_push($lines, '', 'Heute möchte ich erfassen:', '(Thema oder Fall)');
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * What the targeted retrieval (PROJ-36) needs the author to know: core knowledge with its size,
+     * triggers already given (several documents per trigger are fine), keys for `when` and what is
+     * not classified yet.
+     *
+     * @param  Collection<int, KnowledgeDocument>  $documents
+     * @return list<string>
+     */
+    private function retrieval(Collection $documents): array
+    {
+        $settings = $this->config['retrieval'] ?? null;
+
+        if ($settings === null) {
+            return [];
+        }
+
+        $usable = $documents->filter(fn (KnowledgeDocument $document): bool => $document->parsed && $document->status !== 'deprecated' && $document->type !== 'procedure');
+        $classes = array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys($settings['classes']), $settings['classes']);
+        $lines = ['', 'Klassen für retrieval:', implode(', ', $classes)];
+
+        $core = $usable->filter(fn (KnowledgeDocument $document): bool => $document->retrieval() === 'core');
+        $lines[] = '';
+        $lines[] = 'Grundwissen (retrieval: core), steht in jedem Prompt – '.number_format($core->sum(fn (KnowledgeDocument $document): int => $document->length()), 0, ',', '.').' von '.number_format($settings['budget']['core'], 0, ',', '.').' Zeichen Budget:';
+
+        array_push($lines, ...($core->isEmpty() ? ['noch keins'] : $core->map(fn (KnowledgeDocument $document): string => "  {$document->id} – {$document->title} (".number_format($document->length(), 0, ',', '.').' Zeichen)')->values()->all()));
+
+        $triggers = [];
+
+        foreach ($usable as $document) {
+            foreach ($document->triggers() as $trigger) {
+                $triggers[mb_strtolower($trigger)][] = (string) $document->id;
+            }
+        }
+
+        ksort($triggers);
+        $lines[] = '';
+        $lines[] = 'Vergebene triggers (derselbe Begriff in mehreren Dokumenten ist erlaubt):';
+
+        array_push($lines, ...($triggers === [] ? ['noch keine'] : array_map(fn (string $trigger, array $ids): string => "  {$trigger} → ".implode(', ', array_unique($ids)).(count(array_unique($ids)) > 1 ? ' (mehrfach)' : ''), array_keys($triggers), $triggers)));
+
+        $lines[] = '';
+        $lines[] = 'Schlüssel für when (Ebene; Quelle; Verfügbarkeit):';
+
+        foreach ($settings['when_keys'] as $key => $definition) {
+            $lines[] = "  {$key} ({$definition['type']}) – ".($definition['level'] === 'order' ? 'je Bestellung' : 'für den Fall').'; '.$definition['source'].'; '.$definition['availability'];
+        }
+
+        $unclassified = $usable->filter(fn (KnowledgeDocument $document): bool => $document->retrieval() === null);
+        $lines[] = '';
+        $lines[] = 'Noch nicht klassifiziert (retrieval fehlt, zählt vorläufig als Grundwissen): '.$unclassified->count();
+
+        if ($unclassified->isNotEmpty()) {
+            $lines[] = '  '.$unclassified->map(fn (KnowledgeDocument $document): string => (string) $document->id)->implode(', ');
+        }
+
+        return $lines;
     }
 
     /**

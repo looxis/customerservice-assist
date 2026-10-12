@@ -232,6 +232,16 @@ return [
 
         'required' => (bool) env('KNOWLEDGE_RETRIEVAL_REQUIRED', false),
 
+        // Provisional values; the final ones are set after the migration (PROJ-36).
+        'budget' => [
+            // Characters of knowledge per analysis the retrieval aims at.
+            'target' => 40000,
+            // Mandatory knowledge (core and binding without trigger) not bound to a product.
+            'core' => 15000,
+            // Mandatory knowledge bound to one product.
+            'core_per_product' => 6000,
+        ],
+
         'min_trigger_length' => 4,
 
         'max_triggers' => 25,
