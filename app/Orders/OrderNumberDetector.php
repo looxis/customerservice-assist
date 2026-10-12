@@ -48,6 +48,21 @@ class OrderNumberDetector
         }
 
         $text = $ticket->title."\n".implode("\n", array_map(fn (TicketArticle $article): string => $this->text($article), $ticket->articles));
+
+        foreach ($this->inText($text) as $number) {
+            $found[$number->value] ??= $number;
+        }
+
+        return array_values($found);
+    }
+
+    /**
+     * Order numbers named in a text, in order of first appearance (PROJ-36).
+     *
+     * @return list<OrderNumber>
+     */
+    public function inText(string $text): array
+    {
         $hits = [];
 
         foreach (OrderNumberFormat::cases() as $format) {
@@ -59,6 +74,8 @@ class OrderNumberDetector
         }
 
         usort($hits, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $found = [];
 
         foreach ($hits as [, $number]) {
             $found[$number->value] ??= $number;

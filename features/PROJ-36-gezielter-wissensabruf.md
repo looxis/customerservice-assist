@@ -341,6 +341,14 @@ Keine neuen Pakete.
 - **Geänderter Test:** In `PROJ-30-ProcedureTest` galt `actions` als unbekanntes Feld außerhalb von Arbeitsabläufen; das ist durch PROJ-36 überholt und ersetzt.
 - **Tests:** `tests/Feature/PROJ-36-RetrievalMetadataTest.php` (38 Tests); komplette Suite 974 grün; die echte Wissensbasis bleibt fehlerfrei.
 
+### Schritt 2: Fallfakten, Bezugsbestellung, Bedingungsauswertung (2026-10-13)
+- **Dreiwertige Logik:** `App\Knowledge\Retrieval\Tri` (Ja, Nein, Unbekannt) mit UND, ODER, NICHT und Sammelfunktionen `all`/`any`.
+- **Bestellfakten:** `OrderFacts` erzeugt die Schlüssel der Startliste je Bestellung aus `EocsOrder`. Fehlendes (keine Sendung, kein Zustellkennzeichen, keine Folgebestellung, keine Positionen, kein Datum) ist `null`, also unbekannt, nie „nein“. `all_shipments_delivered` ist nur „ja“, wenn alle geladenen Sendungen zugestellt sind, sonst unbekannt. Tage werden in Berliner Zeit nach Kalendertagen gezählt, Zukunft zählt als 0. `OrderFacts::unknown()` steht für eine genannte, nicht geladene Bestellung.
+- **Fallfakten:** `CaseFactsBuilder::build()` sammelt einmal je Analyse: Kundentype/-kanal (bei „unklar“ unbekannt), Produkte (leer = bekannt leer), Ticketstatus und -alter, Anzahl Kundennachrichten, Anhang der aktuellen Nachricht, Sprachheuristik (unbekannt bei kurzen Texten) und die **Texte in Stufen**: A = letzte Kundennachricht (bei weniger als 40 Zeichen auch die davor) und Titel bei höchstens zwei Kundennachrichten; B = bis zu drei frühere Kundennachrichten und die Zusammenfassung; C = der Rest (und der Titel älterer Tickets). Deutsche Übersetzungen werden zu der jeweiligen Nachricht hinzugefügt. Unsere Antworten und interne Notizen zählen nicht.
+- **Bezugsbestellung:** Eine in Stufe A genannte, bekannte Bestellnummer entscheidet (`named`); nur genannte Nummern, die geladen oder aus dem Ticket bekannt sind, zählen (verhindert Fehltreffer wie Postleitzahlen). Eine genannte, nicht geladene Bestellung bleibt unbekannt, keine andere springt ein. Ohne Namen: genau eine bekannte Bestellung (`single`), mehrere sind alle Kandidatinnen (`unclear`), keine (`none`). `OrderNumberDetector::inText()` ist neu (Logik aus `detect()` herausgelöst).
+- **Auswertung:** `WhenEvaluator::evaluate()` wertet eine Bedingung in dreiwertiger Logik aus. Nutzt sie Bestellschlüssel, wird die **ganze** Bedingung je Kandidatin getrennt ausgewertet (ja, wenn eine sie vollständig erfüllt; unbekannt, wenn keine ja, aber eine unbekannt; sonst nein); `Evaluation` enthält Ergebnis, Bestellung, Kennzeichen „Bestellbezug unklar“ und die geprüften Schlüssel mit Fakt und Ergebnis für das Protokoll sowie `unknownKeys()` für den Hinweis „Voraussetzung ungeklärt“.
+- **Tests:** `tests/Feature/PROJ-36-CaseFactsTest.php` (37 Tests: Wahrheitstabellen, Bestellfakten, Fallfakten, Textstufen, Bezugsbestellung, Auswertung ohne Vermischung); komplette Suite 1011 grün.
+
 ## QA Test Results
 _To be added by /qa_
 
