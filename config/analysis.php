@@ -99,7 +99,12 @@ return [
     |
     | The whole API prompt must fit the model: context limit minus the reserve
     | for the answer, in characters (a cautious conversion, calibrated with the
-    | token figures stored with every analysis). The retrieval measures the
+    | token figures stored with every analysis). Calibration 2026-10-12 with 28
+    | completed analyses of gpt-5.5: 3.93 to 4.26 characters per input token
+    | (German text), answers (with reasoning) at most 3,509 tokens, about 14,000
+    | characters. 300,000 characters therefore stay below about 76,000 tokens; the
+    | answer reserve of 30,000 characters is about twice the largest answer seen.
+    | The retrieval measures the
     | prompt without knowledge first and gives the knowledge what is left.
     |
     */

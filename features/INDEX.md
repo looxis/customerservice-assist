@@ -56,5 +56,6 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-37 | Router für den Wissensabruf | Zweite Stufe des Abrufs: billiger KI-Aufruf mit begrenzter Vorauswahl (nie Vollkatalog) ergänzt Synonyme und Fremdsprachen, liefert Fallarten als Liste für `categories` als Zusatzfilter, kann nur hinzufügen; abschaltbar | – | PROJ-36 | Roadmap | – | 2026-10-13 |
 
 <!-- Add features above this line -->
+| PROJ-38 | Dynamischer Abruf von Produktinformationen | Produktspezifische Informationen bedarfsorientiert aus den maßgeblichen Datenquellen laden statt für alle Produktdetails eigene Markdown-Dateien zu pflegen: zuerst aus EOCS (Produktidentität, Beschreibungen, Produktionsart), später ergänzend aus dem LOOXIS Content Studio (Datenblätter, Materialien, Pflegehinweise, technische Details); die Knowledge Base bleibt zuständig für Regeln, Reklamationsprozesse und Entscheidungen; fügt sich als weitere Quelle in den gezielten Abruf (PROJ-36) ein; Umfang der Schnittstellen noch zu klären | – | PROJ-7, PROJ-36 | Roadmap | – | 2026-10-12 |
 
-## Next Available ID: PROJ-38
+## Next Available ID: PROJ-39

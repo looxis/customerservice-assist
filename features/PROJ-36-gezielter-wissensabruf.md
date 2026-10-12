@@ -416,3 +416,12 @@ Das Frontmatter der 75 Dokumente (ohne Arbeitsabläufe) trägt jetzt `summary`, 
 
 ### Nachtrag 2026-10-12
 `exclude_products` (Dokument, Selektor `productExclusionReason`, Validator: Konflikt mit `products` = Fehler, Produktdatei = Fehler, unbekannter Slug = Warnung, Authoring Guide, Vorlagen) und Maßnahme `goodwill-reproduction` (Konfiguration, Hinweissätze im Prompt-Teil „Vorgaben“, Frontmatter von POLICY-005 bis -009 und PERMISSION-003). Tests: `PROJ-36-ExcludeProductsTest.php`, Abschnitte in `PROJ-36-MigrationRetrievalTest.php` und `PROJ-36-AnalysisIntegrationTest.php`.
+
+### Kalibrierung der Zeichengrenzen (2026-10-12)
+Grundlage: die gespeicherten Token-Zahlen von 28 abgeschlossenen Analysen mit `gpt-5.5` (kein neuer Modellaufruf nötig).
+- **Zeichen je Eingabe-Token:** 3,93 bis 4,26 (deutscher Text, Eingabe zählt Anweisungen und Schema mit, also ist der echte Wert für den gesendeten Text eher etwas höher). Für die Grenzen gilt vorsichtig 3,5.
+- **Ausgabe:** höchstens 3.509 Token (mit Denkaufwand), Durchschnitt 1.590; das sind höchstens etwa 14.000 Zeichen. Die Antwortreserve von 30.000 Zeichen liegt beim gut Doppelten des größten beobachteten Werts.
+- **Eingabegrenze:** 300.000 Zeichen entsprechen rund 76.000 Token (bei 3,93 Zeichen je Token), bei vorsichtigen 3,5 rund 86.000. Das ist die Obergrenze für den ganzen Prompt; sie bleibt unverändert.
+- **Reale Größen vorher/nachher:** bisher 51.000 bis 126.000 Zeichen je Analyse (13.000 bis 30.000 Token, im Mittel 23 Sekunden); mit Abruf nach den Messungen 5.500 bis 32.000 Zeichen Wissen.
+- **Nicht aus dem Code prüfbar:** das Kontextfenster von `gpt-5.5` selbst. Die Grenzen sind per `ANALYSIS_CONTEXT_CHARACTERS` und `ANALYSIS_ANSWER_RESERVE_CHARACTERS` einstellbar; bitte das Fenster einmal in der OpenAI-Dokumentation gegenprüfen.
+- Folge: Zielumfang 40.000, Pflichtbudgets 15.000 und 9.000 je Produkt bleiben, die harte Grenze bleibt wie konfiguriert. Offen bleibt nur die Beobachtung am echten Betrieb nach dem Einschalten (Spalten `knowledge_characters`, `input_tokens` in der Analysen-Übersicht).
