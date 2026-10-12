@@ -181,7 +181,10 @@ Zurückgestellt, bis die Werte gesammelt oder abgestimmt sind: `order_status` (f
 
 ## Open Questions
 - [ ] Fachliche Freigabe der Startliste der `when`-Schlüssel (siehe Tabelle oben), insbesondere `shipped`, `days_since_shipped`, `delivery_confirmed` (Zuverlässigkeit der Sendungsdaten in EOCS) und `has_claim`.
-- [ ] Endgültige Budgetwerte (Zielumfang, Pflichtumfang, harte Grenze) nach der Migration anhand echter Zahlen.
+- [ ] Endgültige Budgetwerte (Zielumfang, Pflichtumfang, harte Grenze) nach der Migration anhand echter Zahlen; Produktbudget vorläufig 9.000, nach Aufteilung von PRODUCT-003 wieder 6.000.
+- [ ] PRODUCT-003 fachlich aufteilen (8.643 Zeichen, Prüfung warnt: mehr als ein Thema) – vorgemerkt, nicht Teil der Migration.
+- [ ] Auslöser der Mengen-Dokumente an echten Formularanfragen von looxis.de prüfen; Angebotswissen für Reseller, LOOXIS-Pro, masterpics und Amazon fehlt.
+- [ ] Bilderkennung für Motivausschlüsse (POLICY-018) – PROJ-21.
 - [ ] Eignet sich die Satzgrenze für Ausschlüsse auch bei kurzen, unvollständigen Kundensätzen? Anhand der Tests beurteilen.
 - [ ] Statusnamen aus EOCS sammeln, um `order_status` später sicher anbieten zu können.
 
@@ -387,6 +390,16 @@ Keine neuen Pakete.
 - **Vorlagen** (`knowledge/templates/*.md`): alle zehn tragen die leeren Felder `summary`, `retrieval`, `triggers`, `exclude_triggers`, `when`, `actions` (bei Arbeitsabläufen nur einmal) mit Hinweiszeile.
 - **Chat-Handbuch** `docs/KNOWLEDGE_CHAT_HANDBUCH.md` (eine Seite): zwei Stufen, drei Klassen, Pflichtfelder, Fragen, Prüfung nach jeder Charge mit `knowledge:select --text`. Der KI-Skill `/knowledge` verweist darauf.
 - **Tests:** `tests/Feature/PROJ-36-AuthoringKitTest.php` (Vorlagen, Inhalte des Guides einschließlich der im Beispiel genannten `when`-Schlüssel, Länge des Handbuchs).
+
+### Schritt 7 (Vorbereitung): Migrationsvorschlag und Anpassungen (2026-10-13)
+- **Vorschlag zur fachlichen Prüfung:** [PROJ-36-migration-vorschlag.md](PROJ-36-migration-vorschlag.md) – vollständige Tabellen aller 75 Dokumente (ID, Titel, Geltung, Klasse, Summary, Triggers, Exclude-Triggers, When, Maßnahmen) und Messergebnisse. Die echten Wissensdateien sind **nicht** geändert; `KNOWLEDGE_RETRIEVAL_ACTIVE` und `KNOWLEDGE_RETRIEVAL_REQUIRED` bleiben aus. Auf einer Kopie angewendet: 0 Fehler, Pflichtumfang ohne Produkt 8.728 Zeichen, typische Fälle 5.500 bis 37.500 Zeichen (bisher 49.000 bis 90.000).
+- **Produktbudget:** `knowledge.retrieval.budget.core_per_product` vorläufig 9.000 (statt 6.000), weil PRODUCT-003 8.643 Zeichen hat. Die fachliche Aufteilung von PRODUCT-003 ist vorgemerkt (noch nicht durchgeführt); danach wieder auf 6.000 senken.
+- **Mengenanfragen:** Die Mengen-Dokumente (POLICY-023 bis -026, PROCESS-010/-011, TONE-009) gelten nur für den Kanal looxis-de; bei Reseller, LOOXIS-Pro, masterpics und Amazon werden daher nur Grundwissen geholt, die KI meldet eine Wissenslücke. Die Auslöser erkennen auch Formulierungen ohne „Angebot“ („Stück für“, „pro Stück“, „Firmenveranstaltung“ …); Negativfälle („Ein Stück ist abgebrochen“) lösen nicht aus.
+- **Rechnungswissen:** getrennt nach Anforderung/Wiederversand, Änderung von Adresse/Empfänger/Firmierung und Vorauszahlung. Das allgemeine Wort „Rechnung“ löst nur die Anforderungs-Dokumente aus und wird im selben Satz durch Änderungswörter („ändern“, „Adresse“, „Firma“ …) unterdrückt.
+- **POLICY-018 (ethische Ausschlüsse):** Die App sieht keine Bilder. Das Dokument ist `binding` und kommt bei Textauslösern, bei einer Mitarbeiter-Notiz (zählt jetzt als aktuelles Anliegen) oder wenn die aktuelle Kundennachricht einen Anhang hat (`current_message_has_attachment`). Echte Bilderkennung bleibt PROJ-21.
+- **Weitere Texte für den Abruf:** Der Mitarbeiterkontext zählt zur aktuellen Stufe A, vom Kunden eingegebene Personalisierungstexte der betroffenen Bestellung zur Stufe B (`OrderFacts::$texts`, `CaseFactsBuilder` Parameter `$employeeContext`).
+- **Arbeitsabläufe** (`procedure`) brauchen kein `retrieval`, auch nicht bei Pflichtfeld.
+- **Tests:** 3 weitere in `PROJ-36-CaseFactsTest.php`, 1 in `PROJ-36-RetrievalMetadataTest.php`; komplette Suite grün.
 
 ## QA Test Results
 _To be added by /qa_

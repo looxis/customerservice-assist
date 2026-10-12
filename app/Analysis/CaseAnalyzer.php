@@ -210,6 +210,7 @@ class CaseAnalyzer
             $request->mentionedOrders,
             $this->translator->translations($request->ticket),
             $request->variant === ContextVariant::LastWithSummary ? $request->summary?->text : null,
+            employeeContext: $request->employeeContext,
         );
 
         $without = mb_strlen($prompt->text) + mb_strlen($this->compose($parts, "# Wissen\n"));

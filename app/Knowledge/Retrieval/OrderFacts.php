@@ -15,8 +15,9 @@ final readonly class OrderFacts
 {
     /**
      * @param  array<string, mixed>  $values  By `when` key; missing or null means unknown.
+     * @param  list<string>  $texts  Texts the customer entered for the products of the order (personalisation), searched for triggers.
      */
-    public function __construct(public ?string $number, public array $values = []) {}
+    public function __construct(public ?string $number, public array $values = [], public array $texts = []) {}
 
     /**
      * An order that is named but not loaded, or no order at all: nothing is known.
@@ -48,7 +49,26 @@ final readonly class OrderFacts
             'has_claim' => $order->claims === [] ? null : true,
             'claim_count' => $order->claims === [] ? null : count($order->claims),
             'item_quantity_total' => $order->items === [] ? null : $quantity,
-        ]);
+        ], self::texts($order));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function texts(EocsOrder $order): array
+    {
+        $texts = [];
+
+        foreach ($order->items as $item) {
+            $customization = $item->customization;
+            array_walk_recursive($customization, function (mixed $value) use (&$texts): void {
+                if (is_string($value) && trim($value) !== '') {
+                    $texts[] = trim($value);
+                }
+            });
+        }
+
+        return array_values(array_unique($texts));
     }
 
     public function get(string $key): mixed

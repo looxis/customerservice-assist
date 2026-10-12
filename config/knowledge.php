@@ -247,7 +247,8 @@ return [
             // Mandatory knowledge (core and binding without trigger) not bound to a product.
             'core' => 15000,
             // Mandatory knowledge bound to one product.
-            'core_per_product' => 6000,
+            // Raised from 6.000 because PRODUCT-003 (3D glass photos) has 8.643 characters; lower it again once the file is split.
+            'core_per_product' => 9000,
         ],
 
         'min_trigger_length' => 4,

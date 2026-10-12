@@ -39,13 +39,23 @@ class CaseFactsBuilder
      * @param  list<array{number: string, channel: string|null, items: list<string>}>  $mentionedOrders  Order numbers known from the ticket but not loaded.
      * @param  array<int, array{text: string|null}>  $translations  German translations by Zammad message ID (the Translator's result).
      * @param  string|null  $summary  The summary of the earlier thread, if one is used.
+     * @param  string  $employeeContext  What the employee noted about the case (for example what an uploaded picture shows); counts as the current concern.
      */
-    public function build(Ticket $ticket, CustomerGroup $group, array $products, array $orders, array $mentionedOrders = [], array $translations = [], ?string $summary = null, ?CarbonImmutable $now = null): CaseFacts
+    public function build(Ticket $ticket, CustomerGroup $group, array $products, array $orders, array $mentionedOrders = [], array $translations = [], ?string $summary = null, ?CarbonImmutable $now = null, string $employeeContext = ''): CaseFacts
     {
         $now ??= CarbonImmutable::now();
         $customer = array_values(array_filter($ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer));
         $tiers = $this->tiers($ticket, $customer, $translations, $summary);
+        if (trim($employeeContext) !== '') {
+            $tiers['A'][] = trim($employeeContext);
+        }
+
         [$candidates, $reference] = $this->candidates($tiers['A'], $orders, $mentionedOrders, $now);
+
+        foreach ($candidates as $candidate) {
+            array_push($tiers['B'], ...$candidate->texts);
+        }
+
         $last = $customer === [] ? null : $customer[array_key_last($customer)];
         $lastText = $last === null ? '' : TicketContext::plainText($last);
 

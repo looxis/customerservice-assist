@@ -9,7 +9,7 @@
 ## Die drei Klassen (`retrieval`)
 | Klasse | Heißt | Wann im Prompt |
 |---|---|---|
-| `core` | Grundwissen | immer – sehr sparsam, rund 15.000 Zeichen insgesamt, Produktgrundlagen je Produkt rund 6.000 |
+| `core` | Grundwissen | immer – sehr sparsam, rund 15.000 Zeichen insgesamt, Produktgrundlagen je Produkt rund 9.000 (vorläufig) |
 | `triggered` | bei Bedarf | wenn ein Auslöser im aktuellen Anliegen vorkommt oder die Bedingung erfüllt ist |
 | `binding` | verbindlich | immer im Geltungsbereich, wenn es keine Auslöser, Bedingung und Maßnahme gibt; sonst bei Treffer, erfüllter oder ungeklärter Bedingung oder wenn die KI die zugehörige Maßnahme empfiehlt; wird nie wegen Platzmangel weggelassen |
 

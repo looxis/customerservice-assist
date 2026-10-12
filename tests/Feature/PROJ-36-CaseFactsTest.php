@@ -225,6 +225,35 @@ describe('text tiers', function () {
     });
 });
 
+describe('what the employee and the order add to the texts', function () {
+    test('the note of the employee counts as the current concern', function () {
+        $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Ich habe ein Foto hochgeladen, bitte so drucken.', 1)]);
+
+        $tiers = factsBuilder()->build($ticket, factsGroup(), [], [], [], [], null, factsNow(), 'Das Foto zeigt ein Hakenkreuz.')->tiers;
+
+        expect($tiers['A'])->toContain('Das Foto zeigt ein Hakenkreuz.');
+    });
+
+    test('an empty note adds nothing', function () {
+        $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Eine ausführliche Nachricht mit genug Text für den Test hier.', 1)]);
+
+        expect(factsBuilder()->build($ticket, factsGroup(), [], [], [], [], null, factsNow(), '   ')->tiers['A'])->toBe(['Betreff', 'Eine ausführliche Nachricht mit genug Text für den Test hier.']);
+    });
+
+    test('texts the customer entered for the products of the order join the recent texts, only for the orders the concern refers to', function () {
+        $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Zur Bestellung 402-0000000-0000002 habe ich eine Frage zu meiner Tasse, bitte melden Sie sich.', 1)]);
+        $item = fn (string $text): EocsOrderItem => new EocsOrderItem('1', 'Tasse', 'Tasse', 1, null, null, null, null, ['customizationData' => ['text' => $text], 'customizationInfo' => ['Zeile 1', ['Zeile 2']]]);
+        $orders = [
+            factsOrder('402-0000000-0000001', items: [$item('Text der anderen Bestellung')], id: 1),
+            factsOrder('402-0000000-0000002', items: [$item('Hallo Welt')], id: 2),
+        ];
+
+        $tiers = factsBuilder()->build($ticket, factsGroup(), [], $orders, [], [], null, factsNow())->tiers;
+
+        expect($tiers['B'])->toBe(['Hallo Welt', 'Zeile 1', 'Zeile 2']);
+    });
+});
+
 describe('the order the concern refers to', function () {
     test('one named order number decides, the other loaded order is not a candidate', function () {
         $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Zur Bestellung 402-0000000-0000002 habe ich ein Problem, die Tasse ist nicht angekommen.', 1)]);
