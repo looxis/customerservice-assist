@@ -1,6 +1,6 @@
 # PROJ-36: Gezielter Wissensabruf
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
@@ -406,7 +406,66 @@ Keine neuen Pakete.
 - **Tests:** 3 weitere in `PROJ-36-CaseFactsTest.php`, 1 in `PROJ-36-RetrievalMetadataTest.php`; komplette Suite grün.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-12 · **Methode:** komplette Pest-Suite (1154 Tests grün), Code-Review der neuen Pfade, Abrufproben mit der echten Wissensbasis über `knowledge:select` und Ende-zu-Ende-Tests mit der echten Wissensbasis (Analyse mit gefälschter KI-Antwort). **Nicht getestet:** Browser (Chrome, Firefox, Safari) und die Breiten 375/768/1440 px; das Aussehen von Quellenbereich, „Regelprüfung unvollständig“ und Zuschalten ist nur über Blade-Render-Tests geprüft, nicht am Bildschirm. Kein echter Modellaufruf.
+**Tester:** QA Engineer (AI)
+
+### Acceptance Criteria Status (61)
+
+| Gruppe | Kriterien | Ergebnis | Nachweis |
+|---|---|---|---|
+| Metadaten und Prüfung | 11 | bestanden | `PROJ-36-RetrievalMetadataTest.php`; `knowledge:check` mit `required` ohne Fehler |
+| Abruf | 9 | bestanden | `PROJ-36-RetrievalTest.php`, `PROJ-36-CaseFactsTest.php`, Abrufproben (Italienisch „fattura“, Englisch „invoice“/„copyrighted“, leerer Text, „ok danke“) |
+| Verbindliche Regeln inkl. Maßnahmensicherung | 14 | bestanden | `PROJ-36-RetrievalTest.php`, `PROJ-36-AnalysisIntegrationTest.php` (zweiter Durchgang, Wiederholung nur einmal, Ausfall, Platzmangel) |
+| Ausschlüsse | 3 | bestanden | `PROJ-36-RetrievalTest.php` |
+| Bestellbezug und Bedingungen | 7 | bestanden | `PROJ-36-CaseFactsTest.php`, `PROJ-36-RetrievalTest.php` (keine Wissensdatei der echten Basis nutzt bisher `when`; die Logik ist nur mit synthetischen Dokumenten geprüft) |
+| Budget | 8 | bestanden | `PROJ-36-RetrievalTest.php`, `PROJ-36-AnalysisIntegrationTest.php` (harte Grenze über den ganzen Prompt, langer Verlauf, Abbruch) |
+| Protokoll und Ansicht | 4 | bestanden (Render-Tests) | Quellenbereich, Zuschalten, ältere Analysen ohne neuen Bereich; **am Bildschirm nicht geprüft** |
+| Befehle und Hilfen | 3 | bestanden | `PROJ-36-AuthoringKitTest.php`, `knowledge:select --text`, `knowledge:overview` |
+| Migration | 4 | bestanden | `PROJ-36-MigrationRetrievalTest.php`; Frontmatter-Commit `acfffe7` ohne Textänderung; typischer Reklamationsfall 13.000 bis 32.000 Zeichen |
+
+Zusätzlich neu getestet (nach der Spezifikation entstanden): `exclude_products` (`PROJ-36-ExcludeProductsTest.php`), Maßnahme `goodwill-reproduction` (Prompt, Antwortprüfung, Nachladen, Abgrenzung zu `reproduction`).
+
+### Edge Cases Status
+- [x] Sehr kurze Nachricht, leerer Text, fremdsprachige Nachricht (Italienisch, Englisch): behandelt, kein Fehler
+- [x] Kundengruppe „noch unklar“: nur Dokumente ohne Einschränkung (5.546 Zeichen)
+- [x] Mehrere Produkte, unbekanntes Produkt, kein Produkt: Ausschluss nur wenn alle gewählten Produkte ausgeschlossen sind
+- [x] Draft-Dokumente werden verwendet (alle 77 Dokumente sind `draft`)
+- [x] Ausfall der zweiten Runde: erste Antwort bleibt, Regelprüfung „unvollständig“, Kopieren gesperrt bis zur Bestätigung
+- [x] Rollback: Schalter aus ⇒ alter Weg (alle Dokumente im Geltungsbereich, keine Abruf-Spalte, Prompt-Version ohne `+retrieval-`) – Ende-zu-Ende-Test mit der echten Basis
+
+### Security Audit Results
+- [x] Zugriff: Bestätigung der Regelprüfung nur mit gewähltem Nutzer und nur für die Analyse des genannten Tickets (Test mit fremder Ticketnummer und ohne Nutzer); die App hat im MVP keinen Login (PRD)
+- [x] Eingabe: `zusatzwissen` nur als Knowledge-ID (Regex, höchstens 20); Bestätigung nur per POST mit CSRF
+- [x] Ausgabe: im Abruf-, Quellen- und Regelprüfungs-Bereich keine ungeschützte Ausgabe (`{!! !!}` kommt dort nicht vor); Kundentext wird als Text angezeigt
+- [x] Kopieren: Server sperrt das Kopier-Protokoll bei unbestätigter, unvollständiger Regelprüfung (HTTP 409), nicht nur die Oberfläche
+- [x] Keine Geheimnisse in Ausgaben: Protokoll liegt verschlüsselt im Analyse-Inhalt und wird nach 12 Monaten geleert
+- [x] Keine automatische Handlung: Die App erzeugt nur Vorschläge; Erstattungen, Gutschriften und Versand bleiben Non-Goals. Im Test schlägt die KI eine Erstattung vor: Sie lädt PERMISSION-001, setzt aber `agent_may_decide` nicht von selbst.
+
+### Token-Zahlen (Anforderung der QA)
+- Gespeichert ist je Analyse `input_tokens` und `output_tokens` aus der Anbieterantwort, bei zwei Durchgängen summiert. `output_tokens` enthält bei OpenAI die Denk-Token (Reasoning); eine getrennte Zahl liefert die Bibliothek nicht. Die Höchstwerte von 3.509 Ausgabe-Token enthalten das Reasoning bereits.
+- Gegen die offizielle Modellgrenze (1.050.000 Kontext-Token, 128.000 Ausgabe-Token) sind 300.000 Zeichen (rund 76.000 Token) und 30.000 Zeichen Antwortreserve sehr konservativ. Sie bleiben als internes Limit.
+
+### Bugs Found
+Keine Critical-, High- oder Medium-Fehler.
+
+#### BUG-1: Abrufzeit wächst mit der Textlänge – Low
+- **Steps:** Abruf mit 1,3 Mio. Zeichen Kundentext (dreifach in drei Stufen) gegen die echte Basis.
+- **Actual:** 9,2 Sekunden. Bei der Obergrenze des Tickettexts (400.000 Zeichen) rund 3 Sekunden; bei normalen Tickets unmerklich.
+- **Priority:** Nice to have (nur beobachten; Spalte `duration_ms` der Analyse)
+
+#### Hinweise (keine Fehler)
+- Rollback braucht eine Änderung der beiden Schalter in `.env` (keine Oberfläche). Ist die Konfiguration zwischengespeichert (`config:cache`), danach `config:clear` ausführen; derzeit ist nichts zwischengespeichert.
+- Die Seite „Über die App“ erwähnt den gezielten Abruf nicht; kein „in Arbeit“-Hinweis betroffen.
+- Offene fachliche Punkte bleiben (siehe Open Questions): PERMISSION-001 (35 €), POLICY-023 aufteilen, PRODUCT-003 aufteilen, Mengen-Auslöser an echten Anfragen prüfen, Reseller/Pro/masterpics ohne Angebotswissen.
+
+### Summary
+- **Acceptance Criteria:** 61/61 bestanden (Browserdarstellung ausgenommen)
+- **Bugs Found:** 1 (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** keine Funde
+- **Production Ready:** JA, mit Rollback über die Schalter und enger Beobachtung der ersten Analysen
+- **Recommendation:** Schalter aktivieren und die ersten Analysen im laufenden Betrieb prüfen (Quellenbereich, Regelprüfung, Analysen-Übersicht)
+
 
 ## Deployment
 _To be added by /deploy_

@@ -649,3 +649,75 @@ describe('the goodwill reproduction as its own measure', function () {
             ->and($stored->content['retrieval']['safeguard'])->toMatchArray(['loaded' => ['POLICY-020'], 'load_actions' => ['goodwill-reproduction'], 'failed' => false]);
     });
 });
+
+describe('the real knowledge base end to end (QA)', function () {
+    $analyze = function (string $text, array $answer = [], array $input = []): void {
+        retrTicket($text);
+        CaseAgent::fake([retrAnswer($answer)]);
+        retrAnalyze(array_merge(['kundengruppe' => 'private-looxis-de'], $input));
+    };
+
+    test('with both switches on a quote with the own logo gets the quote rules and no rights document, with reasons and a small prompt', function () use ($analyze) {
+        config(['knowledge.retrieval.active' => true, 'knowledge.retrieval.required' => true]);
+
+        $analyze('Wir hätten gern ein Angebot für 200 Tassen mit unserem Firmenlogo.');
+
+        $stored = retrStored();
+        $record = $stored->content['retrieval'];
+        $ids = array_column($record['documents'], 'id');
+
+        expect($ids)->toContain('POLICY-004', 'POLICY-024', 'PROCESS-010')->not->toContain('POLICY-017', 'PLAYBOOK-014', 'POLICY-018')
+            ->and(array_filter(array_column($record['documents'], 'reasons'), fn (array $reasons): bool => $reasons === []))->toBe([])
+            ->and($stored->knowledge_characters)->toBeLessThan(40000)
+            ->and($stored->content['sent_input'])->not->toContain('## POLICY-017')
+            ->and($stored->prompt_version)->toContain('+retrieval-');
+    });
+
+    test('rollback: with the switch off the same request sends everything in scope again, as before', function () use ($analyze) {
+        config(['knowledge.retrieval.active' => false]);
+
+        $analyze('Wir hätten gern ein Angebot für 200 Tassen mit unserem Firmenlogo.');
+
+        $stored = retrStored();
+
+        expect($stored->content)->not->toHaveKey('retrieval')
+            ->and($stored->content['sent_input'])->toContain('## POLICY-017')->toContain('## POLICY-024')
+            ->and($stored->knowledge_characters)->toBeGreaterThan(40000)
+            ->and($stored->prompt_version)->not->toContain('+retrieval-');
+    });
+
+    test('a refund proposed by the model loads the refund authority in a second round; the proposal still needs a person', function () {
+        config(['knowledge.retrieval.active' => true, 'knowledge.retrieval.required' => true]);
+        CaseAgent::fake([
+            retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['POLICY-002']]),
+            retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['POLICY-002', 'PERMISSION-001'], 'authority' => ['agent_may_decide' => false, 'approval_by' => 'managing-director', 'permission_id' => 'PERMISSION-001']]),
+        ]);
+        retrTicket('Die Tasse kam kaputt an.');
+
+        retrAnalyze(['kundengruppe' => 'private-looxis-de']);
+
+        $stored = retrStored();
+
+        expect($stored->content['sent_input'])->toContain('## PERMISSION-001')
+            ->and($stored->content['retrieval']['safeguard']['loaded'])->toContain('PERMISSION-001')
+            ->and($stored->content['retrieval']['safeguard']['failed'])->toBeFalse()
+            ->and($stored->rule_check)->not->toBe('incomplete')
+            ->and($stored->content['result']['authority']['agent_may_decide'])->toBeFalse();
+    });
+
+    test('a free reproduction proposed by the model does not load the goodwill rules of the real knowledge base', function () use ($analyze) {
+        config(['knowledge.retrieval.active' => true, 'knowledge.retrieval.required' => true]);
+
+        $analyze('Die Tasse kam kaputt an.', ['actions' => ['reproduction'], 'knowledge_ids' => ['POLICY-002']]);
+
+        $sent = retrSent();
+
+        expect($sent)->toContain('## PERMISSION-002')->not->toContain('## POLICY-005')->not->toContain('## POLICY-007')->not->toContain('## POLICY-008');
+    });
+
+    test('the real knowledge base is ready for the activation', function () {
+        config(['knowledge.retrieval.required' => true]);
+
+        $this->artisan('knowledge:check')->assertSuccessful();
+    });
+});
