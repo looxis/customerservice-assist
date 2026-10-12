@@ -13,6 +13,26 @@ topics:
   - personalized-products
   - withdrawal
   - refund
+summary: "Keine Rücknahme personalisierter Ware allein wegen Nichtgefallen (Privatkunden). Gilt bei Rückgabe-, Widerrufs- oder Umtauschwünschen; gilt nicht bei Mängeln."
+retrieval: binding
+triggers:
+- Rückgabe
+- zurückgeben
+- zurückschicken
+- Rücksendung
+- Widerruf
+- widerrufen
+- Retoure
+- Umtausch
+- umtauschen
+- gefällt nicht
+- gefällt mir nicht
+- Nichtgefallen
+exclude_triggers:
+when:
+actions:
+- return
+- cancellation
 ---
 
 Gilt für Privatkunden auf allen Vertriebskanälen. Bestätigte Anwendungsfälle sind der eigene LOOXIS-Onlineshop und Amazon. Kanalbedingungen sind nach POLICY-004 zusätzlich zu prüfen; diese Policy gilt nicht für B2B-Bestellungen.

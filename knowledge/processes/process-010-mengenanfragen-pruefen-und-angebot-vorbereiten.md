@@ -24,6 +24,34 @@ related_knowledge:
   - GLOSSARY-002
   - TONE-008
   - TONE-009
+summary: "Strukturierte Mengenanfragen über looxis.de prüfen und Angebote vorbereiten."
+retrieval: triggered
+triggers:
+- Mengenanfrage
+- Mengenrabatt
+- Mengenpreis
+- Angebot
+- Angebotsanfrage
+- Preisanfrage
+- Stückzahl
+- Staffelpreis
+- Stückpreis
+- pro Stück
+- Stück für
+- Stück bestellen
+- Stück benötigen
+- Stück brauchen
+- größere Menge
+- Firmenveranstaltung
+- Firmenevent
+- Firmenfeier
+- Werbegeschenke
+- Kundengeschenke
+- Kostenvoranschlag
+- Anfrage für
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für die strukturierten Mengenanfragen, die über die Produktseiten von looxis.de eingereicht und als E-Mail-Ticket zugestellt werden.

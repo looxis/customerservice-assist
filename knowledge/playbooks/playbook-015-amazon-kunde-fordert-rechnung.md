@@ -17,6 +17,38 @@ related_knowledge:
 - PROCESS-008
 - PROCEDURE-002
 - TONE-002
+summary: "Amazon-Kunde fordert Rechnung an oder findet sie nicht. Gilt nur auf Amazon; gilt nicht für Rechnungsänderungen."
+retrieval: triggered
+triggers:
+- Rechnung
+- Rechnungskopie
+- Rechnungsbeleg
+- invoice
+- fattura
+- facture
+- factura
+exclude_triggers:
+- änder
+- korrigier
+- berichtig
+- Adresse
+- Rechnungsadresse
+- Anschrift
+- Empfänger
+- Rechnungsempfänger
+- Firma
+- Firmierung
+- Firmenname
+- Rechtsform
+- umschreib
+- stornier
+- falsch
+- USt-IdNr
+- Umsatzsteuer
+- neu ausstellen
+- neue Rechnung
+when:
+actions:
 ---
 
 Gilt für alle Produkte und Kundenarten im Vertriebskanal Amazon.

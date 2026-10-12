@@ -16,6 +16,19 @@ topics:
 - goodwill
 - refund
 related_knowledge:
+summary: "masterpics ist für Adressdaten verantwortlich; bei Unzustellbarkeit keine Kulanz. Gilt bei fehlgeschlagener Zustellung."
+retrieval: triggered
+triggers:
+- unzustellbar
+- Unzustellbarkeit
+- Zustellung fehlgeschlagen
+- falsche Adresse
+- Adressfehler
+- Adressdaten
+- Retour an Absender
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt ausschließlich für White-Label-Aufträge von masterpics, bei allen Produkten.

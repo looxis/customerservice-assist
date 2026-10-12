@@ -14,6 +14,20 @@ customer_types:
 sales_channels:
 products:
 categories:
+summary: "Wiederholte Nachrichten und abschließende Entscheidungen formulieren. Gilt, wenn der Kunde ausdrücklich dasselbe wiederholt; die Zahl der Nachrichten allein genügt nicht."
+retrieval: triggered
+triggers:
+- zum wiederholten Mal
+- schon mehrfach
+- schon mehrmals
+- bereits geschrieben
+- bereits mehrfach geschrieben
+- zum dritten Mal
+- wiederholt
+- immer wieder
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten, Vertriebskanäle und Falltypen.

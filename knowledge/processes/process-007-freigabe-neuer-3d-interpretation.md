@@ -20,6 +20,18 @@ related_knowledge:
 - GLOSSARY-004
 - PROCESS-005
 - TONE-004
+summary: "Freigabe einer neuen 3D-Interpretation nach Reklamation. Gilt nur für 3D-Glasfotos, sobald eine Neuproduktion empfohlen wird."
+retrieval: binding
+triggers:
+- neue Interpretation
+- neue 3D
+- neue Datei
+- Voransicht
+- Neuproduktion
+exclude_triggers:
+when:
+actions:
+- reproduction
 ---
 
 Gilt für 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen, wenn nach einer Reklamation eine neue räumliche Interpretation erstellt wird.

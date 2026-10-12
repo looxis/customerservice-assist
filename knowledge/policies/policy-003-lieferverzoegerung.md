@@ -14,6 +14,27 @@ topics:
   - delivery-delay
   - replacement
   - refund
+summary: "Umgang mit Lieferverzögerungen (Privatkunden). Gilt, wenn eine Lieferung zu spät oder nicht angekommen ist; gilt nicht bei Reklamationen zur Ware und nicht, wenn nur eine Rechnung fehlt."
+retrieval: triggered
+triggers:
+- Lieferverzögerung
+- verspätet
+- Lieferung verzögert
+- wo bleibt
+- wo ist mein
+- noch nicht angekommen
+- Paket nicht angekommen
+- Lieferung nicht angekommen
+- Bestellung nicht angekommen
+- Paket nicht erhalten
+- Ware nicht erhalten
+- Sendung nicht erhalten
+- Sendungsverfolgung
+- Tracking
+- Lieferzeit
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Privatkunden auf allen Vertriebskanälen. Bestätigte Anwendungsfälle sind der eigene LOOXIS-Onlineshop und Amazon. Kanalbedingungen sind nach POLICY-004 zusätzlich zu prüfen; diese Policy gilt nicht für B2B-Bestellungen.

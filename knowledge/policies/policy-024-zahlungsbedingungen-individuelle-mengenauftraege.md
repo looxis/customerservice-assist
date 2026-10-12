@@ -15,6 +15,39 @@ sales_channels:
   - looxis-de
 related_knowledge:
   - POLICY-004
+summary: "Zahlungsbedingungen bei individuellen Mengenaufträgen (Vorkasse, Rechnungskauf). Gilt bei Angebot und Auftrag über looxis.de."
+retrieval: binding
+triggers:
+- Mengenanfrage
+- Mengenrabatt
+- Mengenpreis
+- Angebot
+- Angebotsanfrage
+- Preisanfrage
+- Stückzahl
+- Staffelpreis
+- Stückpreis
+- pro Stück
+- Stück für
+- Stück bestellen
+- Stück benötigen
+- Stück brauchen
+- größere Menge
+- Firmenveranstaltung
+- Firmenevent
+- Firmenfeier
+- Werbegeschenke
+- Kundengeschenke
+- Kostenvoranschlag
+- Rechnungskauf
+- auf Rechnung
+- Zahlungsbedingungen
+- Zahlungsziel
+exclude_triggers:
+when:
+actions:
+- quote
+- order-confirmation
 ---
 
 Gilt für individuelle Mengenaufträge, die aus Anfragen über looxis.de hervorgehen und außerhalb der normalen Shopbestellung abgewickelt werden.

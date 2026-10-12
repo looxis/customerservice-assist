@@ -17,6 +17,21 @@ related_knowledge:
 - POLICY-006
 sales_channels:
 products:
+summary: "Kulanzrabatt für Verbraucher bei Kundenfehlern. Gilt, sobald ein Nachlass als Kulanz in Frage kommt."
+retrieval: binding
+triggers:
+- Kulanz
+- Kundenfehler
+- Tippfehler
+- Rechtschreibfehler
+- mein Fehler
+- falsche Datei
+- Rabatt
+- Nachlass
+exclude_triggers:
+when:
+actions:
+- partial-refund
 ---
 
 Gilt für Privatkunden auf allen Vertriebskanälen.

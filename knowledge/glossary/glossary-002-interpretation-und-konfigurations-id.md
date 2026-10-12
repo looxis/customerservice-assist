@@ -15,6 +15,20 @@ topics:
 - interpretation
 - customer-configuration
 related_knowledge:
+summary: "Erklärt Interpretation, Konfigurations-ID und Produktionsdatei. Gilt bei Fragen, warum Ergebnisse trotz gleicher Vorlage abweichen."
+retrieval: triggered
+triggers:
+- Interpretation
+- Konfigurations-ID
+- Konfiguration
+- Produktionsdatei
+- gleiche Vorlage
+- identische Vorlage
+- sieht anders aus
+- unterschiedlich
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Kanäle außer Amazon; im Kanalschema sind das `looxis-de`, `fachhaendler`, `looxis-pro` und `masterpics`. Erfasst werden Produkte mit einem Interpretationsvorgang bei der Erstellung der Produktionsdatei.

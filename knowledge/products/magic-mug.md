@@ -27,6 +27,12 @@ order_keywords:
 - B07R51MVTJ
 - '11282'
 - '11051'
+summary: "Grundlagen zur Zaubertasse mit Thermoeffekt: Funktion, Grenzen, Pflege."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Zaubertassen aller Kundenarten und Vertriebskanäle.

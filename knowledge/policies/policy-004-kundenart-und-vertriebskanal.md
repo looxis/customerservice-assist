@@ -10,6 +10,12 @@ categories:
 topics:
   - sales-channel
   - customer-type
+summary: "Gilt bei jedem Fall: Zuerst Kundenart und Vertriebskanal prüfen, bevor eine Regel angewendet wird."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle.

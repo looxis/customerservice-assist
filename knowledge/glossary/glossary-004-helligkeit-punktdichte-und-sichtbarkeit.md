@@ -16,6 +16,22 @@ topics:
 related_knowledge:
 - PRODUCT-003
 - PRODUCT-004
+summary: "Erklärt Helligkeit, Punktdichte und Sichtbarkeit bei Glasgravuren. Gilt, wenn ein Motiv im Glas dunkel oder kaum sichtbar wirkt."
+retrieval: triggered
+triggers:
+- kaum sichtbar
+- schwarzes Motiv
+- dunkles Motiv
+- nicht erkennbar
+- schlecht erkennbar
+- zu dunkel
+- unterbelichtet
+- Punktdichte
+- schwarzer Hintergrund
+- kaum zu sehen
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für gelaserte 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.

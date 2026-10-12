@@ -21,6 +21,19 @@ related_knowledge:
 - PERMISSION-002
 - POLICY-002
 - TONE-002
+summary: "Zaubertasse: Thermoeffekt funktioniert angeblich nicht. Gilt bei Beschwerden zum Thermoeffekt."
+retrieval: triggered
+triggers:
+- Thermoeffekt
+- heißes Wasser
+- Motiv erscheint nicht
+- Effekt funktioniert
+- bleibt schwarz
+- schwarze Tasse
+- Motiv wird nicht sichtbar
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Zaubertassen aller Kundenarten und Vertriebskanäle.

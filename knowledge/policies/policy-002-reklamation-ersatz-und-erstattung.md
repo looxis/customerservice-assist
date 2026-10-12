@@ -16,6 +16,12 @@ topics:
 related_knowledge:
 - POLICY-010
 - PLAYBOOK-006
+summary: "Gilt bei Reklamationen von Privatkunden: Ersatz oder Erstattung nach Mangel. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Privatkunden auf allen Vertriebskanälen. Bestätigte Anwendungsfälle sind der eigene LOOXIS-Onlineshop und Amazon. Kanalbedingungen sind nach POLICY-004 zusätzlich zu prüfen; diese Policy gilt nicht für B2B-Bestellungen.

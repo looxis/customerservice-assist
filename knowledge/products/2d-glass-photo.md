@@ -27,6 +27,12 @@ related_knowledge:
 - GLOSSARY-004
 - PLAYBOOK-009
 - PLAYBOOK-010
+summary: "Grundlagen zu 2D-Glasfotos: Produktfamilie und technische Besonderheiten."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 2D-Glasfotos bei allen Kundenarten und Vertriebskanälen.

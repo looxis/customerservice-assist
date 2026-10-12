@@ -17,6 +17,47 @@ sales_channels:
 - looxis-pro
 - masterpics
 related_knowledge: []
+summary: "Rechnungserstellung und automatischer Rechnungsversand außerhalb von Amazon. Gilt, wenn eine Rechnung angefordert wird, fehlt oder erneut gesendet werden soll; gilt nicht für Änderungen an einer Rechnung (POLICY-020)."
+retrieval: triggered
+triggers:
+- Rechnung
+- Rechnungskopie
+- Rechnungsbeleg
+- invoice
+- fattura
+- facture
+- factura
+- Vorauszahlung
+- Vorkasse
+- Proforma
+- Rechnung vor der Zahlung
+- Rechnung vor Zahlung
+- Rechnung vor Versand
+- vor der Zahlung
+- vor Zahlung
+- Zahlungsaufforderung
+exclude_triggers:
+- änder
+- korrigier
+- berichtig
+- Adresse
+- Rechnungsadresse
+- Anschrift
+- Empfänger
+- Rechnungsempfänger
+- Firma
+- Firmierung
+- Firmenname
+- Rechtsform
+- umschreib
+- stornier
+- falsch
+- USt-IdNr
+- Umsatzsteuer
+- neu ausstellen
+- neue Rechnung
+when:
+actions:
 ---
 
 Gilt für alle Produkte und Kundenarten in den Kanälen looxis-de, fachhaendler, looxis-pro und masterpics.

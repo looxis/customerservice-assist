@@ -13,6 +13,31 @@ topics:
 related_knowledge:
 - POLICY-017
 - TONE-007
+summary: "Bestimmte Inhalte werden aus ethischen Gründen nicht gedruckt. Gilt, wenn Text oder Mitarbeiterhinweis ein Motiv als ablehnungswürdig oder fraglich nennen. Die App sieht Bilder nicht; eine Prüfung hochgeladener Motive ersetzt dieser Abruf nicht."
+retrieval: triggered
+triggers:
+- Motiv abgelehnt
+- Motiv wurde abgelehnt
+- Motiv fraglich
+- Motiv prüfen
+- Inhalt prüfen
+- Bild prüfen
+- anstößig
+- beleidigend
+- verfassungsfeindlich
+- pornograf
+- Hakenkreuz
+- extremist
+- diskriminier
+- Nacktbild
+- Nacktfoto
+- Gewaltdarstellung
+- Kim Jong
+- Hitler
+- Putin
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle personalisierten Produkte, alle Kundenarten und alle Vertriebskanäle.

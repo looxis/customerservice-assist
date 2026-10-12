@@ -22,6 +22,33 @@ related_knowledge:
   - POLICY-024
   - POLICY-025
   - POLICY-026
+summary: "Mengenangebote und Antworten auf Auftragsanfragen formulieren."
+retrieval: triggered
+triggers:
+- Mengenanfrage
+- Mengenrabatt
+- Mengenpreis
+- Angebot
+- Angebotsanfrage
+- Preisanfrage
+- Stückzahl
+- Staffelpreis
+- Stückpreis
+- pro Stück
+- Stück für
+- Stück bestellen
+- Stück benötigen
+- Stück brauchen
+- größere Menge
+- Firmenveranstaltung
+- Firmenevent
+- Firmenfeier
+- Werbegeschenke
+- Kundengeschenke
+- Kostenvoranschlag
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für die Kommunikation zu strukturierten Mengenanfragen über looxis.de.

@@ -19,6 +19,19 @@ related_knowledge:
   - POLICY-025
   - PROCESS-001
   - GLOSSARY-002
+summary: "Individuellen Mengenauftrag nach Kundenbestätigung abwickeln. Gilt, wenn der Kunde ein Angebot annimmt oder die KI eine Auftragsbestätigung vorschlägt."
+retrieval: binding
+triggers:
+- Auftrag erteilen
+- beauftragen
+- Auftragsbestätigung
+- Angebot annehmen
+- nehmen das Angebot
+- verbindlich bestellen
+exclude_triggers:
+when:
+actions:
+- order-confirmation
 ---
 
 Gilt für individuelle Mengenaufträge aus Anfragen über looxis.de, die nicht direkt im Shop bestellt werden.

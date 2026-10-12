@@ -19,6 +19,25 @@ customer_types:
 products:
 related_knowledge:
 - GLOSSARY-002
+summary: "Nachproduktion mit Wiederverwendung der ursprünglichen Interpretation. Gilt, wenn ein früheres Ergebnis wiederholt, nachproduziert oder nachbestellt werden soll (außerhalb von Amazon); gilt nicht für jeden Ersatzwunsch."
+retrieval: triggered
+triggers:
+- Nachproduktion
+- Neuproduktion
+- neu produzieren
+- gleiche Interpretation
+- gleichen Interpretation
+- selben Interpretation
+- bisherigen Interpretation
+- Neuanfertigung
+- gleiche Datei
+- gleichen Datei
+- Nachbestellung
+- nachbestellen
+- noch einmal produzieren
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten auf allen Kanälen außer Amazon; im Kanalschema sind das `looxis-de`, `fachhaendler`, `looxis-pro` und `masterpics`. Erfasst werden Produkte, deren Produktionsdatei durch einen Interpretationsvorgang erstellt wurde.

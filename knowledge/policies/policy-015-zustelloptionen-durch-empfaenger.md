@@ -13,6 +13,21 @@ topics:
 - delivery-options
 - sales-channel
 related_knowledge:
+summary: "Zustellanweisungen und Zustelloptionen entscheidet der Empfänger. Gilt, wenn der Kunde LOOXIS um eine Zustellanweisung bittet."
+retrieval: triggered
+triggers:
+- Zustellanweisung
+- Zustelloption
+- Paketshop
+- Nachbarn
+- Ablageort
+- Abstellgenehmigung
+- Ablagegenehmigung
+- vor die Tür
+- Wunschort
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Produkte, Kundengruppen und Vertriebskanäle, einschließlich Auslandssendungen.

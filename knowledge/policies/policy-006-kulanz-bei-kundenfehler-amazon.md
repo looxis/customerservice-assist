@@ -20,6 +20,19 @@ related_knowledge:
 - PERMISSION-003
 - PROCESS-002
 products:
+summary: "Kulanz-Nachbestellung bei Kundenfehlern auf Amazon. Gilt, sobald auf Amazon eine Kulanzlösung in Frage kommt."
+retrieval: binding
+triggers:
+- Kulanz
+- Kundenfehler
+- Tippfehler
+- Rechtschreibfehler
+- mein Fehler
+- falsche Datei
+exclude_triggers:
+when:
+actions:
+- partial-refund
 ---
 
 Gilt nur für Privatkunden auf Amazon.

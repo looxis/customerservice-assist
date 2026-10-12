@@ -14,6 +14,36 @@ topics:
 related_knowledge:
 - PLAYBOOK-014
 - TONE-007
+summary: "Nutzungsrechte an Motiven liegen beim Kunden; keine Rechtsprüfung. Gilt nur, wenn der Kunde oder Mitarbeiter ausdrücklich nach Urheber-, Marken- oder Nutzungsrechten fragt oder ein fremdes geschütztes Motiv erkennbar gedruckt werden soll; nicht ungefragt ansprechen und nicht, wenn ein Geschäftskunde sein eigenes Logo liefert."
+retrieval: triggered
+triggers:
+- Urheberrecht
+- Copyright
+- Markenrecht
+- geschütztes Motiv
+- geschütztes Foto
+- geschütztes Bild
+- Bildrechte
+- Nutzungsrechte
+- Bildlizenz
+- Rechte Dritter
+- Persönlichkeitsrecht
+- Markenlogo
+- Logo von
+exclude_triggers:
+- unser Logo
+- unserem Logo
+- unseres Logos
+- unsere Logo
+- eigenes Logo
+- eigenen Logo
+- Firmenlogo
+- Logo von uns
+- Logo unserer
+- Logo meiner
+- Logo meines
+when:
+actions:
 ---
 
 Gilt für alle personalisierten Produkte, alle Kundenarten und alle Vertriebskanäle.

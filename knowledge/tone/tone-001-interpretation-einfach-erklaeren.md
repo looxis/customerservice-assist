@@ -21,6 +21,20 @@ related_knowledge:
 - GLOSSARY-002
 - PROCESS-001
 - PLAYBOOK-002
+summary: "Interpretationsvorgänge einfach erklären (außerhalb von Amazon)."
+retrieval: triggered
+triggers:
+- Interpretation
+- Konfigurations-ID
+- Konfiguration
+- Produktionsdatei
+- gleiche Vorlage
+- identische Vorlage
+- sieht anders aus
+- unterschiedlich
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Kanäle außer Amazon; im Kanalschema sind das `looxis-de`, `fachhaendler`, `looxis-pro` und `masterpics`. Erfasst wird die Kommunikation zu interpretationsabhängigen Produkten.

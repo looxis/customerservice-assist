@@ -22,6 +22,18 @@ related_knowledge:
 - PERMISSION-002
 - PERMISSION-003
 - TONE-002
+summary: "Holzdeckel der Lunchbox nach Spülmaschine verzogen. Gilt nur für die Lunchbox."
+retrieval: triggered
+triggers:
+- Spülmaschine
+- verzogen
+- verbogen
+- gewölbt
+- verformt
+- Verformung
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für die Lunchbox mit Holzdeckel bei allen Kundenarten und Vertriebskanälen.

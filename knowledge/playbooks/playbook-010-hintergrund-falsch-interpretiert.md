@@ -25,6 +25,20 @@ related_knowledge:
 - PROCESS-007
 - TONE-002
 - TONE-006
+summary: "Hintergrund oder Bildbereich unerwartet entfernt oder beibehalten. Gilt für 2D- und 3D-Glasfotos."
+retrieval: triggered
+triggers:
+- Hintergrund
+- freigestellt
+- Freistellung
+- Hauptmotiv
+- grüne Markierung
+- Markierung
+- Bildbereich
+- entfernt
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen, wenn die Beanstandung die Zuordnung von Hauptmotiv und Hintergrund betrifft.

@@ -19,6 +19,36 @@ related_knowledge:
 - POLICY-018
 - TONE-002
 - TONE-007
+summary: "Kunde fragt nach Verwendung eines möglicherweise geschützten Motivs. Gilt, wenn der Kunde ausdrücklich nach Urheber-, Marken- oder Nutzungsrechten fragt; Rechte nicht ungefragt ansprechen; gilt nicht, wenn ein Geschäftskunde sein eigenes Logo liefert."
+retrieval: triggered
+triggers:
+- Urheberrecht
+- Copyright
+- Markenrecht
+- geschütztes Motiv
+- geschütztes Foto
+- geschütztes Bild
+- Bildrechte
+- Nutzungsrechte
+- Bildlizenz
+- Rechte Dritter
+- Persönlichkeitsrecht
+- Markenlogo
+- Logo von
+exclude_triggers:
+- unser Logo
+- unserem Logo
+- unseres Logos
+- unsere Logo
+- eigenes Logo
+- eigenen Logo
+- Firmenlogo
+- Logo von uns
+- Logo unserer
+- Logo meiner
+- Logo meines
+when:
+actions:
 ---
 
 Gilt für alle personalisierten Produkte, alle Kundenarten und alle Vertriebskanäle.

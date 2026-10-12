@@ -18,6 +18,21 @@ related_knowledge:
 - PERMISSION-002
 - POLICY-010
 - TONE-002
+summary: "Schnappverschluss der Lunchbox gebrochen. Gilt nur, wenn der Verschluss ausdrücklich als gebrochen oder kaputt genannt wird; ein unklar beschriebener Schaden („Stück abgebrochen“) genügt nicht."
+retrieval: triggered
+triggers:
+- Schnappverschluss
+- Verschluss gebrochen
+- Verschluss ist gebrochen
+- Verschluss abgebrochen
+- Verschluss ist abgebrochen
+- Verschluss kaputt
+- Verschluss ist kaputt
+- Verschlüsse gebrochen
+- Draht gebrochen
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für die Lunchbox mit Holzdeckel bei allen Kundenarten und Vertriebskanälen.

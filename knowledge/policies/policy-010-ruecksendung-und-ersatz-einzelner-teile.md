@@ -16,6 +16,19 @@ related_knowledge:
 - PERMISSION-001
 - PERMISSION-002
 - PLAYBOOK-006
+summary: "Rücksendung und Ersatz bei teilweise personalisierten Produkten. Gilt, wenn Teile ersetzt oder Ware zurückgeschickt werden soll."
+retrieval: triggered
+triggers:
+- Rücksendung
+- zurückschicken
+- Retourenlabel
+- Rücksendeetikett
+- teilweise personalisiert
+- einzelne Teile
+- Rückversand
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei Reklamationen zu personalisierten beziehungsweise teilweise personalisierten Produkten.

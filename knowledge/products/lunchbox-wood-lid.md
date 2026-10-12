@@ -29,6 +29,12 @@ related_knowledge:
 - PLAYBOOK-011
 - PLAYBOOK-012
 - PLAYBOOK-013
+summary: "Grundlagen zur Lunchbox mit Holzdeckel: Material, Druck, Verschluss, Pflege."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für die Lunchbox mit Buchenholzdeckel bei allen Kundenarten und Vertriebskanälen.

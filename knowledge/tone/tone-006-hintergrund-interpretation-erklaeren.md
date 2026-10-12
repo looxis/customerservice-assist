@@ -21,6 +21,20 @@ related_knowledge:
 - PLAYBOOK-002
 - PLAYBOOK-010
 - TONE-002
+summary: "Interpretation von Hauptmotiv und Hintergrund verständlich erklären. Gilt für 2D- und 3D-Glasfotos."
+retrieval: triggered
+triggers:
+- Hintergrund
+- freigestellt
+- Freistellung
+- Hauptmotiv
+- grüne Markierung
+- Markierung
+- Bildbereich
+- entfernt
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen, wenn Hauptmotiv und Hintergrund nicht eindeutig voneinander abzugrenzen sind.

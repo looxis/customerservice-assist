@@ -19,6 +19,19 @@ related_knowledge:
 - PERMISSION-002
 - PROCESS-001
 products:
+summary: "Kulanz bei Kundenfehlern von Foto-Fachhändlern, gestaffelt nach Produktpreis. Gilt, sobald für Fachhändler eine Kulanzlösung in Frage kommt."
+retrieval: binding
+triggers:
+- Kulanz
+- Kundenfehler
+- Tippfehler
+- Rechtschreibfehler
+- mein Fehler
+- falsche Datei
+exclude_triggers:
+when:
+actions:
+- partial-refund
 ---
 
 Gilt für Foto-Fachhändler, die über fachhaendler.looxis.de bestellen (Kanal `fachhaendler`). Die Regel gilt nicht für LOOXIS-Pro-Kunden und deren Handelswarenbestellungen.

@@ -17,6 +17,21 @@ related_knowledge:
 - POLICY-019
 - PROCESS-008
 - TONE-002
+summary: "Kunde verlangt vor Vorauszahlung eine Rechnung. Gilt nur für Foto-Fachhändler."
+retrieval: triggered
+triggers:
+- Vorauszahlung
+- Vorkasse
+- Proforma
+- Rechnung vor der Zahlung
+- Rechnung vor Zahlung
+- Rechnung vor Versand
+- vor der Zahlung
+- vor Zahlung
+- Zahlungsaufforderung
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Foto-Fachhändler / Reseller im Kanal fachhaendler und für alle Produkte.

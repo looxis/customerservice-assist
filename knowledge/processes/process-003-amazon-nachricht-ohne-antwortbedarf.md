@@ -17,6 +17,20 @@ related_knowledge:
 - TONE-003
 customer_types:
 products:
+summary: "Wiederholte Amazon-Nachrichten ohne neue Information abschließen. Gilt nur auf Amazon, wenn der Kunde ausdrücklich dasselbe wiederholt; die Zahl der Nachrichten allein genügt nicht."
+retrieval: triggered
+triggers:
+- zum wiederholten Mal
+- schon mehrfach
+- schon mehrmals
+- bereits geschrieben
+- bereits mehrfach geschrieben
+- zum dritten Mal
+- wiederholt
+- immer wieder
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten auf Amazon bei wiederholten Nachrichten nach abgeschlossener Sachprüfung.

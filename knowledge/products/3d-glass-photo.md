@@ -41,6 +41,12 @@ related_knowledge:
 - PLAYBOOK-008
 - PLAYBOOK-009
 - PLAYBOOK-010
+summary: "Grundlagen zu 3D-Glasfotos: 2D-zu-3D-Aufbereitung, Produktfamilie, frühere Namen. Gilt nur, wenn das Produkt gewählt ist."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen. Einzelne Hinweise zu früheren Produktbezeichnungen betreffen nur die Kundengruppen, bei denen diese Bezeichnungen verwendet wurden.

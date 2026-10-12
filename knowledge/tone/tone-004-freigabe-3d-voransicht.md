@@ -17,6 +17,17 @@ related_knowledge:
 - PRODUCT-003
 - PROCESS-007
 - TONE-002
+summary: "Freigabe einer neuen 3D-Voransicht nach Reklamation formulieren. Gilt nur für 3D-Glasfotos."
+retrieval: triggered
+triggers:
+- Voransicht
+- Vorschau
+- Freigabe
+- neue 3D
+- neue Interpretation
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen, wenn nach einer Reklamation eine neue 3D-Produktionsdatei zur Freigabe vorgelegt wird.

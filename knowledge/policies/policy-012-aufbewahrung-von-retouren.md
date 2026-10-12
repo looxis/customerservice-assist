@@ -14,6 +14,18 @@ topics:
 - replacement
 related_knowledge:
 - POLICY-011
+summary: "Mindestaufbewahrung von Retouren. Gilt, wenn gefragt wird, ob eine Retoure noch vorhanden oder entsorgt ist."
+retrieval: triggered
+triggers:
+- entsorgt
+- Entsorgung
+- Aufbewahrung
+- Retourenbox
+- weggeworfen
+- vernichtet
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Retouren, Produkte, Kundenarten und Vertriebskanäle.

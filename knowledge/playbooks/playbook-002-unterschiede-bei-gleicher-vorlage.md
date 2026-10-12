@@ -21,6 +21,22 @@ related_knowledge:
 - GLOSSARY-002
 - PROCESS-001
 - TONE-001
+summary: "Unterschiedliche Ergebnisse trotz gleicher Vorlage. Gilt bei Nachbestellungen, die anders aussehen als die erste Lieferung."
+retrieval: triggered
+triggers:
+- Interpretation
+- Konfigurations-ID
+- Konfiguration
+- Produktionsdatei
+- gleiche Vorlage
+- identische Vorlage
+- sieht anders aus
+- unterschiedlich
+- Nachbestellung
+- nachbestellt
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Kanäle außer Amazon; im Kanalschema sind das `looxis-de`, `fachhaendler`, `looxis-pro` und `masterpics`. Erfasst werden Produkte mit interpretationsabhängigen Produktionsdateien.

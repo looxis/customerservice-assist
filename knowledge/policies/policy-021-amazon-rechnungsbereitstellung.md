@@ -13,6 +13,38 @@ customer_types: []
 sales_channels:
 - amazon
 related_knowledge: []
+summary: "Amazon: Rechnung wird automatisch bereitgestellt; erneuter Versand. Gilt, wenn ein Amazon-Kunde eine Rechnung anfordert oder nicht findet; gilt nicht für Änderungen (POLICY-022)."
+retrieval: triggered
+triggers:
+- Rechnung
+- Rechnungskopie
+- Rechnungsbeleg
+- invoice
+- fattura
+- facture
+- factura
+exclude_triggers:
+- änder
+- korrigier
+- berichtig
+- Adresse
+- Rechnungsadresse
+- Anschrift
+- Empfänger
+- Rechnungsempfänger
+- Firma
+- Firmierung
+- Firmenname
+- Rechtsform
+- umschreib
+- stornier
+- falsch
+- USt-IdNr
+- Umsatzsteuer
+- neu ausstellen
+- neue Rechnung
+when:
+actions:
 ---
 
 Gilt für alle Produkte und Kundenarten im Vertriebskanal Amazon.

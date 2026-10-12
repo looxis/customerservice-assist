@@ -14,6 +14,18 @@ topics:
 related_knowledge:
 - POLICY-013
 - PROCESS-006
+summary: "Ergänzung noch unbezahlter und unversandter Aufträge. Gilt, wenn ein bestehender Auftrag erweitert werden soll."
+retrieval: triggered
+triggers:
+- ergänzen
+- Ergänzung
+- nachträglich hinzufügen
+- Auftrag erweitern
+- Position hinzufügen
+- dazu bestellen
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt produktübergreifend für Fachhändleraufträge oder manuell durch Vertrieb beziehungsweise Kundenservice angelegte Aufträge. Die Voraussetzungen gelten unabhängig vom Kanal; andere Aufträge sind nicht von dieser Ergänzungsmöglichkeit erfasst.

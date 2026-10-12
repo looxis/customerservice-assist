@@ -17,6 +17,15 @@ related_knowledge:
 - PERMISSION-003
 customer_types:
 products:
+summary: "Zahlungsabwicklung und Teilerstattung auf Amazon. Gilt, sobald auf Amazon eine Teilerstattung vereinbart oder empfohlen wird."
+retrieval: binding
+triggers:
+- Teilerstattung
+- Kulanz
+exclude_triggers:
+when:
+actions:
+- partial-refund
 ---
 
 Gilt für die LOOXIS-Abwicklung auf Amazon bei allen Kundenarten.

@@ -14,6 +14,18 @@ topics:
 related_knowledge:
 - POLICY-013
 - POLICY-014
+summary: "Ergänzung eines bestehenden Auftrags prüfen und abstimmen."
+retrieval: triggered
+triggers:
+- ergänzen
+- Ergänzung
+- nachträglich hinzufügen
+- Auftrag erweitern
+- Position hinzufügen
+- dazu bestellen
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Produkte bei Anfragen zur Ergänzung eines bestehenden Auftrags. Die zulässigen Auftragsarten und Entscheidungsbefugnisse richten sich nach POLICY-014.

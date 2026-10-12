@@ -15,6 +15,18 @@ customer_types: []
 sales_channels: []
 related_knowledge:
   - TONE-002
+summary: "Gestaltungsideen und einfache Skizzen anfordern. Gilt, wenn der Kunde noch keine fertige Vorlage hat."
+retrieval: triggered
+triggers:
+- Gestaltungsidee
+- Skizze
+- Designvorschlag
+- keine Vorlage
+- noch keine Datei
+- Beratung
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt produkt-, kunden- und kanalübergreifend, wenn ein Kunde eine Gestaltungsidee hat, Beratung wünscht oder noch keine fertige Vorlage besitzt.

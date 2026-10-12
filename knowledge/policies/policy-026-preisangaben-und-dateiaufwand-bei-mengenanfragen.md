@@ -14,6 +14,38 @@ customer_types: []
 sales_channels:
   - looxis-de
 related_knowledge: []
+summary: "Preisangaben und Dateiaufwand bei Mengenanfragen (Mengenrabatt statt Einzelkalkulation). Gilt beim Formulieren von Angeboten."
+retrieval: binding
+triggers:
+- Mengenanfrage
+- Mengenrabatt
+- Mengenpreis
+- Angebot
+- Angebotsanfrage
+- Preisanfrage
+- Stückzahl
+- Staffelpreis
+- Stückpreis
+- pro Stück
+- Stück für
+- Stück bestellen
+- Stück benötigen
+- Stück brauchen
+- größere Menge
+- Firmenveranstaltung
+- Firmenevent
+- Firmenfeier
+- Werbegeschenke
+- Kundengeschenke
+- Kostenvoranschlag
+- Rabatt
+- Dateiaufbereitung
+- Aufbereitung
+exclude_triggers:
+when:
+actions:
+- quote
+- order-confirmation
 ---
 
 Gilt für Mengenanfragen über looxis.de mit individueller Preis- oder Rabattabstimmung.

@@ -17,6 +17,21 @@ related_knowledge:
 - PERMISSION-001
 - PERMISSION-002
 - PERMISSION-003
+summary: "Vier-Augen-Prüfung bei unklaren Fällen oder Eskalationen. Gilt bei Rechtsdrohungen, Rückbuchungen, Eskalation oder wenn die KI eine Eskalation empfiehlt."
+retrieval: binding
+triggers:
+- Anwalt
+- Rechtsanwalt
+- Verbraucherzentrale
+- Rückbuchung
+- Chargeback
+- Klage
+- Schadensersatz
+- Eskalation
+exclude_triggers:
+when:
+actions:
+- escalation
 ---
 
 Gilt für alle Produkte, Kundenarten und Vertriebskanäle.

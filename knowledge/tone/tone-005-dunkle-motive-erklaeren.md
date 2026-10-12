@@ -19,6 +19,22 @@ related_knowledge:
 - GLOSSARY-004
 - PLAYBOOK-009
 - TONE-002
+summary: "Dunkle Motive und geringe Punktdichte verständlich erklären. Gilt für 2D- und 3D-Glasfotos."
+retrieval: triggered
+triggers:
+- kaum sichtbar
+- schwarzes Motiv
+- dunkles Motiv
+- nicht erkennbar
+- schlecht erkennbar
+- zu dunkel
+- unterbelichtet
+- Punktdichte
+- schwarzer Hintergrund
+- kaum zu sehen
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für gelaserte 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.

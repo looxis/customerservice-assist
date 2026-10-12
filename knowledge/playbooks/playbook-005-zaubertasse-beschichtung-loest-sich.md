@@ -24,6 +24,18 @@ related_knowledge:
 - POLICY-006
 - POLICY-009
 - TONE-002
+summary: "Zaubertasse: Thermobeschichtung löst sich. Gilt bei Ablösung oder Schäden der Beschichtung."
+retrieval: triggered
+triggers:
+- löst sich
+- Beschichtung
+- Ablösung
+- blättert ab
+- abgelöst
+- abgeblättert
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Zaubertassen aller Kundenarten und Vertriebskanäle. Die finanzielle Abwicklung einer Kulanzlösung richtet sich nach Kundenart und Kanal.

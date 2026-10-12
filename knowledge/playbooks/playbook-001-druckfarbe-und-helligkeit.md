@@ -25,6 +25,30 @@ related_knowledge:
 customer_types:
 sales_channels:
 products:
+summary: "Druck zu dunkel, zu hell oder mit abweichenden Farben. Gilt bei Farb- und Helligkeitsbeanstandungen bedruckter Produkte; gilt nicht für gelaserte Glasfotos (dafür PLAYBOOK-009)."
+retrieval: triggered
+triggers:
+- Farbabweichung
+- Farbwiedergabe
+- Farbton
+- Farbstich
+- zu dunkel
+- zu hell
+- Helligkeit
+- abweichende Farben
+- andere Farben
+- Farben stimmen
+- blass
+- verblasst
+exclude_triggers:
+- Glasfoto
+- Glas
+- Gravur
+- Lasergravur
+- Kristall
+- 3D-Foto
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei Farb- und Helligkeitsbeanstandungen bedruckter Produkte, einschließlich essbarer Fotos. Die Lösungsregeln sind nur in ihrem jeweiligen Geltungsbereich anzuwenden.

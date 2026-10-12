@@ -17,6 +17,19 @@ related_knowledge:
 - PRODUCT-002
 - PLAYBOOK-003
 - PLAYBOOK-004
+summary: "Thermoeffekt der Zaubertasse prüfen (Arbeitsschritte). Gilt nur für die Zaubertasse."
+retrieval: triggered
+triggers:
+- Thermoeffekt
+- heißes Wasser
+- Motiv erscheint nicht
+- Effekt funktioniert
+- bleibt schwarz
+- schwarze Tasse
+- Motiv wird nicht sichtbar
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Zaubertassen aller Kundenarten und Vertriebskanäle.

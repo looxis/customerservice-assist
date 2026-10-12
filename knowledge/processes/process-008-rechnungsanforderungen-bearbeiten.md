@@ -17,6 +17,47 @@ related_knowledge:
 - PROCEDURE-002
 - PLAYBOOK-015
 - PLAYBOOK-016
+summary: "Rechnungsanforderungen bearbeiten: Rechnung fehlt, gelöscht, erneut senden oder vor Vorauszahlung. Gilt nicht für Rechnungsänderungen (PROCESS-009)."
+retrieval: triggered
+triggers:
+- Rechnung
+- Rechnungskopie
+- Rechnungsbeleg
+- invoice
+- fattura
+- facture
+- factura
+- Vorauszahlung
+- Vorkasse
+- Proforma
+- Rechnung vor der Zahlung
+- Rechnung vor Zahlung
+- Rechnung vor Versand
+- vor der Zahlung
+- vor Zahlung
+- Zahlungsaufforderung
+exclude_triggers:
+- änder
+- korrigier
+- berichtig
+- Adresse
+- Rechnungsadresse
+- Anschrift
+- Empfänger
+- Rechnungsempfänger
+- Firma
+- Firmierung
+- Firmenname
+- Rechtsform
+- umschreib
+- stornier
+- falsch
+- USt-IdNr
+- Umsatzsteuer
+- neu ausstellen
+- neue Rechnung
+when:
+actions:
 ---
 
 Gilt für alle Produkte, Kundenarten und Vertriebskanäle.

@@ -20,6 +20,23 @@ related_knowledge:
 - POLICY-008
 - PERMISSION-002
 - PROCESS-007
+summary: "Kulanz bei Schattenwurf-Reklamationen zu 3D-Glasfotos. Gilt bei Schatten oder Lücken im 3D-Motiv und bei der daraus folgenden Neuanfertigung mit anderem Foto; gilt nicht für allgemeine Kulanzfragen."
+retrieval: triggered
+triggers:
+- Schatten
+- Schattenwurf
+- Lücke
+- Lücken
+- verdeckt
+- Verdeckung
+- fehlende Motivbereiche
+- fehlt im Motiv
+- Neuanfertigung mit anderem Foto
+- mit einem anderen Foto
+- anderes Foto
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.

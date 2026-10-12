@@ -14,6 +14,37 @@ customer_types: []
 sales_channels:
 - amazon
 related_knowledge: []
+summary: "Amazon: Rechnungsadresse oder Firmierung auf Kundenwunsch ändern (Storno und Neuausstellung). Gilt nur auf Amazon bei Änderungswünschen."
+retrieval: triggered
+triggers:
+- Rechnungsadresse
+- Rechnungsempfänger
+- Rechnungsänderung
+- Rechnungskorrektur
+- Rechnung ändern
+- Rechnung korrigieren
+- Rechnung berichtigen
+- Rechnung umschreiben
+- Rechnung falsch
+- Rechnung stimmt nicht
+- Rechnung lautet auf
+- falsche Rechnung
+- neue Rechnung
+- Rechnung auf die Firma
+- Rechnung auf unsere Firma
+- Rechnung auf meine Firma
+- Firmierung
+- Firmenname
+- Rechtsform
+- USt-IdNr
+- Umsatzsteuer-ID
+- Adresse auf der Rechnung
+- Anschrift auf der Rechnung
+- ändern Sie die Rechnung
+- korrigieren Sie die Rechnung
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Produkte und Kundenarten im Vertriebskanal Amazon.

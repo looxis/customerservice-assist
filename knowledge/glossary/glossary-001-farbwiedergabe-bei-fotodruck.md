@@ -10,6 +10,30 @@ categories:
 topics:
   - color-reproduction
   - print-brightness
+summary: "Erklärt Farbwiedergabe und Helligkeit bei bedruckten Produkten. Gilt, wenn Farben oder Helligkeit eines Drucks beanstandet werden; gilt nicht für gelaserte Glasfotos (dafür GLOSSARY-004)."
+retrieval: triggered
+triggers:
+- Farbabweichung
+- Farbwiedergabe
+- Farbton
+- Farbstich
+- zu dunkel
+- zu hell
+- Helligkeit
+- abweichende Farben
+- andere Farben
+- Farben stimmen
+- blass
+- verblasst
+exclude_triggers:
+- Glasfoto
+- Glas
+- Gravur
+- Lasergravur
+- Kristall
+- 3D-Foto
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle, soweit farbig bedruckte Produkte betrachtet werden.

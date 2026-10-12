@@ -21,6 +21,20 @@ customer_types:
 sales_channels:
 products:
 categories:
+summary: "Befugnis für regelkonforme Neuproduktion und Ersatzversand. Gilt, sobald Ersatz gewünscht oder empfohlen wird."
+retrieval: binding
+triggers:
+- Ersatz
+- Ersatzlieferung
+- Neuproduktion
+- Neuanfertigung
+- neu produzieren
+- Nachsendung
+exclude_triggers:
+when:
+actions:
+- reproduction
+- reshipment
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle.

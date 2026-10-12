@@ -14,6 +14,30 @@ related_knowledge:
 customer_types:
 sales_channels:
 products:
+summary: "Farb- und Helligkeitsbeanstandungen bedruckter Produkte anhand der Bilddateien prüfen. Gilt nicht für gelaserte Glasfotos."
+retrieval: triggered
+triggers:
+- Farbabweichung
+- Farbwiedergabe
+- Farbton
+- Farbstich
+- zu dunkel
+- zu hell
+- Helligkeit
+- abweichende Farben
+- andere Farben
+- Farben stimmen
+- blass
+- verblasst
+exclude_triggers:
+- Glasfoto
+- Glas
+- Gravur
+- Lasergravur
+- Kristall
+- 3D-Foto
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei Farb- oder Helligkeitsreklamationen zu bedruckten Produkten, einschließlich essbarer Fotos.

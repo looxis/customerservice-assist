@@ -17,6 +17,18 @@ customer_types:
 sales_channels:
 products:
 categories:
+summary: "Befugnis für reguläre Erstattungen bis 35 Euro. Gilt, sobald eine Erstattung gewünscht oder empfohlen wird."
+retrieval: binding
+triggers:
+- Erstattung
+- Rückerstattung
+- Geld zurück
+- Rückzahlung
+- Gutschrift
+exclude_triggers:
+when:
+actions:
+- refund
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle; die besondere Amazon-Kulanzbefugnis ist in PERMISSION-003 geregelt.

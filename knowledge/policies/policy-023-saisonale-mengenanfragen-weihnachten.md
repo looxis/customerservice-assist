@@ -14,6 +14,38 @@ customer_types: []
 sales_channels:
   - looxis-de
 related_knowledge: []
+summary: "Saisonale Einschränkungen bei Mengenanfragen im Weihnachtsgeschäft. Gilt bei Mengenanfragen, besonders mit Liefertermin vor Weihnachten."
+retrieval: binding
+triggers:
+- Mengenanfrage
+- Mengenrabatt
+- Mengenpreis
+- Angebot
+- Angebotsanfrage
+- Preisanfrage
+- Stückzahl
+- Staffelpreis
+- Stückpreis
+- pro Stück
+- Stück für
+- Stück bestellen
+- Stück benötigen
+- Stück brauchen
+- größere Menge
+- Firmenveranstaltung
+- Firmenevent
+- Firmenfeier
+- Werbegeschenke
+- Kundengeschenke
+- Kostenvoranschlag
+- Weihnachten
+- Weihnachtsgeschäft
+- Liefertermin
+exclude_triggers:
+when:
+actions:
+- quote
+- order-confirmation
 ---
 
 Gilt für Mengenanfragen über den Onlineshop looxis.de, unabhängig vom Produkt und davon, ob Privatpersonen oder Unternehmen anfragen.

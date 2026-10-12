@@ -19,6 +19,19 @@ related_knowledge:
 - PERMISSION-002
 - PROCESS-001
 products:
+summary: "Kostenpflichtige Kulanz-Neuanfertigung für Privatkunden im Shop bei Kundenfehlern. Gilt, sobald eine Neuanfertigung als Kulanz in Frage kommt."
+retrieval: binding
+triggers:
+- Kulanz
+- Kundenfehler
+- Tippfehler
+- Rechtschreibfehler
+- mein Fehler
+- falsche Datei
+exclude_triggers:
+when:
+actions:
+- partial-refund
 ---
 
 Gilt nur für Privatkunden im eigenen LOOXIS-Onlineshop.

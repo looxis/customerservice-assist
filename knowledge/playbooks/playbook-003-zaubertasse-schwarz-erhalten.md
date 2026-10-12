@@ -18,6 +18,17 @@ related_knowledge:
 - PROCESS-004
 - PLAYBOOK-004
 - TONE-002
+summary: "Zaubertasse bleibt schwarz, Motiv erscheint nicht. Gilt nur für die Zaubertasse."
+retrieval: triggered
+triggers:
+- schwarze Tasse
+- bleibt schwarz
+- Motiv erscheint nicht
+- nur schwarz
+- kein Motiv
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für Zaubertassen aller Kundenarten und Vertriebskanäle.

@@ -11,6 +11,12 @@ customer_types:
 sales_channels:
 products:
 categories:
+summary: "Gilt für jede Antwort: Sprache, Erklärungstiefe, Bedauern, Absagen. Keine Sonderfälle."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten, Vertriebskanäle und Falltypen.

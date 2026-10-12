@@ -14,6 +14,19 @@ topics:
 related_knowledge:
 - POLICY-014
 - PROCESS-006
+summary: "Separate Bestellungen werden nicht zusammengeführt. Gilt, wenn der Kunde Bestellungen zusammenlegen oder gemeinsam versenden will."
+retrieval: triggered
+triggers:
+- zusammenführen
+- zusammenlegen
+- zusammen versenden
+- gemeinsam versenden
+- zwei Bestellungen
+- beide Bestellungen
+- in einem Paket
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Produkte, Kundengruppen und Vertriebskanäle, ohne Ausnahme.

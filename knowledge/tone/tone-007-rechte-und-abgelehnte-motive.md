@@ -18,6 +18,38 @@ related_knowledge:
 - POLICY-018
 - PLAYBOOK-014
 - TONE-002
+summary: "Nutzungsrechte und abgelehnte Motive neutral kommunizieren. Gilt nur, wenn Rechte erfragt oder ein Motiv abgelehnt wurde; Rechte nicht ungefragt ansprechen; gilt nicht, wenn ein Geschäftskunde sein eigenes Logo liefert."
+retrieval: triggered
+triggers:
+- Urheberrecht
+- Copyright
+- Markenrecht
+- geschütztes Motiv
+- geschütztes Foto
+- geschütztes Bild
+- Bildrechte
+- Nutzungsrechte
+- Bildlizenz
+- Rechte Dritter
+- Persönlichkeitsrecht
+- Markenlogo
+- Logo von
+- Motiv abgelehnt
+- Motiv wurde abgelehnt
+exclude_triggers:
+- unser Logo
+- unserem Logo
+- unseres Logos
+- unsere Logo
+- eigenes Logo
+- eigenen Logo
+- Firmenlogo
+- Logo von uns
+- Logo unserer
+- Logo meiner
+- Logo meines
+when:
+actions:
 ---
 
 Gilt für alle personalisierten Produkte, alle Kundenarten und alle Vertriebskanäle.

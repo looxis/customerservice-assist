@@ -15,6 +15,21 @@ topics:
 related_knowledge:
 - POLICY-015
 - TONE-002
+summary: "Kunde bittet LOOXIS um eine Zustellanweisung. Gilt bei Wünschen zu Zustellort oder -art."
+retrieval: triggered
+triggers:
+- Zustellanweisung
+- Zustelloption
+- Paketshop
+- Nachbarn
+- Ablageort
+- Abstellgenehmigung
+- Ablagegenehmigung
+- vor die Tür
+- Wunschort
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Produkte, Kundengruppen und Vertriebskanäle, einschließlich Auslandssendungen.

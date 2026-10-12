@@ -17,6 +17,37 @@ sales_channels:
 - looxis-pro
 - masterpics
 related_knowledge: []
+summary: "Nachträgliche Rechnungsänderungen außerhalb von Amazon: geringfügige Abweichungen und Wechsel des Rechnungsempfängers. Gilt, wenn eine bestehende Rechnung geändert werden soll; gilt nicht für das bloße Anfordern oder erneute Senden."
+retrieval: triggered
+triggers:
+- Rechnungsadresse
+- Rechnungsempfänger
+- Rechnungsänderung
+- Rechnungskorrektur
+- Rechnung ändern
+- Rechnung korrigieren
+- Rechnung berichtigen
+- Rechnung umschreiben
+- Rechnung falsch
+- Rechnung stimmt nicht
+- Rechnung lautet auf
+- falsche Rechnung
+- neue Rechnung
+- Rechnung auf die Firma
+- Rechnung auf unsere Firma
+- Rechnung auf meine Firma
+- Firmierung
+- Firmenname
+- Rechtsform
+- USt-IdNr
+- Umsatzsteuer-ID
+- Adresse auf der Rechnung
+- Anschrift auf der Rechnung
+- ändern Sie die Rechnung
+- korrigieren Sie die Rechnung
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Produkte und Kundenarten in den Kanälen looxis-de, fachhaendler, looxis-pro und masterpics.

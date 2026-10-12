@@ -21,6 +21,21 @@ related_knowledge:
 - PROCESS-001
 - PROCESS-005
 - TONE-002
+summary: "Fremdes oder vertauschtes personalisiertes Produkt erhalten. Gilt bei Verwechslung."
+retrieval: triggered
+triggers:
+- vertauscht
+- Verwechslung
+- falsches Motiv
+- fremdes Motiv
+- anderes Foto
+- nicht mein Foto
+- falsches Foto
+- falsch geliefert
+- fremdes Produkt
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei einer möglichen Verwechslung personalisierter Produkte.

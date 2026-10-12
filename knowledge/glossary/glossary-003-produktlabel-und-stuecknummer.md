@@ -13,6 +13,18 @@ topics:
 related_knowledge:
 - GLOSSARY-002
 - PLAYBOOK-006
+summary: "Erklärt Produktlabel, interne Auftragsnummer und Stücknummer. Gilt bei Verwechslung oder Fragen zum Label."
+retrieval: triggered
+triggers:
+- Produktlabel
+- Aufkleber
+- Label
+- Stücknummer
+- vertauscht
+- Verwechslung
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei Produkten mit dem beschriebenen Produktlabel.

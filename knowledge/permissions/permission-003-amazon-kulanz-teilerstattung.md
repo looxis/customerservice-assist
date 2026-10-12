@@ -20,6 +20,15 @@ related_knowledge:
 customer_types:
 products:
 categories:
+summary: "Befugnis für die Amazon-Kulanz-Teilerstattung bis 100 Euro. Gilt nur auf Amazon, sobald eine Kulanzerstattung gewünscht oder empfohlen wird."
+retrieval: binding
+triggers:
+- Teilerstattung
+- Kulanz
+exclude_triggers:
+when:
+actions:
+- partial-refund
 ---
 
 Gilt auf Amazon für die vereinbarte Teilerstattung auf eine Kulanz-Nachbestellung. Die interne Betragsbefugnis gilt für alle Kundenarten; die fachlichen Kulanzbedingungen müssen für den konkreten Kunden anwendbar sein.

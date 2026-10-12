@@ -25,6 +25,22 @@ related_knowledge:
 - PROCESS-007
 - TONE-002
 - TONE-005
+summary: "Dunkles oder schwarzes Motiv im Glasfoto kaum sichtbar. Gilt für 2D- und 3D-Glasfotos."
+retrieval: triggered
+triggers:
+- kaum sichtbar
+- schwarzes Motiv
+- dunkles Motiv
+- nicht erkennbar
+- schlecht erkennbar
+- zu dunkel
+- unterbelichtet
+- Punktdichte
+- schwarzer Hintergrund
+- kaum zu sehen
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für gelaserte 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.

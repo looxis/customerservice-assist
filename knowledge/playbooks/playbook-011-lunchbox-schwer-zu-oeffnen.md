@@ -19,6 +19,17 @@ related_knowledge:
 - PROCESS-005
 - PERMISSION-002
 - TONE-002
+summary: "Lunchbox: Verschluss schwergängig oder Deckel klemmt. Gilt nur für die Lunchbox mit Holzdeckel."
+retrieval: triggered
+triggers:
+- klemmt
+- schwer zu öffnen
+- lässt sich nicht öffnen
+- schwergängig
+- Deckel passt nicht
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für die Lunchbox mit Holzdeckel bei allen Kundenarten und Vertriebskanälen.

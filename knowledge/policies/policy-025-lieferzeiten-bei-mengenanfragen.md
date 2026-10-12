@@ -16,6 +16,39 @@ sales_channels:
 related_knowledge:
   - POLICY-024
   - POLICY-023
+summary: "Lieferzeitzusagen bei Mengenanfragen. Gilt, wenn ein Angebot einen Liefertermin nennen soll."
+retrieval: binding
+triggers:
+- Mengenanfrage
+- Mengenrabatt
+- Mengenpreis
+- Angebot
+- Angebotsanfrage
+- Preisanfrage
+- Stückzahl
+- Staffelpreis
+- Stückpreis
+- pro Stück
+- Stück für
+- Stück bestellen
+- Stück benötigen
+- Stück brauchen
+- größere Menge
+- Firmenveranstaltung
+- Firmenevent
+- Firmenfeier
+- Werbegeschenke
+- Kundengeschenke
+- Kostenvoranschlag
+- Lieferzeit
+- Liefertermin
+- Wunschtermin
+- bis wann
+exclude_triggers:
+when:
+actions:
+- quote
+- order-confirmation
 ---
 
 Gilt für Mengenanfragen über looxis.de, unabhängig von der konkreten Produktart.

@@ -22,6 +22,12 @@ order_keywords:
 - fondant
 - esspapier
 - tortendeko
+summary: "Grundlagen zu essbaren Fotos: technische Grenzen und typische Reklamationen."
+retrieval: core
+triggers:
+exclude_triggers:
+when:
+actions:
 ---
 
 Das technische Produktwissen gilt für alle Kundenarten und Vertriebskanäle bei Produktfragen und Reklamationen zu essbaren Fotos.

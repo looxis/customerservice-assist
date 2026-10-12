@@ -21,6 +21,20 @@ related_knowledge:
 - PROCESS-007
 - TONE-002
 - TONE-004
+summary: "3D-Glasfoto: Schattenwurf, Lücken oder fehlende Motivbereiche. Gilt nur für 3D-Glasfotos."
+retrieval: triggered
+triggers:
+- Schatten
+- Schattenwurf
+- Lücke
+- Lücken
+- verdeckt
+- Verdeckung
+- fehlende Motivbereiche
+- fehlt im Motiv
+exclude_triggers:
+when:
+actions:
 ---
 
 Gilt für 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.
