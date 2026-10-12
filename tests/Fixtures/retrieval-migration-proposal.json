@@ -1,0 +1,1584 @@
+{
+ "GLOSSARY-001": {
+  "actions": [],
+  "exclude_triggers": [
+   "Glasfoto",
+   "Glas",
+   "Gravur",
+   "Lasergravur",
+   "Kristall",
+   "3D-Foto"
+  ],
+  "retrieval": "triggered",
+  "summary": "Erklärt Farbwiedergabe und Helligkeit bei bedruckten Produkten. Gilt, wenn Farben oder Helligkeit eines Drucks beanstandet werden; gilt nicht für gelaserte Glasfotos (dafür GLOSSARY-004).",
+  "triggers": [
+   "Farbabweichung",
+   "Farbwiedergabe",
+   "Farbton",
+   "Farbstich",
+   "zu dunkel",
+   "zu hell",
+   "Helligkeit",
+   "abweichende Farben",
+   "andere Farben",
+   "Farben stimmen",
+   "blass",
+   "verblasst"
+  ],
+  "when": null
+ },
+ "GLOSSARY-002": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Erklärt Interpretation, Konfigurations-ID und Produktionsdatei. Gilt bei Fragen, warum Ergebnisse trotz gleicher Vorlage abweichen.",
+  "triggers": [
+   "Interpretation",
+   "Konfigurations-ID",
+   "Konfiguration",
+   "Produktionsdatei",
+   "gleiche Vorlage",
+   "identische Vorlage",
+   "sieht anders aus",
+   "unterschiedlich"
+  ],
+  "when": null
+ },
+ "GLOSSARY-003": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Erklärt Produktlabel, interne Auftragsnummer und Stücknummer. Gilt bei Verwechslung oder Fragen zum Label.",
+  "triggers": [
+   "Produktlabel",
+   "Aufkleber",
+   "Label",
+   "Stücknummer",
+   "vertauscht",
+   "Verwechslung"
+  ],
+  "when": null
+ },
+ "GLOSSARY-004": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Erklärt Helligkeit, Punktdichte und Sichtbarkeit bei Glasgravuren. Gilt, wenn ein Motiv im Glas dunkel oder kaum sichtbar wirkt.",
+  "triggers": [
+   "kaum sichtbar",
+   "schwarzes Motiv",
+   "dunkles Motiv",
+   "nicht erkennbar",
+   "schlecht erkennbar",
+   "zu dunkel",
+   "unterbelichtet",
+   "Punktdichte",
+   "schwarzer Hintergrund",
+   "kaum zu sehen"
+  ],
+  "when": null
+ },
+ "PERMISSION-001": {
+  "actions": [
+   "refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Befugnis für reguläre Erstattungen bis 35 Euro. Gilt, sobald eine Erstattung gewünscht oder empfohlen wird.",
+  "triggers": [
+   "Erstattung",
+   "Rückerstattung",
+   "Geld zurück",
+   "Rückzahlung",
+   "Gutschrift"
+  ],
+  "when": null
+ },
+ "PERMISSION-002": {
+  "actions": [
+   "reproduction",
+   "reshipment"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Befugnis für regelkonforme Neuproduktion und Ersatzversand. Gilt, sobald Ersatz gewünscht oder empfohlen wird.",
+  "triggers": [
+   "Ersatz",
+   "Ersatzlieferung",
+   "Neuproduktion",
+   "Neuanfertigung",
+   "neu produzieren",
+   "Nachsendung"
+  ],
+  "when": null
+ },
+ "PERMISSION-003": {
+  "actions": [
+   "partial-refund",
+   "refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Befugnis für die Amazon-Kulanz-Teilerstattung bis 100 Euro. Gilt nur auf Amazon, sobald eine Kulanzerstattung gewünscht oder empfohlen wird.",
+  "triggers": [
+   "Teilerstattung",
+   "Kulanz",
+   "Erstattung"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-001": {
+  "actions": [],
+  "exclude_triggers": [
+   "Glasfoto",
+   "Glas",
+   "Gravur",
+   "Lasergravur",
+   "Kristall",
+   "3D-Foto"
+  ],
+  "retrieval": "triggered",
+  "summary": "Druck zu dunkel, zu hell oder mit abweichenden Farben. Gilt bei Farb- und Helligkeitsbeanstandungen bedruckter Produkte; gilt nicht für gelaserte Glasfotos (dafür PLAYBOOK-009).",
+  "triggers": [
+   "Farbabweichung",
+   "Farbwiedergabe",
+   "Farbton",
+   "Farbstich",
+   "zu dunkel",
+   "zu hell",
+   "Helligkeit",
+   "abweichende Farben",
+   "andere Farben",
+   "Farben stimmen",
+   "blass",
+   "verblasst"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-002": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Unterschiedliche Ergebnisse trotz gleicher Vorlage. Gilt bei Nachbestellungen, die anders aussehen als die erste Lieferung.",
+  "triggers": [
+   "Interpretation",
+   "Konfigurations-ID",
+   "Konfiguration",
+   "Produktionsdatei",
+   "gleiche Vorlage",
+   "identische Vorlage",
+   "sieht anders aus",
+   "unterschiedlich",
+   "Nachbestellung",
+   "nachbestellt"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-003": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Zaubertasse bleibt schwarz, Motiv erscheint nicht. Gilt nur für die Zaubertasse.",
+  "triggers": [
+   "schwarze Tasse",
+   "bleibt schwarz",
+   "Motiv erscheint nicht",
+   "nur schwarz",
+   "kein Motiv"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-004": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Zaubertasse: Thermoeffekt funktioniert angeblich nicht. Gilt bei Beschwerden zum Thermoeffekt.",
+  "triggers": [
+   "Thermoeffekt",
+   "heißes Wasser",
+   "Motiv erscheint nicht",
+   "Effekt funktioniert",
+   "bleibt schwarz",
+   "schwarze Tasse",
+   "Motiv wird nicht sichtbar"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-005": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Zaubertasse: Thermobeschichtung löst sich. Gilt bei Ablösung oder Schäden der Beschichtung.",
+  "triggers": [
+   "löst sich",
+   "Beschichtung",
+   "Ablösung",
+   "blättert ab",
+   "abgelöst",
+   "abgeblättert"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-006": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Fremdes oder vertauschtes personalisiertes Produkt erhalten. Gilt bei Verwechslung.",
+  "triggers": [
+   "vertauscht",
+   "Verwechslung",
+   "falsches Motiv",
+   "fremdes Motiv",
+   "anderes Foto",
+   "nicht mein Foto",
+   "falsches Foto",
+   "falsch geliefert",
+   "fremdes Produkt"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-007": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Kunde bittet LOOXIS um eine Zustellanweisung. Gilt bei Wünschen zu Zustellort oder -art.",
+  "triggers": [
+   "Zustellanweisung",
+   "Zustelloption",
+   "Paketshop",
+   "Nachbarn",
+   "Ablageort",
+   "Abstellgenehmigung",
+   "Ablagegenehmigung",
+   "vor die Tür",
+   "Wunschort"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-008": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "3D-Glasfoto: Schattenwurf, Lücken oder fehlende Motivbereiche. Gilt nur für 3D-Glasfotos.",
+  "triggers": [
+   "Schatten",
+   "Schattenwurf",
+   "Lücke",
+   "Lücken",
+   "verdeckt",
+   "Verdeckung",
+   "fehlende Motivbereiche",
+   "fehlt im Motiv"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-009": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Dunkles oder schwarzes Motiv im Glasfoto kaum sichtbar. Gilt für 2D- und 3D-Glasfotos.",
+  "triggers": [
+   "kaum sichtbar",
+   "schwarzes Motiv",
+   "dunkles Motiv",
+   "nicht erkennbar",
+   "schlecht erkennbar",
+   "zu dunkel",
+   "unterbelichtet",
+   "Punktdichte",
+   "schwarzer Hintergrund",
+   "kaum zu sehen"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-010": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Hintergrund oder Bildbereich unerwartet entfernt oder beibehalten. Gilt für 2D- und 3D-Glasfotos.",
+  "triggers": [
+   "Hintergrund",
+   "freigestellt",
+   "Freistellung",
+   "Hauptmotiv",
+   "grüne Markierung",
+   "Markierung",
+   "Bildbereich",
+   "entfernt"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-011": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Lunchbox: Verschluss schwergängig oder Deckel klemmt. Gilt nur für die Lunchbox mit Holzdeckel.",
+  "triggers": [
+   "klemmt",
+   "schwer zu öffnen",
+   "lässt sich nicht öffnen",
+   "schwergängig",
+   "Deckel passt nicht"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-012": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Holzdeckel der Lunchbox nach Spülmaschine verzogen. Gilt nur für die Lunchbox.",
+  "triggers": [
+   "Spülmaschine",
+   "verzogen",
+   "verbogen",
+   "gewölbt",
+   "verformt",
+   "Verformung"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-013": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Schnappverschluss der Lunchbox gebrochen. Gilt nur für die Lunchbox.",
+  "triggers": [
+   "gebrochen",
+   "abgebrochen",
+   "Schnappverschluss",
+   "Verschluss kaputt",
+   "Clip"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-014": {
+  "actions": [],
+  "exclude_triggers": [
+   "unser Logo",
+   "unserem Logo",
+   "unseres Logos",
+   "unsere Logo",
+   "eigenes Logo",
+   "eigenen Logo",
+   "Firmenlogo",
+   "Logo von uns",
+   "Logo unserer",
+   "Logo meiner",
+   "Logo meines"
+  ],
+  "retrieval": "triggered",
+  "summary": "Kunde fragt nach Verwendung eines möglicherweise geschützten Motivs. Gilt, wenn der Kunde ausdrücklich nach Urheber-, Marken- oder Nutzungsrechten fragt; Rechte nicht ungefragt ansprechen; gilt nicht, wenn ein Geschäftskunde sein eigenes Logo liefert.",
+  "triggers": [
+   "Urheberrecht",
+   "Copyright",
+   "Markenrecht",
+   "geschütztes Motiv",
+   "geschütztes Foto",
+   "geschütztes Bild",
+   "Bildrechte",
+   "Nutzungsrechte",
+   "Bildlizenz",
+   "Rechte Dritter",
+   "Persönlichkeitsrecht",
+   "Markenlogo",
+   "Logo von"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-015": {
+  "actions": [],
+  "exclude_triggers": [
+   "änder",
+   "korrigier",
+   "berichtig",
+   "Adresse",
+   "Rechnungsadresse",
+   "Anschrift",
+   "Empfänger",
+   "Rechnungsempfänger",
+   "Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "umschreib",
+   "stornier",
+   "falsch",
+   "USt-IdNr",
+   "Umsatzsteuer",
+   "neu ausstellen",
+   "neue Rechnung"
+  ],
+  "retrieval": "triggered",
+  "summary": "Amazon-Kunde fordert Rechnung an oder findet sie nicht. Gilt nur auf Amazon; gilt nicht für Rechnungsänderungen.",
+  "triggers": [
+   "Rechnung",
+   "Rechnungskopie",
+   "Rechnungsbeleg",
+   "invoice",
+   "fattura",
+   "facture",
+   "factura"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-016": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Kunde verlangt vor Vorauszahlung eine Rechnung. Gilt nur für Foto-Fachhändler.",
+  "triggers": [
+   "Vorauszahlung",
+   "Vorkasse",
+   "Proforma",
+   "Rechnung vor der Zahlung",
+   "Rechnung vor Zahlung",
+   "Rechnung vor Versand",
+   "vor der Zahlung",
+   "vor Zahlung",
+   "Zahlungsaufforderung"
+  ],
+  "when": null
+ },
+ "PLAYBOOK-017": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Kunde verlangt Änderung der Rechnungsadresse oder des Rechnungsempfängers. Gilt außerhalb von Amazon; gilt nicht für das bloße Anfordern einer Rechnung.",
+  "triggers": [
+   "Rechnungsadresse",
+   "Rechnungsempfänger",
+   "Rechnungsänderung",
+   "Rechnungskorrektur",
+   "Rechnung ändern",
+   "Rechnung korrigieren",
+   "Rechnung berichtigen",
+   "Rechnung umschreiben",
+   "Rechnung falsch",
+   "Rechnung stimmt nicht",
+   "Rechnung lautet auf",
+   "falsche Rechnung",
+   "neue Rechnung",
+   "Rechnung auf die Firma",
+   "Rechnung auf unsere Firma",
+   "Rechnung auf meine Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "USt-IdNr",
+   "Umsatzsteuer-ID",
+   "Adresse auf der Rechnung",
+   "Anschrift auf der Rechnung",
+   "ändern Sie die Rechnung",
+   "korrigieren Sie die Rechnung"
+  ],
+  "when": null
+ },
+ "POLICY-001": {
+  "actions": [
+   "return",
+   "refund",
+   "cancellation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Keine Rücknahme personalisierter Ware allein wegen Nichtgefallen (Privatkunden). Gilt bei Rückgabe-, Widerrufs- oder Umtauschwünschen; gilt nicht bei Mängeln.",
+  "triggers": [
+   "Rückgabe",
+   "zurückgeben",
+   "zurückschicken",
+   "Rücksendung",
+   "Widerruf",
+   "widerrufen",
+   "Retoure",
+   "Umtausch",
+   "umtauschen",
+   "gefällt nicht",
+   "gefällt mir nicht",
+   "Nichtgefallen",
+   "Rückerstattung",
+   "Geld zurück"
+  ],
+  "when": null
+ },
+ "POLICY-002": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Gilt bei Reklamationen von Privatkunden: Ersatz oder Erstattung nach Mangel. Gilt nicht für Geschäftskunden und nicht für Kundenfehler.",
+  "triggers": [],
+  "when": null
+ },
+ "POLICY-003": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Umgang mit Lieferverzögerungen (Privatkunden). Gilt, wenn eine Lieferung zu spät oder nicht angekommen ist; gilt nicht bei Reklamationen zur Ware und nicht, wenn nur eine Rechnung fehlt.",
+  "triggers": [
+   "Lieferverzögerung",
+   "verspätet",
+   "Lieferung verzögert",
+   "wo bleibt",
+   "wo ist mein",
+   "noch nicht angekommen",
+   "Paket nicht angekommen",
+   "Lieferung nicht angekommen",
+   "Bestellung nicht angekommen",
+   "Paket nicht erhalten",
+   "Ware nicht erhalten",
+   "Sendung nicht erhalten",
+   "Sendungsverfolgung",
+   "Tracking",
+   "Lieferzeit"
+  ],
+  "when": null
+ },
+ "POLICY-004": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Gilt bei jedem Fall: Zuerst Kundenart und Vertriebskanal prüfen, bevor eine Regel angewendet wird.",
+  "triggers": [],
+  "when": null
+ },
+ "POLICY-005": {
+  "actions": [
+   "reproduction",
+   "partial-refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Kostenpflichtige Kulanz-Neuanfertigung für Privatkunden im Shop bei Kundenfehlern. Gilt, sobald eine Neuanfertigung als Kulanz in Frage kommt.",
+  "triggers": [
+   "Kulanz",
+   "Kundenfehler",
+   "Tippfehler",
+   "Rechtschreibfehler",
+   "mein Fehler",
+   "falsche Datei",
+   "Neuanfertigung",
+   "Neuproduktion"
+  ],
+  "when": null
+ },
+ "POLICY-006": {
+  "actions": [
+   "reproduction",
+   "partial-refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Kulanz-Nachbestellung bei Kundenfehlern auf Amazon. Gilt, sobald auf Amazon eine Kulanzlösung in Frage kommt.",
+  "triggers": [
+   "Kulanz",
+   "Kundenfehler",
+   "Tippfehler",
+   "Rechtschreibfehler",
+   "mein Fehler",
+   "falsche Datei",
+   "Neuanfertigung",
+   "Neuproduktion",
+   "Nachbestellung"
+  ],
+  "when": null
+ },
+ "POLICY-007": {
+  "actions": [
+   "partial-refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Kulanzrabatt für Verbraucher bei Kundenfehlern. Gilt, sobald ein Nachlass als Kulanz in Frage kommt.",
+  "triggers": [
+   "Kulanz",
+   "Kundenfehler",
+   "Tippfehler",
+   "Rechtschreibfehler",
+   "mein Fehler",
+   "falsche Datei",
+   "Neuanfertigung",
+   "Neuproduktion",
+   "Rabatt",
+   "Nachlass"
+  ],
+  "when": null
+ },
+ "POLICY-008": {
+  "actions": [
+   "reproduction",
+   "partial-refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Kulanz bei Kundenfehlern von Foto-Fachhändlern, gestaffelt nach Produktpreis. Gilt, sobald für Fachhändler eine Kulanzlösung in Frage kommt.",
+  "triggers": [
+   "Kulanz",
+   "Kundenfehler",
+   "Tippfehler",
+   "Rechtschreibfehler",
+   "mein Fehler",
+   "falsche Datei",
+   "Neuanfertigung",
+   "Neuproduktion"
+  ],
+  "when": null
+ },
+ "POLICY-009": {
+  "actions": [
+   "partial-refund"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Zahlungsabwicklung und Teilerstattung auf Amazon. Gilt, sobald auf Amazon eine Teilerstattung vereinbart oder empfohlen wird.",
+  "triggers": [
+   "Teilerstattung",
+   "Kulanz"
+  ],
+  "when": null
+ },
+ "POLICY-010": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Rücksendung und Ersatz bei teilweise personalisierten Produkten. Gilt, wenn Teile ersetzt oder Ware zurückgeschickt werden soll.",
+  "triggers": [
+   "Rücksendung",
+   "zurückschicken",
+   "Retourenlabel",
+   "Rücksendeetikett",
+   "teilweise personalisiert",
+   "einzelne Teile",
+   "Rückversand"
+  ],
+  "when": null
+ },
+ "POLICY-011": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "masterpics ist für Adressdaten verantwortlich; bei Unzustellbarkeit keine Kulanz. Gilt bei fehlgeschlagener Zustellung.",
+  "triggers": [
+   "unzustellbar",
+   "Unzustellbarkeit",
+   "Zustellung fehlgeschlagen",
+   "falsche Adresse",
+   "Adressfehler",
+   "Adressdaten",
+   "Retour an Absender"
+  ],
+  "when": null
+ },
+ "POLICY-012": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Mindestaufbewahrung von Retouren. Gilt, wenn gefragt wird, ob eine Retoure noch vorhanden oder entsorgt ist.",
+  "triggers": [
+   "entsorgt",
+   "Entsorgung",
+   "Aufbewahrung",
+   "Retourenbox",
+   "weggeworfen",
+   "vernichtet"
+  ],
+  "when": null
+ },
+ "POLICY-013": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Separate Bestellungen werden nicht zusammengeführt. Gilt, wenn der Kunde Bestellungen zusammenlegen oder gemeinsam versenden will.",
+  "triggers": [
+   "zusammenführen",
+   "zusammenlegen",
+   "zusammen versenden",
+   "gemeinsam versenden",
+   "zwei Bestellungen",
+   "beide Bestellungen",
+   "in einem Paket"
+  ],
+  "when": null
+ },
+ "POLICY-014": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Ergänzung noch unbezahlter und unversandter Aufträge. Gilt, wenn ein bestehender Auftrag erweitert werden soll.",
+  "triggers": [
+   "ergänzen",
+   "Ergänzung",
+   "nachträglich hinzufügen",
+   "Auftrag erweitern",
+   "Position hinzufügen",
+   "dazu bestellen"
+  ],
+  "when": null
+ },
+ "POLICY-015": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Zustellanweisungen und Zustelloptionen entscheidet der Empfänger. Gilt, wenn der Kunde LOOXIS um eine Zustellanweisung bittet.",
+  "triggers": [
+   "Zustellanweisung",
+   "Zustelloption",
+   "Paketshop",
+   "Nachbarn",
+   "Ablageort",
+   "Abstellgenehmigung",
+   "Ablagegenehmigung",
+   "vor die Tür",
+   "Wunschort"
+  ],
+  "when": null
+ },
+ "POLICY-016": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Kulanz bei Schattenwurf-Reklamationen zu 3D-Glasfotos. Gilt bei Schatten oder Lücken im 3D-Motiv und bei der daraus folgenden Neuanfertigung mit anderem Foto; gilt nicht für allgemeine Kulanzfragen.",
+  "triggers": [
+   "Schatten",
+   "Schattenwurf",
+   "Lücke",
+   "Lücken",
+   "verdeckt",
+   "Verdeckung",
+   "fehlende Motivbereiche",
+   "fehlt im Motiv",
+   "Neuanfertigung mit anderem Foto",
+   "mit einem anderen Foto",
+   "anderes Foto"
+  ],
+  "when": null
+ },
+ "POLICY-017": {
+  "actions": [],
+  "exclude_triggers": [
+   "unser Logo",
+   "unserem Logo",
+   "unseres Logos",
+   "unsere Logo",
+   "eigenes Logo",
+   "eigenen Logo",
+   "Firmenlogo",
+   "Logo von uns",
+   "Logo unserer",
+   "Logo meiner",
+   "Logo meines"
+  ],
+  "retrieval": "triggered",
+  "summary": "Nutzungsrechte an Motiven liegen beim Kunden; keine Rechtsprüfung. Gilt nur, wenn der Kunde oder Mitarbeiter ausdrücklich nach Urheber-, Marken- oder Nutzungsrechten fragt oder ein fremdes geschütztes Motiv erkennbar gedruckt werden soll; nicht ungefragt ansprechen und nicht, wenn ein Geschäftskunde sein eigenes Logo liefert.",
+  "triggers": [
+   "Urheberrecht",
+   "Copyright",
+   "Markenrecht",
+   "geschütztes Motiv",
+   "geschütztes Foto",
+   "geschütztes Bild",
+   "Bildrechte",
+   "Nutzungsrechte",
+   "Bildlizenz",
+   "Rechte Dritter",
+   "Persönlichkeitsrecht",
+   "Markenlogo",
+   "Logo von"
+  ],
+  "when": null
+ },
+ "POLICY-018": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Bestimmte Inhalte werden aus ethischen Gründen nicht gedruckt. Gilt, wenn Text oder Mitarbeiterhinweis ein Motiv als ablehnungswürdig oder fraglich nennen. Die App sieht Bilder nicht; eine Prüfung hochgeladener Motive ersetzt dieser Abruf nicht.",
+  "triggers": [
+   "Motiv abgelehnt",
+   "Motiv wurde abgelehnt",
+   "Motiv fraglich",
+   "Motiv prüfen",
+   "Inhalt prüfen",
+   "Bild prüfen",
+   "anstößig",
+   "beleidigend",
+   "verfassungsfeindlich",
+   "pornograf",
+   "Hakenkreuz",
+   "extremist",
+   "diskriminier",
+   "Nacktbild",
+   "Nacktfoto",
+   "Gewaltdarstellung",
+   "Kim Jong",
+   "Hitler",
+   "Putin"
+  ],
+  "when": null
+ },
+ "POLICY-019": {
+  "actions": [],
+  "exclude_triggers": [
+   "änder",
+   "korrigier",
+   "berichtig",
+   "Adresse",
+   "Rechnungsadresse",
+   "Anschrift",
+   "Empfänger",
+   "Rechnungsempfänger",
+   "Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "umschreib",
+   "stornier",
+   "falsch",
+   "USt-IdNr",
+   "Umsatzsteuer",
+   "neu ausstellen",
+   "neue Rechnung"
+  ],
+  "retrieval": "triggered",
+  "summary": "Rechnungserstellung und automatischer Rechnungsversand außerhalb von Amazon. Gilt, wenn eine Rechnung angefordert wird, fehlt oder erneut gesendet werden soll; gilt nicht für Änderungen an einer Rechnung (POLICY-020).",
+  "triggers": [
+   "Rechnung",
+   "Rechnungskopie",
+   "Rechnungsbeleg",
+   "invoice",
+   "fattura",
+   "facture",
+   "factura",
+   "Vorauszahlung",
+   "Vorkasse",
+   "Proforma",
+   "Rechnung vor der Zahlung",
+   "Rechnung vor Zahlung",
+   "Rechnung vor Versand",
+   "vor der Zahlung",
+   "vor Zahlung",
+   "Zahlungsaufforderung"
+  ],
+  "when": null
+ },
+ "POLICY-020": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Nachträgliche Rechnungsänderungen außerhalb von Amazon: geringfügige Abweichungen und Wechsel des Rechnungsempfängers. Gilt, wenn eine bestehende Rechnung geändert werden soll; gilt nicht für das bloße Anfordern oder erneute Senden.",
+  "triggers": [
+   "Rechnungsadresse",
+   "Rechnungsempfänger",
+   "Rechnungsänderung",
+   "Rechnungskorrektur",
+   "Rechnung ändern",
+   "Rechnung korrigieren",
+   "Rechnung berichtigen",
+   "Rechnung umschreiben",
+   "Rechnung falsch",
+   "Rechnung stimmt nicht",
+   "Rechnung lautet auf",
+   "falsche Rechnung",
+   "neue Rechnung",
+   "Rechnung auf die Firma",
+   "Rechnung auf unsere Firma",
+   "Rechnung auf meine Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "USt-IdNr",
+   "Umsatzsteuer-ID",
+   "Adresse auf der Rechnung",
+   "Anschrift auf der Rechnung",
+   "ändern Sie die Rechnung",
+   "korrigieren Sie die Rechnung"
+  ],
+  "when": null
+ },
+ "POLICY-021": {
+  "actions": [],
+  "exclude_triggers": [
+   "änder",
+   "korrigier",
+   "berichtig",
+   "Adresse",
+   "Rechnungsadresse",
+   "Anschrift",
+   "Empfänger",
+   "Rechnungsempfänger",
+   "Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "umschreib",
+   "stornier",
+   "falsch",
+   "USt-IdNr",
+   "Umsatzsteuer",
+   "neu ausstellen",
+   "neue Rechnung"
+  ],
+  "retrieval": "triggered",
+  "summary": "Amazon: Rechnung wird automatisch bereitgestellt; erneuter Versand. Gilt, wenn ein Amazon-Kunde eine Rechnung anfordert oder nicht findet; gilt nicht für Änderungen (POLICY-022).",
+  "triggers": [
+   "Rechnung",
+   "Rechnungskopie",
+   "Rechnungsbeleg",
+   "invoice",
+   "fattura",
+   "facture",
+   "factura"
+  ],
+  "when": null
+ },
+ "POLICY-022": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Amazon: Rechnungsadresse oder Firmierung auf Kundenwunsch ändern (Storno und Neuausstellung). Gilt nur auf Amazon bei Änderungswünschen.",
+  "triggers": [
+   "Rechnungsadresse",
+   "Rechnungsempfänger",
+   "Rechnungsänderung",
+   "Rechnungskorrektur",
+   "Rechnung ändern",
+   "Rechnung korrigieren",
+   "Rechnung berichtigen",
+   "Rechnung umschreiben",
+   "Rechnung falsch",
+   "Rechnung stimmt nicht",
+   "Rechnung lautet auf",
+   "falsche Rechnung",
+   "neue Rechnung",
+   "Rechnung auf die Firma",
+   "Rechnung auf unsere Firma",
+   "Rechnung auf meine Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "USt-IdNr",
+   "Umsatzsteuer-ID",
+   "Adresse auf der Rechnung",
+   "Anschrift auf der Rechnung",
+   "ändern Sie die Rechnung",
+   "korrigieren Sie die Rechnung"
+  ],
+  "when": null
+ },
+ "POLICY-023": {
+  "actions": [
+   "quote",
+   "order-confirmation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Saisonale Einschränkungen bei Mengenanfragen im Weihnachtsgeschäft. Gilt bei Mengenanfragen, besonders mit Liefertermin vor Weihnachten.",
+  "triggers": [
+   "Mengenanfrage",
+   "Mengenrabatt",
+   "Mengenpreis",
+   "Angebot",
+   "Angebotsanfrage",
+   "Preisanfrage",
+   "Stückzahl",
+   "Staffelpreis",
+   "Stückpreis",
+   "pro Stück",
+   "Stück für",
+   "Stück bestellen",
+   "Stück benötigen",
+   "Stück brauchen",
+   "größere Menge",
+   "Firmenveranstaltung",
+   "Firmenevent",
+   "Firmenfeier",
+   "Werbegeschenke",
+   "Kundengeschenke",
+   "Kostenvoranschlag",
+   "Weihnachten",
+   "Weihnachtsgeschäft",
+   "Liefertermin"
+  ],
+  "when": null
+ },
+ "POLICY-024": {
+  "actions": [
+   "quote",
+   "order-confirmation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Zahlungsbedingungen bei individuellen Mengenaufträgen (Vorkasse, Rechnungskauf). Gilt bei Angebot und Auftrag über looxis.de.",
+  "triggers": [
+   "Mengenanfrage",
+   "Mengenrabatt",
+   "Mengenpreis",
+   "Angebot",
+   "Angebotsanfrage",
+   "Preisanfrage",
+   "Stückzahl",
+   "Staffelpreis",
+   "Stückpreis",
+   "pro Stück",
+   "Stück für",
+   "Stück bestellen",
+   "Stück benötigen",
+   "Stück brauchen",
+   "größere Menge",
+   "Firmenveranstaltung",
+   "Firmenevent",
+   "Firmenfeier",
+   "Werbegeschenke",
+   "Kundengeschenke",
+   "Kostenvoranschlag",
+   "Rechnungskauf",
+   "auf Rechnung",
+   "Zahlungsbedingungen",
+   "Zahlungsziel"
+  ],
+  "when": null
+ },
+ "POLICY-025": {
+  "actions": [
+   "quote",
+   "order-confirmation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Lieferzeitzusagen bei Mengenanfragen. Gilt, wenn ein Angebot einen Liefertermin nennen soll.",
+  "triggers": [
+   "Mengenanfrage",
+   "Mengenrabatt",
+   "Mengenpreis",
+   "Angebot",
+   "Angebotsanfrage",
+   "Preisanfrage",
+   "Stückzahl",
+   "Staffelpreis",
+   "Stückpreis",
+   "pro Stück",
+   "Stück für",
+   "Stück bestellen",
+   "Stück benötigen",
+   "Stück brauchen",
+   "größere Menge",
+   "Firmenveranstaltung",
+   "Firmenevent",
+   "Firmenfeier",
+   "Werbegeschenke",
+   "Kundengeschenke",
+   "Kostenvoranschlag",
+   "Lieferzeit",
+   "Liefertermin",
+   "Wunschtermin",
+   "bis wann"
+  ],
+  "when": null
+ },
+ "POLICY-026": {
+  "actions": [
+   "quote",
+   "order-confirmation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Preisangaben und Dateiaufwand bei Mengenanfragen (Mengenrabatt statt Einzelkalkulation). Gilt beim Formulieren von Angeboten.",
+  "triggers": [
+   "Mengenanfrage",
+   "Mengenrabatt",
+   "Mengenpreis",
+   "Angebot",
+   "Angebotsanfrage",
+   "Preisanfrage",
+   "Stückzahl",
+   "Staffelpreis",
+   "Stückpreis",
+   "pro Stück",
+   "Stück für",
+   "Stück bestellen",
+   "Stück benötigen",
+   "Stück brauchen",
+   "größere Menge",
+   "Firmenveranstaltung",
+   "Firmenevent",
+   "Firmenfeier",
+   "Werbegeschenke",
+   "Kundengeschenke",
+   "Kostenvoranschlag",
+   "Rabatt",
+   "Dateiaufbereitung",
+   "Aufbereitung"
+  ],
+  "when": null
+ },
+ "PROCESS-001": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Nachproduktion mit Wiederverwendung der ursprünglichen Interpretation. Gilt, wenn ein früheres Ergebnis wiederholt, nachproduziert oder nachbestellt werden soll (außerhalb von Amazon); gilt nicht für jeden Ersatzwunsch.",
+  "triggers": [
+   "Nachproduktion",
+   "Neuproduktion",
+   "neu produzieren",
+   "gleiche Interpretation",
+   "gleichen Interpretation",
+   "selben Interpretation",
+   "bisherigen Interpretation",
+   "Neuanfertigung",
+   "gleiche Datei",
+   "gleichen Datei",
+   "Nachbestellung",
+   "nachbestellen",
+   "noch einmal produzieren"
+  ],
+  "when": null
+ },
+ "PROCESS-002": {
+  "actions": [],
+  "exclude_triggers": [
+   "Glasfoto",
+   "Glas",
+   "Gravur",
+   "Lasergravur",
+   "Kristall",
+   "3D-Foto"
+  ],
+  "retrieval": "triggered",
+  "summary": "Farb- und Helligkeitsbeanstandungen bedruckter Produkte anhand der Bilddateien prüfen. Gilt nicht für gelaserte Glasfotos.",
+  "triggers": [
+   "Farbabweichung",
+   "Farbwiedergabe",
+   "Farbton",
+   "Farbstich",
+   "zu dunkel",
+   "zu hell",
+   "Helligkeit",
+   "abweichende Farben",
+   "andere Farben",
+   "Farben stimmen",
+   "blass",
+   "verblasst"
+  ],
+  "when": null
+ },
+ "PROCESS-003": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Wiederholte Amazon-Nachrichten ohne neue Information abschließen. Gilt nur auf Amazon, wenn der Kunde ausdrücklich dasselbe wiederholt; die Zahl der Nachrichten allein genügt nicht.",
+  "triggers": [
+   "zum wiederholten Mal",
+   "schon mehrfach",
+   "schon mehrmals",
+   "bereits geschrieben",
+   "bereits mehrfach geschrieben",
+   "zum dritten Mal",
+   "wiederholt",
+   "immer wieder"
+  ],
+  "when": null
+ },
+ "PROCESS-004": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Thermoeffekt der Zaubertasse prüfen (Arbeitsschritte). Gilt nur für die Zaubertasse.",
+  "triggers": [
+   "Thermoeffekt",
+   "heißes Wasser",
+   "Motiv erscheint nicht",
+   "Effekt funktioniert",
+   "bleibt schwarz",
+   "schwarze Tasse",
+   "Motiv wird nicht sichtbar"
+  ],
+  "when": null
+ },
+ "PROCESS-005": {
+  "actions": [
+   "escalation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Vier-Augen-Prüfung bei unklaren Fällen oder Eskalationen. Gilt bei Rechtsdrohungen, Rückbuchungen, Eskalation oder wenn die KI eine Eskalation empfiehlt.",
+  "triggers": [
+   "Anwalt",
+   "Rechtsanwalt",
+   "Verbraucherzentrale",
+   "Rückbuchung",
+   "Chargeback",
+   "Klage",
+   "Schadensersatz",
+   "Eskalation"
+  ],
+  "when": null
+ },
+ "PROCESS-006": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Ergänzung eines bestehenden Auftrags prüfen und abstimmen.",
+  "triggers": [
+   "ergänzen",
+   "Ergänzung",
+   "nachträglich hinzufügen",
+   "Auftrag erweitern",
+   "Position hinzufügen",
+   "dazu bestellen"
+  ],
+  "when": null
+ },
+ "PROCESS-007": {
+  "actions": [
+   "reproduction"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Freigabe einer neuen 3D-Interpretation nach Reklamation. Gilt nur für 3D-Glasfotos, sobald eine Neuproduktion empfohlen wird.",
+  "triggers": [
+   "neue Interpretation",
+   "neue 3D",
+   "neue Datei",
+   "Voransicht",
+   "Neuproduktion"
+  ],
+  "when": null
+ },
+ "PROCESS-008": {
+  "actions": [],
+  "exclude_triggers": [
+   "änder",
+   "korrigier",
+   "berichtig",
+   "Adresse",
+   "Rechnungsadresse",
+   "Anschrift",
+   "Empfänger",
+   "Rechnungsempfänger",
+   "Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "umschreib",
+   "stornier",
+   "falsch",
+   "USt-IdNr",
+   "Umsatzsteuer",
+   "neu ausstellen",
+   "neue Rechnung"
+  ],
+  "retrieval": "triggered",
+  "summary": "Rechnungsanforderungen bearbeiten: Rechnung fehlt, gelöscht, erneut senden oder vor Vorauszahlung. Gilt nicht für Rechnungsänderungen (PROCESS-009).",
+  "triggers": [
+   "Rechnung",
+   "Rechnungskopie",
+   "Rechnungsbeleg",
+   "invoice",
+   "fattura",
+   "facture",
+   "factura",
+   "Vorauszahlung",
+   "Vorkasse",
+   "Proforma",
+   "Rechnung vor der Zahlung",
+   "Rechnung vor Zahlung",
+   "Rechnung vor Versand",
+   "vor der Zahlung",
+   "vor Zahlung",
+   "Zahlungsaufforderung"
+  ],
+  "when": null
+ },
+ "PROCESS-009": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Rechnungsänderungen prüfen und entscheiden. Gilt nicht für das bloße Anfordern einer Rechnung (PROCESS-008).",
+  "triggers": [
+   "Rechnungsadresse",
+   "Rechnungsempfänger",
+   "Rechnungsänderung",
+   "Rechnungskorrektur",
+   "Rechnung ändern",
+   "Rechnung korrigieren",
+   "Rechnung berichtigen",
+   "Rechnung umschreiben",
+   "Rechnung falsch",
+   "Rechnung stimmt nicht",
+   "Rechnung lautet auf",
+   "falsche Rechnung",
+   "neue Rechnung",
+   "Rechnung auf die Firma",
+   "Rechnung auf unsere Firma",
+   "Rechnung auf meine Firma",
+   "Firmierung",
+   "Firmenname",
+   "Rechtsform",
+   "USt-IdNr",
+   "Umsatzsteuer-ID",
+   "Adresse auf der Rechnung",
+   "Anschrift auf der Rechnung",
+   "ändern Sie die Rechnung",
+   "korrigieren Sie die Rechnung"
+  ],
+  "when": null
+ },
+ "PROCESS-010": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Strukturierte Mengenanfragen über looxis.de prüfen und Angebote vorbereiten.",
+  "triggers": [
+   "Mengenanfrage",
+   "Mengenrabatt",
+   "Mengenpreis",
+   "Angebot",
+   "Angebotsanfrage",
+   "Preisanfrage",
+   "Stückzahl",
+   "Staffelpreis",
+   "Stückpreis",
+   "pro Stück",
+   "Stück für",
+   "Stück bestellen",
+   "Stück benötigen",
+   "Stück brauchen",
+   "größere Menge",
+   "Firmenveranstaltung",
+   "Firmenevent",
+   "Firmenfeier",
+   "Werbegeschenke",
+   "Kundengeschenke",
+   "Kostenvoranschlag",
+   "Anfrage für"
+  ],
+  "when": null
+ },
+ "PROCESS-011": {
+  "actions": [
+   "order-confirmation"
+  ],
+  "exclude_triggers": [],
+  "retrieval": "binding",
+  "summary": "Individuellen Mengenauftrag nach Kundenbestätigung abwickeln. Gilt, wenn der Kunde ein Angebot annimmt oder die KI eine Auftragsbestätigung vorschlägt.",
+  "triggers": [
+   "Auftrag erteilen",
+   "beauftragen",
+   "Auftragsbestätigung",
+   "Angebot annehmen",
+   "nehmen das Angebot",
+   "verbindlich bestellen"
+  ],
+  "when": null
+ },
+ "PRODUCT-001": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Grundlagen zu essbaren Fotos: technische Grenzen und typische Reklamationen.",
+  "triggers": [],
+  "when": null
+ },
+ "PRODUCT-002": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Grundlagen zur Zaubertasse mit Thermoeffekt: Funktion, Grenzen, Pflege.",
+  "triggers": [],
+  "when": null
+ },
+ "PRODUCT-003": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Grundlagen zu 3D-Glasfotos: 2D-zu-3D-Aufbereitung, Produktfamilie, frühere Namen. Gilt nur, wenn das Produkt gewählt ist.",
+  "triggers": [],
+  "when": null
+ },
+ "PRODUCT-004": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Grundlagen zu 2D-Glasfotos: Produktfamilie und technische Besonderheiten.",
+  "triggers": [],
+  "when": null
+ },
+ "PRODUCT-005": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Grundlagen zur Lunchbox mit Holzdeckel: Material, Druck, Verschluss, Pflege.",
+  "triggers": [],
+  "when": null
+ },
+ "TONE-001": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Interpretationsvorgänge einfach erklären (außerhalb von Amazon).",
+  "triggers": [
+   "Interpretation",
+   "Konfigurations-ID",
+   "Konfiguration",
+   "Produktionsdatei",
+   "gleiche Vorlage",
+   "identische Vorlage",
+   "sieht anders aus",
+   "unterschiedlich"
+  ],
+  "when": null
+ },
+ "TONE-002": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "core",
+  "summary": "Gilt für jede Antwort: Sprache, Erklärungstiefe, Bedauern, Absagen. Keine Sonderfälle.",
+  "triggers": [],
+  "when": null
+ },
+ "TONE-003": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Wiederholte Nachrichten und abschließende Entscheidungen formulieren. Gilt, wenn der Kunde ausdrücklich dasselbe wiederholt; die Zahl der Nachrichten allein genügt nicht.",
+  "triggers": [
+   "zum wiederholten Mal",
+   "schon mehrfach",
+   "schon mehrmals",
+   "bereits geschrieben",
+   "bereits mehrfach geschrieben",
+   "zum dritten Mal",
+   "wiederholt",
+   "immer wieder"
+  ],
+  "when": null
+ },
+ "TONE-004": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Freigabe einer neuen 3D-Voransicht nach Reklamation formulieren. Gilt nur für 3D-Glasfotos.",
+  "triggers": [
+   "Voransicht",
+   "Vorschau",
+   "Freigabe",
+   "neue 3D",
+   "neue Interpretation"
+  ],
+  "when": null
+ },
+ "TONE-005": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Dunkle Motive und geringe Punktdichte verständlich erklären. Gilt für 2D- und 3D-Glasfotos.",
+  "triggers": [
+   "kaum sichtbar",
+   "schwarzes Motiv",
+   "dunkles Motiv",
+   "nicht erkennbar",
+   "schlecht erkennbar",
+   "zu dunkel",
+   "unterbelichtet",
+   "Punktdichte",
+   "schwarzer Hintergrund",
+   "kaum zu sehen"
+  ],
+  "when": null
+ },
+ "TONE-006": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Interpretation von Hauptmotiv und Hintergrund verständlich erklären. Gilt für 2D- und 3D-Glasfotos.",
+  "triggers": [
+   "Hintergrund",
+   "freigestellt",
+   "Freistellung",
+   "Hauptmotiv",
+   "grüne Markierung",
+   "Markierung",
+   "Bildbereich",
+   "entfernt"
+  ],
+  "when": null
+ },
+ "TONE-007": {
+  "actions": [],
+  "exclude_triggers": [
+   "unser Logo",
+   "unserem Logo",
+   "unseres Logos",
+   "unsere Logo",
+   "eigenes Logo",
+   "eigenen Logo",
+   "Firmenlogo",
+   "Logo von uns",
+   "Logo unserer",
+   "Logo meiner",
+   "Logo meines"
+  ],
+  "retrieval": "triggered",
+  "summary": "Nutzungsrechte und abgelehnte Motive neutral kommunizieren. Gilt nur, wenn Rechte erfragt oder ein Motiv abgelehnt wurde; Rechte nicht ungefragt ansprechen; gilt nicht, wenn ein Geschäftskunde sein eigenes Logo liefert.",
+  "triggers": [
+   "Urheberrecht",
+   "Copyright",
+   "Markenrecht",
+   "geschütztes Motiv",
+   "geschütztes Foto",
+   "geschütztes Bild",
+   "Bildrechte",
+   "Nutzungsrechte",
+   "Bildlizenz",
+   "Rechte Dritter",
+   "Persönlichkeitsrecht",
+   "Markenlogo",
+   "Logo von",
+   "Motiv abgelehnt",
+   "Motiv wurde abgelehnt"
+  ],
+  "when": null
+ },
+ "TONE-008": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Gestaltungsideen und einfache Skizzen anfordern. Gilt, wenn der Kunde noch keine fertige Vorlage hat.",
+  "triggers": [
+   "Gestaltungsidee",
+   "Skizze",
+   "Designvorschlag",
+   "keine Vorlage",
+   "noch keine Datei",
+   "Beratung"
+  ],
+  "when": null
+ },
+ "TONE-009": {
+  "actions": [],
+  "exclude_triggers": [],
+  "retrieval": "triggered",
+  "summary": "Mengenangebote und Antworten auf Auftragsanfragen formulieren.",
+  "triggers": [
+   "Mengenanfrage",
+   "Mengenrabatt",
+   "Mengenpreis",
+   "Angebot",
+   "Angebotsanfrage",
+   "Preisanfrage",
+   "Stückzahl",
+   "Staffelpreis",
+   "Stückpreis",
+   "pro Stück",
+   "Stück für",
+   "Stück bestellen",
+   "Stück benötigen",
+   "Stück brauchen",
+   "größere Menge",
+   "Firmenveranstaltung",
+   "Firmenevent",
+   "Firmenfeier",
+   "Werbegeschenke",
+   "Kundengeschenke",
+   "Kostenvoranschlag"
+  ],
+  "when": null
+ }
+}
