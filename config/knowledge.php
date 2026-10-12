@@ -232,6 +232,10 @@ return [
 
         'required' => (bool) env('KNOWLEDGE_RETRIEVAL_REQUIRED', false),
 
+        // Whether the analysis uses the targeted retrieval at all. Off until the documents are
+        // migrated and `knowledge:check` reports readiness; then the analysis behaves as before.
+        'active' => (bool) env('KNOWLEDGE_RETRIEVAL_ACTIVE', false),
+
         // Provisional values; the final ones are set after the migration (PROJ-36).
         'budget' => [
             // Characters of knowledge per analysis the retrieval aims at.

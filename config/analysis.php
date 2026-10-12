@@ -92,6 +92,23 @@ return [
     'feedback_success_days' => 28,
 
     /*
+    |--------------------------------------------------------------------------
+    | Prompt Limits (PROJ-36)
+    |--------------------------------------------------------------------------
+    |
+    | The whole API prompt must fit the model: context limit minus the reserve
+    | for the answer, in characters (a cautious conversion, calibrated with the
+    | token figures stored with every analysis). The retrieval measures the
+    | prompt without knowledge first and gives the knowledge what is left.
+    |
+    */
+
+    'limits' => [
+        'context_characters' => (int) env('ANALYSIS_CONTEXT_CHARACTERS', 300000),
+        'answer_reserve_characters' => (int) env('ANALYSIS_ANSWER_RESERVE_CHARACTERS', 30000),
+    ],
+
+    /*
     | From this moment on it is recorded whether a reply draft was copied or
     | edited (PROJ-35). Earlier analyses show "unknown" in the overview (PROJ-14).
     */

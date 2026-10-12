@@ -18,6 +18,7 @@ final readonly class AnalysisRequest
      * @param  array<string, mixed>  $formInput  The form as sent, to reopen it with the same input (PROJ-10).
      * @param  list<array{number: string, channel: string|null, items: list<string>}>  $mentionedOrders  Order numbers known from the ticket but not loaded from EOCS.
      * @param  list<string>  $notes  Hints for the employee about how the input came about, shown with the result.
+     * @param  list<string>  $extraKnowledge  IDs of documents the employee switched on by hand (PROJ-36).
      */
     public function __construct(
         public Ticket $ticket,
@@ -32,5 +33,6 @@ final readonly class AnalysisRequest
         public array $formInput = [],
         public array $mentionedOrders = [],
         public array $notes = [],
+        public array $extraKnowledge = [],
     ) {}
 }

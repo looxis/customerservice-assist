@@ -79,6 +79,23 @@ final readonly class RetrievalResult
     }
 
     /**
+     * Binding documents tied to one of the actions the analysis recommended that are not in the
+     * prompt yet (the safeguard of PROJ-36). A document whose condition is known to fail does not apply.
+     *
+     * @param  list<string>  $actions
+     * @return list<KnowledgeDocument>
+     */
+    public function safeguardDocuments(array $actions): array
+    {
+        return array_values(array_map(
+            fn (array $item): KnowledgeDocument => $item['document'],
+            array_filter($this->notRetrieved, fn (array $item): bool => $item['document']->retrieval() === 'binding'
+                && array_intersect($item['document']->actions(), $actions) !== []
+                && in_array($item['code'], [self::ACTION_BOUND, self::NO_TRIGGER], true)),
+        ));
+    }
+
+    /**
      * @return list<KnowledgeDocument>
      */
     public function omitted(): array

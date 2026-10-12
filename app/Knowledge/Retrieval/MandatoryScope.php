@@ -72,6 +72,33 @@ class MandatoryScope
         return array_values($messages);
     }
 
+    /**
+     * What still stands in the way of switching the targeted retrieval on (PROJ-36): documents
+     * without a class, files with errors, a mandatory scope over the budget. Empty means ready.
+     *
+     * @return list<string>
+     */
+    public function blockers(): array
+    {
+        $blockers = [];
+        $unclassified = $this->unclassified()->count();
+        $errors = $this->library->errors()->count();
+
+        if ($unclassified > 0) {
+            $blockers[] = $unclassified.' '.($unclassified === 1 ? 'Dokument ist' : 'Dokumente sind').' noch nicht klassifiziert';
+        }
+
+        if ($errors > 0) {
+            $blockers[] = $errors.' Fehler in den Wissensdateien';
+        }
+
+        foreach ($this->violations() as $violation) {
+            $blockers[] = $violation;
+        }
+
+        return $blockers;
+    }
+
     private function isMandatory(KnowledgeDocument $document): bool
     {
         if (in_array($document->type, ['example-good', 'example-bad'], true)) {

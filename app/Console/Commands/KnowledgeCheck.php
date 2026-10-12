@@ -67,6 +67,10 @@ class KnowledgeCheck extends Command
             }
         }
 
+        $blockers = $mandatory->blockers();
+        $this->newLine();
+        $this->line('Gezielter Abruf (PROJ-36): '.(config('knowledge.retrieval.active') ? 'an' : 'aus – die Analyse verwendet die bisherige Auswahl (KNOWLEDGE_RETRIEVAL_ACTIVE)'));
+        $this->line($blockers === [] ? 'Bereit für die Aktivierung: ja.' : 'Bereit für die Aktivierung: nein – '.implode('; ', $blockers).'.');
         $this->newLine();
 
         if ($errors->isEmpty() && $warnings->isEmpty() && $violations === []) {
