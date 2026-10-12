@@ -1,6 +1,6 @@
 # PROJ-14: Analysen-Übersicht
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-12
 
@@ -103,11 +103,80 @@ PROJ-35 zeigt je **Ticket**, wie weit die Arbeit mit der App ging. Es fehlt die 
 
 ### Technical Decisions
 <!-- Added by /architecture -->
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Keine neue Tabelle, nur Lesen der vorhandenen Kennzahlspalten (plus Indizes für die Filter) | Alles Nötige liegt seit PROJ-11, PROJ-12 und PROJ-35 vor; keine Kundeninhalte entschlüsseln | 2026-10-12 |
+| Filter, Zählung und Seitenwechsel in der Datenbank | Analysen sind zahlreicher als Tickets in PROJ-35 und werden länger als 12 Monate als Kennzahlen aufbewahrt | 2026-10-12 |
+| Kennzahlen nach derselben Regel wie die Erfolgszahl der Wissenslücken-Seite, an einer Stelle gepflegt | Beide Zahlen dürfen nie auseinanderlaufen (Spec-Kriterium) | 2026-10-12 |
+| Stichtag für den Kopier-Stand: davor „–“ (unbekannt), danach echte Werte | Vor PROJ-35 wurde nicht erfasst; „nicht kopiert“ wäre sonst falsch | 2026-10-12 |
+| Produkt-, Modell- und Prompt-Auswahl aus den gespeicherten Analysen | Zeigt auch frühere oder entfernte Werte, solange es Analysen dazu gibt | 2026-10-12 |
+| Filterformular mit Auswahl in der Adresse, Server-Aufbau, kein Nachladen | Weitergabe und Zurück-Knopf funktionieren; wie die übrigen Admin-Seiten | 2026-10-12 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Backend nötig?
+Ja, aber **keine neuen Daten**. Alles, was die Liste braucht, liegt schon in der Datenbank: Die Tabelle der Analysen (PROJ-11) hat Kennzahlen in eigenen Spalten, PROJ-12 hat Feedback-Stufe und Wissenslücken ergänzt, PROJ-35 den Kopier-Stand. Es entsteht eine neue Seite mit Abfragen, keine neue Tabelle.
+
+### A) Aufbau der Seite
+```
+Analysen (nur Admins)
++-- Filterleiste
+|   +-- Zeitraum (7 / 28 / 90 Tage / 12 Monate / Von–Bis)
+|   +-- Kundengruppe, Produkt, Kategorie
+|   +-- Feedback-Stufe, Kopier-Stand
+|   +-- Mitarbeiter, Modell, Prompt-Version
+|   +-- Schalter "Testläufe" und "Fehlgeschlagene"
+|   +-- "Zurücksetzen"
++-- Kennzahlen zur gefilterten Menge
+|   +-- Anzahl Analysen
+|   +-- Anteil unverändert/leicht angepasst · Anteil verworfen · Anteil ohne Feedback
+|   +-- Anteil 1:1 kopiert · gemeldete Wissenslücken
++-- Liste (eine Zeile je Analyse, 50 pro Seite)
+|   +-- Zeitpunkt · Mitarbeiter · Ticket (Link zur Analyse)
+|   +-- Kundengruppe · Produkte · Kategorie
+|   +-- Modell · Prompt-Version
+|   +-- Feedback-Stufe · Kopier-Stand
+|   +-- Wissenslücken (Anzahl, Link)
+|   +-- Kennzeichen "Testlauf" / "Fehlgeschlagen" (mit Fehlergrund)
++-- Seitenwechsel (Filter bleiben erhalten)
++-- Leerer Zustand "Keine Analysen für diese Auswahl"
+```
+Die Seite wird komplett auf dem Server aufgebaut. Die Filter sind ein normales Formular, das die Auswahl in die Adresse schreibt; dadurch lassen sich Auswahlen weitergeben und der Zurück-Knopf des Browsers funktioniert. Kein Nachladen im Hintergrund nötig.
+
+Wiederverwendet werden die vorhandenen Bausteine: Seitenrahmen, Karte, Abzeichen, Seitenleisten-Eintrag und die Muster der Wissenslücken- und Ticket-Übersicht (Filter-Chips, Tabelle mit horizontalem Scrollen, Seitenwechsel). Neue Komponenten sind nur nötig, wenn die Filterleiste mehrfach gebraucht wird (z. B. ein Auswahlfeld mit Beschriftung, falls es das nicht schon gibt – `select` und `field` existieren).
+
+### B) Welche Daten werden gelesen
+Je Analyse (alles aus den Kennzahlspalten, **kein Kundeninhalt wird entschlüsselt**):
+- Zeitpunkt, Mitarbeiter, Ticketnummer, Kennung der Analyse (für den Link)
+- Kundengruppe, Produkte, Kategorie, Variante
+- Modell, Prompt-Version, Status (erfolgreich/fehlgeschlagen) und Fehlergrund
+- Testlauf-Kennzeichen
+- Feedback-Stufe
+- Kopier-Stand (kopiert, ob geändert; bearbeitet) aus PROJ-35
+- Anzahl gemeldeter Wissenslücken zur Analyse
+
+Gespeichert wird **nichts Neues**. Zusätzlich braucht die Datenbank passende Suchhilfen (Indizes) für Zeitraum, Kundengruppe, Kategorie, Feedback, Modell und Prompt-Version, damit die Seite auch bei vielen tausend Analysen schnell bleibt.
+
+### C) Technische Entscheidungen (mit Begründung)
+- **Normale Web-Seite mit Server-Aufbau**: Die Seite ist eine Ansicht für Admins, kein Datendienst; wie Ticket-Übersicht und Wissenslücken.
+- **Filter und Zählung in der Datenbank statt im Speicher**: PROJ-35 filtert im Speicher, weil es dort nur um wenige Tickets geht. Analysen sind mehr (mehrere pro Ticket, jahrelang als Kennzahlen aufbewahrt) und werden gezielt gefiltert; deshalb wird gefiltert, gezählt und geblättert, ohne alle Zeilen zu laden.
+- **Kennzahlen mit derselben Regel wie die Erfolgszahl**: Gleiche Definition („bewertete echte Analysen, ohne Testläufe“), damit beide Seiten nie auseinanderlaufen. Die Regel wird an einer Stelle gepflegt und von beiden Seiten genutzt.
+- **Kopier-Stand „unbekannt“ für ältere Analysen**: Vor Einführung der Erfassung (PROJ-35, 2026-10-12) ist nicht bekannt, ob kopiert wurde. Eine feste Stichtag-Einstellung legt fest, bis wann „–“ gilt; danach heißt „nicht kopiert“ wirklich nicht kopiert. Der Filter „nicht kopiert“ trifft nur Analysen nach dem Stichtag.
+- **Produkt-Filter über die gespeicherte Produktliste**: Die Auswahlwerte kommen aus den vorhandenen Analysen (nicht aus dem Knowledge-Katalog), damit auch Produkte erscheinen, die später umbenannt oder entfernt wurden.
+- **Wissenslücken nur als Anzahl und Link**: Die Meldungen bleiben in ihrer eigenen Verwaltung (PROJ-12); die Liste zählt sie je Analyse.
+- **Ungültige Filterwerte werden ignoriert**: Eine von Hand veränderte Adresse führt nie zu einem Fehler.
+- **Zugriff wie bei den anderen Admin-Seiten**: Prüfung auf dem Server, Eintrag in der Seitenleiste nur für Admins.
+- **Kein Export, keine Diagramme**: laut Spec außerhalb.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Zu beachten für Umsetzung und Tests
+- Die Ticket-Übersicht (PROJ-35) und diese Seite zeigen teilweise dieselben Begriffe („kopiert unverändert“ usw.). Die Bezeichnungen sollen aus einer gemeinsamen Quelle kommen, damit beide gleich heißen.
+- Anzeige „Testlauf“ und „Fehlgeschlagen“ nur bei zugeschaltetem Schalter; Kennzahlen folgen demselben Schalter.
+- Tests: Zugriff (403), jeder Filter einzeln und kombiniert, Standardansicht, Seitenwechsel mit Filtern, Kennzahlen gleich Erfolgszahl, Kopier-Stand „–“ vor dem Stichtag, Maskierung von Texten, Zeile ohne Inhalt nach Bereinigung.
 
 ## QA Test Results
 _To be added by /qa_
