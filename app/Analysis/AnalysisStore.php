@@ -289,9 +289,7 @@ class AnalysisStore
     public function successRate(): ?array
     {
         $rated = Analysis::query()
-            ->where('status', 'completed')
-            ->whereNull('test_until')
-            ->whereNotNull('feedback_level')
+            ->rated()
             ->where('created_at', '>=', now()->subDays((int) config('analysis.feedback_success_days')));
 
         $total = (clone $rated)->count();

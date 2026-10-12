@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AnalysisController;
+use App\Http\Controllers\AnalysisOverviewController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
@@ -31,6 +32,7 @@ Route::get('/ablaeufe/{id}', [ProcedureController::class, 'show'])->where('id', 
 Route::get('/wissensluecken', [KnowledgeGapController::class, 'index'])->name('knowledge-gaps.index');
 Route::patch('/wissensluecken/{gap}', [KnowledgeGapController::class, 'update'])->middleware('staff.selected')->whereNumber('gap')->name('knowledge-gaps.update');
 
+Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
 
 Route::get('/tickets', [TicketController::class, 'lookup'])->name('tickets.lookup');

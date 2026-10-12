@@ -1,6 +1,6 @@
 # PROJ-14: Analysen-Übersicht
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-12
 
@@ -183,3 +183,15 @@ _To be added by /qa_
 
 ## Deployment
 _To be added by /deploy_
+
+## Implementation Notes – Backend (2026-10-12)
+- **Route und Controller:** `GET /analysen` (`analysis-overview.index`), `AnalysisOverviewController` mit `AnalysisOverviewRequest` (Admin-Prüfung in `authorize()`, 403 sonst; nur die Form der Eingaben). Die Ansicht `analysis-overview.index` (Filterleiste, Kennzahlen, Tabelle) und der Seitenleisten-Eintrag folgen mit `/frontend`.
+- **Filter:** `AnalysisOverview::filter()` bereinigt die Adresse zu einem `AnalysisFilter`; Werte, die nicht zu den gespeicherten Analysen passen, werden verworfen. Ein ungültiger Zeitraum (Von nach Bis, Von in der Zukunft) fällt auf die 28 Tage zurück und liefert den Hinweis `problem`. Adressparameter: `tage`, `von`, `bis`, `kundengruppe`, `produkt`, `kategorie`, `feedback` (Stufen oder `none`), `kopiert` (`copied-unchanged`, `copied-changed`, `edited`, `not-copied`), `mitarbeiter`, `modell`, `prompt`, `testlaeufe=1`, `fehlgeschlagen=1`.
+- **Abfragen:** Filtern, Zählen und Blättern in der Datenbank (`page()`, `figures()`), nur Kennzahlspalten, `content` wird nicht geladen. Wissenslücken je Analyse über `withCount('gaps')`.
+- **Gemeinsame Regel:** `Analysis::rated()` (Scope) ist die Regel der Erfolgszahl; `AnalysisStore::successRate()` nutzt sie jetzt ebenfalls (Test: Anteil „unverändert/leicht“ stimmt mit der Erfolgszahl überein). Weitere Scopes: `testRun()`, `realRun()` (Testlauf = `test_until` gesetzt oder `.stand-` im Scope, damit auch fehlgeschlagene Testläufe erkannt werden).
+- **Kopier-Stand:** `copyState()` liefert `null` (anzuzeigen als „–“) für fehlgeschlagene Analysen und für Analysen vor `analysis.reply_tracking_since` (2026-10-12), sofern nicht kopiert oder bearbeitet wurde.
+- **Link:** `ticketParameters()` baut Ticketnummer, Analyse und bei Testläufen den Stand.
+- **Indizes:** `created_at` und `status, created_at` an `analyses`.
+- **Konfiguration:** `analysis.overview_periods`, `analysis.overview_default_days`, `analysis.reply_tracking_since`.
+- **Tests:** `tests/Feature/PROJ-14-AnalysisOverviewTest.php` (17 Tests, Abfrageebene und 403).
+- **Abweichung:** Die Kennzahl „ohne Feedback“ bezieht sich auf abgeschlossene Analysen der Menge (fehlgeschlagene haben nie Feedback).

@@ -91,6 +91,16 @@ return [
 
     'feedback_success_days' => 28,
 
+    /*
+    | From this moment on it is recorded whether a reply draft was copied or
+    | edited (PROJ-35). Earlier analyses show "unknown" in the overview (PROJ-14).
+    */
+    'reply_tracking_since' => '2026-10-12 00:00:00',
+
+    'overview_periods' => [7 => '7 Tage', 28 => '28 Tage', 90 => '90 Tage', 365 => '12 Monate'],
+
+    'overview_default_days' => 28,
+
     // Longest reply draft that is saved after editing (PROJ-10).
     'max_reply_length' => 20_000,
 
