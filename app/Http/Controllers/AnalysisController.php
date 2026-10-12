@@ -127,6 +127,7 @@ class AnalysisController extends Controller
                 formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
+                extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),
             ));
         } catch (AnalysisException $exception) {
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);
@@ -237,9 +238,24 @@ class AnalysisController extends Controller
             return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
         }
 
+        if ($store->ruleCheckBlocksCopy($analysis)) {
+            return response()->json(['message' => 'Die Regelprüfung ist unvollständig und noch nicht bestätigt.'], 409);
+        }
+
         $store->markReplyCopied($analysis, (string) $staff->current($request), trim((string) $request->validated('text', '')) !== trim($panel->originalReply($stored)));
 
         return response()->json(['saved' => true]);
+    }
+
+    /**
+     * Confirm that the binding rules were checked by hand after an incomplete rule check (PROJ-36).
+     */
+    public function acknowledgeRuleCheck(string $number, string $analysis, Request $request, AnalysisStore $store, StaffDirectory $staff): RedirectResponse
+    {
+        $done = $store->acknowledgeRuleCheck($analysis, $number, (string) $staff->current($request));
+
+        return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $analysis]))
+            ->with($done ? 'success' : 'error', $done ? 'Danke – die Regelprüfung ist als von dir geprüft vermerkt, der Entwurf kann übernommen werden.' : 'Diese Regelprüfung gibt es nicht oder sie ist schon bestätigt.');
     }
 
     /**

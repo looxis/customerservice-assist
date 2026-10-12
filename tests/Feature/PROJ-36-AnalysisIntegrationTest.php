@@ -4,6 +4,7 @@ use App\Analysis\Agents\CaseAgent;
 use App\Models\Analysis;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Laravel\Ai\Prompts\AgentPrompt;
 
 beforeEach(function () {
     $this->withoutVite();
@@ -143,7 +144,7 @@ describe('with the retrieval switched on', function () {
         expect($stored->content['sent_input'])->toContain('## POLICY-001')->toContain('## POLICY-003')->not->toContain('## POLICY-002')
             ->and(array_column($record['documents'], 'id'))->toBe(['POLICY-001', 'POLICY-003'])
             ->and($record['documents'][1]['reasons'])->toBe(['Auslöser „Kaputt“ (aktuelles Anliegen)'])
-            ->and($record['not_retrieved'])->toBe([['id' => 'POLICY-002', 'code' => 'no_trigger', 'detail' => 'kein Auslöser im Anliegen']])
+            ->and($record['not_retrieved'])->toBe([['id' => 'POLICY-002', 'title' => 'Regel 2', 'code' => 'no_trigger', 'detail' => 'kein Auslöser im Anliegen']])
             ->and($record['sizes']['knowledge'])->toBe($stored->knowledge_characters)
             ->and($stored)->documents_retrieved->toBe(2)->passes->toBe(1);
     });
@@ -382,5 +383,223 @@ describe('readiness for switching on', function () {
         Artisan::call('knowledge:check');
 
         expect(Artisan::output())->toContain('Bereit für die Aktivierung: ja.');
+    });
+});
+
+describe('the standing instructions and the versions', function () {
+    test('the rule about unchecked preconditions is part of the instructions, only when the retrieval is switched on', function () {
+        knowledgeBase(retrDoc(1, ['retrieval' => 'core']));
+        retrTicket('Meine Tasse ist kaputt.');
+        CaseAgent::fake([retrAnswer(), retrAnswer()]);
+
+        retrAnalyze();
+        config(['knowledge.retrieval.active' => true]);
+        retrAnalyze();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains((string) $prompt->agent->instructions(), 'niemals als erfüllt')
+            && str_contains((string) $prompt->agent->instructions(), 'Hinweis der App'));
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => ! str_contains((string) $prompt->agent->instructions(), 'Hinweis der App'));
+    });
+
+    test('the effective prompt version and the retrieval configuration are stored with the analysis', function () {
+        config(['knowledge.retrieval.active' => true]);
+        knowledgeBase(retrDoc(1, ['retrieval' => 'core']));
+        retrTicket('Meine Tasse ist kaputt.');
+        CaseAgent::fake([retrAnswer(), retrAnswer(), retrAnswer()]);
+
+        retrAnalyze();
+        $first = retrStored();
+
+        config(['knowledge.retrieval.budget.target' => 41000]);
+        retrAnalyze();
+        $second = retrStored();
+
+        config(['knowledge.retrieval.active' => false]);
+        retrAnalyze();
+        $third = retrStored();
+
+        expect($first->prompt_version)->toBe('analysis-2026-10-09.2+retrieval-2026-10-13.1')
+            ->and($first->retrieval_version)->toMatch('/^2026-10-13\.1\/[0-9a-f]{8}$/')
+            ->and($second->retrieval_version)->not->toBe($first->retrieval_version)
+            ->and($first->content['retrieval']['configuration'])->toMatchArray(['version' => $first->retrieval_version])
+            ->and($first->content['retrieval']['configuration']['budget']['target'])->toBe(40000)
+            ->and($third->prompt_version)->toBe('analysis-2026-10-09.2')->and($third->retrieval_version)->toBeNull();
+    });
+});
+
+describe('the rule check status', function () {
+    beforeEach(function () {
+        config(['knowledge.retrieval.active' => true, 'staff.admins' => ['Etienne']]);
+        knowledgeBase(retrDoc(1, ['retrieval' => 'core']) + retrDoc(20, ['retrieval' => 'binding', 'actions' => ['partial-refund']], "Kulanz nur bis 20 Euro.\n\n# Regel\n\nBefugnis Kulanz.") + retrDoc(21, ['retrieval' => 'binding', 'actions' => ['refund']], "Erstattung mit Freigabe.\n\n# Regel\n\nVier Augen."));
+        retrTicket('Die Tasse hat einen kleinen Kratzer.');
+    });
+
+    test('a complete safeguard and a measure without binding rules are checked, without the retrieval there is no status', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['photo-request'], 'knowledge_ids' => ['POLICY-001']]), retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), retrAnswer(['knowledge_ids' => ['POLICY-020']])]);
+
+        retrAnalyze();
+        $plain = retrStored();
+        retrAnalyze();
+        $loaded = retrStored();
+
+        config(['knowledge.retrieval.active' => false]);
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze();
+
+        expect($plain->rule_check)->toBe('complete')->and($loaded->rule_check)->toBe('complete')->and(retrStored()->rule_check)->toBeNull();
+    });
+
+    test('a failed second round, rules that no longer fit and a new unchecked measure make the check incomplete', function (array $answers) {
+        CaseAgent::fake($answers);
+
+        retrAnalyze();
+
+        expect(retrStored())->rule_check->toBe('incomplete')->rule_check_at->toBeNull()
+            ->and(retrStored()->content['retrieval']['rule_check'])->toBe('incomplete')
+            ->and(implode(' ', retrStored()->content['notes']))->toContain('Regelprüfung unvollständig');
+    })->with([
+        'second round fails' => fn () => [retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('Modell nicht erreichbar')],
+        'new measure in the second round' => fn () => [retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), retrAnswer(['actions' => ['partial-refund', 'refund'], 'knowledge_ids' => ['POLICY-020']])],
+    ]);
+
+    test('rules that do not fit into the prompt any more make the check incomplete', function () {
+        knowledgeBase(retrDoc(1, ['retrieval' => 'core']) + retrDoc(20, ['retrieval' => 'binding', 'actions' => ['partial-refund']], str_repeat('Befugnis Kulanz. ', 17000)));
+        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']])]);
+
+        retrAnalyze();
+
+        expect(retrStored()->rule_check)->toBe('incomplete');
+    });
+
+    test('the page marks the draft as unchecked and cannot copy it until someone confirms having checked the rules', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        $page = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertOk();
+
+        $page->assertSeeText('Regelprüfung unvollständig – der Entwurf ist ungeprüft')->assertSeeText('POLICY-020')->assertSeeText('Regeln selbst geprüft – Entwurf freigeben')
+            ->assertSeeText('Erst kopierbar, wenn die Regelprüfung bestätigt ist')->assertSee('x-bind:disabled="true"', false);
+
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.copied', ['number' => '2137942', 'analysis' => $id]), ['text' => 'x'])->assertStatus(409)
+            ->assertJsonFragment(['message' => 'Die Regelprüfung ist unvollständig und noch nicht bestätigt.']);
+        expect(retrStored()->reply_copied_at)->toBeNull();
+    });
+
+    test('a person confirms the check; afterwards the draft can be copied and the confirmation is shown', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        test()->withCookie('staff_name', 'Cara')->post(route('tickets.analysis.rule-check', ['number' => '2137942', 'analysis' => $id]))
+            ->assertRedirect()->assertSessionHas('success');
+
+        expect(retrStored())->rule_check->toBe('incomplete')->rule_check_by->toBe('Cara')->rule_check_at->not->toBeNull();
+
+        $page = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}");
+
+        $page->assertSeeText('Von Cara am')->assertSeeText('als selbst geprüft bestätigt')->assertDontSeeText('Erst kopierbar, wenn die Regelprüfung bestätigt ist')->assertDontSeeText('Regeln selbst geprüft – Entwurf freigeben');
+
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.copied', ['number' => '2137942', 'analysis' => $id]), ['text' => 'Guten Tag, wir prüfen das.'])->assertOk();
+        expect(retrStored()->reply_copied_at)->not->toBeNull();
+    });
+
+    test('a complete or unknown check cannot be confirmed and nothing changes', function () {
+        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['POLICY-001']])]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        test()->withCookie('staff_name', 'Cara')->post(route('tickets.analysis.rule-check', ['number' => '2137942', 'analysis' => $id]))->assertRedirect()->assertSessionHas('error');
+        test()->withCookie('staff_name', 'Cara')->post(route('tickets.analysis.rule-check', ['number' => '2139999', 'analysis' => $id]))->assertRedirect()->assertSessionHas('error');
+
+        expect(retrStored())->rule_check->toBe('complete')->rule_check_by->toBeNull();
+    });
+
+    test('a confirmation needs a chosen name', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+        $this->defaultCookies = [];
+
+        test()->post(route('tickets.analysis.rule-check', ['number' => '2137942', 'analysis' => $id]));
+
+        expect(retrStored()->rule_check_at)->toBeNull();
+    });
+
+    test('the analysis overview for admins marks incomplete rule checks', function () {
+        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
+        retrAnalyze();
+
+        test()->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertSeeText('Regelprüfung unvollständig');
+    });
+});
+
+describe('the retrieval in the result view', function () {
+    beforeEach(function () {
+        config(['knowledge.retrieval.active' => true, 'staff.admins' => ['Etienne']]);
+        knowledgeBase(
+            retrDoc(1, ['retrieval' => 'core'])
+            + retrDoc(2, ['retrieval' => 'triggered', 'triggers' => ['Rechnung']])
+            + retrDoc(5, ['retrieval' => 'binding', 'when' => ['days_since_shipped' => ['min' => 14]]])
+            + retrDoc(17, ['retrieval' => 'triggered', 'triggers' => ['Logo'], 'exclude_triggers' => ['unser Logo']]),
+        );
+    });
+
+    test('it lists what came along with the reason, what was checked and not retrieved, and offers to switch it on', function () {
+        retrTicket('Wir wollen ein Angebot mit unser Logo drucken.');
+        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['POLICY-001']])]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        $html = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertOk()->getContent();
+
+        expect($html)->toContain('Wissensabruf')->toContain('Grundwissen')->toContain('Voraussetzung ungeklärt')->toContain('Geprüft, nicht abgerufen (2)')
+            ->toContain('kein Auslöser im Anliegen')->toContain('Unterdrückte Treffer')->toContain('Auslöser „Logo“ durch „unser Logo“')
+            ->toContain('Zuschalten und neu analysieren')->toContain('name="zusatzwissen[]" value="POLICY-002"')->toContain('name="zusatzwissen[]" value="POLICY-017"')
+            ->toContain('name="kundengruppe" value="reseller"');
+    });
+
+    test('technical details are only for admins', function () {
+        retrTicket('Meine Tasse ist kaputt.');
+        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['POLICY-001']])]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertDontSeeText('Bewertete Bedingungen')->assertDontSeeText('Abrufregeln 2026-10-13.1');
+        test()->withCookie('staff_name', 'Etienne')->get("/tickets/2137942?analyse={$id}")->assertSeeText('Bewertete Bedingungen (nur Admins)')->assertSeeText('Abrufregeln 2026-10-13.1');
+    });
+
+    test('an analysis from before the retrieval shows no such section', function () {
+        config(['knowledge.retrieval.active' => false]);
+        retrTicket('Meine Tasse ist kaputt.');
+        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['POLICY-001']])]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertOk()->assertDontSeeText('Geprüft, nicht abgerufen')->assertDontSeeText('Regelprüfung unvollständig');
+    });
+
+    test('switching a document on by hand sends it with the note and keeps it in the log', function () {
+        retrTicket('Wo ist meine Bestellung?');
+        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['POLICY-001']]), retrAnswer(['knowledge_ids' => ['POLICY-002']])]);
+        retrAnalyze();
+
+        retrAnalyze(['zusatzwissen' => ['POLICY-002']]);
+
+        $stored = retrStored();
+
+        expect($stored->content['sent_input'])->toContain('## POLICY-002')->toContain('Hinweis der App: Dieses Wissen wurde vom Mitarbeiter von Hand zugeschaltet')
+            ->and($stored->content['retrieval']['manual'])->toBe(['POLICY-002'])
+            ->and(collect($stored->content['retrieval']['documents'])->firstWhere('id', 'POLICY-002')['reasons'])->toBe(['von Hand zugeschaltet']);
+    });
+
+    test('only well formed document IDs are accepted', function () {
+        retrTicket('Wo ist meine Bestellung?');
+        CaseAgent::fake([retrAnswer()]);
+
+        retrAnalyze(['zusatzwissen' => ['kein-id-format; drop table']]);
+
+        CaseAgent::assertNeverPrompted();
+        expect(Analysis::query()->count())->toBe(0);
     });
 });

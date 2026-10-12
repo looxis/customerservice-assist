@@ -95,7 +95,7 @@ class AnalysisOverview
     public function page(AnalysisFilter $filter, int $page = 1): LengthAwarePaginator
     {
         $rows = $this->query($filter)
-            ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'content_purged_at', 'content_deleted_at', 'created_at'])
+            ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'content_purged_at', 'content_deleted_at', 'rule_check', 'rule_check_at', 'created_at'])
             ->withCount('gaps')
             ->orderByDesc('created_at')->orderByDesc('id')
             ->paginate(self::PER_PAGE, page: max(1, $page));

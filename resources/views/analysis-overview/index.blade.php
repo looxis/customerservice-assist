@@ -141,6 +141,7 @@
                                         @else
                                             <span class="text-slate-600">–</span>
                                         @endif
+                                        @if ($row->rule_check === 'incomplete')<x-badge compact tone="danger" title="{{ $row->rule_check_at ? 'Inzwischen von Hand geprüft' : 'Nicht bestätigt' }}">Regelprüfung unvollständig</x-badge>@endif
                                         @if ($row->test_until !== null || str_contains($row->scope_key, '.stand-'))<x-badge compact tone="warning">Testlauf</x-badge>@endif
                                     </div>
                                     @if ($row->status !== 'completed' && $row->error)<p class="mt-1 text-xs text-slate-600">{{ \App\Analysis\AnalysisProblem::tryFrom($row->error)?->message() ?? $row->error }}</p>@endif

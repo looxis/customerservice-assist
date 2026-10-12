@@ -34,6 +34,7 @@ return [
 
     'prompts' => [
         'analysis' => resource_path('prompts/analysis.md'),
+        'analysis-retrieval' => resource_path('prompts/analysis-retrieval.md'),
         'summary' => resource_path('prompts/summary.md'),
         'translation' => resource_path('prompts/translation.md'),
     ],

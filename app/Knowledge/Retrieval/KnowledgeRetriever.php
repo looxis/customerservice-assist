@@ -23,6 +23,21 @@ class KnowledgeRetriever
     ) {}
 
     /**
+     * The retrieval rules and settings in force as a short identifier: the version of the rules and
+     * a hash of the settings, stored with every analysis so a result can be traced back (PROJ-36).
+     */
+    public static function configurationVersion(): string
+    {
+        $settings = config('knowledge.retrieval');
+        $keys = array_map(fn (array $definition): array => [$definition['level'], $definition['type']], $settings['when_keys']);
+
+        return $settings['version'].'/'.substr(sha1((string) json_encode([
+            $settings['budget'], $settings['min_trigger_length'], $settings['max_triggers'], $settings['required'], $keys,
+            config('analysis.limits'), config('knowledge.selection.max_good_examples'), config('knowledge.selection.max_bad_examples'),
+        ])), 0, 8);
+    }
+
+    /**
      * @param  list<string>  $manualIds  Documents the employee switched on by hand.
      * @param  int|null  $available  Characters that are left for knowledge in the whole prompt; null = no limit (preview).
      *

@@ -54,6 +54,12 @@ class CaseAnalyzer
 
         $model = (string) config('analysis.models.analysis');
         $active = (bool) config('knowledge.retrieval.active');
+
+        if ($active) {
+            $rules = Prompt::load('analysis-retrieval');
+            $prompt = new Prompt($prompt->name, $prompt->version.'+'.$rules->version, $prompt->text."\n\n".$rules->text);
+        }
+
         $parts = $this->parts($request, $pseudonymizer->hasDeliveryAddress(), $active);
         $started = hrtime(true);
         $retrieval = null;
@@ -78,6 +84,8 @@ class CaseAnalyzer
             [$pass, $selection, $hints, $safeguard] = $this->safeguard($request, $prompt, $parts, $selection, $hints, $retrieval, $pass, $pseudonymizer, $model, $totals, $started);
             $notes = [...$notes, ...$this->retrievalNotes($retrieval, $selection, $hints, $safeguard)];
         }
+
+        $ruleCheck = $safeguard === null ? null : ($safeguard['failed'] || $safeguard['not_considered'] !== [] ? 'incomplete' : 'complete');
 
         $answer = $pass['answer'];
         $checked = $pass['checked'];
@@ -106,7 +114,7 @@ class CaseAnalyzer
             'notes' => [...$notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
-            ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge)]),
+            ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck)]),
             'meta' => [
                 'staff' => $request->staffName,
                 'test_until' => $request->ticket->rewoundAt()?->toIso8601String(),
@@ -121,6 +129,8 @@ class CaseAnalyzer
                 'documents_retrieved' => count($selection->selected),
                 'documents_omitted' => $retrieval === null ? 0 : count($retrieval->omitted()),
                 'passes' => $safeguard !== null && $safeguard['loaded'] !== [] ? 2 : 1,
+                'retrieval_version' => $retrieval === null ? null : KnowledgeRetriever::configurationVersion(),
+                'rule_check' => $ruleCheck,
                 'variant' => $request->variant->value,
                 'customer_group' => $request->customerGroup->key,
                 'products' => $request->products,
@@ -334,6 +344,11 @@ class CaseAnalyzer
     private function retrievalNotes(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard): array
     {
         $notes = [];
+
+        if ($safeguard !== null && ($safeguard['failed'] || $safeguard['not_considered'] !== [])) {
+            $notes[] = 'Regelprüfung unvollständig: Der Entwurf ist ungeprüft und darf erst nach bewusster eigener Prüfung der verbindlichen Regeln übernommen werden.';
+        }
+
         $unverified = array_keys(array_filter($hints, fn (RetrievedDocument $item): bool => $item->unverified));
 
         if ($unverified !== []) {
@@ -363,7 +378,7 @@ class CaseAnalyzer
      * @param  list<string>  $manual
      * @return array<string, mixed>
      */
-    private function record(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard, array $manual): array
+    private function record(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard, array $manual, ?string $ruleCheck): array
     {
         $reasons = [];
 
@@ -377,6 +392,7 @@ class CaseAnalyzer
 
                 return [
                     'id' => $entry->document->id,
+                    'title' => $entry->document->title,
                     'class' => $item?->class ?? $entry->document->retrieval(),
                     'strength' => $item?->strength ?? RetrievedDocument::MANDATORY,
                     'reasons' => $item === null ? [$entry->reason] : $item->reasons,
@@ -384,12 +400,14 @@ class CaseAnalyzer
                     'unknown_keys' => $item?->unknownKeys ?? [],
                 ];
             }, $selection->selected)),
-            'not_retrieved' => array_values(array_map(fn (array $item): array => ['id' => $item['document']->id, 'code' => $item['code'], 'detail' => $item['detail']], $retrieval->notRetrieved)),
+            'not_retrieved' => array_values(array_map(fn (array $item): array => ['id' => $item['document']->id, 'title' => $item['document']->title, 'code' => $item['code'], 'detail' => $item['detail']], $retrieval->notRetrieved)),
             'suppressed' => $retrieval->suppressed,
             'conditions' => array_map(fn (Evaluation $evaluation): array => ['result' => $evaluation->result->value, 'order' => $evaluation->order, 'order_unclear' => $evaluation->orderUnclear, 'checks' => $evaluation->checks], $retrieval->evaluations),
             'unclassified' => $retrieval->unclassified,
             'manual' => $manual,
             'safeguard' => $safeguard,
+            'rule_check' => $ruleCheck,
+            'configuration' => ['version' => KnowledgeRetriever::configurationVersion(), 'budget' => config('knowledge.retrieval.budget'), 'limits' => config('analysis.limits')],
             'sizes' => ['knowledge' => $selection->characterCount(), 'mandatory' => $retrieval->mandatoryCharacters, 'target' => $retrieval->target, 'available' => $retrieval->available],
             'warnings' => $retrieval->warnings,
         ];

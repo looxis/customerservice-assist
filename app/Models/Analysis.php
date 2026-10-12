@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * everything with customer data encrypted in `content`, which is emptied after
  * the retention period or on deletion. Failed analyses have no content.
  */
-#[Fillable(['uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'variant', 'category', 'assessment', 'confidence', 'actions', 'knowledge_ids', 'knowledge_fingerprints', 'provider', 'model', 'prompt_version', 'summary_prompt_version', 'knowledge_state', 'knowledge_characters', 'documents_retrieved', 'documents_omitted', 'passes', 'duration_ms', 'input_tokens', 'output_tokens', 'attempts', 'content', 'content_purged_at', 'content_deleted_at', 'content_deleted_by', 'feedback_level', 'feedback_suggested', 'feedback_by', 'feedback_at', 'feedback_comment', 'reply_edited_at', 'reply_copied_at', 'reply_copied_by', 'reply_copied_changed'])]
+#[Fillable(['uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'variant', 'category', 'assessment', 'confidence', 'actions', 'knowledge_ids', 'knowledge_fingerprints', 'provider', 'model', 'prompt_version', 'summary_prompt_version', 'knowledge_state', 'knowledge_characters', 'documents_retrieved', 'documents_omitted', 'passes', 'retrieval_version', 'rule_check', 'rule_check_by', 'rule_check_at', 'duration_ms', 'input_tokens', 'output_tokens', 'attempts', 'content', 'content_purged_at', 'content_deleted_at', 'content_deleted_by', 'feedback_level', 'feedback_suggested', 'feedback_by', 'feedback_at', 'feedback_comment', 'reply_edited_at', 'reply_copied_at', 'reply_copied_by', 'reply_copied_changed'])]
 class Analysis extends Model
 {
     /** @use HasFactory<AnalysisFactory> */
@@ -37,6 +37,7 @@ class Analysis extends Model
             'content_deleted_at' => 'datetime',
             'feedback_at' => 'datetime',
             'feedback_comment' => 'encrypted',
+            'rule_check_at' => 'datetime',
             'reply_edited_at' => 'datetime',
             'reply_copied_at' => 'datetime',
             'reply_copied_changed' => 'boolean',

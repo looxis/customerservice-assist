@@ -45,6 +45,8 @@ class AnalyzeTicketRequest extends FormRequest
             'ohne_bestelldetails' => ['sometimes', 'boolean'],
             'bestellungen' => ['sometimes', 'array', 'max:10'],
             'bestellungen.*' => ['string', 'max:40'],
+            'zusatzwissen' => ['sometimes', 'array', 'max:20'],
+            'zusatzwissen.*' => ['string', 'regex:/^[A-Z]+(?:-[A-Z]+)*-\d{3}$/'],
             'bestellung_nummer' => ['nullable', 'string', 'max:60'],
             'bestellung_kanal' => ['nullable', 'string', 'max:60'],
             'bestellung_datum' => ['nullable', 'string', 'max:30'],

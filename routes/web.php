@@ -53,6 +53,7 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::put('/tickets/{number}/analyse/{analysis}/feedback', FeedbackController::class)->whereUuid('analysis')->name('tickets.analysis.feedback');
     Route::post('/tickets/{number}/analyse/{analysis}/wissensluecken', [KnowledgeGapController::class, 'store'])->whereUuid('analysis')->name('tickets.analysis.gaps.store');
     Route::put('/tickets/{number}/analyse/{analysis}/entwurf', [AnalysisController::class, 'updateReply'])->whereUuid('analysis')->name('tickets.analysis.reply');
+    Route::post('/tickets/{number}/analyse/{analysis}/regelpruefung', [AnalysisController::class, 'acknowledgeRuleCheck'])->whereUuid('analysis')->name('tickets.analysis.rule-check');
     Route::post('/tickets/{number}/analyse/{analysis}/kopiert', [AnalysisController::class, 'markCopied'])->whereUuid('analysis')->name('tickets.analysis.copied');
 });
 

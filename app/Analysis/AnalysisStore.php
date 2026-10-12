@@ -117,6 +117,8 @@ class AnalysisStore
             'documents_retrieved' => $meta['documents_retrieved'] ?? null,
             'documents_omitted' => $meta['documents_omitted'] ?? null,
             'passes' => $meta['passes'] ?? null,
+            'retrieval_version' => $meta['retrieval_version'] ?? null,
+            'rule_check' => $meta['rule_check'] ?? null,
             'duration_ms' => $meta['duration_ms'] ?? null,
             'input_tokens' => $meta['input_tokens'] ?? null,
             'output_tokens' => $meta['output_tokens'] ?? null,
@@ -188,6 +190,24 @@ class AnalysisStore
     public function markReplyEdited(string $id, ?CarbonImmutable $at): void
     {
         Analysis::query()->where('uuid', $id)->update(['reply_edited_at' => $at]);
+    }
+
+    /**
+     * Someone checked the binding rules by hand after an incomplete rule check (PROJ-36).
+     * Only an incomplete, not yet acknowledged check can be acknowledged.
+     */
+    public function acknowledgeRuleCheck(string $id, string $ticketNumber, string $staff): bool
+    {
+        return Analysis::query()->where('uuid', $id)->where('ticket_number', $ticketNumber)->where('rule_check', 'incomplete')->whereNull('rule_check_at')
+            ->update(['rule_check_by' => $staff, 'rule_check_at' => now()]) === 1;
+    }
+
+    /**
+     * Whether the draft must not be taken over yet: the rule check is incomplete and nobody acknowledged it.
+     */
+    public function ruleCheckBlocksCopy(string $id): bool
+    {
+        return Analysis::query()->where('uuid', $id)->where('rule_check', 'incomplete')->whereNull('rule_check_at')->exists();
     }
 
     /**
@@ -333,7 +353,7 @@ class AnalysisStore
 
         $analysis = Analysis::query()->where('uuid', $id)->whereNotNull('content')->first();
 
-        return $analysis === null ? null : [...$analysis->content, 'scope' => $analysis->scope_key, 'feedback' => $this->feedbackOf($analysis)];
+        return $analysis === null ? null : [...$analysis->content, 'scope' => $analysis->scope_key, 'feedback' => $this->feedbackOf($analysis), 'rule_check' => ['status' => $analysis->rule_check, 'by' => $analysis->rule_check_by, 'at' => $analysis->rule_check_at === null ? null : CarbonImmutable::parse($analysis->rule_check_at)]];
     }
 
     /**
