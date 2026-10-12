@@ -178,8 +178,8 @@ Nur Frontmatter, kein Text umgeschrieben. Die Klassifizierung der 75 Dokumente b
 
 ## Dritte Runde (2026-10-12): Produktausschluss und Kulanz-Maßnahme
 
-- **** (neu, mit Prüfung, Authoring Guide, Vorlagen und Tests): PLAYBOOK-001, PROCESS-002 und GLOSSARY-001 schließen  und  aus. Bei unbekanntem oder keinem Produkt kein Ausschluss; bei mehreren Produkten entfällt das Dokument nur, wenn alle gewählten ausgeschlossen sind. Die Satzausschlüsse („Glas“, „Gravur“ …) sind entfallen.
-- **** (neue Maßnahme „Kulanz-Neuanfertigung“): POLICY-005/-006/-008 hängen nur noch daran; POLICY-007, POLICY-009 und PERMISSION-003 an  und .  (kostenfrei, berechtigte Reklamation) lädt keine dieser Kulanzregeln. Der Prompt nennt der KI die Maßnahmen samt Unterscheidungssatz (), und die Antwortprüfung lässt sie zu (Test in ).
+- **`exclude_products`** (neu, mit Prüfung, Authoring Guide, Vorlagen und Tests): PLAYBOOK-001, PROCESS-002 und GLOSSARY-001 schließen `2d-glass-photo` und `3d-glass-photo` aus. Bei unbekanntem oder keinem Produkt kein Ausschluss; bei mehreren Produkten entfällt das Dokument nur, wenn alle gewählten ausgeschlossen sind. Die Satzausschlüsse („Glas“, „Gravur“ …) sind entfallen.
+- **`goodwill-reproduction`** (neue Maßnahme „Kulanz-Neuanfertigung“): POLICY-005/-006/-008 hängen nur noch daran; POLICY-007, POLICY-009 und PERMISSION-003 an `goodwill-reproduction` und `partial-refund`. `reproduction` (kostenfrei, berechtigte Reklamation) lädt keine dieser Kulanzregeln. Der Prompt nennt der KI die Maßnahmen samt Unterscheidungssatz (`knowledge.action_hints`), und die Antwortprüfung lässt sie zu (Test in `PROJ-36-AnalysisIntegrationTest.php`).
 
 ## Offene Punkte für die fachliche Prüfung
 
