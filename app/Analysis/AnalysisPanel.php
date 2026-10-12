@@ -134,6 +134,16 @@ class AnalysisPanel
     }
 
     /**
+     * The reply as the AI wrote it, with the app's own placeholders filled in.
+     *
+     * @param  array<string, mixed>  $stored
+     */
+    public function originalReply(array $stored): string
+    {
+        return Pseudonymizer::fromValues($stored['placeholders'] ?? [])->restorePlain((string) ($stored['result']['reply']['text'] ?? ''));
+    }
+
+    /**
      * A stored analysis prepared for display: the reply with values put back
      * (or as edited), the inserted values, the sources with their state and
      * whether new messages came in since.
@@ -148,9 +158,8 @@ class AnalysisPanel
             return null;
         }
 
-        $placeholders = Pseudonymizer::fromValues($stored['placeholders'] ?? []);
         $reply = (string) ($stored['result']['reply']['text'] ?? '');
-        $original = $placeholders->restorePlain($reply);
+        $original = $this->originalReply($stored);
         $edit = $stored['reply_edit'] ?? null;
         $last = $ticket->articles === [] ? null : $ticket->articles[array_key_last($ticket->articles)];
         $lastSeen = $stored['thread']['last_article_id'] ?? null;

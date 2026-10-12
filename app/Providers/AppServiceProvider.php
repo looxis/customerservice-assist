@@ -67,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
                 'currentStaff' => $staff->current(request()),
                 'testModeAvailable' => $testMode->isAvailable(request()),
                 'testModeActive' => $testMode->isActive(request()),
+                'ticketOverviewAvailable' => $testMode->isAvailable(request()),
                 'openGapCount' => $testMode->isAvailable(request()) ? app(KnowledgeGapLog::class)->openCount() : null,
             ]);
         });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisPanel;
+use App\Analysis\TicketActivityLog;
 use App\Analysis\Translator;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
@@ -10,6 +11,7 @@ use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
+use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
@@ -43,7 +45,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -57,6 +59,7 @@ class TicketController extends Controller
         $full = $ticket;
         ['ticket' => $ticket, 'later' => $later, 'problem' => $rewindProblem] = $testMode->rewind($ticket, $request, $request->query('stand'));
         $selected = $this->selection($request, $detector);
+        $activity->recordVisit($ticket, $staff->current($request));
         $suggestions = $detector->detect($ticket);
         $lookups = [];
         $orderProblem = null;

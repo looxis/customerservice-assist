@@ -179,6 +179,22 @@ class AnalysisStore
     }
 
     /**
+     * Note when the reply draft was last changed (null once it is the AI's original again), so the ticket overview needs no content (PROJ-35).
+     */
+    public function markReplyEdited(string $id, ?CarbonImmutable $at): void
+    {
+        Analysis::query()->where('uuid', $id)->update(['reply_edited_at' => $at]);
+    }
+
+    /**
+     * Note that the reply draft was copied, and whether it differed from the AI's original (PROJ-35).
+     */
+    public function markReplyCopied(string $id, string $staff, bool $changed): void
+    {
+        Analysis::query()->where('uuid', $id)->update(['reply_copied_at' => now(), 'reply_copied_by' => $staff, 'reply_copied_changed' => $changed]);
+    }
+
+    /**
      * The latest finished analysis with content of a ticket (or of a test-run
      * cut point, see Ticket::summaryKey()).
      */
@@ -336,7 +352,7 @@ class AnalysisStore
      * Empty content older than the retention period; drop old summaries,
      * choices and customer memories.
      *
-     * @return array{analyses: int, gaps: int, translations: int, summaries: int, choices: int, customers: int}
+     * @return array{analyses: int, gaps: int, translations: int, summaries: int, choices: int, customers: int, visits: int}
      */
     public function purge(): array
     {
@@ -350,6 +366,7 @@ class AnalysisStore
             'translations' => MessageTranslation::query()->where('created_at', '<', $before)->delete(),
             'summaries' => TicketSummary::query()->where('updated_at', '<', $before)->delete(),
             'choices' => TicketCaseChoice::query()->where('updated_at', '<', $before)->delete(),
+            'visits' => app(TicketActivityLog::class)->purge(),
             'customers' => CustomerGroupMemory::query()->where('updated_at', '<', now()->subDays((int) config('analysis.customer_group_retention_days')))->delete(),
         ];
     }

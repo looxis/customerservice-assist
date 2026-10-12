@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisException;
+use App\Analysis\AnalysisPanel;
 use App\Analysis\AnalysisProblem;
 use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
@@ -16,6 +17,7 @@ use App\Eocs\EocsException;
 use App\Eocs\EocsOrder;
 use App\Http\Requests\AnalyzeTicketRequest;
 use App\Http\Requests\DeleteAnalysesRequest;
+use App\Http\Requests\MarkReplyCopiedRequest;
 use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
@@ -212,11 +214,32 @@ class AnalysisController extends Controller
             : ['text' => (string) $request->validated('text', ''), 'staff' => (string) $staff->current($request), 'at' => $now->toIso8601String()];
 
         $stored = $store->changeResult($analysis, fn (array $content): array => [...$content, 'reply_edit' => $edit]) ?? $stored;
+        $store->markReplyEdited($analysis, $edit === null ? null : $now);
 
         return response()->json([
             'saved' => true,
             'edited' => $stored['reply_edit'] === null ? null : 'bearbeitet von '.$stored['reply_edit']['staff'].' am '.$now->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',
         ]);
+    }
+
+    /**
+     * Note that the reply draft was copied, and whether it differs from the AI's original (PROJ-35).
+     */
+    public function markCopied(string $number, string $analysis, MarkReplyCopiedRequest $request, AnalysisStore $store, AnalysisPanel $panel, StaffDirectory $staff): JsonResponse
+    {
+        $stored = $store->result($analysis);
+
+        if ($stored === null || ($stored['ticket'] ?? null) !== $number) {
+            return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
+        }
+
+        if ($store->latest((string) $stored['scope']) !== $analysis) {
+            return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
+        }
+
+        $store->markReplyCopied($analysis, (string) $staff->current($request), trim((string) $request->validated('text', '')) !== trim($panel->originalReply($stored)));
+
+        return response()->json(['saved' => true]);
     }
 
     /**

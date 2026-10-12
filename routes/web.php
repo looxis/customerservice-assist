@@ -9,6 +9,7 @@ use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketOverviewController;
 use App\Http\Controllers\TranslationController;
 use App\Zammad\SampleTicket;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,8 @@ Route::get('/ablaeufe/{id}', [ProcedureController::class, 'show'])->where('id', 
 Route::get('/wissensluecken', [KnowledgeGapController::class, 'index'])->name('knowledge-gaps.index');
 Route::patch('/wissensluecken/{gap}', [KnowledgeGapController::class, 'update'])->middleware('staff.selected')->whereNumber('gap')->name('knowledge-gaps.update');
 
+Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
+
 Route::get('/tickets', [TicketController::class, 'lookup'])->name('tickets.lookup');
 Route::get('/tickets/{number}', [TicketController::class, 'show'])
     ->where('number', '[0-9]{1,20}')
@@ -48,6 +51,7 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::put('/tickets/{number}/analyse/{analysis}/feedback', FeedbackController::class)->whereUuid('analysis')->name('tickets.analysis.feedback');
     Route::post('/tickets/{number}/analyse/{analysis}/wissensluecken', [KnowledgeGapController::class, 'store'])->whereUuid('analysis')->name('tickets.analysis.gaps.store');
     Route::put('/tickets/{number}/analyse/{analysis}/entwurf', [AnalysisController::class, 'updateReply'])->whereUuid('analysis')->name('tickets.analysis.reply');
+    Route::post('/tickets/{number}/analyse/{analysis}/kopiert', [AnalysisController::class, 'markCopied'])->whereUuid('analysis')->name('tickets.analysis.copied');
 });
 
 if (app()->isLocal()) {

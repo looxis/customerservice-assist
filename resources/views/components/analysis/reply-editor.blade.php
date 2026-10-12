@@ -64,18 +64,29 @@
             this.status = 'saving';
             this.save(true);
         },
+        async noteCopy() {
+            try {
+                await fetch(@js(route('tickets.analysis.copied', ['number' => $number, 'analysis' => $result['id']])), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({ text: this.text }),
+                });
+            } catch (error) {}
+        },
         async copy() {
             if (this.open > 0 && ! confirm(`Noch ${this.open} offene ${this.open === 1 ? 'Stelle' : 'Stellen'} – trotzdem kopieren?`)) { return }
             try {
                 await navigator.clipboard.writeText(this.text);
                 this.fallback = false;
                 this.copied = true;
+                this.noteCopy();
                 this.$dispatch('reply-copied');
                 setTimeout(() => (this.copied = false), 2500);
             } catch (error) {
                 this.$refs.text.focus();
                 this.$refs.text.select();
                 this.fallback = true;
+                this.noteCopy();
                 this.$dispatch('reply-copied');
             }
         },
