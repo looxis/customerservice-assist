@@ -1,6 +1,6 @@
 # PROJ-14: Analysen-Übersicht
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-12
 
@@ -38,34 +38,34 @@ PROJ-35 zeigt je **Ticket**, wie weit die Arbeit mit der App ging. Es fehlt die 
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
 ### Zugriff und Aufruf
-- [ ] Angenommen der gewählte Name ist Admin, wenn er die Seitenleiste betrachtet, dann gibt es den Eintrag „Analysen“ (neben „Ticket-Übersicht“)
-- [ ] Angenommen ein Nicht-Admin oder kein gewählter Name, wenn die Seite aufgerufen wird, dann wird der Zugriff abgelehnt (403) und der Eintrag fehlt in der Seitenleiste
+- [x] Angenommen der gewählte Name ist Admin, wenn er die Seitenleiste betrachtet, dann gibt es den Eintrag „Analysen“ (neben „Ticket-Übersicht“)
+- [x] Angenommen ein Nicht-Admin oder kein gewählter Name, wenn die Seite aufgerufen wird, dann wird der Zugriff abgelehnt (403) und der Eintrag fehlt in der Seitenleiste
 
 ### Liste
-- [ ] Angenommen es gibt Analysen, wenn die Seite angezeigt wird, dann steht je Analyse eine Zeile, neueste zuerst, mit Zeitpunkt, Mitarbeiter, Ticketnummer (Link zur Analyse im Ticket), Kundengruppe, Produkten, Kategorie, Modell und Prompt-Version, Feedback-Stufe, Kopier-Stand und Anzahl gemeldeter Wissenslücken
-- [ ] Angenommen die Standardansicht, wenn die Seite zum ersten Mal geöffnet wird, dann zeigt sie nur erfolgreiche, echte Analysen der letzten 28 Tage
-- [ ] Angenommen mehr als 50 Treffer, wenn die Liste angezeigt wird, dann ist sie in Seiten geteilt, und die Filter bleiben beim Blättern erhalten
-- [ ] Angenommen keine Treffer, wenn die Liste angezeigt wird, dann steht „Keine Analysen für diese Auswahl“ mit dem Hinweis, Filter zu lockern
-- [ ] Angenommen eine Analyse, deren Kundeninhalte bereinigt oder gelöscht wurden (PROJ-11), wenn die Zeile angezeigt wird, dann bleiben Kennzahlen, Feedback-Stufe und Kopier-Stand sichtbar, und der Link führt zum Ticket mit dem Hinweis aus PROJ-11
-- [ ] Angenommen eine Analyse, deren Kopier-Stand unbekannt ist (vor PROJ-35 erzeugt), wenn die Zeile angezeigt wird, dann steht dort „–“ statt „nicht kopiert“
-- [ ] Angenommen kein Kundeninhalt, wenn die Liste angezeigt wird, dann enthält sie weder Ticketinhalt, Antwortentwurf noch Kommentar
+- [x] Angenommen es gibt Analysen, wenn die Seite angezeigt wird, dann steht je Analyse eine Zeile, neueste zuerst, mit Zeitpunkt, Mitarbeiter, Ticketnummer (Link zur Analyse im Ticket), Kundengruppe, Produkten, Kategorie, Modell und Prompt-Version, Feedback-Stufe, Kopier-Stand und Anzahl gemeldeter Wissenslücken
+- [x] Angenommen die Standardansicht, wenn die Seite zum ersten Mal geöffnet wird, dann zeigt sie nur erfolgreiche, echte Analysen der letzten 28 Tage
+- [x] Angenommen mehr als 50 Treffer, wenn die Liste angezeigt wird, dann ist sie in Seiten geteilt, und die Filter bleiben beim Blättern erhalten
+- [x] Angenommen keine Treffer, wenn die Liste angezeigt wird, dann steht „Keine Analysen für diese Auswahl“ mit dem Hinweis, Filter zu lockern
+- [x] Angenommen eine Analyse, deren Kundeninhalte bereinigt oder gelöscht wurden (PROJ-11), wenn die Zeile angezeigt wird, dann bleiben Kennzahlen, Feedback-Stufe und Kopier-Stand sichtbar, und der Link führt zum Ticket mit dem Hinweis aus PROJ-11
+- [x] Angenommen eine Analyse, deren Kopier-Stand unbekannt ist (vor PROJ-35 erzeugt), wenn die Zeile angezeigt wird, dann steht dort „–“ statt „nicht kopiert“
+- [x] Angenommen kein Kundeninhalt, wenn die Liste angezeigt wird, dann enthält sie weder Ticketinhalt, Antwortentwurf noch Kommentar
 
 ### Filter
-- [ ] Angenommen die Filter, wenn der Admin den Zeitraum wählt, dann stehen „7 Tage“, „28 Tage“, „90 Tage“, „12 Monate“ und ein frei wählbares Von–Bis zur Auswahl
-- [ ] Angenommen die Filter, wenn der Admin Kundengruppe, Produkt, Kategorie, Feedback-Stufe (unverändert, leicht, stark, verworfen, ohne Feedback), Kopier-Stand (kopiert unverändert, kopiert angepasst, bearbeitet nicht kopiert, nicht kopiert), Mitarbeiter, Modell oder Prompt-Version wählt, dann zeigt die Liste nur Treffer, die alle gewählten Filter erfüllen
-- [ ] Angenommen die Auswahlen für Produkt, Modell und Prompt-Version, wenn sie angezeigt werden, dann bieten sie nur Werte, die in den gespeicherten Analysen vorkommen
-- [ ] Angenommen gewählte Filter, wenn die Seite neu geladen oder die Adresse weitergegeben wird, dann bleibt die Auswahl erhalten (Filter stehen in der Adresse)
-- [ ] Angenommen gewählte Filter, wenn der Admin „Zurücksetzen“ wählt, dann gilt wieder die Standardansicht
-- [ ] Angenommen die Schalter „Testläufe anzeigen“ und „Fehlgeschlagene anzeigen“, wenn sie ausgeschaltet sind (Standard), dann fehlen diese Zeilen in Liste und Kennzahlen; eingeschaltet erscheinen sie mit Kennzeichen „Testlauf“ bzw. „Fehlgeschlagen“ (mit Fehlergrund, ohne Inhalt)
-- [ ] Angenommen ein ungültiger Filterwert in der Adresse, wenn die Seite aufgerufen wird, dann wird er ignoriert und die Seite zeigt ohne ihn eine Liste
+- [x] Angenommen die Filter, wenn der Admin den Zeitraum wählt, dann stehen „7 Tage“, „28 Tage“, „90 Tage“, „12 Monate“ und ein frei wählbares Von–Bis zur Auswahl
+- [x] Angenommen die Filter, wenn der Admin Kundengruppe, Produkt, Kategorie, Feedback-Stufe (unverändert, leicht, stark, verworfen, ohne Feedback), Kopier-Stand (kopiert unverändert, kopiert angepasst, bearbeitet nicht kopiert, nicht kopiert), Mitarbeiter, Modell oder Prompt-Version wählt, dann zeigt die Liste nur Treffer, die alle gewählten Filter erfüllen
+- [x] Angenommen die Auswahlen für Produkt, Modell und Prompt-Version, wenn sie angezeigt werden, dann bieten sie nur Werte, die in den gespeicherten Analysen vorkommen
+- [x] Angenommen gewählte Filter, wenn die Seite neu geladen oder die Adresse weitergegeben wird, dann bleibt die Auswahl erhalten (Filter stehen in der Adresse)
+- [x] Angenommen gewählte Filter, wenn der Admin „Zurücksetzen“ wählt, dann gilt wieder die Standardansicht
+- [x] Angenommen die Schalter „Testläufe anzeigen“ und „Fehlgeschlagene anzeigen“, wenn sie ausgeschaltet sind (Standard), dann fehlen diese Zeilen in Liste und Kennzahlen; eingeschaltet erscheinen sie mit Kennzeichen „Testlauf“ bzw. „Fehlgeschlagen“ (mit Fehlergrund, ohne Inhalt)
+- [ ] Angenommen ein ungültiger Filterwert in der Adresse, wenn die Seite aufgerufen wird, dann wird er ignoriert und die Seite zeigt ohne ihn eine Liste (teilweise: Werte, die nicht zu den Daten passen, werden ignoriert; Werte falscher Form führen zu einer Weiterleitung, siehe BUG-1)
 
 ### Kennzahlen
-- [ ] Angenommen eine gefilterte Menge, wenn die Seite angezeigt wird, dann stehen darüber: Anzahl Analysen, Anteil „unverändert nutzbar“ oder „leicht angepasst“ an den bewerteten, Anteil „verworfen“ an den bewerteten, Anteil ohne Feedback, Anteil 1:1 kopiert an den kopierten, Anzahl gemeldeter Wissenslücken
-- [ ] Angenommen keine bewerteten Analysen in der Menge, wenn die Kennzahlen angezeigt werden, dann steht bei den Feedback-Anteilen „–“ statt einer Zahl
-- [ ] Angenommen derselbe Zeitraum wie die Erfolgszahl der Wissenslücken-Seite, wenn beide ausgewertet werden, dann stimmen die Werte überein (gleiche Regel: bewertete echte Analysen, ohne Testläufe)
+- [x] Angenommen eine gefilterte Menge, wenn die Seite angezeigt wird, dann stehen darüber: Anzahl Analysen, Anteil „unverändert nutzbar“ oder „leicht angepasst“ an den bewerteten, Anteil „verworfen“ an den bewerteten, Anteil ohne Feedback, Anteil 1:1 kopiert an den kopierten, Anzahl gemeldeter Wissenslücken
+- [x] Angenommen keine bewerteten Analysen in der Menge, wenn die Kennzahlen angezeigt werden, dann steht bei den Feedback-Anteilen „–“ statt einer Zahl
+- [x] Angenommen derselbe Zeitraum wie die Erfolgszahl der Wissenslücken-Seite, wenn beide ausgewertet werden, dann stimmen die Werte überein (gleiche Regel: bewertete echte Analysen, ohne Testläufe)
 
 ### Wissenslücken
-- [ ] Angenommen zu einer Analyse wurden Wissenslücken gemeldet, wenn die Zeile angezeigt wird, dann steht dort die Anzahl als Link zur Wissenslücken-Seite
+- [x] Angenommen zu einer Analyse wurden Wissenslücken gemeldet, wenn die Zeile angezeigt wird, dann steht dort die Anzahl als Link zur Wissenslücken-Seite
 
 ## Edge Cases
 - **Sehr viele Analysen:** Seiten zu 50, Kennzahlen bleiben die der ganzen gefilterten Menge, nicht nur der Seite.
@@ -202,3 +202,80 @@ _To be added by /deploy_
 - **Zustände:** leerer Zustand mit Hinweis zum Lockern der Filter; Hinweis bei ungültigem Zeitraum; „Zurücksetzen“ nur bei abweichender Auswahl; Produktnamen aus dem Knowledge-Katalog, sonst der gespeicherte Schlüssel.
 - **Tests:** 9 Seitentests ergänzt (insgesamt 26 in `PROJ-14-AnalysisOverviewTest.php`); Gesamtsuite 931 Tests grün; Assets gebaut.
 - **Nicht im Browser geprüft:** Aussehen bei 375/768/1440 px; folgt in `/qa`.
+
+## QA Test Results
+
+**Tested:** 2026-10-12 · **Methode:** automatisierte Tests, Code-Review, Belastungsprobe mit 30.000 Analysen (nur Testdatenbank, danach entfernt). **Nicht getestet:** Browser (Chrome, Firefox, Safari) und die Breiten 375/768/1440 px; die Tabelle liegt in einem horizontal scrollbaren Rahmen, das Aussehen ist aber nicht am Bildschirm geprüft.
+
+### Acceptance Criteria Status
+#### Zugriff und Aufruf
+- [x] Eintrag „Analysen“ nur für Admins in der Seitenleiste (Test)
+- [x] Nicht-Admin und ohne Namen: 403 (Test)
+
+#### Liste
+- [x] Zeile je Analyse, neueste zuerst, mit allen Spalten (Test)
+- [x] Standardansicht: erfolgreiche echte Analysen der letzten 28 Tage (Test)
+- [x] Seiten zu 50, Filter bleiben beim Blättern erhalten (Test)
+- [x] Leerer Zustand mit Hinweis (Test)
+- [x] Bereinigte Analyse: Kennzahlen, Feedback und Kopier-Stand bleiben, der Link führt zum Ticket (Spalten ohne Inhalt, Test über den Abfrageweg)
+- [x] Unbekannter Kopier-Stand als „–“ mit Hinweis „Nicht erfasst“ (Test)
+- [x] Kein Kundeninhalt in der Liste (Test: Entwurf im Inhalt erscheint nicht)
+
+#### Filter
+- [x] Zeitraum: 7 Tage, 28 Tage, 90 Tage, 12 Monate, Von–Bis (Test)
+- [x] Alle Filter einzeln und kombiniert (Test)
+- [x] Auswahllisten nur mit vorhandenen Werten (Test)
+- [x] Auswahl bleibt in der Adresse erhalten (Test)
+- [x] „Zurücksetzen“ nur bei abweichender Auswahl, führt zur Standardansicht (Test)
+- [x] Schalter Testläufe und Fehlgeschlagene mit Kennzeichen und Fehlergrund (Test)
+- [ ] Ungültiger Filterwert wird ignoriert – nur teilweise, siehe BUG-1
+
+#### Kennzahlen
+- [x] Alle sechs Kennzahlen gelten für die ganze gefilterte Menge (Test mit 200 Analysen)
+- [x] Ohne Bewertungen steht „–“ (Test)
+- [x] Gleiche Regel wie die Erfolgszahl der Wissenslücken-Seite (Test)
+
+#### Wissenslücken
+- [x] Anzahl je Analyse als Link zur Wissenslücken-Seite (Test)
+
+### Edge Cases Status
+- [x] Sehr viele Analysen: Kennzahlen über die ganze Menge; 30.000 Analysen: Seite in 0,3 s (Ziel unter 1 s)
+- [x] Mehrere Produkte je Analyse: Filter trifft bei mindestens einem (Test)
+- [x] Analyse ohne Kundengruppe oder Produkt wird angezeigt (Test)
+- [x] Zeitraum Von nach Bis oder in der Zukunft: Hinweis, Standardzeitraum (Test)
+- [x] Ticket in Zammad gelöscht: Verhalten wie PROJ-6 (Ticketseite zeigt die Fehlerseite)
+- [x] Aufbewahrung: Kennzahlen bleiben dauerhaft, Spalten brauchen keine Inhalte
+
+### Security Audit Results
+- [x] Autorisierung: Zugriff serverseitig in der Form Request geprüft (403); Zugriff ohne Namen ebenfalls
+- [x] SQL-Injection: alle Filterwerte gebunden und gegen die vorhandenen Werte geprüft
+- [x] XSS: Mitarbeiter, Produkte und Modelle werden maskiert ausgegeben (Test mit `<script>`)
+- [x] CSRF: nur Lesezugriff (GET), keine Änderungen
+- [x] Datenschutz: keine Kundeninhalte in Abfrage und Ausgabe (der Inhalt wird gar nicht geladen)
+- Hinweis: Die Admin-Rolle hängt wie bei PROJ-32 und PROJ-35 am gewählten Namen (Cookie), also ohne Anmeldung; bekannte MVP-Grenze bis PROJ-15.
+
+### Regression
+- Gesamte Suite: 931 Tests grün; PROJ-12 (Erfolgszahl nutzt jetzt `Analysis::rated()`), PROJ-35 und PROJ-11 einzeln geprüft.
+- „Über die App“: kein Schritt von „So funktioniert es“ wird nutzbar, nichts zu ändern.
+
+### Bugs Found
+
+#### BUG-1: Ungültig geformte Adresswerte führen zu einer Weiterleitung statt ignoriert zu werden
+- **Severity:** Low
+- **Status:** Offen
+- **Steps to Reproduce:** `/analysen?page=abc`, `?page=-3`, `?produkt[]=a`, `?testlaeufe=11` oder ein Wert über 120 Zeichen aufrufen. Erwartet: Die Seite zeigt die Liste ohne den ungültigen Wert. Tatsächlich: Antwort 302 zurück auf die vorherige Seite (ohne Verweis auf die Startseite).
+- **Ursache:** Die Form Request prüft Form und Länge der Werte und leitet bei Verstößen um, statt zu bereinigen.
+- **Priority:** Nice to have
+
+#### BUG-2: Voreingestellter Zeitraum wird ignoriert, solange „Von“ oder „Bis“ gefüllt ist
+- **Severity:** Low
+- **Status:** Offen
+- **Steps to Reproduce:** Von–Bis wählen und filtern; danach im Feld „Zeitraum“ „Letzte 7 Tage“ wählen und erneut filtern, ohne „Von“ und „Bis“ zu leeren. Erwartet: Es gelten die letzten 7 Tage. Tatsächlich: Das alte Von–Bis gilt weiter, die Auswahl wirkt wirkungslos.
+- **Priority:** Nice to have
+
+### Summary
+- **Acceptance Criteria:** 19/20 bestanden (1 teilweise, BUG-1)
+- **Bugs Found:** 2 total (0 critical, 0 high, 0 medium, 2 low)
+- **Security:** Pass
+- **Production Ready:** YES (Browser- und Responsive-Test steht aus und sollte beim ersten Einsatz nachgeholt werden)
+- **Recommendation:** Freigeben; beide Bugs bei Gelegenheit beheben.
