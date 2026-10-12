@@ -1,8 +1,8 @@
 # PROJ-36: Gezielter Wissensabruf
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-13
-**Last Updated:** 2026-10-13 (Entwurf zur abschließenden Prüfung)
+**Last Updated:** 2026-10-13
 
 ## Dependencies
 - Requires: PROJ-3 (Knowledge Base einlesen und prüfen) – Frontmatter, Prüfbefehl, Validierung
@@ -215,11 +215,120 @@ Zurückgestellt, bis die Werte gesammelt oder abgestimmt sind: `order_status` (f
 
 ### Technical Decisions
 <!-- Added by /architecture -->
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Metadaten in den Wissensdateien, keine neue Tabelle für Regeln | Autor pflegt Inhalt und Regeln gemeinsam, Git versioniert, der Fingerabdruck deckt die Felder ab | 2026-10-13 |
+| Abruf deterministisch ohne KI (zweite Stufe auf dem Ergebnis von PROJ-4) | Reproduzierbar, billig, nachvollziehbar; PROJ-4 bleibt unverändert gültig | 2026-10-13 |
+| Auslöser-Suche und Textbereinigung wie bei den Kundenbegriffen (PROJ-33) | Erprobtes Verfahren wiederverwenden, kein zweites Suchverfahren | 2026-10-13 |
+| Bedingungsauswertung als eigener rechnender Baustein mit dreiwertiger Logik; Schlüsselliste in der Konfiguration | Eine Stelle für die Logik, vollständig testbar; Prüfung und Übersicht lesen dieselbe Liste | 2026-10-13 |
+| Fallfakten und Bezugsbestellung einmal je Analyse festlegen | Gleiche Fakten für Abruf, Protokoll und Wiederholung; keine Vermischung | 2026-10-13 |
+| Prompt-Teile ohne Wissen zuerst messen, Wissen zuletzt einpassen | Einzige Möglichkeit, die Modellgrenze bei langem Verlauf einzuhalten | 2026-10-13 |
+| Grenzen in Zeichen mit Sicherheitsfaktor, Kalibrierung über gespeicherte Tokenzahlen | Einfach und robust; exakte Tokenzählung wäre ein neues Paket | 2026-10-13 |
+| Maßnahmensicherung im bestehenden Analyse-Ablauf, höchstens eine Wiederholung | Nutzt die vorhandene Schleife; Kosten nur im Bedarfsfall | 2026-10-13 |
+| Protokoll im verschlüsselten Analyseinhalt, Kennzahlen in Spalten | Unterdrückte Sätze enthalten Kundentext; Zahlen bleiben für PROJ-14 filterbar | 2026-10-13 |
+| Manuelles Zuschalten im vorhandenen Neu-Analysieren-Formular | Kein neuer Ablauf; zugeschaltete Dokumente zählen zum Pflichtumfang des Durchgangs | 2026-10-13 |
+| Prompt-Text „noch nicht versandt“ bei fehlenden Sendungen wird neutral gefasst, Prompt-Version steigt | Fehlende Sendungsdaten sind „unbekannt“, nicht „nicht versandt“ | 2026-10-13 |
+| Migration: Lesebefehl, Vorschlagstabelle, reine Frontmatter-Änderung, dann Pflichtfeld | Kein Eingriff in fachliche Texte; Umschalten erst nach grüner Prüfung | 2026-10-13 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Backend nötig?
+Ja, überwiegend. Es gibt **keine neue Tabelle für Inhalte**: Die Regeln (Klasse, Auslöser, Bedingungen) stehen als Metadaten in den Wissensdateien im Repository, die Abrufentscheidung wird mit der Analyse gespeichert. Die Oberfläche wächst nur im Quellen-Bereich des Ergebnisses und im Formular „Neu analysieren“.
+
+### A) Bausteine (Übersicht)
+```
+Gezielter Wissensabruf
++-- Wissensdateien (Repository, Markdown + Frontmatter)
+|   +-- neue Felder: summary, retrieval, triggers, exclude_triggers, when, actions
++-- Prüfung (knowledge:check) und Werkzeuge für den Autor
+|   +-- Fehler/Warnungen/Infos zu den neuen Feldern
+|   +-- Pflichtumfang je Kundengruppe und Produkt gegen Budget und Modellgrenze
+|   +-- knowledge:select --text, knowledge:overview (Grundwissen, Auslöser, Schlüssel, noch nicht klassifiziert)
++-- Fallfakten (je Analyse neu gesammelt)
+|   +-- Texte in Stufen A (aktuelles Anliegen), B (jüngere Nachrichten, Zusammenfassung), C (Rest)
+|   +-- Fallebene: Kundengruppe, Produkt, Ticketstatus und -alter, Anzahl Kundennachrichten, Anhang, Sprache
+|   +-- Bestellebene: je Bestellung Kanal, Alter, Sendungen, Zustellung, Folgebestellungen, Mengen
+|   +-- Bezugsbestellung (genannte Nummer, einzige Bestellung oder mehrere Kandidatinnen)
++-- Bedingungsauswertung (wahr / falsch / unbekannt)
++-- Abruf
+|   +-- Stufe 1: Geltungsbereich (wie PROJ-4)
+|   +-- Stufe 2: Klasse core / triggered / binding; Auslöser, Ausschlüsse, Bedingungen
+|   +-- Rangfolge und Budget: Pflichtumfang zuerst, dann stark, schwach, Beispiele
+|   +-- Prüfung gegen die Modellgrenze mit allen übrigen Prompt-Teilen
++-- Analyse-Ablauf
+|   +-- Prompt mit Hinweisen "Voraussetzung nicht geprüft"
+|   +-- Maßnahmensicherung: fehlende verbindliche Regeln zur empfohlenen Maßnahme nachladen, einmal wiederholen
++-- Protokoll (gespeichert mit der Analyse)
++-- Ergebnisansicht
+    +-- Quellen: Abrufgrund je Dokument
+    +-- "Geprüft, nicht abgerufen" mit Knopf "Zuschalten und neu analysieren"
+    +-- Hinweise: wegen Umfang ausgelassen, Voraussetzung ungeklärt, Maßnahmensicherung
+```
+
+### B) Datenmodell (in Alltagssprache)
+**Je Wissensdatei (Frontmatter):**
+- `summary` – ein bis zwei Sätze; `retrieval` – Grundwissen, bei Bedarf oder verbindlich; `triggers` – Kundenwörter; `exclude_triggers` – Ausschlusswörter (nicht bei verbindlich); `when` – Bedingungen mit den Schlüsseln der Startliste; `actions` – Vorgänge, an die eine verbindliche Regel gebunden ist (gleiche Liste wie bei Arbeitsabläufen).
+- Alles bleibt in Git versioniert; der Fingerabdruck je Dokument (PROJ-3) deckt die neuen Felder mit ab.
+
+**Je Analyse (gespeichert verschlüsselt im bestehenden Analyseinhalt, wie die Quellen):**
+- Abrufprotokoll: je Dokument Klasse, Grund (Auslöser mit Fundstelle und Stufe, Bedingung, Geltungsbereich, Maßnahme, von Hand zugeschaltet), Stufe stark/schwach.
+- „Geprüft, nicht abgerufen“: Dokument, Grund (kein Auslöser, Bedingung falsch, unterdrückt durch Ausschluss mit Satz und Ausschlusswort).
+- Ausgelassen wegen Umfang: IDs.
+- Bewertete Bedingungen: Schlüssel, Wert, Bezugsbestellung, Ergebnis wahr/falsch/unbekannt; Vermerk „Bestellbezug unklar“.
+- Maßnahmensicherung: ausgelöst ja/nein, Maßnahme, nachgeladene IDs, Ergebnis des ersten Durchgangs in Kurzform (empfohlene Maßnahmen).
+- Umfang in Zeichen je Prompt-Teil (Wissen, Ticket, Bestellung, Anweisung) und die angewandten Grenzen.
+- Neue Kennzahlen in eigenen Spalten, ohne Kundendaten, damit die Analysen-Übersicht (PROJ-14) später filtern kann: Zeichen des Wissens, Zahl abgerufener und ausgelassener Dokumente, Zahl der Durchgänge (1 oder 2).
+
+**Je Neu-Analyse:** die von Hand zugeschalteten Dokument-IDs im gespeicherten Formular (wie die übrigen Eingaben).
+
+**Konfiguration:** Klassen und Schlüssel der `when`-Liste mit Datenquelle und Verfügbarkeit, Budgets (Zielumfang, Pflichtumfang für Grundwissen und je Produkt), Modellgrenze, Antwortreserve, Umrechnungsfaktor, Mindestlänge der Auslöser, Warnschwelle für Auslöser, Schalter „Pflichtfeld“ für `retrieval` (Übergangsmodus).
+
+### C) Ablauf einer Analyse
+1. Fallfakten sammeln (Texte in Stufen, Fall- und Bestellfakten, Bezugsbestellung).
+2. Geltungsbereich bestimmen (Kundengruppe, Produkt) – unverändert aus PROJ-4.
+3. Je Dokument die Klasse auswerten: Grundwissen, Treffer der Auslöser (mit Ausschlüssen und Stufe), Bedingungen (dreiwertig); verbindliche Dokumente über Geltungsbereich, Bedingung, Auslöser oder Maßnahme.
+4. Alle Teile des Prompts **außer dem ausgelösten Wissen** aufbauen und messen; daraus den verfügbaren Platz berechnen (Modellgrenze minus Antwortreserve minus übrige Teile). Pflichtumfang reservieren, danach stark, schwach, Beispiele einfügen; Ausgelassenes festhalten. Passt der Pflichtumfang nicht, mit klarer Meldung abbrechen.
+5. Prompt zusammenstellen (verbindliche Dokumente mit ungeklärter Voraussetzung mit Hinweis) und die KI fragen (bestehender Ablauf einschließlich der Wiederholung bei ungültigem Ergebnis).
+6. Maßnahmensicherung: empfohlene Maßnahmen mit den maßnahmengebundenen verbindlichen Dokumenten abgleichen; fehlen welche, nachladen und **einmal** wiederholen (Pflichtumfang des zweiten Durchgangs prüft dieselbe Grenze).
+7. Ergebnis und Protokoll speichern; Kennzahlen in Spalten.
+
+### D) Technische Entscheidungen (mit Begründung)
+- **Metadaten in den Dateien statt in der Datenbank:** Der Autor pflegt Wissen und Regeln zusammen, Git zeigt jede Änderung, kein zweiter Ort zum Synchronisieren.
+- **Abruf deterministisch, ohne KI:** reproduzierbar, billig, nachvollziehbar und unabhängig von Modelländerungen; das Sicherheitsnetz mit KI kommt als PROJ-37.
+- **Zwei Stufen statt einer:** Die bestehende Auswahl nach Kundengruppe und Produkt (PROJ-4) bleibt unverändert die erste Stufe; die zweite Stufe arbeitet nur auf deren Ergebnis. Dadurch bleibt alles Bestehende gültig, und die Erweiterung ist abschaltbar (Übergangsmodus).
+- **Auslöser-Suche wie bei den Kundenbegriffen (PROJ-33):** gleiches, erprobtes Verfahren (Wortanfang, Groß/Klein egal), gleiche Bereinigung von Zitaten und Signaturen; die Satzgrenze für Ausschlüsse ist eine einfache Zerlegung nach Satzzeichen.
+- **Textstufen aus vorhandenen Bausteinen:** Kundennachrichten und Zusammenfassung liefern bereits `TicketContext` und `Summary`; es werden keine neuen Texte gespeichert.
+- **Bedingungsauswertung als eigener, rein rechnender Baustein:** keine Datenbank, keine KI; dreiwertige Logik an einer Stelle und vollständig durch Tests abgedeckt. Die Liste der Schlüssel liegt in der Konfiguration (Quelle, Verfügbarkeit); Prüfung und Übersicht lesen dieselbe Liste.
+- **Fallfakten einmal je Analyse gesammelt und unverändert benutzt:** dieselben Fakten für Abruf, Protokoll und Wiederholung; die Bezugsbestellung steht damit eindeutig fest und wird nie neu geraten.
+- **Prompt-Teile zuerst messen, Wissen zuletzt einpassen:** Nur so lässt sich die Modellgrenze mit langem Ticketverlauf einhalten. Dafür muss das Zusammenstellen des Prompts aufgeteilt werden (Teile ohne Wissen, dann Wissen). Gerechnet wird in Zeichen mit vorsichtigem Faktor, nicht in exakten Tokens; die gemessenen Tokenzahlen der Analysen (bereits gespeichert) dienen zur Kalibrierung.
+- **Pflichtumfang vorbeugend in der Prüfung:** Ein zu großes Grundwissen fällt beim Speichern der Datei auf, nicht erst beim Kunden.
+- **Maßnahmensicherung im Analyse-Ablauf, höchstens eine Wiederholung:** nutzt die vorhandene Wiederholungsschleife; kostet nur dann einen weiteren Aufruf, wenn für die empfohlene Maßnahme verbindliche Regeln fehlten; die Tokenzahlen beider Durchgänge werden summiert, das gespeicherte Ergebnis ist das des letzten Durchgangs.
+- **Protokoll im verschlüsselten Analyseinhalt, Kennzahlen in Spalten:** Sätze unterdrückter Treffer enthalten Kundentext und gehören verschlüsselt gespeichert; Zahlen ohne Kundenbezug bleiben für Auswertungen (PROJ-14) filterbar. Aufbewahrung wie bei den Analysen (12 Monate für Inhalte).
+- **Manuelles Zuschalten über das Neu-Analysieren-Formular:** Es gibt bereits ein Formular, das die Eingaben der früheren Analyse übernimmt; dort kommen nur die ausgewählten Dokumente dazu. Kein neuer Ablauf, die zugeschalteten Dokumente zählen als Pflichtumfang des Durchgangs.
+- **Korrektur einer bestehenden Aussage im Prompt:** Heute schreibt die Bestellübersicht bei fehlenden Sendungen „Versand: noch nicht versandt“. Das widerspricht der Regel „fehlende Sendungen sind unbekannt“; der Text wird neutral („keine Sendung in EOCS gefunden“) gefasst. Prompt-Version wird dabei angehoben, damit Analysen vergleichbar bleiben.
+- **Migration als Vorschlagstabelle plus reine Frontmatter-Änderung:** Ein Lesebefehl liefert Größe, Typ und bisherige Metadaten aller Dokumente; die Klassifizierung wird als Tabelle geprüft und danach ohne Textänderung in die Dateien geschrieben. Der Schalter „Pflichtfeld“ wird erst nach einer grünen Prüfung aktiviert.
+- **Bestehende Obergrenze von 60.000 Zeichen wird ersetzt:** Die neuen Budgets gelten statt ihrer; im Übergangsmodus gilt sie weiter.
+
+### E) Dependencies
+Keine neuen Pakete.
+
+### F) Reihenfolge der Umsetzung
+1. Metadaten lesen und prüfen (neue Felder, Fehler/Warnungen, Übergangsmodus, Konfiguration).
+2. Fallfakten, Bezugsbestellung und Bedingungsauswertung (reine Rechenbausteine, einzeln testbar).
+3. Abruf, Rangfolge, Budget, Prompt-Messung und Modellgrenze; Befehle `knowledge:select` und `knowledge:overview`.
+4. Protokoll, Prompt-Hinweise, Maßnahmensicherung, Kennzahl-Spalten.
+5. Oberfläche: Quellen-Bereich, „Geprüft, nicht abgerufen“, Zuschalten.
+6. Authoring Guide, Vorlagen, Chat-Handbuch.
+7. Klassifizierungslauf, Umschalten auf Pflichtfeld, Messung vorher/nachher.
+
+### G) Risiken und offene Punkte
+- Die Zeichen-Schätzung der Modellgrenze ist grob; sie wird anhand der gespeicherten Tokenzahlen geprüft und mit Sicherheitsabstand eingestellt.
+- Die Satzzerlegung kann bei Mails ohne Satzzeichen zu lange „Sätze“ bilden; der Fall wird im Test beobachtet (offene Frage in der Spec).
+- Die Maßnahmensicherung erhöht Kosten und Dauer einzelner Analysen; Häufigkeit wird über die neue Kennzahl „Durchgänge“ sichtbar.
+- Das Aufteilen des Prompt-Aufbaus berührt `CaseAnalyzer` und damit PROJ-9; bestehende PROJ-9-Tests sind der Schutz.
+
 
 ## QA Test Results
 _To be added by /qa_
