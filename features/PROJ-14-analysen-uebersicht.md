@@ -195,3 +195,10 @@ _To be added by /deploy_
 - **Konfiguration:** `analysis.overview_periods`, `analysis.overview_default_days`, `analysis.reply_tracking_since`.
 - **Tests:** `tests/Feature/PROJ-14-AnalysisOverviewTest.php` (17 Tests, Abfrageebene und 403).
 - **Abweichung:** Die Kennzahl „ohne Feedback“ bezieht sich auf abgeschlossene Analysen der Menge (fehlgeschlagene haben nie Feedback).
+
+## Implementation Notes – Frontend (2026-10-12)
+- **Ansicht:** `resources/views/analysis-overview/index.blade.php` – Filterformular (GET, Auswahl in der Adresse) mit den vorhandenen Komponenten `x-select`, `x-input`, `x-button`, `x-card`, `x-badge`, `x-alert`; darunter drei Kennzahlen-Karten (Analysen mit Feedback-Anzahl und Ziel 70 %, Anteil unverändert/leicht mit verworfen und ohne Feedback, 1:1 kopiert mit Wissenslücken) und die Tabelle (horizontal scrollbar) mit Zeitpunkt/Mitarbeiter, Ticket (Link zur Analyse), Fall (Kundengruppe, Produkt, Kategorie), Modell/Prompt-Version, Feedback (inkl. „Fehlgeschlagen“ mit Grund und „Testlauf“), Entwurf (Kopier-Stand, „–“ mit Hinweis „Nicht erfasst“) und Wissenslücken (Link zur Wissenslücken-Seite).
+- **Seitenleiste:** Eintrag „Analysen“ unter „Ticket-Übersicht“, nur für Admins.
+- **Zustände:** leerer Zustand mit Hinweis zum Lockern der Filter; Hinweis bei ungültigem Zeitraum; „Zurücksetzen“ nur bei abweichender Auswahl; Produktnamen aus dem Knowledge-Katalog, sonst der gespeicherte Schlüssel.
+- **Tests:** 9 Seitentests ergänzt (insgesamt 26 in `PROJ-14-AnalysisOverviewTest.php`); Gesamtsuite 931 Tests grün; Assets gebaut.
+- **Nicht im Browser geprüft:** Aussehen bei 375/768/1440 px; folgt in `/qa`.

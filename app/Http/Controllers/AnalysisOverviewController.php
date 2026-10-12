@@ -24,6 +24,7 @@ class AnalysisOverviewController extends Controller
             'figures' => $overview->figures($filter),
             'options' => $options,
             'overview' => $overview,
+            'productTitles' => collect($selector->products())->pluck('title', 'slug')->all(),
             'groups' => collect($selector->customerGroups())->mapWithKeys(fn (CustomerGroup $group): array => [$group->key => $group->label])->all(),
         ]);
     }

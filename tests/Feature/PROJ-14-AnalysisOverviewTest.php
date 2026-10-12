@@ -30,6 +30,74 @@ describe('access', function () {
     });
 });
 
+describe('the page', function () {
+    test('the sidebar entry is for admins only', function () {
+        $this->withCookie('staff_name', 'Nele')->get(route('tickets.analyze'))->assertDontSee('Analysen</a>', false);
+        $this->withCookie('staff_name', 'Etienne')->get(route('tickets.analyze'))->assertSee(route('analysis-overview.index'), false);
+    });
+
+    test('an empty list says so and offers to loosen the filters', function () {
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertSeeText('Keine Analysen für diese Auswahl');
+    });
+
+    test('rows show ticket link, group, product, category, model, feedback, copy state and gaps, without customer content', function () {
+        $analysis = Analysis::factory()->create([
+            'created_at' => now()->subDay(), 'ticket_number' => '2100001', 'customer_group' => 'unclear', 'products' => ['xyz-produkt'], 'category' => 'complaint',
+            'model' => 'gpt-5.5', 'prompt_version' => 'analysis-9', 'feedback_level' => 'slight', 'reply_copied_at' => now(), 'reply_copied_changed' => false,
+            'content' => ['ticket' => '2100001', 'result' => ['reply' => ['text' => 'Geheimer Entwurf']]],
+        ]);
+        KnowledgeGap::factory()->count(2)->create(['analysis_id' => $analysis->id]);
+
+        $page = $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk();
+
+        $page->assertSeeText('Ticket#2100001')->assertSee('/tickets/2100001?analyse='.$analysis->uuid, false)->assertSeeText('Reklamation')->assertSeeText('Noch unklar')
+            ->assertSeeText('xyz-produkt')->assertSeeText('gpt-5.5')->assertSeeText('analysis-9')->assertSeeText('Leicht angepasst')->assertSeeText('Kopiert (unverändert)')
+            ->assertDontSee('Geheimer Entwurf');
+    });
+
+    test('old, failed and test-run rows are marked', function () {
+        Analysis::factory()->create(['ticket_number' => '2100001', 'created_at' => now()->setDate(2026, 10, 1)->subDay(), 'feedback_level' => null]);
+        Analysis::factory()->create(['ticket_number' => '2100002', 'created_at' => now()->subDay(), 'status' => 'failed', 'error' => 'unavailable', 'content' => null]);
+        Analysis::factory()->create(['ticket_number' => '2100003', 'created_at' => now()->subDay(), 'scope_key' => '2100003.stand-11']);
+
+        $page = $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['tage' => '90', 'testlaeufe' => '1', 'fehlgeschlagen' => '1']))->assertOk();
+
+        $page->assertSeeText('Fehlgeschlagen')->assertSeeText('Die Analyse ist gerade nicht möglich')->assertSeeText('Testlauf')->assertSee('title="Nicht erfasst"', false)
+            ->assertSee('/tickets/2100003?analyse=', false)->assertSee('stand=11', false);
+    });
+
+    test('the filter choice stays in the form and the figures are shown', function () {
+        Analysis::factory()->count(3)->create(['created_at' => now()->subDay(), 'category' => 'complaint', 'feedback_level' => 'unchanged']);
+        Analysis::factory()->create(['created_at' => now()->subDay(), 'category' => 'complaint', 'feedback_level' => 'discarded']);
+
+        $page = $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['kategorie' => 'complaint']))->assertOk();
+
+        $page->assertSeeText('75 %')->assertSeeText('25 %')->assertSee('<option value="complaint" selected', false)->assertSeeText('Zurücksetzen');
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertDontSeeText('Zurücksetzen');
+    });
+
+    test('paging keeps the filters', function () {
+        Analysis::factory()->count(55)->create(['created_at' => now()->subDay(), 'category' => 'complaint']);
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['kategorie' => 'complaint']))->assertOk()->assertSee('kategorie=complaint&amp;page=2', false);
+    });
+
+    test('a hand-changed address does not break the page', function () {
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['tage' => 'x', 'von' => '2026-13-45', 'kopiert' => '<script>', 'produkt' => '<img src=x onerror=1>']))->assertOk()
+            ->assertDontSee('<img src=x', false);
+    });
+
+    test('an invalid range shows a hint', function () {
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['von' => '2026-10-10', 'bis' => '2026-10-01']))->assertOk()->assertSeeText('liegt nach „Bis“');
+    });
+
+    test('names from the data are escaped', function () {
+        Analysis::factory()->create(['created_at' => now()->subDay(), 'staff_name' => '<script>alert(1)</script>']);
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertDontSee('<script>alert(1)</script>', false);
+    });
+});
+
 describe('standard view', function () {
     test('it shows finished real analyses of the last 28 days, newest first', function () {
         overviewAnalyses(['ticket_number' => '2100001', 'created_at' => now()->subDays(3)]);
