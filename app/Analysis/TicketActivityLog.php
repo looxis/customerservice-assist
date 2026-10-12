@@ -4,7 +4,9 @@ namespace App\Analysis;
 
 use App\Models\TicketVisit;
 use App\Zammad\Ticket;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Which tickets were opened in the app and by whom (PROJ-35). Rewound test-run
@@ -12,12 +14,30 @@ use Illuminate\Support\Facades\DB;
  */
 class TicketActivityLog
 {
+    /**
+     * Noting a visit is a side effect: a failure is reported but never keeps
+     * the ticket from being shown. Two first visits at the same moment collide
+     * on the unique ticket number, so the loser counts as a repeat visit.
+     */
     public function recordVisit(Ticket $ticket, ?string $staff): void
     {
         if ($ticket->rewoundTo !== null) {
             return;
         }
 
+        try {
+            try {
+                $this->save($ticket, $staff);
+            } catch (UniqueConstraintViolationException) {
+                $this->save($ticket, $staff);
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+    }
+
+    private function save(Ticket $ticket, ?string $staff): void
+    {
         $now = now();
         $values = ['customer_name' => $ticket->customerName, 'title' => $ticket->title, 'last_opened_at' => $now, 'last_opened_by' => $staff];
 

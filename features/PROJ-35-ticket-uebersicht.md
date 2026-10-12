@@ -105,7 +105,7 @@ Ein Admin sieht heute nicht, welche Tickets mit der App bearbeitet wurden. Gespe
 - [x] Mehrfach kopiert: letzter Vorgang zählt (Test)
 - [x] Kein Name gewählt: Abruf mit leerem Namen (Test)
 - [x] Neueste Analyse bestimmt den Stand (Test)
-- [ ] Gleichzeitige erste Abrufe desselben Tickets: siehe BUG-1
+- [x] Gleichzeitige erste Abrufe desselben Tickets: BUG-1 behoben
 
 ### Security Audit Results
 - [x] Autorisierung: Seite serverseitig auf Admins beschränkt (403 für Nicht-Admin und ohne Namen); Endpunkt „kopiert“ prüft Ticketnummer, Analyse und Aktualität
@@ -123,7 +123,7 @@ Ein Admin sieht heute nicht, welche Tickets mit der App bearbeitet wurden. Gespe
 
 #### BUG-1: Gleichzeitige erste Abrufe desselben Tickets können die Ticketseite mit einem Fehler beenden
 - **Severity:** Low
-- **Status:** Offen
+- **Status:** Behoben 2026-10-12 – `recordVisit()` wiederholt bei einem Unique-Fehler als Folgeabruf und meldet jeden anderen Fehler nur (`report()`), die Ticketansicht erscheint immer. Zwei Tests (Wettlauf simuliert, Fehler beim Erfassen).
 - **Beschreibung:** `TicketActivityLog::recordVisit()` sperrt mit `lockForUpdate()` nur eine vorhandene Zeile. Öffnen zwei Browser dasselbe, noch nie abgerufene Ticket im selben Moment, fügen beide ein; der zweite Einfügeversuch verletzt den Unique-Index auf `ticket_number` und die Ticketseite endet mit einem Serverfehler. Ein erneutes Laden hilft. Allgemein gilt: jeder Datenbankfehler beim Erfassen kann die Ticketansicht verhindern, obwohl das Erfassen nur Nebensache ist.
 - **Behebung (Vorschlag):** `upsert`/`firstOrCreate` mit Wiederholung bei Unique-Fehler, und das Erfassen so kapseln, dass ein Fehler nur protokolliert wird.
 - **Priority:** Nice to have
@@ -133,7 +133,7 @@ Ein Admin sieht heute nicht, welche Tickets mit der App bearbeitet wurden. Gespe
 
 ### Summary
 - **Acceptance Criteria:** 15/15 bestanden
-- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low)
+- **Bugs Found:** 1 total (0 critical, 0 high, 0 medium, 1 low) – behoben 2026-10-12
 - **Security:** Pass
 - **Production Ready:** YES (Browser- und Responsive-Test steht aus und sollte beim ersten Einsatz nachgeholt werden)
-- **Recommendation:** Freigeben; BUG-1 bei Gelegenheit beheben.
+- **Recommendation:** Freigeben.

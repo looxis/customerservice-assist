@@ -5,7 +5,9 @@ use App\Analysis\AnalysisStore;
 use App\Models\Analysis;
 use App\Models\MessageTranslation;
 use App\Models\TicketVisit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -26,7 +28,11 @@ beforeEach(function () {
     Http::fake(['eocs.test/*' => Http::response(['data' => []])]);
 });
 
-afterEach(fn () => cleanUpKnowledgeBases());
+afterEach(function () {
+    cleanUpKnowledgeBases();
+    TicketVisit::flushEventListeners();
+    TicketVisit::clearBootedModels();
+});
 
 function overviewAnalysis(string $staff = 'Nele'): string
 {
@@ -91,6 +97,31 @@ describe('recording visits', function () {
 
         $this->withCookie('staff_name', 'Etienne')->withCookie('test_mode', '1')->get('/tickets/2137942')->assertOk();
         expect(TicketVisit::query()->count())->toBe(1);
+    });
+
+    test('two first visits at the same moment both count and the page is shown', function () {
+        TicketVisit::factory()->create(['ticket_number' => '2137942', 'opened_count' => 1]);
+        $hidden = false;
+        TicketVisit::addGlobalScope('first-lookup-misses', function (Builder $query) use (&$hidden): void {
+            if (! $hidden) {
+                $hidden = true;
+                $query->whereRaw('1 = 0');
+            }
+        });
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk();
+
+        expect(TicketVisit::query()->sole())->opened_count->toBe(2)->last_opened_by->toBe('Nele');
+    });
+
+    test('a failure while noting the visit is reported but does not stop the ticket from being shown', function () {
+        Exceptions::fake();
+        TicketVisit::creating(fn () => throw new RuntimeException('Datenbank weg'));
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Zammad');
+
+        Exceptions::assertReported(fn (RuntimeException $exception): bool => $exception->getMessage() === 'Datenbank weg');
+        expect(TicketVisit::query()->count())->toBe(0);
     });
 
     test('a failed load records nothing', function () {
