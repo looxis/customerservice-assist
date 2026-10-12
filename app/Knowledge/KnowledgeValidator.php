@@ -288,7 +288,7 @@ class KnowledgeValidator
 
         if (isset($document->frontmatter['retrieval']) && ! is_string($document->frontmatter['retrieval'])) {
             $issues[] = KnowledgeIssue::error($path, 'Feld `retrieval` muss ein einfacher Text sein: '.implode(', ', $classes).'.');
-        } elseif ($class === null && $required) {
+        } elseif ($class === null && $required && $document->type !== 'procedure') {
             $issues[] = KnowledgeIssue::error($path, 'Pflichtfeld `retrieval` fehlt. Erlaubt: '.implode(', ', $classes).'.');
         } elseif ($class !== null && ! in_array($class, $classes, true)) {
             $issues[] = KnowledgeIssue::error($path, "Unbekannter Wert `{$class}` in `retrieval`. Erlaubt: ".implode(', ', $classes).'.');

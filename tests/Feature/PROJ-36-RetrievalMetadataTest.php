@@ -58,6 +58,13 @@ describe('class and summary', function () {
         expect(messagesOf(retrievalDoc([]), 'error'))->toContain('Pflichtfeld `retrieval` fehlt');
     });
 
+    test('procedures are never retrieved, so they need no class even when the field is required', function () {
+        config(['knowledge.retrieval.required' => true]);
+        $library = knowledgeBase(['procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'actions' => ['return']], "Gilt für alle.\n\n# Voraussetzungen\n\n- x\n\n# Arbeitsschritte\n\n1. x\n\n# Abschlusskontrolle\n\n- [ ] x")]);
+
+        expect($library->errors())->toBeEmpty();
+    });
+
     test('a classified document without summary gets a warning, an unclassified one does not', function () {
         expect(messagesOf(retrievalDoc(['retrieval' => 'core']), 'warning'))->toContain('`summary` fehlt');
         expect(retrievalDoc([])->warnings())->toBeEmpty();
