@@ -207,6 +207,60 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Targeted Retrieval (PROJ-36)
+    |--------------------------------------------------------------------------
+    |
+    | `classes`: how a document is retrieved. `required` switches off the
+    | transition mode: while false, a document without `retrieval` counts as
+    | `core` and is only listed as "not classified yet"; once the migration is
+    | done it becomes an error.
+    |
+    | `when_keys`: the keys a `when` condition may use. `level` says whether the
+    | value belongs to the whole case or to one order, `type` how it is written
+    | (bool, number, list = one of several values, slugs = product slugs),
+    | `unavailable_for_groups` the customer groups for which the value is never
+    | known. Prüfung, Übersicht und Auswertung read this one list.
+    |
+    */
+
+    'retrieval' => [
+        'classes' => [
+            'core' => 'Grundwissen',
+            'triggered' => 'Bei Bedarf',
+            'binding' => 'Verbindlich',
+        ],
+
+        'required' => (bool) env('KNOWLEDGE_RETRIEVAL_REQUIRED', false),
+
+        'min_trigger_length' => 4,
+
+        'max_triggers' => 25,
+
+        'when_keys' => [
+            'customer_type' => ['level' => 'case', 'type' => 'list', 'values' => 'customer_types', 'source' => 'Auswahl des Mitarbeiters (Kundengruppe)', 'availability' => 'außer bei „noch unklar“', 'unavailable_for_groups' => ['unclear']],
+            'sales_channel' => ['level' => 'case', 'type' => 'list', 'values' => 'sales_channels', 'source' => 'Auswahl des Mitarbeiters (Kundengruppe)', 'availability' => 'außer bei „noch unklar“', 'unavailable_for_groups' => ['unclear']],
+            'products' => ['level' => 'case', 'type' => 'slugs', 'source' => 'Auswahl des Mitarbeiters', 'availability' => 'immer (leer = kein Produkt)'],
+            'ticket_closed' => ['level' => 'case', 'type' => 'bool', 'source' => 'Zammad-Status', 'availability' => 'immer'],
+            'ticket_age_days' => ['level' => 'case', 'type' => 'number', 'source' => 'Erstellzeit des Tickets', 'availability' => 'immer'],
+            'customer_message_count' => ['level' => 'case', 'type' => 'number', 'source' => 'Zählung der Kundennachrichten', 'availability' => 'immer'],
+            'current_message_has_attachment' => ['level' => 'case', 'type' => 'bool', 'source' => 'Anhänge der aktuellen Kundennachricht', 'availability' => 'immer'],
+            'message_foreign' => ['level' => 'case', 'type' => 'bool', 'source' => 'Spracherkennung (Heuristik)', 'availability' => 'nicht bei sehr kurzen Texten'],
+            'order_channel' => ['level' => 'order', 'type' => 'list', 'values' => 'sales_channels', 'source' => 'EOCS-Kanal über die Zuordnungstabelle', 'availability' => 'nur mit geladener Bestellung'],
+            'order_age_days' => ['level' => 'order', 'type' => 'number', 'source' => 'EOCS-Bestelldatum', 'availability' => 'nur mit geladener Bestellung'],
+            'shipped' => ['level' => 'order', 'type' => 'bool', 'source' => 'Sendungen aus EOCS (mindestens eine)', 'availability' => 'nur mit geladener Bestellung und Sendung'],
+            'days_since_shipped' => ['level' => 'order', 'type' => 'number', 'source' => 'frühestes Versanddatum', 'availability' => 'nur mit lesbarem Versanddatum'],
+            'days_since_last_shipped' => ['level' => 'order', 'type' => 'number', 'source' => 'spätestes Versanddatum', 'availability' => 'nur mit lesbarem Versanddatum'],
+            'shipment_count' => ['level' => 'order', 'type' => 'number', 'source' => 'Anzahl der Sendungen aus EOCS', 'availability' => 'nur mit geladener Sendung'],
+            'delivery_confirmed' => ['level' => 'order', 'type' => 'bool', 'source' => 'Zustellkennzeichen (mindestens eine Sendung)', 'availability' => 'nur mit Zustellkennzeichen'],
+            'all_shipments_delivered' => ['level' => 'order', 'type' => 'bool', 'source' => 'Zustellkennzeichen aller geladenen Sendungen', 'availability' => 'nur wenn alle Sendungen gekennzeichnet sind'],
+            'has_claim' => ['level' => 'order', 'type' => 'bool', 'source' => 'Folgebestellung nach dem Schema R<n>-…', 'availability' => 'nur wenn gefunden'],
+            'claim_count' => ['level' => 'order', 'type' => 'number', 'source' => 'gefundene Folgebestellungen (Mindestanzahl)', 'availability' => 'nur wenn gefunden'],
+            'item_quantity_total' => ['level' => 'order', 'type' => 'number', 'source' => 'Summe der Positionsmengen', 'availability' => 'nur mit geladenen Positionen'],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Limits
     |--------------------------------------------------------------------------
     |

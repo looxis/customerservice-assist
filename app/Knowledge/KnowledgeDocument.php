@@ -118,6 +118,54 @@ final readonly class KnowledgeDocument
     }
 
     /**
+     * Short statement of when the document is needed (PROJ-36).
+     */
+    public function summary(): ?string
+    {
+        return $this->string('summary');
+    }
+
+    /**
+     * How the document is retrieved: core, triggered or binding; null when not classified yet.
+     */
+    public function retrieval(): ?string
+    {
+        return $this->string('retrieval');
+    }
+
+    /**
+     * Words and phrases customers write when the document is needed (PROJ-36).
+     *
+     * @return list<string>
+     */
+    public function triggers(): array
+    {
+        return $this->list('triggers');
+    }
+
+    /**
+     * Words that suppress a trigger hit in the same sentence (PROJ-36).
+     *
+     * @return list<string>
+     */
+    public function excludeTriggers(): array
+    {
+        return $this->list('exclude_triggers');
+    }
+
+    /**
+     * The structured condition (PROJ-36) as written in the frontmatter; empty when there is none.
+     *
+     * @return array<string, mixed>
+     */
+    public function when(): array
+    {
+        $value = $this->frontmatter['when'] ?? null;
+
+        return is_array($value) ? $value : [];
+    }
+
+    /**
      * Words customers use for the product (former names, synonyms), looked
      * for in the ticket text (PROJ-33).
      *

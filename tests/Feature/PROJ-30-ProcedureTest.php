@@ -41,10 +41,11 @@ describe('document type', function () {
             ->not->toContain('Kritische Hinweise');
     });
 
-    test('actions is an unknown field outside procedures', function () {
+    test('actions is also a known field outside procedures since PROJ-36 (binds a binding rule to an action)', function () {
         $library = knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['actions' => ['refund']])]);
 
-        expect(messagesOf($library, 'warning'))->toContain('Unbekanntes Feld `actions`');
+        expect(messagesOf($library, 'warning'))->not->toContain('Unbekanntes Feld `actions`')
+            ->and($library->errors())->toBeEmpty();
     });
 
     test('a new action in the configuration is valid without code changes', function () {

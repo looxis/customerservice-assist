@@ -1,6 +1,6 @@
 # PROJ-36: Gezielter Wissensabruf
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
@@ -329,6 +329,17 @@ Keine neuen Pakete.
 - Die Maßnahmensicherung erhöht Kosten und Dauer einzelner Analysen; Häufigkeit wird über die neue Kennzahl „Durchgänge“ sichtbar.
 - Das Aufteilen des Prompt-Aufbaus berührt `CaseAnalyzer` und damit PROJ-9; bestehende PROJ-9-Tests sind der Schutz.
 
+
+## Implementation Notes – Backend
+
+### Schritt 1: Metadaten lesen und prüfen (2026-10-13)
+- **Felder:** `KnowledgeDocument` liest `summary`, `retrieval`, `triggers`, `exclude_triggers`, `when` und gibt sie über `summary()`, `retrieval()`, `triggers()`, `excludeTriggers()`, `when()` zurück; `actions` ist jetzt für alle Dokumenttypen bekannt (bisher nur Arbeitsabläufe).
+- **Konfiguration:** `config/knowledge.php` → `retrieval` mit Klassen, Schalter `required` (Übergangsmodus, `.env`: `KNOWLEDGE_RETRIEVAL_REQUIRED`), Mindestlänge 4, Warnschwelle 25 und der Schlüsselliste `when_keys` (Ebene Fall/Bestellung, Typ, Quelle, Verfügbarkeit, Gruppen, für die der Wert nie bekannt ist). Die Liste ist die gemeinsame Quelle für Prüfung und später Übersicht und Auswertung.
+- **Bedingungen:** neue Klasse `App\Knowledge\WhenSchema` prüft die Form von `when` (UND über alle Schlüssel, Werteliste = „einer davon“, `any_of`, `not`, Zahl oder `min`/`max`) und nennt die verwendeten Schlüssel. Die Auswertung selbst folgt in Schritt 2.
+- **Prüfung (`KnowledgeValidator::retrieval()`):** Fehler bei unbekannter oder falsch geformter `retrieval`-Angabe, fehlendem Pflichtfeld (nur wenn `required`), falschem `when`, unbekannten `actions` und `exclude_triggers` bei `binding`; Warnungen bei fehlender `summary` (nur bei klassifizierten Dokumenten), kurzen Einträgen, mehr als 25 Auslösern, `triggered` ohne `triggers`/`when`/`actions` (nach Umschalten Fehler), `binding` nur mit `triggers`, Auslösern bei `core`, `exclude_triggers` ohne `triggers` und Schlüsseln, die für alle Kundengruppen des Dokuments nie bekannt sind. Gleiche Auslöser in mehreren Dokumenten bleiben ohne Meldung.
+- **Noch offen aus den Kriterien dieses Bereichs:** Pflichtumfang gegen Budget (Schritt 3), „noch nicht klassifiziert“ und Mehrfachauslöser in Befehlen (Schritt 3).
+- **Geänderter Test:** In `PROJ-30-ProcedureTest` galt `actions` als unbekanntes Feld außerhalb von Arbeitsabläufen; das ist durch PROJ-36 überholt und ersetzt.
+- **Tests:** `tests/Feature/PROJ-36-RetrievalMetadataTest.php` (38 Tests); komplette Suite 974 grün; die echte Wissensbasis bleibt fehlerfrei.
 
 ## QA Test Results
 _To be added by /qa_

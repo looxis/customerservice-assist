@@ -55,7 +55,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P2 | Semantisches Retrieval | Roadmap |
 | P2 | Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
 | – | Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
-| – | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Architected |
+| – | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | In Progress |
 | – | Router für den Wissensabruf (billiger KI-Aufruf mit begrenzter Vorauswahl) | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.

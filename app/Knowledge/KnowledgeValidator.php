@@ -6,12 +6,13 @@ class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'actions', 'action'];
+    private const array LIST_FIELDS = ['products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'actions', 'action', 'triggers', 'exclude_triggers'];
 
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
         'products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge',
         'priority', 'risk_level', 'owner', 'reviewed_by', 'last_reviewed',
+        'summary', 'retrieval', 'triggers', 'exclude_triggers', 'when', 'actions',
     ];
 
     private const array PERMISSION_FIELDS = ['action', 'agent_allowed', 'max_value_eur', 'approval_role'];
@@ -23,7 +24,15 @@ class KnowledgeValidator
     /**
      * @param  array{types: array<string, array{folder: string, prefix: string}>, statuses: list<string>, customer_types: list<string>, sales_channels: list<string>, categories: list<string>, actions: array<string, string>, procedure_sections: list<string>, retired_values: array<string, array<string, string>>, customer_groups: array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>, min_order_keyword_length: int, min_customer_term_length?: int, max_body_length: int}  $config
      */
-    public function __construct(private readonly array $config) {}
+    public function __construct(private readonly array $config)
+    {
+        $this->when = new WhenSchema($config['retrieval']['when_keys'] ?? [], [
+            'customer_types' => $config['customer_types'],
+            'sales_channels' => $config['sales_channels'],
+        ]);
+    }
+
+    private readonly WhenSchema $when;
 
     /**
      * Validate all documents: rules per document first, then rules across documents.
@@ -48,6 +57,7 @@ class KnowledgeValidator
                 ...$this->permissionFields($document),
                 ...$this->procedureFields($document),
                 ...$this->orderKeywords($document),
+                ...$this->retrieval($document),
                 ...$this->reachability($document),
                 ...$this->body($document),
                 ...$this->openQuestions($document),
@@ -259,6 +269,133 @@ class KnowledgeValidator
                 array_filter($document->customerTerms(), fn (string $term): bool => mb_strlen($term) < $termMinimum),
             )),
         ];
+    }
+
+    /**
+     * Fields for the targeted retrieval (PROJ-36): class, summary, triggers,
+     * exclusions, condition and actions.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function retrieval(KnowledgeDocument $document): array
+    {
+        $settings = $this->config['retrieval'] ?? [];
+        $classes = array_keys($settings['classes'] ?? []);
+        $required = (bool) ($settings['required'] ?? false);
+        $class = $document->retrieval();
+        $path = $document->path;
+        $issues = [];
+
+        if (isset($document->frontmatter['retrieval']) && ! is_string($document->frontmatter['retrieval'])) {
+            $issues[] = KnowledgeIssue::error($path, 'Feld `retrieval` muss ein einfacher Text sein: '.implode(', ', $classes).'.');
+        } elseif ($class === null && $required) {
+            $issues[] = KnowledgeIssue::error($path, 'Pflichtfeld `retrieval` fehlt. Erlaubt: '.implode(', ', $classes).'.');
+        } elseif ($class !== null && ! in_array($class, $classes, true)) {
+            $issues[] = KnowledgeIssue::error($path, "Unbekannter Wert `{$class}` in `retrieval`. Erlaubt: ".implode(', ', $classes).'.');
+        }
+
+        if (array_key_exists('summary', $document->frontmatter) && $document->frontmatter['summary'] !== null && ! is_string($document->frontmatter['summary'])) {
+            $issues[] = KnowledgeIssue::error($path, 'Feld `summary` muss ein einfacher Text sein. Enthält er einen Doppelpunkt, bitte in Anführungszeichen setzen.');
+        } elseif ($class !== null && $document->summary() === null) {
+            $issues[] = KnowledgeIssue::warning($path, 'Ein Satz in `summary` fehlt: Wann wird das Dokument gebraucht, wann nicht?');
+        }
+
+        $triggers = $document->triggers();
+        $excluded = $document->excludeTriggers();
+        $hasWhen = array_key_exists('when', $document->frontmatter) && $document->frontmatter['when'] !== null;
+        $minimum = (int) ($settings['min_trigger_length'] ?? 4);
+        $maximum = (int) ($settings['max_triggers'] ?? 25);
+
+        foreach (['triggers' => $triggers, 'exclude_triggers' => $excluded] as $field => $values) {
+            foreach (array_filter($values, fn (string $value): bool => mb_strlen($value) < $minimum) as $value) {
+                $issues[] = KnowledgeIssue::warning($path, "Der Eintrag `{$value}` in `{$field}` ist kürzer als {$minimum} Zeichen und passt vermutlich auf viele Texte.");
+            }
+        }
+
+        if (count($triggers) > $maximum) {
+            $issues[] = KnowledgeIssue::warning($path, 'Das Dokument hat '.count($triggers)." Auslöser (Warnschwelle: {$maximum}). Behandelt es mehr als ein Thema?");
+        }
+
+        if ($hasWhen) {
+            foreach ($this->when->errors($document->frontmatter['when']) as $error) {
+                $issues[] = KnowledgeIssue::error($path, $error);
+            }
+
+            $issues = [...$issues, ...$this->unavailableKeys($document)];
+        }
+
+        $hasActions = $document->actions() !== [];
+
+        if ($document->type !== 'procedure') {
+            foreach (array_diff($document->actions(), array_keys($this->config['actions'])) as $action) {
+                $issues[] = KnowledgeIssue::error($path, "Unbekannter Vorgang `{$action}` in `actions`. Erlaubt: ".implode(', ', array_keys($this->config['actions'])).'.');
+            }
+        }
+
+        if ($class === 'triggered' && $triggers === [] && ! $hasWhen && ! $hasActions) {
+            $issues[] = $required
+                ? KnowledgeIssue::error($path, 'Dokument mit `retrieval: triggered` ohne `triggers` und ohne `when`: Es könnte nie abgerufen werden.')
+                : KnowledgeIssue::warning($path, 'Dokument mit `retrieval: triggered` ohne `triggers` und ohne `when`: Es wird nie abgerufen. Nach der Migration ist das ein Fehler.');
+        } elseif ($class === 'binding') {
+            array_push($issues, ...$this->bindingIssues($document, $triggers, $excluded, $hasWhen, $hasActions));
+        } elseif ($class === 'core' && ($triggers !== [] || $excluded !== [] || $hasWhen)) {
+            $issues[] = KnowledgeIssue::warning($path, 'Auslöser, Ausschlüsse und `when` haben bei `retrieval: core` keine Wirkung: Grundwissen ist immer im Geltungsbereich.');
+        }
+
+        if ($excluded !== [] && $triggers === [] && $class !== 'binding') {
+            $issues[] = KnowledgeIssue::warning($path, '`exclude_triggers` ohne `triggers` hat keine Wirkung.');
+        }
+
+        return $issues;
+    }
+
+    /**
+     * @param  list<string>  $triggers
+     * @param  list<string>  $excluded
+     * @return list<KnowledgeIssue>
+     */
+    private function bindingIssues(KnowledgeDocument $document, array $triggers, array $excluded, bool $hasWhen, bool $hasActions): array
+    {
+        $issues = [];
+
+        if ($excluded !== []) {
+            $issues[] = KnowledgeIssue::error($document->path, 'Verbindliche Dokumente (`retrieval: binding`) dürfen keine `exclude_triggers` haben: Ein Ausschluss könnte eine Pflichtregel unterdrücken.');
+        }
+
+        if ($triggers !== [] && ! $hasWhen && ! $hasActions) {
+            $issues[] = KnowledgeIssue::warning($document->path, 'Verbindliches Dokument, das nur über `triggers` abgerufen wird: Es kann übersehen werden, wenn das Stichwort fehlt. Ohne `triggers` und `when` gilt es dagegen immer im Geltungsbereich; alternativ `when` oder `actions` ergänzen.');
+        }
+
+        return $issues;
+    }
+
+    /**
+     * A `when` key that is never known for any customer group the document applies to.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function unavailableKeys(KnowledgeDocument $document): array
+    {
+        $groups = array_values(array_filter(
+            CustomerGroup::all($this->config['customer_groups']),
+            fn (CustomerGroup $group): bool => $group->covers($document),
+        ));
+
+        if ($groups === []) {
+            return [];
+        }
+
+        $issues = [];
+
+        foreach ($this->when->usedKeys($document->frontmatter['when']) as $key) {
+            $never = $this->config['retrieval']['when_keys'][$key]['unavailable_for_groups'] ?? [];
+
+            if ($never !== [] && array_diff(array_map(fn (CustomerGroup $group): string => $group->key, $groups), $never) === []) {
+                $issues[] = KnowledgeIssue::warning($document->path, "Der Schlüssel `{$key}` in `when` ist für die Kundengruppen dieses Dokuments nie bekannt.");
+            }
+        }
+
+        return $issues;
     }
 
     /**
