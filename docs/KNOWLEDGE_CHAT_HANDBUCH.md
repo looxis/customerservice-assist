@@ -20,7 +20,8 @@
 - `triggers`: Wörter, wie Kunden schreiben (am Wortanfang gesucht; „Logo“ findet „Firmenlogo“ nicht, also Zusammensetzungen einzeln; mindestens vier Zeichen; keine Allerweltswörter; auch Italienisch/Französisch/Englisch).
 - `exclude_triggers`: Wendungen, die einen Treffer im selben Satz unterdrücken („unser Logo“); wirken nie in Fragen; nicht bei `binding`.
 - `when`: Bedingung aus Fall- und Bestelldaten (Schlüssel im Sitzungsstart-Block). Mehrere Bestellbedingungen gelten für dieselbe Bestellung; fehlende Daten sind „unbekannt“.
-- `actions`: bei verbindlichen Regeln zu einer Maßnahme (z. B. Kulanz).
+- `actions`: bei verbindlichen Regeln zu einer Maßnahme. Genau passend wählen: eine Kulanzregel für Kundenfehler gehört zu `goodwill-reproduction` (kostenpflichtige Kulanz-Neuanfertigung), **nie** zu `reproduction` (kostenfreier Ersatz bei berechtigter Reklamation); Teilerstattung ohne Neuanfertigung ist `partial-refund`.
+- `exclude_products` (Geltungsbereich, optional): Produkte, für die das Dokument ausdrücklich nicht gilt. Es entfällt nur, wenn alle gewählten Produkte darin stehen; bei unbekanntem Produkt bleibt es.
 
 ## Fragen, die du stellst
 1. Wann wird das gebraucht, und welche Wörter schreibt der Kunde dann?
