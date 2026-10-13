@@ -187,15 +187,17 @@ Die Kundensprache ist vielfältig und nicht vorhersehbar. Es darf nicht nötig s
 
 ## Open Questions
 - [ ] **Endgültige Werte** der Obergrenzen (Pool 60 Zeilen/15.000 Zeichen, Ergänzungen 6, Zeitlimit 15 Sekunden, Router-Text) nach dem Live-Prüfset anhand von Qualität, Laufzeit und Kosten festlegen.
-- [ ] **Modell des Routers** und Format der Antwort: `/architecture` (günstiges Modell, ohne die Qualität des Abrufs zu verschlechtern).
-- [ ] **Vorauswahl über der Obergrenze:** Verfahren und seine Güte; Grenze für sehr große Wissensbasis als bekannte Grenze festhalten, Embeddings später (PROJ-22).
-- [ ] **Verhalten bei extrem langer aktueller Nachricht** (Stufe A überschreitet das Router-Textlimit): `/architecture`.
-- [ ] **Budget-Strategie** bei einem sehr großen Router-Dokument (kleinere passende nicht verdrängen): `/architecture`.
-- [ ] **Kategorien in der Rangfolge:** nutzen oder zunächst nur erkennen und protokollieren: `/architecture` nach Aufwand und Risiko.
-- [ ] **`topics` in der Katalogzeile:** `/architecture` anhand der bestehenden Struktur.
-- [ ] **Kosten je Aufruf:** zuverlässige Ermittlung (Preise je Modell) oder nur Tokens; `/architecture`.
-- [ ] **Konservative Erkennung inhaltsleerer Nachrichten:** konkrete Regel (einfache Prüfung oder Modell) und Testfälle; `/architecture`.
-- [ ] **Wechselwirkung mit der Aufrufbegrenzung** (6 Aufrufe pro Minute und Browser): zählt der Router mit; `/architecture`.
+- [x] **Modell des Routers** und Format der Antwort → eigene Konfiguration, Standard das günstige Zusammenfassungsmodell, fest strukturierte Antwort; Umstellung auf das Analyse-Modell bei Schwächen im Live-Prüfset (2026-10-13)
+- [x] **Vorauswahl über der Obergrenze** → Textähnlichkeit plus reservierter Anteil für spezifischen Geltungsbereich; Güte in Tests der Ebene 1b, Grenzen in der Tabelle „Bekannte Grenzen“; Embeddings später (2026-10-13)
+- [x] **Extrem lange aktuelle Nachricht** → Anfang und Ende bleiben, Mitte durch sichtbare Marke ersetzt, protokolliert und angezeigt (2026-10-13)
+- [x] **Budget-Strategie** → nur Router-Ergänzungen werden bei Nichtpassen übersprungen und es geht weiter; PROJ-36-Regel für deterministische Treffer unverändert (2026-10-13)
+- [x] **Kategorien in der Rangfolge** → erkennen, protokollieren, anzeigen; Rangwirkung nur als letztes Unterscheidungsmerkmal, entfällt bei Aufwand (2026-10-13)
+- [x] **`topics` in der Katalogzeile** → nicht in der ersten Fassung; Entscheidung nach dem Live-Prüfset (2026-10-13)
+- [x] **Kosten je Aufruf** → Tokens immer, Kosten nur mit hinterlegtem Preis als „geschätzt“ (2026-10-13)
+- [x] **Erkennung inhaltsleerer Nachrichten** → deterministische Prüfung mit fester Floskelliste, ohne Anhang und Fragezeichen; Testfälle sind die vier Beispiele der Spec (2026-10-13)
+- [x] **Wechselwirkung mit der Aufrufbegrenzung** → die Begrenzung hängt an der Anfrage „Analyse starten“; der Router löst keine zusätzliche Sperre aus (2026-10-13)
+- [ ] **Eigenes Feld für echte Voraussetzungen bei `triggered`-Dokumenten** (Sperre statt zusätzlicher Weg): heute nicht ausdrückbar; Folgefeature, nicht Teil von PROJ-37.
+- [ ] **Konkrete Floskelliste** für inhaltsleere Nachrichten, Richtwerte für Router-Text (12.000 Zeichen) und Anteil der reservierten Kandidatenplätze (ein Drittel): im Bau und mit dem Live-Prüfset festlegen.
 - [ ] Welche vorhandenen `summary`-Texte durch das Live-Prüfset als unzureichend auffallen und gezielt nachgebessert werden müssen.
 
 ## Decision Log
@@ -238,13 +240,186 @@ Die Kundensprache ist vielfältig und nicht vorhersehbar. Es darf nicht nötig s
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
-| _folgt in /architecture_ | | |
+| Abruf in zwei Durchgängen: deterministisch, Router, dann gemeinsame Planung | Die deterministische Rechnung ist billig; kein Umbau des Abrufs, exakter Rückfall auf PROJ-36 | 2026-10-13 |
+| `when` bleibt bei `triggered` ein Weg, keine Sperre; Pool-Regeln nach Schutzmechanismus (Geltungsbereich, Ausschluss im Satz, `binding` bekannt falsch, Maßnahmenbindung) | Hält die Anwendungsvoraussetzungen ein und führt keine zusätzliche Sperre ein; im Bestand nutzt kein Dokument `when` | 2026-10-13 |
+| Router-Ergänzung ist nie Pflichtwissen, auch bei `binding`-Dokumenten | Der Router darf das Pflichtbudget nicht aufblähen | 2026-10-13 |
+| Vorauswahl über der Obergrenze: Textähnlichkeit plus reservierter Anteil für spezifischen Geltungsbereich (Richtwert ein Drittel) | Ein Dokument ohne Wortähnlichkeit behält über den Geltungsbereich eine Chance; kein Embedding nötig | 2026-10-13 |
+| Router-Modell aus eigener Konfiguration, Standard das günstige Zusammenfassungsmodell | Unabhängig umstellbar; Qualität entscheidet das Live-Prüfset | 2026-10-13 |
+| Fest strukturierte Router-Antwort (Ergänzungen mit Rang/Einstufung/Begründung, Fallarten) | Prüfbar, kein Freitext; wie Analyse und Übersetzung | 2026-10-13 |
+| Router-Anweisung als versionierte Datei im Repository | Wie die anderen Prompts; Version im Protokoll | 2026-10-13 |
+| Router-Text durch dieselbe Bereinigung wie die Analyse; keine Bestelldaten, keine Volltexte | Datenschutz, wenig Tokens | 2026-10-13 |
+| Zu lange Stufe A: Anfang und Ende bleiben, Mitte durch sichtbare Marke ersetzt, protokolliert und angezeigt | Keine stille Kürzung, Grenze wird nie überschritten, Problem und Bitte stehen meist am Rand | 2026-10-13 |
+| Erkennung inhaltsleerer Nachrichten ohne KI: kurze Nachricht nur aus einer festen Floskelliste, ohne Anhang und Fragezeichen | Konservativ, testbar, kostenlos; im Zweifel läuft der Router | 2026-10-13 |
+| Große Router-Ergänzung wird übersprungen und protokolliert, kleinere folgen; PROJ-36-Regel für deterministische Treffer bleibt | Erfüllt das Spec-Kriterium, ohne das Verhalten ohne Router zu ändern | 2026-10-13 |
+| Fallarten: erkennen, protokollieren, anzeigen; Rangwirkung nur als letztes Unterscheidungsmerkmal, bei Aufwand entfällt sie | Folgt der Spec | 2026-10-13 |
+| Katalogzeile ohne `topics` und Trigger | Trigger würden die Auswahl an den Wortlaut binden; `topics` uneinheitlich | 2026-10-13 |
+| Kosten nur mit hinterlegtem Preis, als „geschätzt“; Tokens immer | Kein Raten | 2026-10-13 |
+| Aufrufbegrenzung gilt für die Anfrage „Analyse starten“; der Router löst keine zusätzliche Sperre aus | Begrenzung hängt an der Route, nicht an einzelnen KI-Aufrufen | 2026-10-13 |
+| Router-Ergebnis in verschlüsseltem Protokoll; Kennzahlen als Spalten (Entscheidung, Ergänzungen, Zeichen, Laufzeit, Tokens) mit Index auf die Entscheidung | Wie bei PROJ-36; Kundeninhalt nur verschlüsselt | 2026-10-13 |
+| Herkunft je Dokument als eigenes Feld im Protokoll | Nicht aus dem Text der Gründe ableiten | 2026-10-13 |
+| Live-Prüfset als eigene Testgruppe, nur auf Abruf, Bericht außerhalb des Repositorys | Echte Kosten und Daten nur gezielt; Reproduzierbarkeit | 2026-10-13 |
+| Bekannte Qualitätsgrenzen der Vorauswahl werden als „offen / bekannte Grenze“ ausgewiesen, nie als bestanden gezählt | Ehrliche Qualitätsaussage | 2026-10-13 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+Zielgruppe dieses Abschnitts: Product Owner. Keine Code-Details; „Wie genau“ klärt `/backend`.
+
+### Backend nötig?
+Ja, und ein wenig Oberfläche. Der Router ist ein zusätzlicher, kleiner KI-Aufruf **vor** der Analyse. Alles Weitere (Pool, Prüfung der Vorschläge, Budget, Protokoll) ist deterministischer Code im bestehenden Abruf. Neue Datenbank-Tabellen sind nicht nötig; es kommen Kennzahl-Spalten an der Analyse und ein Abschnitt im verschlüsselten Protokoll dazu. Keine neuen Pakete.
+
+### A) Bausteine (Übersicht)
+```
+Analyse starten (bestehend: CaseAnalyzer)
++-- Fallfakten und Textstufen A/B/C          (bestehend, PROJ-36)
++-- Abruf Durchgang 1: nur deterministisch   (bestehend, PROJ-36)  -> Ergebnis + "nicht abgerufen"-Liste
++-- ROUTER (neu)
+|   +-- Entscheidung: ausführen oder regulär überspringen      (einfache Prüfung, kein KI-Aufruf)
+|   +-- Pool-Bildung: nicht abgerufene, zulässige Dokumente    (Geltungsbereich, Status, Schutzregeln)
+|   +-- Vorauswahl über der Obergrenze: Reihung ohne Trigger-Bedingung, mit Vorrang für spezifische Dokumente
+|   +-- Router-Text: Stufen A/B, Original + Übersetzung, bereinigt, begrenzt
+|   +-- KI-Aufruf (günstiges Modell, Zeitlimit, kein Retry)
+|   +-- Prüfung der Antwort: nur Pool-IDs, Dubletten, Schutzregeln, Obergrenze der Ergänzungen
++-- Abruf Durchgang 2: gemeinsame Budgetplanung (bestehend, erweitert um Router-Ergänzungen)
++-- Analyse-Aufruf (bestehend) + Maßnahmensicherung (bestehend, ruft den Router nicht erneut)
++-- Protokoll (bestehend, erweitert): Router-Entscheidung, Pool, Vorschläge, Verworfenes, Fallarten, Herkunft je Dokument
+
+Ergebnisansicht (bestehend)
++-- Bereich "Wissensabruf": Herkunft je Dokument (4 Bezeichnungen), KI-Einschätzung bei Ergänzungen
++-- Dezenter Hinweis bei Router-Ausfall (neu)
++-- Admin-Teil im Bereich "Wissensabruf": Pool, Verworfenes, Fallarten, Modell, Version, Tokens, Laufzeit, Kosten, Status (neu)
+
+Analysen-Übersicht (Admin, bestehend)
++-- Filter "Router-Entscheidung" und Kennzahlen (neu)
+
+Autorenseite
++-- Authoring Guide, Chat-Handbuch, Knowledge-Skill: summary-Anleitung (erweitert)
++-- knowledge:check: weiche Warnung bei sehr kurzer summary (erweitert)
+
+Tests
++-- Pest mit simulierter Router-Antwort (normale Suite)
++-- Vorauswahl-Güte-Tests mit großen künstlichen Wissensbasen (normale Suite)
++-- Live-Prüfset gegen das echte Modell (nur auf Abruf, eigene Testgruppe)
+```
+
+### B) Ablauf einer Analyse mit Router
+1. Wie bisher: Fakten und Textstufen bilden.
+2. **Durchgang 1 des Abrufs** läuft rein deterministisch und liefert das PROJ-36-Ergebnis samt Liste der nicht abgerufenen Dokumente. Das ist billig (Millisekunden) und gleichzeitig die Grundlage für den Pool.
+3. **Router-Entscheidung:** Schalter aus oder gezielter Abruf aus ⇒ „deaktiviert“. Eindeutig inhaltsleere Nachricht ⇒ „regulär übersprungen“. Leerer Pool ⇒ „regulär übersprungen“. Sonst weiter.
+4. **Pool** bilden, bei Überschreiten der Obergrenze vorauswählen, **Router-Text** bilden, bereinigen und begrenzen.
+5. **KI-Aufruf** mit Zeitlimit. Fällt er aus ⇒ „fehlgeschlagen“, Durchgang 1 gilt, Hinweis im Ergebnis.
+6. **Antwort prüfen:** nur Pool-IDs, keine Dubletten, Schutzregeln, Obergrenze für Ergänzungen. Verworfenes wird mit Grund protokolliert.
+7. **Durchgang 2 des Abrufs:** Das Ergebnis wird mit den Ergänzungen noch einmal gerechnet (die Rechnung ist deterministisch, deshalb ist „zweimal rechnen“ einfacher und sicherer als ein Umbau). Die Ergänzungen laufen als starke oder schwache Kandidaten durch dieselbe Budgetplanung.
+8. Analyse und Maßnahmensicherung laufen wie in PROJ-36; der Router wird dabei **nicht** erneut gerufen.
+
+### C) Daten (Alltagssprache)
+**Pro Analyse im verschlüsselten Protokoll (Abschnitt „Router“):** Entscheidung und Grund; Pool (IDs) und seine Größe; ob eine Vorauswahl nötig war und was sie ausgelassen hat; Vorschläge des Routers mit Rang, Einstufung („aktuelles Anliegen“ oder „früherer Verlauf“) und Begründung; Übernommenes; Verworfenes mit Grund (unbekannte ID, Dublette, nicht im Pool, Schutzregel, Obergrenze); erkannte Fallarten mit Begründung; Hinweis, ob der Router-Text gekürzt wurde; Modell, Router-Anweisung und -Version; Tokens, Laufzeit, Kosten (falls ermittelbar); Ausfallgrund.
+**Herkunft je abgerufenem Dokument** wird als eigenes Feld gespeichert (Grundwissen / Auslöser oder Bedingung / Router / von Hand), nicht mehr aus dem Text der Gründe abgeleitet.
+**Als Spalten an der Analyse (für die Übersicht, ohne Kundeninhalt):** Router-Entscheidung, Zahl der Ergänzungen, hinzugekommene Zeichen, Router-Laufzeit, Router-Tokens (Eingabe, Ausgabe). Dazu ein Index auf die Entscheidung für den Filter.
+**Wo:** MySQL, bestehende Analysen-Tabelle (neue Spalten, kein Löschen von Daten). Ältere Analysen haben „leer“ und zeigen nichts Neues.
+
+### D) Technische Entscheidungen (mit Begründung)
+
+**1. Semantik von `when`, genau untersucht**
+Im `KnowledgeRetriever` ist `when` heute **nie eine Sperre**, sondern ein weiterer Weg hinein:
+- Bei `triggered`-Dokumenten gilt: stark abgerufen bei Auslöser im aktuellen Anliegen **oder** erfüllter Bedingung. Ist die Bedingung falsch oder unbekannt und es gibt keinen Treffer, passiert nichts (nicht abgerufen). Trotz falscher Bedingung kommt es bei einem Auslöser-Treffer.
+- Bei `binding`-Dokumenten gilt: Treffer in einer beliebigen Stufe, **oder** erfüllte Bedingung, **oder** unbekannte Bedingung (vorsorglich, mit Hinweis). Nur „keine Treffer **und** Bedingung bekannt falsch“ bedeutet: gilt hier nicht.
+- Im echten Wissensbestand nutzt heute **keine** der 77 Dateien `when`; die Frage ist also bisher theoretisch.
+
+Daraus folgt für den Router die folgende Tabelle. Sie trennt echte Anwendungsvoraussetzungen von bloßen Abrufwegen und führt **keine zusätzliche Sperre** ein:
+
+| Eigenschaft eines Dokuments | Verhalten des Routers |
+|---|---|
+| Außerhalb von Kundenart, Kanal oder Produkt, `exclude_products`, `deprecated`, Prüffehler | **nicht im Pool** (echte Voraussetzung; wirkt schon bei der Pool-Bildung) |
+| Treffer wurde durch einen Ausschluss im selben Satz unterdrückt (`exclude_triggers`) | **nicht im Pool** (der Autor hat das Gegenteil ausdrücklich festgelegt, sonst entsteht das Logo-Problem wieder) |
+| `binding` und `when` ist bekannt falsch, kein Treffer | **nicht im Pool** (die Regel gilt hier laut PROJ-36 nicht) |
+| `binding` und nur an eine Maßnahme gebunden (`actions`) | **nicht im Pool** (dafür ist die Maßnahmensicherung zuständig; der Router würde sie umgehen) |
+| `binding` mit Auslösern, aber ohne Treffer, und `when` ist unbekannt oder fehlt | im Pool; wird bei Ergänzung als **starke/schwache Ergänzung** (nicht als Pflichtwissen) geführt und kann bei Platznot wegfallen |
+| `triggered`, egal wie `when` ausgewertet wird (wahr, falsch, unbekannt) | **im Pool**: Bei `triggered` ist `when` nur ein zusätzlicher Weg, keine Voraussetzung; sie zu sperren wäre die „unbeabsichtigte zusätzliche Sperre“ |
+| Beispiele (gut/schlecht), Arbeitsabläufe | nicht im Pool (haben eigene Auswahl) |
+| Bereits abgerufen oder von Hand zugeschaltet | nicht im Pool (aber ID und Titel gehen als Kontext an den Router) |
+
+Ergänzend: Eine Router-Ergänzung ist **nie Pflichtwissen**, auch wenn das Dokument `binding` ist. Pflichtwissen bleibt der deterministischen Ebene vorbehalten, damit der Router das Pflichtbudget nicht aufblähen kann.
+**Hinweis für die Autoren (Offener Punkt, nicht Teil von PROJ-37):** Wer eine Voraussetzung meint, die ein `triggered`-Dokument **sperrt** („gilt nur, wenn die Bestellung älter als 14 Tage ist“), kann das heute mit `when` nicht ausdrücken. Das braucht ein eigenes Feld; der Authoring Guide bekommt in PROJ-37 nur einen klarstellenden Satz, dass `when` ein zusätzlicher Weg ist.
+
+**2. Pool und Vorauswahl über der Obergrenze**
+- Bis zur Obergrenze (60 Zeilen / 15.000 Zeichen) sieht der Router **alle** Zeilen des Pools. Aktuell sind das 44 Zeilen, 9.300 Zeichen.
+- Darüber reiht eine **Textähnlichkeit** (am Wortanfang, ohne Beugung, nach Titel, `summary`, `topics` und Triggern, ohne Trigger-Treffer als Bedingung) die Kandidaten. Neu gegenüber der ersten Idee, wegen der Anforderung, dass ein Dokument ohne Wortähnlichkeit eine echte Chance behalten muss: **Vorrang für spezifischen Geltungsbereich.** Dokumente, die exakt für die gewählte Kundengruppe **und** das gewählte Produkt gelten (wie PLAYBOOK-018 und PRODUCT-006 im Eisberg-Fall, oder PLAYBOOK-019 für Reseller), bekommen einen reservierten Anteil der Kandidatenplätze (Richtwert ein Drittel), unabhängig von der Wortähnlichkeit. Der Rest des Platzes geht nach Ähnlichkeit. Allgemeine Dokumente konkurrieren nur über die Ähnlichkeit.
+- **Warum nicht gleich Embeddings?** Mehr Aufwand, eine weitere Abhängigkeit und Kosten; bei 77 Dokumenten nicht nötig. PROJ-22 bleibt die Ausbaustufe, wenn das Live-Prüfset eine echte Grenze zeigt.
+- **Bekannte Grenze:** Ein **allgemeines** Dokument ohne Produktbezug, mit geringer Wortähnlichkeit, in einer Wissensbasis weit über der Obergrenze, kann übersehen werden. Das wird in den Tests sichtbar gemacht und in der Spec als Grenze ausgewiesen (siehe E).
+
+**3. Modell und Aufruf**
+- **Standardmodell:** das günstige Modell, das schon für Zusammenfassung und Übersetzung läuft (`gpt-5.4-mini`), aus einer **eigenen** Konfiguration, damit der Router unabhängig umgestellt werden kann. Qualität geht vor Kosten: Zeigt das Live-Prüfset Schwächen, wird auf das Analyse-Modell umgestellt, nur über die Konfiguration.
+- **Antwortformat:** fest strukturiert (wie bei Analyse und Übersetzung): Liste der Ergänzungen mit ID, Rang, Einstufung („aktuell“ oder „früherer Verlauf“), deutsche Kurzbegründung; Liste der Fallarten mit Kurzbegründung; keine Freitext-Regeln. Ungültiges Format zählt als Ausfall „ungültige Antwort“.
+- **Anweisung:** eine versionierte Datei im Repository (wie die anderen Prompts), mit den Grundsätzen: nur Dokumente aus der Liste; nichts erfinden; im Zweifel ergänzen, aber nur bei erkennbarem Bezug; keine Rechtsfragen entscheiden; Begründung deutsch und als Einschätzung formuliert.
+- **Zeitlimit** eigener Wert (Richtwert 15 s), **kein Retry**. Die Fehlerarten (Zeitüberschreitung, API-Fehler, ungültige Antwort, fehlender Schlüssel) werden wie bei den anderen KI-Aufrufen unterschieden.
+- **Datenschutz:** Der Router-Text läuft durch dieselbe Bereinigung wie die Analyse (E-Mail, Telefon, Anschrift ersetzt), mit denselben Platzhaltern. Strukturierte Bestelldaten und Dokumentvolltexte gehen nicht mit.
+- **Aufrufbegrenzung:** Die Begrenzung (6 Aufrufe pro Minute und Browser) gilt für die Anfrage „Analyse starten“, nicht für einzelne KI-Aufrufe. Der Router wird innerhalb derselben Anfrage ausgeführt und löst deshalb **keine zusätzliche Sperre** aus. Offene Frage aus der Spec damit beantwortet.
+
+**4. Router-Text und seine Grenze**
+- Reihenfolge: Mitarbeiterhinweis und aktuelle Nachricht (Stufe A) vor früheren Nachrichten und Zusammenfassung (Stufe B). Original und Übersetzung getrennt gekennzeichnet; Original maßgeblich.
+- Konfigurierbare Obergrenze (Richtwert 12.000 Zeichen). **Reicht Stufe B nicht, wird sie gekürzt, nie Stufe A.**
+- **Extrem lange aktuelle Nachricht:** Überschreitet allein Stufe A die Grenze, wird sie **nicht still abgeschnitten**. Stattdessen bleiben Anfang und Ende erhalten (dort stehen im Kundentext meist das Problem und die Bitte), die Mitte wird durch eine sichtbare Auslassungsmarke ersetzt („[… N Zeichen ausgelassen …]“). Das steht im Protokoll und als Hinweis „Router-Text gekürzt“ im Bereich „Wissensabruf“ (für alle Mitarbeiter, kein Fehlerhinweis). Die Obergrenze wird dadurch nie überschritten.
+
+**5. Wann der Router entfällt (inhaltsleere Nachricht)**
+Rein deterministische, **konservative** Prüfung ohne KI: Nur wenn die gesamte aktuelle Kundennachricht (nach Abzug von Zitaten und Signatur) **kurz ist, ausschließlich aus Wörtern einer kleinen, festen Liste von Höflichkeits- und Bestätigungsfloskeln besteht** („danke“, „vielen Dank“, „ok“, „perfekt“, „alles klar“, „viele Grüße“ …), **keinen Anhang und kein Fragezeichen** enthält. Alles andere läuft. Ihre vier Beispiele („Das Problem besteht weiterhin.“, „So hatte ich mir das nicht vorgestellt.“, „Danke, aber das Motiv ist immer noch zu klein.“, „Anbei die gewünschten Fotos.“) enthalten Wörter außerhalb der Liste oder einen Anhang und lösen den Router deshalb aus. Die Liste liegt in der Konfiguration; sie ist bewusst klein.
+
+**6. Gemeinsame Budgetplanung und das große Dokument**
+In PROJ-36 gilt „gekürzt wird von hinten“: Passt ein Dokument nicht mehr, entfallen es und alles dahinter. Das würde ein einzelnes sehr langes Router-Dokument zum Verdränger kleinerer machen. Entscheidung: **Nur für Router-Ergänzungen** gilt „überspringen und weitermachen“: Passt eine Ergänzung nicht, wird sie übersprungen und protokolliert („wegen Umfang nicht mitgesendet“), kleinere Ergänzungen und der Rest des Platzes bleiben nutzbar. Für alle deterministischen Treffer bleibt die PROJ-36-Regel unverändert; **ohne Router verhält sich die Auswahl damit exakt wie heute** (Rollback).
+- Reihenfolge innerhalb der Stufen: deterministische Treffer vor Router-Ergänzungen; aktuell = stark, früherer Verlauf = schwach.
+- Eine starke Ergänzung kann einen schwachen deterministischen Treffer **bei der Planung** verdrängen (vom Product Owner freigegeben). Das ist kein aktives Entfernen durch den Router; es steht als „wegen Umfang nicht mitgesendet“ im Protokoll.
+- Pflichtwissen und von Hand zugeschaltetes Wissen sind unantastbar.
+
+**7. Fallarten**
+Der Router liefert die Liste (leer erlaubt, mehrere erlaubt). Für PROJ-37 werden sie **erkannt, protokolliert und angezeigt**. In der Rangfolge wirken sie nur als allerletztes Unterscheidungsmerkmal bei sonst gleichem Rang (ein Dokument mit passender Kategorie vor einem sonst gleichwertigen ohne), nie als Filter. Sollte sich das im Bau als aufwendig oder riskant zeigen, entfällt die Rangfolge-Wirkung und es bleibt bei Erkennen und Protokoll; das ist von der Spec ausdrücklich erlaubt.
+
+**8. Katalogzeile:** ID, Titel und `summary`. `topics` und Trigger gehen **nicht** mit (Trigger würden den Router an den bisherigen Wortlaut binden; `topics` sind uneinheitlich gepflegt). Bei Bedarf entscheidet das Live-Prüfset.
+
+**9. Kosten:** Das Protokoll speichert immer die **Tokens**. Kosten werden nur angezeigt, wenn für das Modell ein Preis in der Konfiguration steht, dann als „geschätzt“; sonst bleibt das Feld leer. Kein Raten.
+
+**10. Schalter und Rückfall:** `KNOWLEDGE_ROUTER_ACTIVE` (Standard aus). Wirksam nur, wenn der gezielte Abruf an ist. Aus ⇒ Durchgang 1 genügt und alles verhält sich wie PROJ-36, auch im Protokoll und in den Spalten (Entscheidung „deaktiviert“).
+
+**11. Version:** Eine Router-Version (feste Zahl plus Kurzkennung der Einstellungen) steht im Protokoll, ebenso Modell und die Version der Router-Anweisung. So bleibt jede Analyse reproduzierbar.
+
+**12. Anzeige:**
+- **Alle Mitarbeiter:** im Bereich „Wissensabruf“ vier Herkunftsbezeichnungen; bei Router-Ergänzungen die Begründung mit dem Präfix „KI-Einschätzung:“; Hinweis „Router-Text gekürzt“ falls zutreffend; bei Ausfall der dezente Hinweis im Ergebnisbereich (kein Banner, keine Sperre).
+- **Admin:** aufklappbarer Teil im selben Bereich mit Pool, Verworfenem, Fallarten, Modell/Version, Tokens, Laufzeit, Kosten, Status, Ausfallgrund.
+- **Analysen-Übersicht (nur Admin):** Filter „Router-Entscheidung“ (ausgeführt, regulär übersprungen, deaktiviert, fehlgeschlagen) und Kennzahlen: durchschnittliche Ergänzungen, zusätzlicher Umfang, Ausfallquote, durchschnittliche Router-Laufzeit, Tokens, geschätzte Kosten.
+
+### E) Qualitätssicherung: wie die Tests aufgebaut sind
+**Ebene 1: Pest mit simulierter Router-Antwort (normale Suite).** Logik: Pool, Schutzregeln-Tabelle aus D1 (jede Zeile ein Test, positiv und negativ), Obergrenzen, Verwerfen ungültiger Antworten, Ergänzen/Verdrängen, großes Dokument, inhaltsleere Nachrichten (die vier Beispiele plus Floskeln), Router-Text-Kürzung (auch Stufe A allein), Ausfallarten, Rückfall, Protokoll, Anzeige (Mitarbeiter und Admin), Übersicht, Schalter, Fremdsprache mit und ohne Übersetzung, Eisberg-Fall mit fester Antwort.
+**Ebene 1b: Güte der Vorauswahl bei großen Wissensbasen (normale Suite, getrennt von der Router-Entscheidung).** Eine künstliche Wissensbasis (zum Beispiel 200 bis 400 Dokumente) aus echten Dokumenten und selbst erzeugten ähnlichen und irrelevanten Füllern. Für jeden definierten **Positivfall** (zum Beispiel Eisberg-Dokumente, Produkt- und kanalspezifische Dokumente, ein allgemeines Dokument mit mittlerer Ähnlichkeit) wird verlangt, dass das relevante Dokument **tatsächlich in der Vorauswahl steht**. Besteht ein Fall das nicht, gilt er **nicht als bestanden**: Er wird als **bekannte Grenze** ausgewiesen (Testmarkierung „offen / bekannte Grenze“ mit Beschreibung, in der Auswertung getrennt gezählt und in einer Tabelle „Bekannte Grenzen“ in dieser Spec geführt). Er darf weder grün noch stillschweigend entfernt werden. Zusätzlich misst ein Test die Rangposition und die Größe der Vorauswahl.
+**Ebene 2: Live-Prüfset auf Abruf (echtes Modell).** Eigene Testgruppe, die in der normalen Ausführung **nicht** läuft (Aufruf nur gezielt, mit Schlüssel). Fälle mit erwarteten **und** verbotenen IDs, Vergleich PROJ-36 gegen PROJ-37, 5 Läufe für den Eisberg-Fall (alle drei in der **endgültigen** Auswahl), Umformulierungen, Negativfälle, Fälle ohne passendes Dokument, Italienisch und Französisch mit und ohne Übersetzung. Je Lauf wird ein **Bericht** (Datei, nicht im Repository) geschrieben mit Modell, Router-Version, Anweisungs-Version, Wissensstand, erwarteten und tatsächlichen IDs, Tokens, Laufzeit, Kosten; die Zusammenfassung kommt in die QA-Ergebnisse der Spec. Es werden nur selbst formulierte oder anonyme Texte verwendet.
+**Messung im Betrieb:** Admin-Kennzahlen in der Analysen-Übersicht.
+
+**Bekannte Grenzen (werden mit den Tests gefüllt)**
+| Grenze | Auslöser | Stand |
+|---|---|---|
+| Allgemeines Dokument ohne Produktbezug und mit geringer Wortähnlichkeit bei einer Wissensbasis weit über der Obergrenze | einfache Vorauswahl | wird durch Ebene 1b gemessen; bei Bedarf PROJ-22 |
+| Zu dünne `summary` | Katalogzeile | wird durch das Live-Prüfset gefunden, dann gezielt behoben |
+| `when` kann bei `triggered` keine Voraussetzung ausdrücken | Datenmodell von PROJ-36 | bekannt; eigenes Feld wäre ein Folgefeature |
+
+### F) Dependencies (Pakete)
+Keine neuen. Genutzt werden die vorhandene KI-Anbindung (wie Analyse, Zusammenfassung, Übersetzung), die bestehende Bereinigung und das bestehende Protokoll.
+
+### G) Reihenfolge der Umsetzung (Vorschlag für `/backend`)
+1. Router-Entscheidung, Pool-Bildung und Schutzregeln-Tabelle mit Tests (ohne KI-Aufruf).
+2. Vorauswahl über der Obergrenze mit den Güte-Tests der Ebene 1b.
+3. Router-Aufruf (Text, Anweisung, Antwortformat, Zeitlimit, Prüfung) mit simulierter Antwort.
+4. Zusammenführung in den Abruf (Durchgang 2, Ergänzungen, Budgetregel für Ergänzungen).
+5. Protokoll, Spalten, Version, Schalter.
+6. Oberfläche (Herkunft, KI-Einschätzung, Hinweise, Admin-Teil, Übersicht).
+7. Autorenseite (Guide, Handbuch, Skill, Warnung bei kurzer `summary`, Klarstellung `when`).
+8. Live-Prüfset, Lauf, Auswertung, fachliche Freigabe, dann erst Aktivierung.
+
+### H) Risiken
+- **Falsche Ergänzungen** (Router lädt Unpassendes): begrenzt durch Obergrenze, Schutzregeln und Verwerfen; gemessen im Live-Prüfset und in den Kennzahlen.
+- **Übersehenes Wissen bei sehr großer Wissensbasis:** bekannte Grenze, siehe E.
+- **Kosten und Wartezeit:** pro Analyse ein kleiner Aufruf (grob 2.000 bis 5.000 Token Eingabe bei heutigem Bestand), Zeitlimit 15 s; Kennzahlen machen es sichtbar.
+- **Zu dünne Summaries:** siehe E.
+
 
 ## QA Test Results
 _To be added by /qa_
