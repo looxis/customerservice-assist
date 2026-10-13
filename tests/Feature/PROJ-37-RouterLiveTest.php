@@ -99,7 +99,7 @@ afterAll(function () {
 
 foreach (routerLiveCases() as $name => $case) {
     test("live: {$name}", function () use ($name, $case) {
-        $runs = (int) ($case['runs'] ?? 1);
+        $runs = max((int) ($case['runs'] ?? 1), (int) getenv('ROUTER_LIVE_RUNS'));
         $failures = [];
 
         for ($run = 1; $run <= $runs; $run++) {

@@ -25,7 +25,7 @@ return [
     'nothing fits' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Ich wollte nur sagen, dass mir Ihre Internetseite sehr gut gefällt.',
         'no_additions' => true, 'forbidden' => ['PLAYBOOK-018', 'PLAYBOOK-019', 'PLAYBOOK-014', 'POLICY-017', 'PLAYBOOK-008', 'PLAYBOOK-013']],
     'rights without a trigger word' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Können Sie mir das Gesicht von Micky Maus auf eine Tasse drucken?',
-        'expected' => ['POLICY-017'], 'forbidden' => ['PLAYBOOK-018']],
+        'expected' => ['POLICY-017', 'PLAYBOOK-014'], 'forbidden' => ['PLAYBOOK-018']],
     'own logo in a quote' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Wir brauchen 200 Tassen mit unserem Firmenlogo für eine Veranstaltung.',
         'expected' => ['PROCESS-010'], 'forbidden' => ['POLICY-017', 'PLAYBOOK-014', 'TONE-007', 'PROCESS-006']],
     'two concerns, one suppressed hit' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Wir möchten 200 Tassen mit unserem Logo bestellen. Außerdem würden wir gern eine bekannte Zeichentrickfigur drucken.',

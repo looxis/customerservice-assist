@@ -318,7 +318,7 @@ return [
         'version' => '2026-10-13.2',
 
         // Only proposals the model rates as clearly fitting are taken over; the others are logged as rejected.
-        'clear_only' => true,
+        'clear_only' => (bool) env('KNOWLEDGE_ROUTER_CLEAR_ONLY', true),
 
         // Own model setting so the router can be changed independently of the analysis.
         // First live check set (2026-10-13): gpt-5.4 19 of 20 and 5 of 5 on the Eisberg case in about 4 s; gpt-5.4-mini 15 of 20 and 2 of 5; gpt-5.5 18 of 20 and 5 of 5 but about 10 s.

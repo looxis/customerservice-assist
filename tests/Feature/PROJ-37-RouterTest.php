@@ -723,3 +723,28 @@ test('the authoring documents explain the summary for the router, the soft limit
         ->and($handbook)->toContain('KI-Router')->toContain('nur falls es sie gibt')
         ->and($skill)->toContain('router');
 });
+
+describe('configuration (QA)', function () {
+    test('the router stays off unless it is switched on explicitly, and every setting has a sensible default', function () {
+        $source = file_get_contents(base_path('config/knowledge.php'));
+
+        expect($source)->toContain("env('KNOWLEDGE_ROUTER_ACTIVE', false)")->toContain("env('ROUTER_MODEL', 'gpt-5.4')")->toContain("env('ROUTER_TIMEOUT', 15)")
+            ->toContain("env('KNOWLEDGE_ROUTER_CLEAR_ONLY', true)")->toContain("env('KNOWLEDGE_SUMMARY_MIN_LENGTH', 60)");
+
+        $router = config('knowledge.router');
+
+        expect($router['max_additions'])->toBeInt()->toBeGreaterThan(0)
+            ->and($router['pool']['max_lines'])->toBe(60)->and($router['pool']['max_characters'])->toBe(15000)
+            ->and($router['text_characters'])->toBe(12000)->and($router['timeout'])->toBeGreaterThan(0)->toBeLessThanOrEqual(30)
+            ->and($router['courtesy_words'])->not->toBeEmpty();
+    });
+
+    test('with the retrieval on but the router not set, an analysis runs without any router call and records "deactivated"', function () {
+        config(['knowledge.router.active' => false]);
+        $outcome = rtrRun(rtrDoc(1, ['triggers' => ['zzzz']]), rtrFacts(['Das Motiv ist sehr klein.']), rtrAnswer());
+
+        RouterAgent::assertNeverPrompted();
+
+        expect($outcome->status)->toBe(RouterOutcome::DISABLED);
+    });
+});
