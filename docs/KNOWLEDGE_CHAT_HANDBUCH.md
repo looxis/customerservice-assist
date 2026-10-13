@@ -16,12 +16,15 @@
 **Ein leeres oder fehlendes Feld ist nie „egal“:** Ohne `retrieval` zählt ein Dokument vorläufig als Grundwissen, steht also in jedem Prompt. Es gilt, was im Prompt nicht steht, kennt die KI nicht.
 
 ## Was zu jeder Datei gehört
-- `summary`: ein bis zwei Sätze – wann gebraucht, wann **nicht**.
+- `summary`: ein bis zwei Sätze – wann gebraucht, wofür, und **nur falls es sie gibt** eine Abgrenzung. **Sie ist auch das, was der KI-Router sieht** (ID, Titel, summary; keine Auslöser): Das typische Kundenanliegen in Alltagssprache beschreiben, Abgrenzungen genau fassen („nicht für **ausschließlich** Helligkeitsreklamationen“, nicht „nicht für Helligkeit“) und nie erfinden. Unter 60 Zeichen warnt `knowledge:check`.
 - `triggers`: Wörter, wie Kunden schreiben (am Wortanfang gesucht; „Logo“ findet „Firmenlogo“ nicht, also Zusammensetzungen einzeln; mindestens vier Zeichen; keine Allerweltswörter; auch Italienisch/Französisch/Englisch).
 - `exclude_triggers`: Wendungen, die einen Treffer im selben Satz unterdrücken („unser Logo“); wirken nie in Fragen; nicht bei `binding`.
 - `when`: Bedingung aus Fall- und Bestelldaten (Schlüssel im Sitzungsstart-Block). Mehrere Bestellbedingungen gelten für dieselbe Bestellung; fehlende Daten sind „unbekannt“.
 - `actions`: bei verbindlichen Regeln zu einer Maßnahme. Genau passend wählen: eine Kulanzregel für Kundenfehler gehört zu `goodwill-reproduction` (kostenpflichtige Kulanz-Neuanfertigung), **nie** zu `reproduction` (kostenfreier Ersatz bei berechtigter Reklamation); Teilerstattung ohne Neuanfertigung ist `partial-refund`.
 - `exclude_products` (Geltungsbereich, optional): Produkte, für die das Dokument ausdrücklich nicht gilt. Es entfällt nur, wenn alle gewählten Produkte darin stehen; bei unbekanntem Produkt bleibt es.
+
+## Der KI-Router (zweite Stufe des Abrufs)
+Zusätzlich zu den Auslösern ergänzt ein Router Dokumente, die zum Anliegen **sinngemäß** passen, auch wenn der Kunde andere Wörter nutzt. Er wählt nur aus Dokumenten, die der Abruf nicht genommen hat, ersetzt nichts und umgeht keine verbindlichen Regeln. Deshalb gilt: `summary` sorgfältig schreiben; Auslöser bleiben wichtig, müssen aber nicht jede Formulierung abdecken.
 
 ## Fragen, die du stellst
 1. Wann wird das gebraucht, und welche Wörter schreibt der Kunde dann?

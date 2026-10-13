@@ -299,6 +299,8 @@ class KnowledgeValidator
             $issues[] = KnowledgeIssue::error($path, 'Feld `summary` muss ein einfacher Text sein. Enthält er einen Doppelpunkt, bitte in Anführungszeichen setzen.');
         } elseif ($class !== null && $document->summary() === null) {
             $issues[] = KnowledgeIssue::warning($path, 'Ein Satz in `summary` fehlt: Wann wird das Dokument gebraucht, wann nicht?');
+        } elseif ($class !== null && $document->type !== 'procedure' && mb_strlen((string) $document->summary()) < (int) ($this->config['retrieval']['summary_min_length'] ?? 60)) {
+            $issues[] = KnowledgeIssue::warning($path, 'Die `summary` ist sehr kurz ('.mb_strlen((string) $document->summary()).' Zeichen). Der Router wählt Dokumente anhand von ID, Titel und `summary`: Bitte das typische Kundenanliegen in Alltagssprache beschreiben und sagen, wofür das Dokument gebraucht wird.');
         }
 
         $triggers = $document->triggers();

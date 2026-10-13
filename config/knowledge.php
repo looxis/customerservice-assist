@@ -271,6 +271,9 @@ return [
 
         'min_trigger_length' => 4,
 
+        // A summary shorter than this gets a soft warning: the router chooses documents by ID, title and summary (PROJ-37).
+        'summary_min_length' => 60,
+
         'max_triggers' => 25,
 
         'when_keys' => [

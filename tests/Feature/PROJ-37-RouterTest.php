@@ -675,3 +675,37 @@ test('the cost of one analysis follows the configured price of the model, model 
     expect($outcome->cost())->toBe(round((4000 * 0.5 + 500 * 2.0) / 1_000_000, 6))
         ->and((new RouterOutcome(RouterOutcome::EXECUTED, 'ok', details: ['model' => 'other'], inputTokens: 1, outputTokens: 1))->cost())->toBeNull();
 });
+
+describe('the check of the summary for the router', function () {
+    $warnings = function (string $summary): string {
+        $library = knowledgeBase(rtrDoc(1, ['summary' => $summary, 'triggers' => ['Eisberg']]));
+
+        return messagesOf($library, 'warning');
+    };
+
+    test('a very short summary gets a soft warning, a longer one does not', function () use ($warnings) {
+        expect($warnings('Wenn es klein ist.'))->toContain('`summary` ist sehr kurz')
+            ->and($warnings('Prüfung einer Reklamation, das Motiv wirke zu klein oder verloren im Glaskörper.'))->not->toContain('sehr kurz');
+    });
+
+    test('a summary without any "does not apply" wording gets no warning, so nobody invents exclusions', function () use ($warnings) {
+        expect($warnings('Gilt, wenn ein Kunde sich über die Größe des eingelaserten Motivs im Glas beklagt.'))->not->toContain('summary');
+    });
+
+    test('the limit is configurable', function () use ($warnings) {
+        config(['knowledge.retrieval.summary_min_length' => 10]);
+
+        expect($warnings('Wenn es klein ist.'))->not->toContain('sehr kurz');
+    });
+});
+
+test('the authoring documents explain the summary for the router, the soft limit and that exclusions are never required', function () {
+    $guide = file_get_contents(base_path('docs/KNOWLEDGE_AUTHORING_GUIDE.md'));
+    $handbook = file_get_contents(base_path('docs/KNOWLEDGE_CHAT_HANDBUCH.md'));
+    $skill = file_get_contents(base_path('.claude/skills/knowledge/SKILL.md'));
+
+    expect($guide)->toContain('Die `summary` schreiben')->toContain('ID, Titel und `summary`')->toContain('keine Pflicht')->toContain('wird nicht geprüft')->toContain('ausschließlich')->toContain('Negativbeispiele')->toContain('unter 60 Zeichen')
+        ->toContain('zusätzlicher Weg in den Prompt, keine Sperre')
+        ->and($handbook)->toContain('KI-Router')->toContain('nur falls es sie gibt')
+        ->and($skill)->toContain('router');
+});
