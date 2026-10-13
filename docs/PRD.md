@@ -56,7 +56,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P2 | Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
 | – | Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
 | – | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
-| – | Router für den Wissensabruf (billiger KI-Aufruf mit begrenzter Vorauswahl) | Roadmap |
+| – | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | Planned |
 | – | Dynamischer Abruf von Produktinformationen aus EOCS und später dem LOOXIS Content Studio (statt Markdown-Dateien für alle Produktdetails) | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
