@@ -35,6 +35,7 @@ return [
     'prompts' => [
         'analysis' => resource_path('prompts/analysis.md'),
         'analysis-retrieval' => resource_path('prompts/analysis-retrieval.md'),
+        'analysis-question' => resource_path('prompts/analysis-question.md'),
         'summary' => resource_path('prompts/summary.md'),
         'translation' => resource_path('prompts/translation.md'),
         'router' => resource_path('prompts/router.md'),
@@ -58,6 +59,10 @@ return [
     ],
 
     'max_context_length' => 4000,
+
+    // Question without a ticket (PROJ-40): longest text, and how many own questions the page lists.
+    'max_question_length' => 6000,
+    'question_history' => 10,
 
     /*
     |--------------------------------------------------------------------------

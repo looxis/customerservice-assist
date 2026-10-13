@@ -66,6 +66,12 @@
                         <option value="{{ $model }}" @selected($filter->model === $model)>{{ $model }}</option>
                     @endforeach
                 </x-select>
+                <x-select name="quelle" label="Quelle">
+                    <option value="">Alle</option>
+                    @foreach (\App\Analysis\AnalysisOverview::SOURCES as $key => $label)
+                        <option value="{{ $key }}" @selected($filter->source === $key)>{{ $label }}</option>
+                    @endforeach
+                </x-select>
                 <x-select name="router" label="Router-Entscheidung">
                     <option value="">Alle</option>
                     @foreach (\App\Analysis\AnalysisOverview::ROUTER_STATES as $key => $label)
@@ -150,7 +156,11 @@
                             @php($copy = $overview->copyState($row))
                             <tr>
                                 <td class="px-4 py-3 align-top text-slate-900">{{ $row->created_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr<span class="block text-xs text-slate-600">{{ $row->staff_name }}</span></td>
-                                <td class="px-4 py-3 align-top"><a href="{{ route('tickets.show', $overview->ticketParameters($row)) }}" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $row->ticket_number }}</a></td>
+                                <td class="px-4 py-3 align-top">@if (\App\Analysis\QuestionNumber::isQuestion($row->ticket_number))
+                                        <a href="{{ route('questions.show', $overview->ticketParameters($row)) }}" class="font-mono text-brand hover:text-brand-hover">{{ $row->ticket_number }}</a><x-badge compact class="ml-1">Frage</x-badge>
+                                    @else
+                                        <a href="{{ route('tickets.show', $overview->ticketParameters($row)) }}" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $row->ticket_number }}</a>
+                                    @endif</td>
                                 <td class="px-4 py-3 align-top text-slate-900">
                                     {{ $groups[$row->customer_group] ?? ($row->customer_group === 'unclear' ? 'Noch unklar' : ($row->customer_group ?? '–')) }}
                                     <span class="block text-xs text-slate-600">{{ ($row->products ?? []) === [] ? 'kein Produktbezug' : implode(', ', array_map($productName, $row->products)) }}</span>

@@ -2,18 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Analysis\AnalysisException;
+use App\Analysis\AnalysisPanel;
+use App\Analysis\AnalysisProblem;
+use App\Analysis\AnalysisRequest;
+use App\Analysis\AnalysisStore;
+use App\Analysis\CaseAnalyzer;
+use App\Analysis\ContextVariant;
+use App\Analysis\QuestionNumber;
+use App\Analysis\QuestionTicket;
+use App\Http\Requests\AskQuestionRequest;
+use App\Http\Requests\FollowUpQuestionRequest;
 use App\Knowledge\KnowledgeSelector;
+use App\Staff\StaffDirectory;
+use App\Staff\TestMode;
 use Illuminate\Contracts\View\View;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
- * A question to the knowledge base without a ticket (PROJ-40). Frontend stage: the page "Frage stellen"
- * works; storing, showing and continuing a question follow with the backend stage.
+ * A question to the knowledge base without a ticket (PROJ-40): the text takes the place of the ticket,
+ * everything else is the analysis of a ticket.
  */
 class QuestionController extends Controller
 {
-    public function create(KnowledgeSelector $selector): View
+    public function create(Request $request, KnowledgeSelector $selector, AnalysisStore $store, StaffDirectory $staff): View
     {
+        $name = $staff->current($request);
+
         return view('questions.create', [
             'form' => [
                 'groups' => $selector->customerGroups(),
@@ -24,23 +40,96 @@ class QuestionController extends Controller
                 'productReasons' => [],
                 'mentionedProducts' => [],
             ],
-            // Backend stage: the latest questions of the chosen person, see components/question/recent.
-            'recent' => [],
+            'recent' => $name === null ? [] : $store->recentQuestions($name, (int) config('analysis.question_history')),
         ]);
     }
 
-    public function store(): never
+    /**
+     * Ask a new question and show the proposal.
+     */
+    public function store(AskQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff): RedirectResponse
     {
-        throw new HttpException(501, 'Wird mit dem Backend von PROJ-40 umgesetzt.');
+        set_time_limit((int) config('analysis.timeout') * 2 + 30);
+
+        $number = QuestionNumber::generate();
+        $text = trim((string) $request->validated('text'));
+        $replyWanted = $request->boolean('antwortentwurf');
+        $products = array_values($request->validated('produkte', []));
+
+        try {
+            $id = $analyzer->analyze(new AnalysisRequest(
+                ticket: QuestionTicket::make($number, $text),
+                staffName: (string) $staff->current($request),
+                customerGroup: $selector->customerGroup($request->validated('kundengruppe')),
+                products: $products,
+                orders: [],
+                manualOrder: [],
+                employeeContext: '',
+                variant: ContextVariant::FullThread,
+                summary: null,
+                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'antwortentwurf' => $replyWanted],
+                questionText: $text,
+                replyWanted: $replyWanted,
+            ));
+        } catch (AnalysisException $exception) {
+            return redirect()->route('questions.create')->withInput()
+                ->with('question_error', $exception->problem->message())
+                ->with('question_retry', $exception->problem !== AnalysisProblem::Misconfigured);
+        }
+
+        return redirect()->to(route('questions.show', ['number' => $number, 'analyse' => $id]).'#ergebnis');
     }
 
-    public function show(string $number): never
+    /**
+     * The proposal of a question; a version can be chosen by its id.
+     */
+    public function show(string $number, Request $request, AnalysisPanel $panel, AnalysisStore $store, StaffDirectory $staff, TestMode $testMode): View
     {
-        throw new HttpException(501, 'Wird mit dem Backend von PROJ-40 umgesetzt.');
+        $analysis = $request->query('analyse');
+        $page = $panel->forQuestion($number, is_string($analysis) ? $analysis : null);
+
+        abort_if($page === null, 404);
+        abort_unless($testMode->isAvailable($request) || $store->questionBelongsTo($number, (string) $staff->current($request)), 403);
+
+        return view('questions.show', [...$page, 'number' => $number, 'admin' => $testMode->isAvailable($request)]);
     }
 
-    public function followUp(string $number): never
+    /**
+     * A follow-up or the result of a clarification: a new version of the proposal with everything so far.
+     */
+    public function followUp(string $number, FollowUpQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff): RedirectResponse
     {
-        throw new HttpException(501, 'Wird mit dem Backend von PROJ-40 umgesetzt.');
+        set_time_limit((int) config('analysis.timeout') * 2 + 30);
+
+        $parent = (array) $request->parentAnalysis();
+        $by = (string) $staff->current($request);
+        $text = (string) ($parent['question']['text'] ?? '');
+        $inputs = (array) ($parent['inputs'] ?? []);
+        $replyWanted = $request->replyWanted();
+        $products = array_values((array) ($inputs['produkte'] ?? []));
+
+        try {
+            $id = $analyzer->analyze(new AnalysisRequest(
+                ticket: QuestionTicket::make($number, $text),
+                staffName: $by,
+                customerGroup: $selector->customerGroup((string) ($inputs['kundengruppe'] ?? 'unclear')) ?? $selector->customerGroup('unclear'),
+                products: $products,
+                orders: [],
+                manualOrder: [],
+                employeeContext: '',
+                variant: ContextVariant::FullThread,
+                summary: null,
+                formInput: [...$inputs, 'antwortentwurf' => $replyWanted],
+                decisions: $request->decisions($by),
+                questionText: $text,
+                replyWanted: $replyWanted,
+            ));
+        } catch (AnalysisException $exception) {
+            return redirect()->to(route('questions.show', ['number' => $number, 'analyse' => $request->input('klaerung_analyse')]).'#nachfrage')->withInput()
+                ->with('question_error', $exception->problem->message())
+                ->with('question_retry', $exception->problem !== AnalysisProblem::Misconfigured);
+        }
+
+        return redirect()->to(route('questions.show', ['number' => $number, 'analyse' => $id]).'#ergebnis');
     }
 }

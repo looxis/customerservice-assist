@@ -21,6 +21,7 @@
                     <textarea name="klaerung_text" id="nachfrage-text" rows="3" maxlength="{{ (int) config('analysis.max_question_length', 6000) }}" x-model="note"
                               class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm"></textarea>
                 </x-field>
+                <input type="hidden" name="antwortentwurf" value="0">
                 <label class="flex items-start gap-2 text-sm text-slate-900">
                     <input type="checkbox" name="antwortentwurf" value="1" @checked(old('antwortentwurf', $result['has_reply'] ?? false)) class="mt-0.5 size-4 rounded border-slate-300 text-brand focus:ring-brand">
                     <span>Antwortentwurf an den Kunden formulieren</span>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Analysis\QuestionNumber;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AnalysisOverviewController;
@@ -57,6 +58,10 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
     Route::delete('/tickets/{number}/analysen', [AnalysisController::class, 'destroyAll'])->name('tickets.analyses.destroy');
     Route::post('/tickets/{number}/uebersetzung', [TranslationController::class, 'store'])->middleware('throttle:language-model')->name('tickets.translation.store');
+});
+
+// Routes that work with a ticket number and with the number of a question (PROJ-40).
+Route::middleware('staff.selected')->where(['number' => QuestionNumber::TICKET_OR_QUESTION])->group(function (): void {
     Route::post('/tickets/{number}/analyse/{analysis}/gegenlesen', [TranslationController::class, 'backTranslate'])->middleware('throttle:language-model')->whereUuid('analysis')->name('tickets.analysis.back-translation');
     Route::put('/tickets/{number}/analyse/{analysis}/feedback', FeedbackController::class)->whereUuid('analysis')->name('tickets.analysis.feedback');
     Route::post('/tickets/{number}/analyse/{analysis}/wissensluecken', [KnowledgeGapController::class, 'store'])->whereUuid('analysis')->name('tickets.analysis.gaps.store');

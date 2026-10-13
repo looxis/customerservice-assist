@@ -206,6 +206,19 @@ Der Verlauf je Mitarbeiter ist eine Abfrage: „alle Fälle mit Kennung F…, Mi
 
 **Nicht gebaut / offen:** Menüname „Ticket analysieren“; mobile Seitenleiste (PROJ-26).
 
+### Backend (2026-10-13)
+**Gebaut:**
+- **Fall mit F-Kennung:** `QuestionNumber` (F + 8 Ziffern, zufällig, eindeutig; Muster `TICKET_OR_QUESTION` für die gemeinsamen Routen) und `QuestionTicket` (künstliches Ticket mit einer Nachricht, nie gespeichert, kein Zammad). Gespeichert in der Analyse-Tabelle; der Fragetext steht verschlüsselt im Inhalt (`question.text`, `question.reply_wanted`), die Formulareingaben in `inputs`.
+- **Vertrag:** `next_step` kennt `info_only`; `ResultValidator::check(…, $replyWanted)`: ohne gewünschten Entwurf wird ein trotzdem gelieferter Entwurf verworfen (Prüfhinweis) und der Zustand auf `info_only` gesetzt; mit gewünschtem Entwurf ist `info_only` kein zulässiger Endzustand (Entwurf Pflicht, sonst Wiederholung).
+- **Prompt:** `analysis-question.md` (`question-2026-10-13.1`) wird bei Fragen an den Analyse-Prompt gehängt (Form: kein Ticket, Text vom Mitarbeiter, Entwurf ja/nein); im Eingabetext steht „# Anfrage des Mitarbeiters (kein Ticket)“ und die Zeile „Antwortentwurf an den Kunden: gewünscht/nicht gewünscht“. Platzhalter für Kontaktdaten greifen wie bei Tickets.
+- **Routen und Controller:** `QuestionController` (`create`, `store`, `show`, `followUp`), `AskQuestionRequest`, `FollowUpQuestionRequest`. Feedback, Lücke melden, Entwurf, Kopieren, Regelprüfung und Rückübersetzung liegen in einer Gruppe, die Ticketnummern und F-Kennungen zulässt; Ticketseite und Ticketanalyse bleiben nur für Ziffern (F-Kennung ergibt 404, kein Zammad-Abruf). Rücksprünge (Lücke melden, Regelprüfung) gehen bei Fragen auf die Frageseite.
+- **Fortsetzen:** `Clarification` (aus PROJ-39 herausgezogen, auch von der Ticketanalyse genutzt) bildet Klärung und Nachfrage aus der gespeicherten Analyse („Nachfrage des Mitarbeiters“ bei einer Frage ohne offene Klärung). Der Wunsch nach einem Entwurf bleibt aus der Vorgängerfrage, solange das Formular kein Feld `antwortentwurf` sendet; ein abgewähltes Kästchen schaltet ihn ab (verstecktes Feld 0). Nur die neueste Version, nur Fragesteller oder Admin.
+- **Verlauf:** `AnalysisStore::recentQuestions` (eigene Fragen, eine je Frage, Textanfang, 10 Einträge über `analysis.question_history`), `questionBelongsTo`; Anzeige nur für den Fragesteller oder Admins (403 sonst, 404 bei unbekannter Nummer). `AnalysisPanel::forQuestion` liefert die Daten der Frageseite.
+- **Auswirkungen:** „Bearbeitete Tickets“ zählt keine Fragen; Vorschläge-Übersicht (Admin) kennzeichnet Fragen („Frage“) und hat den Filter „Quelle“ (Tickets / Fragen ohne Ticket); die Ticket-Übersicht ist unberührt, da sie auf Abrufen von Tickets beruht. `docs/ABOUT.md` beschreibt den neuen Weg.
+- **Tests:** `tests/Feature/PROJ-40-QuestionBackendTest.php` (23 Tests: Ablauf ohne Zammad/EOCS, Prompt, Platzhalter, Entwurf auf Wunsch, Verwerfen eines ungewünschten Entwurfs, Wiederholung, Lücke melden, Validierung, fehlender Name, Anbieterausfall, Ticketseite lehnt F-Kennung ab, Zugriff fremder Fragen, Nachfragen, Klärung mit Option, Ablehnungen, Verlauf, Zählungen, Filter).
+
+**Nicht umgesetzt / offen:** Live-Lauf mit dem echten Modell (QA); Menüname „Ticket analysieren“; Kennzahl „Gestellte Fragen“; Löschen aller Fragen einer F-Kennung durch Admins (nicht gefordert).
+
 ## QA Test Results
 _To be added by /qa_
 

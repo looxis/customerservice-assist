@@ -63,6 +63,11 @@ class CaseAnalyzer
             $prompt = new Prompt($prompt->name, $prompt->version.'+'.$rules->version, $prompt->text."\n\n".$rules->text);
         }
 
+        if ($request->isQuestion()) {
+            $questionRules = Prompt::load('analysis-question');
+            $prompt = new Prompt($prompt->name, $prompt->version.'+'.$questionRules->version, $prompt->text."\n\n".$questionRules->text);
+        }
+
         $parts = $this->parts($request, $pseudonymizer->hasDeliveryAddress(), $active);
         $started = hrtime(true);
         $retrieval = null;
@@ -111,6 +116,7 @@ class CaseAnalyzer
             ], array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => isset($cited[$entry->document->id])))),
             'thread' => ['last_article_id' => $last?->id, 'last_article_at' => $last?->createdAt->toIso8601String(), 'count' => count($request->ticket->articles)],
             'inputs' => $request->formInput,
+            ...($request->isQuestion() ? ['question' => ['text' => $request->questionText, 'reply_wanted' => $request->replyWanted]] : []),
             'decisions' => $request->decisions,
             'reply_edit' => null,
             'sent_input' => $input,
@@ -175,7 +181,7 @@ class CaseAnalyzer
 
             try {
                 $answer = $this->model->ask($agent, $input, $model, 'analysis', $request->ticket->number);
-                $checked = $this->validator->check($answer['data'], $knowledgeIds);
+                $checked = $this->validator->check($answer['data'], $knowledgeIds, $request->replyWanted);
             } catch (AnalysisException $exception) {
                 if ($exception->problem !== AnalysisProblem::InvalidResult || $attempts >= 2) {
                     if ($logFailure) {
@@ -467,7 +473,9 @@ class CaseAnalyzer
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
                 .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),
-            'ticket' => "# Ticket\n".(new TicketContext($request->ticket))->text($request->variant, $request->summary?->text),
+            'ticket' => $request->isQuestion()
+                ? "# Anfrage des Mitarbeiters (kein Ticket)\n".trim((string) $request->questionText)."\n\nAntwortentwurf an den Kunden: ".($request->replyWanted ? 'gewünscht' : 'nicht gewünscht')
+                : "# Ticket\n".(new TicketContext($request->ticket))->text($request->variant, $request->summary?->text),
             'rules' => "# Vorgaben\n"
                 .'Kategorien: '.implode(', ', array_map(fn (string $key): string => $key.' ('.config("knowledge.category_labels.{$key}", $key).')', config('knowledge.categories')))."\n"
                 .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions')))

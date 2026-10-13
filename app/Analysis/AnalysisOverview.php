@@ -19,6 +19,11 @@ class AnalysisOverview
 
     /** @var array<string, string> */
     /** The decisions of the router (PROJ-37) the overview can filter by. */
+    public const array SOURCES = [
+        'tickets' => 'Tickets',
+        'questions' => 'Fragen ohne Ticket',
+    ];
+
     public const array ROUTER_STATES = [
         'executed' => 'ausgeführt',
         'skipped' => 'regulär übersprungen',
@@ -71,6 +76,7 @@ class AnalysisOverview
             model: $text('modell', $options['models']),
             prompt: $text('prompt', $options['prompts']),
             router: $text('router', array_keys(self::ROUTER_STATES)),
+            source: $text('quelle', array_keys(self::SOURCES)),
             tests: ($input['testlaeufe'] ?? null) === '1',
             failed: ($input['fehlgeschlagen'] ?? null) === '1',
             problem: $problem,
@@ -196,6 +202,10 @@ class AnalysisOverview
      */
     public function ticketParameters(Analysis $analysis): array
     {
+        if (QuestionNumber::isQuestion($analysis->ticket_number)) {
+            return array_filter(['number' => $analysis->ticket_number, 'analyse' => $analysis->status === 'completed' ? $analysis->uuid : null]);
+        }
+
         $stand = Str::contains($analysis->scope_key, '.stand-') ? Str::after($analysis->scope_key, '.stand-') : null;
 
         return array_filter(['number' => $analysis->ticket_number, 'analyse' => $analysis->status === 'completed' ? $analysis->uuid : null, 'stand' => $stand]);
@@ -225,6 +235,12 @@ class AnalysisOverview
         $filter->model === null || $query->where('model', $filter->model);
         $filter->prompt === null || $query->where('prompt_version', $filter->prompt);
         $filter->router === null || $query->where('router_status', $filter->router);
+
+        match ($filter->source) {
+            'questions' => $query->where('ticket_number', 'like', 'F%'),
+            'tickets' => $query->where('ticket_number', 'not like', 'F%'),
+            default => null,
+        };
 
         if ($filter->feedback === 'none') {
             $query->where('status', 'completed')->whereNull('feedback_level');

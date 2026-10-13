@@ -51,6 +51,7 @@ class AnalysisOverviewRequest extends FormRequest
             'modell' => $text,
             'prompt' => $text,
             'router' => $text,
+            'quelle' => $text,
             'testlaeufe' => ['nullable', 'string'],
             'fehlgeschlagen' => ['nullable', 'string'],
             'page' => ['nullable', 'integer', 'min:1'],

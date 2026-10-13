@@ -33,11 +33,11 @@ class AppStats
     }
 
     /**
-     * Tickets with at least one finished analysis, test runs left out.
+     * Tickets with at least one finished analysis, test runs and questions without a ticket left out.
      */
     public function processedTickets(): int
     {
-        return Analysis::query()->where('status', 'completed')->whereNull('test_until')->distinct()->count('ticket_number');
+        return Analysis::query()->where('status', 'completed')->whereNull('test_until')->where('ticket_number', 'not like', 'F%')->distinct()->count('ticket_number');
     }
 
     /**

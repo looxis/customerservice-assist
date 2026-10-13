@@ -9,6 +9,7 @@ use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
 use App\Analysis\CaseAnalyzer;
 use App\Analysis\ContextVariant;
+use App\Analysis\QuestionNumber;
 use App\Analysis\Summarizer;
 use App\Analysis\Summary;
 use App\Analysis\TicketContext;
@@ -263,7 +264,9 @@ class AnalysisController extends Controller
     {
         $done = $store->acknowledgeRuleCheck($analysis, $number, (string) $staff->current($request));
 
-        return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $analysis]))
+        $url = QuestionNumber::isQuestion($number) ? route('questions.show', ['number' => $number, 'analyse' => $analysis]).'#ergebnis' : $this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $analysis]);
+
+        return redirect()->to($url)
             ->with($done ? 'success' : 'error', $done ? 'Danke – die Regelprüfung ist als von dir geprüft vermerkt, der Entwurf kann übernommen werden.' : 'Diese Regelprüfung gibt es nicht oder sie ist schon bestätigt.');
     }
 

@@ -14,11 +14,12 @@ class ResultValidator
     /**
      * @param  array<string, mixed>  $data
      * @param  list<string>  $knowledgeIds  IDs of the knowledge that was sent.
+     * @param  bool  $replyWanted  False only for a question without ticket where no reply draft was asked for (PROJ-40).
      * @return array{result: array<string, mixed>, notes: list<string>}
      *
      * @throws AnalysisException when the structure is unusable.
      */
-    public function check(array $data, array $knowledgeIds): array
+    public function check(array $data, array $knowledgeIds, bool $replyWanted = true): array
     {
         foreach (self::REQUIRED as $field) {
             if (! array_key_exists($field, $data)) {
@@ -27,15 +28,26 @@ class ResultValidator
         }
 
         $notes = [];
-        $data['next_step'] = ($data['next_step'] ?? 'reply') === 'internal_first' ? 'internal_first' : 'reply';
+        $data['next_step'] = in_array($data['next_step'] ?? null, ['internal_first', 'info_only'], true) ? $data['next_step'] : 'reply';
         $data['internal_steps'] = array_values(array_filter(array_map(fn (mixed $step): string => is_string($step) ? trim($step) : '', (array) $data['internal_steps']), fn (string $step): bool => $step !== ''));
         $data['decision'] = $this->decision($data['decision'] ?? null, $knowledgeIds, $notes, $data['internal_steps']);
+
+        if ($replyWanted && $data['next_step'] === 'info_only') {
+            $data['next_step'] = 'reply';
+        }
 
         if ($data['next_step'] === 'internal_first') {
             if ($data['decision'] === null && $data['internal_steps'] === []) {
                 throw new AnalysisException(AnalysisProblem::InvalidResult, 'internal_first without decision or steps');
             }
 
+            $data['reply'] = null;
+        } elseif (! $replyWanted) {
+            if (is_array($data['reply'] ?? null) && trim((string) ($data['reply']['text'] ?? '')) !== '') {
+                $notes[] = 'Es war kein Antwortentwurf gewünscht; der Entwurf der KI wurde nicht übernommen.';
+            }
+
+            $data['next_step'] = 'info_only';
             $data['reply'] = null;
         } elseif (! is_string($data['reply']['text'] ?? null) || trim($data['reply']['text']) === '') {
             throw new AnalysisException(AnalysisProblem::InvalidResult, 'empty reply');

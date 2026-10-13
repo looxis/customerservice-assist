@@ -20,6 +20,8 @@ final readonly class AnalysisRequest
      * @param  list<string>  $notes  Hints for the employee about how the input came about, shown with the result.
      * @param  list<string>  $extraKnowledge  IDs of documents the employee switched on by hand (PROJ-36).
      * @param  list<array{question: string, answer: string, by: string, at: string}>  $decisions  Internal clarifications of earlier steps of this case (PROJ-39).
+     * @param  string|null  $questionText  The text of a question without a ticket (PROJ-40); null for a ticket.
+     * @param  bool  $replyWanted  Whether a reply draft for the customer was asked for (always true for a ticket).
      */
     public function __construct(
         public Ticket $ticket,
@@ -36,7 +38,14 @@ final readonly class AnalysisRequest
         public array $notes = [],
         public array $extraKnowledge = [],
         public array $decisions = [],
+        public ?string $questionText = null,
+        public bool $replyWanted = true,
     ) {}
+
+    public function isQuestion(): bool
+    {
+        return $this->questionText !== null;
+    }
 
     /**
      * The clarifications as lines for the prompt.

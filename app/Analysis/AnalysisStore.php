@@ -234,6 +234,33 @@ class AnalysisStore
     }
 
     /**
+     * The newest questions without a ticket of one person, one entry per question (PROJ-40).
+     *
+     * @return list<array{number: string, created_at: CarbonImmutable, excerpt: string, has_reply: bool}>
+     */
+    public function recentQuestions(string $staff, int $limit): array
+    {
+        return Analysis::query()
+            ->where('status', 'completed')->where('ticket_number', 'like', 'F%')->where('staff_name', $staff)
+            ->orderByDesc('id')->limit($limit * 10)->get()
+            ->unique('scope_key')->take($limit)
+            ->map(fn (Analysis $analysis): array => [
+                'number' => $analysis->ticket_number,
+                'created_at' => CarbonImmutable::parse($analysis->created_at),
+                'excerpt' => $analysis->content === null ? 'Inhalt gelöscht' : Str::limit(preg_replace('/\s+/', ' ', (string) ($analysis->content['question']['text'] ?? '')) ?? '', 90),
+                'has_reply' => is_array($analysis->content['result']['reply'] ?? null),
+            ])->values()->all();
+    }
+
+    /**
+     * Whether the person asked the question (or follows up on it); admins are checked by the caller.
+     */
+    public function questionBelongsTo(string $number, string $staff): bool
+    {
+        return Analysis::query()->where('ticket_number', $number)->where('staff_name', $staff)->exists();
+    }
+
+    /**
      * Finished analyses of a ticket or cut point, newest first, without content.
      *
      * @return list<array{id: string, created_at: CarbonImmutable, staff: string, group: string|null, variant: string|null, assessment: string|null, confidence: string|null, test: bool, removed: string|null}>

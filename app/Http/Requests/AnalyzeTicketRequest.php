@@ -3,12 +3,12 @@
 namespace App\Http\Requests;
 
 use App\Analysis\AnalysisStore;
+use App\Analysis\Clarification;
 use App\Analysis\ContextVariant;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
 use Illuminate\Validation\Validator;
@@ -97,13 +97,11 @@ class AnalyzeTicketRequest extends FormRequest
             }
 
             $parent = $this->parentAnalysis();
-            $options = array_column((array) ($parent['result']['decision']['options'] ?? []), null, 'key');
-
             if ($parent === null) {
                 $validator->errors()->add('klaerung_analyse', 'Dieser Vorschlag ist nicht der neueste und kann nicht fortgesetzt werden.');
             } elseif (! $this->filled('klaerung_option') && ! $this->filled('klaerung_text')) {
                 $validator->errors()->add('klaerung_text', 'Bitte eine Option wählen oder das Ergebnis der internen Klärung eingeben.');
-            } elseif ($this->filled('klaerung_option') && ! isset($options[$this->input('klaerung_option')])) {
+            } elseif ($this->filled('klaerung_option') && ! Clarification::hasOption($parent, (string) $this->input('klaerung_option'))) {
                 $validator->errors()->add('klaerung_option', 'Diese Option gibt es nicht.');
             }
         }];
@@ -119,23 +117,7 @@ class AnalyzeTicketRequest extends FormRequest
     {
         $parent = $this->parentAnalysis();
 
-        if ($parent === null) {
-            return null;
-        }
-
-        $decision = $parent['result']['decision'] ?? null;
-        $label = $this->filled('klaerung_option') ? (string) (array_column((array) ($decision['options'] ?? []), null, 'key')[$this->input('klaerung_option')]['label'] ?? '') : '';
-        $note = trim((string) $this->input('klaerung_text', ''));
-
-        return [
-            ...array_values((array) ($parent['decisions'] ?? [])),
-            [
-                'question' => $decision['question'] ?? 'Interne Prüfung: '.Str::limit((string) ($parent['result']['recommendation'] ?? ''), 200),
-                'answer' => $label !== '' && $note !== '' ? "{$label} ({$note})" : ($label !== '' ? $label : $note),
-                'by' => $by,
-                'at' => now()->toIso8601String(),
-            ],
-        ];
+        return $parent === null ? null : Clarification::decisions($parent, $this->filled('klaerung_option') ? (string) $this->input('klaerung_option') : null, (string) $this->input('klaerung_text', ''), $by);
     }
 
     /**

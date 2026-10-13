@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisStore;
 use App\Analysis\KnowledgeGapLog;
+use App\Analysis\QuestionNumber;
 use App\Http\Requests\ResolveKnowledgeGapRequest;
 use App\Http\Requests\StoreKnowledgeGapRequest;
 use App\Knowledge\CustomerGroup;
@@ -23,7 +24,7 @@ class KnowledgeGapController extends Controller
     public function store(string $number, string $analysis, StoreKnowledgeGapRequest $request, KnowledgeGapLog $gaps, StaffDirectory $staff): RedirectResponse
     {
         $gap = $gaps->report($number, $analysis, $request->validated(), $request->validated('topic'), (string) $staff->current($request));
-        $back = redirect()->to(route('tickets.show', array_filter(['number' => $number, 'analyse' => $analysis, 'stand' => $request->input('stand')])).'#ergebnis');
+        $back = redirect()->to(route(QuestionNumber::isQuestion($number) ? 'questions.show' : 'tickets.show', array_filter(['number' => $number, 'analyse' => $analysis, 'stand' => $request->input('stand')])).'#ergebnis');
 
         if ($gap === null) {
             return $back->with('gap_error', 'Dieser Vorschlag ist nicht mehr verfügbar.');

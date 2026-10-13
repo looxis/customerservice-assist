@@ -22,6 +22,12 @@ Neben Reklamationen und Fragen hilft die App auch bei **Angebots- und Auftragsan
 
 Nicht jede Frage lässt sich sofort beantworten. Ein Foto-Fachhändler schreibt, dass er sein Geschäft aufgibt, und fragt, ob sein „Aufsteller“ zurückgenommen wird. Ob die Produktion Display oder Glasfoto-Muster überhaupt zurückbraucht, weiß erst die Produktionsleitung. Die App erstellt dann **noch keinen Antwortentwurf**. Unter „Interne Abläufe“ steht stattdessen die Frage mit den möglichen Antworten, zum Beispiel „Nur Display zurück“, „Beides zurück“ oder „Kein Bedarf“. Du klärst es und wählst die passende Antwort; oder du trägst im Feld darunter das Ergebnis selbst ein. Danach setzt die App den Vorschlag mit dieser Klärung fort und liefert den Entwurf, etwa eine Rückfrage zum Zustand der Gegenstände oder ein kurzer Abschied mit Hinweis auf die Entsorgung. Die App tut das nicht bei jeder offenen Frage, sondern nur, wenn die Klärung schnell möglich ist, die Antwort deutlich verändert und eine Zwischenantwort wenig bringen würde. Die Auswahl ist ein Vorschlag aus Fall und Wissen; prüfe sie, bevor du dich darauf verlässt.
 
+# Eine Frage ohne Ticket stellen
+
+Nicht jede Frage hat ein Ticket: ein Anruf, eine Rückfrage im Betrieb, ein Kundentext, der nicht in Zammad steht. Unter **„Frage stellen“** in der Seitenleiste tippst du deine Frage, die Notiz zum Anruf oder die eingefügte Kundennachricht ein, wählst Kundengruppe und Produkt (beides ist optional) und bekommst einen Vorschlag aus dem Unternehmenswissen: was zu tun ist, ob du das selbst entscheiden darfst, welche Schritte nötig sind und woher die Antwort stammt. Einen **Antwortentwurf an den Kunden** gibt es nur, wenn du das Kästchen ankreuzt; du kannst ihn auch später mit einer **Nachfrage** anfordern. Die Nachfrage führt den Vorschlag mit dem bisherigen Text und deinen Klärungen fort.
+
+Bitte trage nach Möglichkeit keine Kundendaten ein. Erkennbare E-Mail-Adressen, Telefonnummern und Anschriften ersetzt die App vor dem Senden an die KI durch Platzhalter. Bestellnummern schlägt sie in diesem Weg nicht in EOCS nach. Unter „Meine letzten Fragen“ findest du deine eigenen Fragen wieder; die anderer Kollegen siehst du nicht.
+
 # Ein Beispiel
 
 Eine Kundin hat auf Amazon eine Zaubertasse gekauft. Sie schreibt: „Das Motiv erscheint nicht, wenn ich heißen Kaffee einfülle."

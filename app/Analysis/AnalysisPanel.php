@@ -57,15 +57,7 @@ class AnalysisPanel
         }
 
         $latestId = $this->store->latest($ticket->summaryKey());
-        $result = $this->result($ticket, $resultId ?? $latestId);
-
-        if ($result !== null) {
-            // Compared within the analysis' own scope, so a test run opened by its
-            // link outside the test mode is not taken for an older analysis.
-            $result['is_latest'] = $result['id'] === (($result['scope'] ?? $ticket->summaryKey()) === $ticket->summaryKey() ? $latestId : $this->store->latest((string) $result['scope']));
-            $result['gaps_reported'] = app(KnowledgeGapLog::class)->reportedFor($result['id']);
-            $result['procedures'] = $this->procedures($result);
-        }
+        $result = $this->decorate($this->result($ticket, $resultId ?? $latestId), $ticket, $latestId);
         $inputs = $result['inputs'] ?? [];
 
         $choice = $this->store->caseChoice($ticket->number);
@@ -98,6 +90,57 @@ class AnalysisPanel
             'deletion' => $result === null ? $this->store->deletion($ticket->number) : null,
             'resultMissing' => $resultId !== null && $result === null,
         ];
+    }
+
+    /**
+     * What the page of a question without a ticket needs (PROJ-40): the stored analysis as for a ticket,
+     * the earlier versions and the question itself. Null when the question or the version is unknown.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function forQuestion(string $number, ?string $analysisId): ?array
+    {
+        $ticket = QuestionTicket::make($number, '');
+        $latestId = $this->store->latest($number);
+        $result = $this->decorate($this->result($ticket, $analysisId ?? $latestId), $ticket, $latestId);
+
+        if ($result === null) {
+            return null;
+        }
+
+        $groups = collect($this->selector->customerGroups())->mapWithKeys(fn (CustomerGroup $group): array => [$group->key => $group->label]);
+        $titles = collect($this->selector->products())->mapWithKeys(fn (array $product): array => [$product['slug'] => $product['title']]);
+        $products = array_values((array) ($result['meta']['products'] ?? []));
+
+        return [
+            'result' => $result,
+            'history' => $this->history($ticket),
+            'question' => [
+                'text' => (string) ($result['question']['text'] ?? ''),
+                'group_label' => $groups[$result['meta']['customer_group'] ?? ''] ?? null,
+                'products_label' => $products === [] ? null : implode(', ', array_map(fn (string $slug): string => $titles[$slug] ?? $slug, $products)),
+                'placeholders' => ($result['placeholders'] ?? []) !== [],
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $result
+     * @return array<string, mixed>|null
+     */
+    private function decorate(?array $result, Ticket $ticket, ?string $latestId): ?array
+    {
+        if ($result === null) {
+            return null;
+        }
+
+        // Compared within the analysis' own scope, so a test run opened by its
+        // link outside the test mode is not taken for an older analysis.
+        $result['is_latest'] = $result['id'] === (($result['scope'] ?? $ticket->summaryKey()) === $ticket->summaryKey() ? $latestId : $this->store->latest((string) $result['scope']));
+        $result['gaps_reported'] = app(KnowledgeGapLog::class)->reportedFor($result['id']);
+        $result['procedures'] = $this->procedures($result);
+
+        return $result;
     }
 
     /**

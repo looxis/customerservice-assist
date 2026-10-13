@@ -49,7 +49,7 @@ class CaseAgent implements Agent, HasStructuredOutput
             'category' => $schema->string()->enum($this->categories)->required(),
             'case_pattern' => $schema->string()->description('Fallmuster, soweit bestimmbar')->nullable()->required(),
             'assessment' => $schema->string()->enum(['berechtigt', 'unberechtigt', 'unklar'])->description('Nur bei Reklamationen')->nullable()->required(),
-            'next_step' => $schema->string()->enum(['reply', 'internal_first'])->description('reply: ein Antwortentwurf ist sinnvoll. internal_first: erst eine interne Klärung, noch kein Antwortentwurf.')->required(),
+            'next_step' => $schema->string()->enum(['reply', 'internal_first', 'info_only'])->description('reply: ein Antwortentwurf ist sinnvoll. internal_first: erst eine interne Klärung, noch kein Antwortentwurf. info_only: nur Auskunft für den Mitarbeiter (nur wenn kein Antwortentwurf gewünscht ist).')->required(),
             'recommendation' => $schema->string()->description('Empfohlene Maßnahme in höchstens zwei Sätzen, ohne Schrittfolgen')->required(),
             'actions' => $schema->array()->items($schema->string()->enum($this->actions))->required(),
             'authority' => $schema->object([
