@@ -96,7 +96,7 @@ describe('lasting storage', function () {
         $this->travel(30)->days();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeText('Ergebnis der Analyse')
+            ->assertSeeText('Vorschlag')
             ->assertSee('Bearbeitet</textarea>', false)
             ->assertSeeText('Foto-Fachhändler / Reseller');
     });
@@ -124,7 +124,7 @@ describe('earlier analyses', function () {
         logAnalysis('Cara');
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Frühere Analysen (1)', '06.10.2026, 10:00 Uhr', 'Cara', 'Foto-Fachhändler / Reseller', 'Ganzer Verlauf', 'Berechtigt', 'HOCH', 'angezeigt', '06.10.2026, 09:00 Uhr', 'Nele', 'Unklar', 'MITTEL']);
+            ->assertSeeTextInOrder(['Frühere Vorschläge (1)', '06.10.2026, 10:00 Uhr', 'Cara', 'Foto-Fachhändler / Reseller', 'Ganzer Verlauf', 'Berechtigt', 'HOCH', 'angezeigt', '06.10.2026, 09:00 Uhr', 'Nele', 'Unklar', 'MITTEL']);
     });
 
     test('an older analysis is shown read-only with a way back to the newest, and saving it is refused', function () {
@@ -134,7 +134,7 @@ describe('earlier analyses', function () {
         logAnalysis();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$old)
-            ->assertSeeText('Ältere Analyse vom')
+            ->assertSeeText('Älterer Vorschlag vom')
             ->assertSeeText('Zur neuesten')
             ->assertDontSeeText('Original der KI wiederherstellen')
             ->getContent();
@@ -148,7 +148,7 @@ describe('earlier analyses', function () {
         CaseAgent::fake([logAnswer()]);
         logAnalysis();
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Analysen');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Vorschläge');
     });
 
     test('test runs do not appear among the analyses of the real ticket', function () {
@@ -157,7 +157,7 @@ describe('earlier analyses', function () {
         $this->withCookie('test_mode', '1');
         logAnalysis('Etienne', ['stand' => '1']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Analysen')->assertDontSeeText('Testlauf');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Vorschläge')->assertDontSeeText('Testlauf');
     });
 });
 
@@ -171,7 +171,7 @@ describe('log for admins', function () {
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertDontSeeText('Protokoll (nur Admins)')
-            ->assertSeeText('Details zur Analyse');
+            ->assertSeeText('Details zum Vorschlag');
     });
 });
 
@@ -208,7 +208,7 @@ describe('retention and deletion', function () {
         logAnalysis();
         $this->travelTo(now()->setTimezone('Europe/Berlin')->setDate(2026, 10, 7)->setTime(8, 30));
 
-        $html = $this->withCookie('staff_name', 'Etienne')->get('/tickets/2137942')->assertSeeText('Alle Analysen dieses Tickets löschen')->getContent();
+        $html = $this->withCookie('staff_name', 'Etienne')->get('/tickets/2137942')->assertSeeText('Alle Vorschläge dieses Tickets löschen')->getContent();
         expect($html)->toContain('endgültig löschen?');
 
         $this->withCookie('staff_name', 'Etienne')->delete(route('tickets.analyses.destroy', ['number' => '2137942']))->assertRedirect(route('tickets.show', ['number' => '2137942']));
@@ -218,14 +218,14 @@ describe('retention and deletion', function () {
 
         $this->withCookie('staff_name', 'Etienne')->get('/tickets/2137942')
             ->assertSeeText('Inhalte gelöscht von Etienne am 07.10.2026, 08:30 Uhr.')
-            ->assertDontSeeText('Ergebnis der Analyse');
+            ->assertDontSeeText('Vorschlag von');
     });
 
     test('others cannot delete and see no button', function () {
         CaseAgent::fake([logAnswer()]);
         logAnalysis();
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Alle Analysen dieses Tickets löschen');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Alle Vorschläge dieses Tickets löschen');
         $this->withCookie('staff_name', 'Nele')->delete(route('tickets.analyses.destroy', ['number' => '2137942']))->assertForbidden();
 
         expect(Analysis::query()->sole()->content)->not->toBeNull();
@@ -240,7 +240,7 @@ describe('qa additions', function () {
         test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf']);
 
         expect(Analysis::query()->count())->toBe(2);
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Analysen');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Vorschläge');
     });
 
     test('deleting also removes summaries of test runs; a new analysis afterwards replaces the note', function () {
@@ -257,7 +257,7 @@ describe('qa additions', function () {
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertSeeText('Nach dem Löschen.')
             ->assertDontSeeText('Inhalte gelöscht von')
-            ->assertSeeTextInOrder(['Frühere Analysen (1)', 'Inhalte gelöscht']);
+            ->assertSeeTextInOrder(['Frühere Vorschläge (1)', 'Inhalte gelöscht']);
     });
 
     test('a purged or deleted analysis cannot be opened or edited', function () {
@@ -265,7 +265,7 @@ describe('qa additions', function () {
         $id = logAnalysis();
         $this->withCookie('staff_name', 'Etienne')->delete(route('tickets.analyses.destroy', ['number' => '2137942']));
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertSeeText('Diese Analyse ist nicht mehr verfügbar.');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertSeeText('Dieser Vorschlag ist nicht mehr verfügbar.');
         test()->withCredentials()->withCookie('staff_name', 'Nele')->putJson(route('tickets.analysis.reply', ['number' => '2137942', 'analysis' => $id]), ['text' => 'x'])->assertNotFound();
     });
 

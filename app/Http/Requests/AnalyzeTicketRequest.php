@@ -100,7 +100,7 @@ class AnalyzeTicketRequest extends FormRequest
             $options = array_column((array) ($parent['result']['decision']['options'] ?? []), null, 'key');
 
             if ($parent === null) {
-                $validator->errors()->add('klaerung_analyse', 'Diese Analyse ist nicht die neueste und kann nicht fortgesetzt werden.');
+                $validator->errors()->add('klaerung_analyse', 'Dieser Vorschlag ist nicht der neueste und kann nicht fortgesetzt werden.');
             } elseif (! $this->filled('klaerung_option') && ! $this->filled('klaerung_text')) {
                 $validator->errors()->add('klaerung_text', 'Bitte eine Option wählen oder das Ergebnis der internen Klärung eingeben.');
             } elseif ($this->filled('klaerung_option') && ! isset($options[$this->input('klaerung_option')])) {

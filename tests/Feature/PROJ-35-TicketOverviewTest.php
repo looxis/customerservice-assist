@@ -212,7 +212,7 @@ describe('the overview page', function () {
         overviewRow('2100006', 'copied-changed', ['reply_copied_at' => now(), 'reply_copied_changed' => true, 'reply_edited_at' => now()]);
 
         $counts = $this->withCookie('staff_name', 'Etienne')->get(route('ticket-overview.index'))
-            ->assertSeeText('Alle (6)')->assertSeeText('Nur abgerufen (1)')->assertSeeText('Übersetzt (1)')->assertSeeText('Analysiert (1)')
+            ->assertSeeText('Alle (6)')->assertSeeText('Nur abgerufen (1)')->assertSeeText('Übersetzt (1)')->assertSeeText('Vorschlag erstellt (1)')
             ->assertSeeText('Bearbeitet, nicht kopiert (1)')->assertSeeText('Kopiert (unverändert) (1)')->assertSeeText('Kopiert (angepasst) (1)');
 
         foreach (['opened' => '2100001', 'translated' => '2100002', 'analyzed' => '2100003', 'edited' => '2100004', 'copied-unchanged' => '2100005', 'copied-changed' => '2100006'] as $stage => $number) {
@@ -236,7 +236,7 @@ describe('the overview page', function () {
         Analysis::factory()->create(['ticket_number' => '2100001', 'feedback_level' => 'slight']);
 
         $this->withCookie('staff_name', 'Etienne')->get(route('ticket-overview.index'))
-            ->assertSeeText('Analysiert (1)')->assertSeeText('2 Analysen')->assertSeeText('Feedback: leicht angepasst');
+            ->assertSeeText('Vorschlag erstellt (1)')->assertSeeText('2 Vorschläge')->assertSeeText('Feedback: leicht angepasst');
     });
 
     test('the list is paged by fifty and filtered by stage', function () {

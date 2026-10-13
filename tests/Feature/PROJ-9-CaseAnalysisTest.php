@@ -102,7 +102,7 @@ describe('analysis form', function () {
         analysisTicket();
 
         $this->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Analyse', 'Kundengruppe', 'Produkt(e)', 'Zaubertasse', 'Zusätzliche Informationen / eigene Einschätzung', 'Analysieren'])
+            ->assertSeeTextInOrder(['Vorschlag erstellen', 'Kundengruppe', 'Produkt(e)', 'Zaubertasse', 'Zusätzliche Informationen / eigene Einschätzung', 'Vorschlag erstellen'])
             ->assertSee('action="'.route('tickets.analysis.run', ['number' => '2137942']).'"', false);
     });
 
@@ -230,7 +230,7 @@ describe('running an analysis', function () {
 
         $this->withCookie('staff_name', 'Nele')->get($response->headers->get('Location'))
             ->assertSeeTextInOrder([
-                'Ergebnis der Analyse', 'Analyse von Nele', 'Unklar', 'Confidence MITTEL',
+                'Vorschlag', 'Vorschlag von Nele', 'Unklar', 'Confidence MITTEL',
                 'Was ist zu tun?', 'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
                 'Du darfst das selbst entscheiden.',
                 'Beruht teilweise auf Entwurfs-Wissen', 'POLICY-001',
@@ -289,7 +289,7 @@ describe('running an analysis', function () {
         CaseAgent::fake([['reply' => 'kaputt'], caseAnswer()]);
         analysisTicket();
 
-        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse');
+        $this->get(analyze()->headers->get('Location'))->assertSeeText('Vorschlag');
 
         CaseAgent::assertPromptedTimes(2);
     });
@@ -308,7 +308,7 @@ describe('running an analysis', function () {
         analysisTicket();
 
         analyze(['kontext' => 'Meine Notiz'])
-            ->assertSessionHas('analysis_error', 'Die Analyse ist gerade nicht möglich. Bitte erneut versuchen.')
+            ->assertSessionHas('analysis_error', 'Der Vorschlag ist gerade nicht möglich. Bitte erneut versuchen.')
             ->assertSessionHasInput('kontext', 'Meine Notiz');
     });
 
@@ -363,7 +363,7 @@ describe('running an analysis', function () {
 
         fakeZammad([zammadArticle()], ['number' => '2137943']);
 
-        $this->get(route('tickets.show', ['number' => '2137943', 'analyse' => $query['analyse']]))->assertDontSeeText('Ergebnis der Analyse');
+        $this->get(route('tickets.show', ['number' => '2137943', 'analyse' => $query['analyse']]))->assertDontSeeText('Vorschlag von');
     });
 });
 
@@ -489,7 +489,7 @@ describe('remembered choice', function () {
 
         analyze(['kundengruppe' => 'reseller', 'produkte' => ['magic-mug']]);
 
-        $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorbelegt: wie in der angezeigten Analyse');
+        $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorbelegt: wie im angezeigten Vorschlag');
 
         Analysis::query()->delete();
         $html = $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')
@@ -551,7 +551,7 @@ describe('missing knowledge', function () {
         CaseAgent::fake([caseAnswer(['knowledge_gaps' => $gaps])]);
         analysisTicket();
 
-        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse')->assertDontSeeText('Für diesen Fall fehlt eine Regel');
+        $this->get(analyze()->headers->get('Location'))->assertSeeText('Vorschlag')->assertDontSeeText('Für diesen Fall fehlt eine Regel');
     })->with(['empty' => [[]], 'no topic' => [[['topic' => ' ', 'question' => 'x']]], 'not a list' => ['x']]);
 
     test('the prompt separates internal steps from missing rules', function () {
@@ -623,7 +623,7 @@ describe('bug fixes', function () {
         analysisTicket();
 
         analyze();
-        $this->get('/tickets/2137942')->assertSeeText('Die Analyse ist gerade nicht möglich.')->assertSee('form="analyse-formular"', false);
+        $this->get('/tickets/2137942')->assertSeeText('Der Vorschlag ist gerade nicht möglich.')->assertSee('form="analyse-formular"', false);
 
         config(['ai.providers.openai.key' => '']);
         analyze();
@@ -717,7 +717,7 @@ describe('order numbers known from the ticket', function () {
         analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000009 fehlt.</p>'])], [analysisOrder()]);
 
         $this->get(analyze()->headers->get('Location'))
-            ->assertSeeText('Bestellung 402-0000000-0000009 wurde in EOCS nicht gefunden; die Analyse kennt nur die Nummer.');
+            ->assertSeeText('Bestellung 402-0000000-0000009 wurde in EOCS nicht gefunden; der Vorschlag kennt nur die Nummer.');
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('## Bestellung 402-0000000-0000009 (im Ticket genannt, nicht aus EOCS geladen)'));
     });
@@ -729,7 +729,7 @@ describe('order numbers known from the ticket', function () {
 
         $this->get(analyze()->assertRedirect()->headers->get('Location'))
             ->assertSeeText('Die Bestelldetails konnten nicht aus EOCS geladen werden')
-            ->assertSeeText('Ergebnis der Analyse');
+            ->assertSeeText('Vorschlag');
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('402-0000000-0000001 (im Ticket genannt, nicht aus EOCS geladen)'));
     });
@@ -738,7 +738,7 @@ describe('order numbers known from the ticket', function () {
         analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000001 ist defekt.</p>'])], [analysisOrder()]);
 
         $this->get('/tickets/2137942')
-            ->assertSeeText('Vor der Analyse ruft die App die Bestelldetails aus EOCS ab: 402-0000000-0000001')
+            ->assertSeeText('Vor dem Vorschlag ruft die App die Bestelldetails aus EOCS ab: 402-0000000-0000001')
             ->assertSee('name="ohne_bestelldetails"', false);
 
         $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))

@@ -9,7 +9,7 @@
             <div>
                 <h2 class="text-base font-semibold text-slate-900">So geht es weiter</h2>
                 <p class="mt-1 text-sm text-slate-600">
-                    Nach dem Laden siehst du den ganzen Verlauf des Tickets. Die Analyse mit Bewertung, Empfehlung und Antwortentwurf folgt in einem nächsten Schritt.
+                    Nach dem Laden siehst du den ganzen Verlauf des Tickets. Der Vorschlag mit Bewertung, Empfehlung und Antwortentwurf folgt in einem nächsten Schritt.
                 </p>
             </div>
         </div>

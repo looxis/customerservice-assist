@@ -17,7 +17,7 @@ class FeedbackController extends Controller
         $stored = $store->result($analysis);
 
         if ($stored === null || ($stored['ticket'] ?? null) !== $number) {
-            return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
+            return response()->json(['message' => 'Dieser Vorschlag ist nicht mehr verfügbar.'], 404);
         }
 
         $feedback = $store->putFeedback($analysis, $request->validated('level'), $request->validated('suggested'), $request->validated('comment'), (string) $staff->current($request));

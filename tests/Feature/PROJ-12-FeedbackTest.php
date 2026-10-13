@@ -108,7 +108,7 @@ describe('feedback', function () {
 
         rate($old, ['level' => 'unchanged'])->assertOk();
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeTextInOrder(['Frühere Analysen (1)', 'unverändert nutzbar']);
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeTextInOrder(['Frühere Vorschläge (1)', 'unverändert nutzbar']);
     });
 });
 
@@ -229,11 +229,11 @@ describe('list of gaps for admins', function () {
         Analysis::factory()->create();
 
         expect(app(AnalysisStore::class)->successRate())->toBe(['share' => 67, 'rated' => 3]);
-        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertSeeText('67 %')->assertSeeText('3 bewertete Analysen');
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertSeeText('67 %')->assertSeeText('3 bewertete Vorschläge');
     });
 
     test('without ratings the figure says so', function () {
-        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertSeeText('wurde noch keine Analyse bewertet');
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertSeeText('wurde noch kein Vorschlag bewertet');
     });
 });
 
@@ -265,7 +265,7 @@ describe('bug fixes', function () {
         $id = feedbackAnalysis();
 
         $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.gaps.store', ['number' => '1111111', 'analysis' => $id]), ['missing' => 'x'])
-            ->assertSessionHas('gap_error', 'Diese Analyse ist nicht mehr verfügbar.');
+            ->assertSessionHas('gap_error', 'Dieser Vorschlag ist nicht mehr verfügbar.');
 
         expect(KnowledgeGap::query()->count())->toBe(0);
     });

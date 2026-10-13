@@ -20,14 +20,14 @@
             <details id="analyse-details" class="group/form" @if ($startOpen) open @endif x-data x-on:open-analysis-form.window="$el.open = true; $nextTick(() => $el.scrollIntoView({ block: 'start' }))">
                 <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
-                    <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Analyse</h2>
+                    <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
                     <span class="text-sm text-slate-600">
-                        Analysiert mit: {{ implode(' · ', array_filter([$usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
-                        – <span class="font-semibold text-brand">Eingaben ändern und neu analysieren</span>
+                        Erstellt mit: {{ implode(' · ', array_filter([$usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
+                        – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
                     </span>
                 </summary>
         @else
-            <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Analyse</h2>
+            <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
         @endif
 
         @if (session('analysis_error'))
@@ -43,7 +43,7 @@
 
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))) }"
-              x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Ticket wird analysiert …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
+              x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
             @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
@@ -61,7 +61,7 @@
                 <fieldset>
                     <legend class="block text-sm font-medium text-slate-900">Produkt(e)</legend>
                     @if ($analysis['products'] === [])
-                        <p class="mt-1 text-sm text-slate-600">Noch kein Produktwissen hinterlegt – Analyse ohne Produktbezug.</p>
+                        <p class="mt-1 text-sm text-slate-600">Noch kein Produktwissen hinterlegt – Vorschlag ohne Produktbezug.</p>
                     @else
                         <div class="mt-1 flex flex-wrap gap-x-4 gap-y-2">
                             @foreach ($analysis['products'] as $product)
@@ -153,16 +153,16 @@
 
             @if ($unloadedOrders !== [])
                 <div class="rounded-md bg-slate-50 p-3 text-sm ring-1 ring-slate-200 ring-inset">
-                    <p class="text-slate-900">Vor der Analyse ruft die App die Bestelldetails aus EOCS ab: <span class="font-mono">{{ implode(', ', $unloadedOrders) }}</span></p>
+                    <p class="text-slate-900">Vor dem Vorschlag ruft die App die Bestelldetails aus EOCS ab: <span class="font-mono">{{ implode(', ', $unloadedOrders) }}</span></p>
                     <label class="mt-2 inline-flex items-center gap-2 text-slate-700">
                         <input type="checkbox" name="ohne_bestelldetails" value="1" @checked(old('ohne_bestelldetails')) class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
-                        Bestelldetails nicht abrufen (die Analyse kennt dann nur die Bestellnummer)
+                        Bestelldetails nicht abrufen (der Vorschlag kennt dann nur die Bestellnummer)
                     </label>
                 </div>
             @endif
 
             <div class="flex justify-end">
-                <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Analysieren</x-button>
+                <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Vorschlag erstellen</x-button>
             </div>
         </form>
         @if ($collapsible)

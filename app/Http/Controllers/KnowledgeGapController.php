@@ -26,7 +26,7 @@ class KnowledgeGapController extends Controller
         $back = redirect()->to(route('tickets.show', array_filter(['number' => $number, 'analyse' => $analysis, 'stand' => $request->input('stand')])).'#ergebnis');
 
         if ($gap === null) {
-            return $back->with('gap_error', 'Diese Analyse ist nicht mehr verfügbar.');
+            return $back->with('gap_error', 'Dieser Vorschlag ist nicht mehr verfügbar.');
         }
 
         return $back->with('gap_reported', true);

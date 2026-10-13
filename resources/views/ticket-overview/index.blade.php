@@ -41,7 +41,7 @@
                                         @if ($row['translated'] && $row['stage'] !== 'translated')<x-badge compact>Übersetzt</x-badge>@endif
                                     </div>
                                     @if ($row['analyses'] > 0)
-                                        <p class="mt-1 text-xs text-slate-600">{{ $row['analyses'] }} {{ $row['analyses'] === 1 ? 'Analyse' : 'Analysen' }}@if ($row['feedback']) · Feedback: {{ config('analysis.feedback_levels.'.$row['feedback']) }}@endif</p>
+                                        <p class="mt-1 text-xs text-slate-600">{{ $row['analyses'] }} {{ $row['analyses'] === 1 ? 'Vorschlag' : 'Vorschläge' }}@if ($row['feedback']) · Feedback: {{ config('analysis.feedback_levels.'.$row['feedback']) }}@endif</p>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 align-top text-slate-900">{{ $visit->last_opened_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr<span class="block text-xs text-slate-600">{{ $visit->last_opened_by ?? '–' }}</span></td>

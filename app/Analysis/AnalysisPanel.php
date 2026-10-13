@@ -72,7 +72,7 @@ class AnalysisPanel
         [$group, $groupSource] = $this->suggestedGroup($ticket, $orders, $choice);
 
         if (is_string($inputs['kundengruppe'] ?? null)) {
-            [$group, $groupSource] = [$inputs['kundengruppe'], 'wie in der angezeigten Analyse'];
+            [$group, $groupSource] = [$inputs['kundengruppe'], 'wie im angezeigten Vorschlag'];
         }
 
         $chosenGroup = $inputs['kundengruppe'] ?? $choice['group'] ?? null;

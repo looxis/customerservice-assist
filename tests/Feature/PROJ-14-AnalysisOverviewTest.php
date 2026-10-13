@@ -37,7 +37,7 @@ describe('the page', function () {
     });
 
     test('an empty list says so and offers to loosen the filters', function () {
-        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertSeeText('Keine Analysen für diese Auswahl');
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertSeeText('Keine Vorschläge für diese Auswahl');
     });
 
     test('rows show ticket link, group, product, category, model, feedback, copy state and gaps, without customer content', function () {
@@ -62,7 +62,7 @@ describe('the page', function () {
 
         $page = $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['tage' => '90', 'testlaeufe' => '1', 'fehlgeschlagen' => '1']))->assertOk();
 
-        $page->assertSeeText('Fehlgeschlagen')->assertSeeText('Die Analyse ist gerade nicht möglich')->assertSeeText('Testlauf')->assertSee('title="Nicht erfasst"', false)
+        $page->assertSeeText('Fehlgeschlagen')->assertSeeText('Der Vorschlag ist gerade nicht möglich')->assertSeeText('Testlauf')->assertSee('title="Nicht erfasst"', false)
             ->assertSee('/tickets/2100003?analyse=', false)->assertSee('stand=11', false);
     });
 
@@ -110,7 +110,7 @@ describe('bug fixes', function () {
     test('a page beyond the last shows the last page', function () {
         Analysis::factory()->count(55)->create(['created_at' => now()->subDay()]);
 
-        $this->withCookie('staff_name', 'Etienne')->get('/analysen?page=99999')->assertOk()->assertSee('aria-current="page"', false)->assertDontSeeText('Keine Analysen für diese Auswahl');
+        $this->withCookie('staff_name', 'Etienne')->get('/analysen?page=99999')->assertOk()->assertSee('aria-current="page"', false)->assertDontSeeText('Keine Vorschläge für diese Auswahl');
     });
 
     test('the page links keep only the cleaned filters', function () {

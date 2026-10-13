@@ -556,7 +556,7 @@ describe('the retrieval in the result view', function () {
 
         expect($html)->toContain('Wissensabruf')->toContain('Grundwissen')->toContain('Voraussetzung ungeklärt')->toContain('Geprüft, nicht abgerufen (2)')
             ->toContain('kein Auslöser im Anliegen')->toContain('Unterdrückte Treffer')->toContain('Auslöser „Logo“ durch „unser Logo“')
-            ->toContain('Zuschalten und neu analysieren')->toContain('name="zusatzwissen[]" value="POLICY-002"')->toContain('name="zusatzwissen[]" value="POLICY-017"')
+            ->toContain('Zuschalten und neuen Vorschlag erstellen')->toContain('name="zusatzwissen[]" value="POLICY-002"')->toContain('name="zusatzwissen[]" value="POLICY-017"')
             ->toContain('name="kundengruppe" value="reseller"');
     });
 

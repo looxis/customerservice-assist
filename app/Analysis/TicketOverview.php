@@ -21,7 +21,7 @@ class TicketOverview
     public const array STAGES = [
         'opened' => 'Nur abgerufen',
         'translated' => 'Übersetzt',
-        'analyzed' => 'Analysiert',
+        'analyzed' => 'Vorschlag erstellt',
         'edited' => 'Bearbeitet, nicht kopiert',
         'copied-unchanged' => 'Kopiert (unverändert)',
         'copied-changed' => 'Kopiert (angepasst)',

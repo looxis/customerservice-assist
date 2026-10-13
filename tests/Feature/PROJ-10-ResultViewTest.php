@@ -75,7 +75,7 @@ describe('layout', function () {
         runAnalysis();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Ergebnis der Analyse', 'Was ist zu tun?', 'Freundlich absagen.', 'Du darfst das selbst entscheiden.', 'Antwortentwurf (Deutsch)', 'Kopieren', 'Begründung', 'Quellen (2)', 'Kurzfassung', 'Confidence HOCH – Gründe (1)', 'Details zur Analyse', 'Analyse', 'Analysiert mit:', 'Verlauf'])
+            ->assertSeeTextInOrder(['Vorschlag', 'Was ist zu tun?', 'Freundlich absagen.', 'Du darfst das selbst entscheiden.', 'Antwortentwurf (Deutsch)', 'Kopieren', 'Begründung', 'Quellen (2)', 'Kurzfassung', 'Confidence HOCH – Gründe (1)', 'Details zum Vorschlag', 'Vorschlag erstellen', 'Erstellt mit:', 'Verlauf'])
             ->getContent();
 
         expect($html)->toMatch('/<details id="analyse-details"[^>]*x-data/')
@@ -87,7 +87,7 @@ describe('layout', function () {
         runAnalysis(['produkte' => [], 'kontext' => 'Telefonat geführt']);
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeText('Analysiert mit: Foto-Fachhändler / Reseller · kein Produktbezug · Ganzer Verlauf')
+            ->assertSeeText('Erstellt mit: Foto-Fachhändler / Reseller · kein Produktbezug · Ganzer Verlauf')
             ->getContent();
 
         expect($html)->toContain('>Telefonat geführt</textarea>')->toMatch('/<option value="reseller"\s+selected/');
@@ -102,7 +102,7 @@ describe('layout', function () {
 
     test('without an analysis the form is open and there is no result', function () {
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertDontSeeText('Ergebnis der Analyse')
+            ->assertDontSeeText('Vorschlag von')
             ->assertDontSee('analyse-details', false);
     });
 });
@@ -186,7 +186,7 @@ describe('sources', function () {
         app(KnowledgeLibrary::class)->refresh();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['POLICY-001', 'Seit der Analyse geändert', 'Bestellungen werden nicht zusammengeführt.', 'POLICY-002', 'nicht mehr vorhanden'])
+            ->assertSeeTextInOrder(['POLICY-001', 'Seit dem Vorschlag geändert', 'Bestellungen werden nicht zusammengeführt.', 'POLICY-002', 'nicht mehr vorhanden'])
             ->assertDontSeeText('Neue Fassung.');
     });
 });
@@ -197,16 +197,16 @@ describe('finding the latest analysis', function () {
         $this->travelTo(now()->setTimezone('Europe/Berlin')->setDate(2026, 10, 6)->setTime(9, 15));
         runAnalysis();
 
-        $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Analyse von Nele, 06.10.2026, 09:15 Uhr')->assertDontSeeText('neue Nachrichten eingegangen');
+        $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorschlag von Nele, 06.10.2026, 09:15 Uhr')->assertDontSeeText('neue Nachrichten eingegangen');
     });
 
-    test('new messages since the analysis are pointed out with "Neu analysieren"', function () {
+    test('new messages since the analysis are pointed out with "Neuen Vorschlag erstellen"', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis();
         addArticles(zammadArticle(['id' => 2, 'body' => '<p>Und?</p>', 'created_at' => '2026-10-03T07:12:00.000Z']));
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeText('Seit dieser Analyse sind neue Nachrichten eingegangen.')
+            ->assertSeeText('Seit diesem Vorschlag sind neue Nachrichten eingegangen.')
             ->assertSee('open-analysis-form', false);
     });
 
@@ -220,7 +220,7 @@ describe('finding the latest analysis', function () {
     });
 
     test('an analysis that is no longer available is pointed out', function () {
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.Str::uuid())->assertSeeText('Diese Analyse ist nicht mehr verfügbar.');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.Str::uuid())->assertSeeText('Dieser Vorschlag ist nicht mehr verfügbar.');
     });
 
     test('a test run is shown only for its cut point', function () {
@@ -230,7 +230,7 @@ describe('finding the latest analysis', function () {
         runAnalysis(['stand' => '1'], 'Etienne');
 
         $this->withCookie('staff_name', 'Etienne')->withCookie('test_mode', '1')->get('/tickets/2137942?stand=1')->assertSeeText('Testlauf (Stand bis Nachricht vom');
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Ergebnis der Analyse');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Vorschlag von');
     });
 
     test('results from before PROJ-10 without the new fields are still shown', function () {
@@ -239,7 +239,7 @@ describe('finding the latest analysis', function () {
             'meta' => ['staff' => 'Nele', 'created_at' => now()->toIso8601String(), 'model' => 'gpt-5.5', 'prompt_version' => 'analysis-x', 'knowledge_state' => 'abc', 'knowledge_fingerprints' => ['POLICY-001' => 'x'], 'duration_ms' => 1000]]);
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)
-            ->assertSeeTextInOrder(['Ergebnis der Analyse', 'Antwortentwurf', 'Quellen (2)', 'POLICY-001', 'Der Text aus der Zeit der Analyse ist nicht gespeichert.']);
+            ->assertSeeTextInOrder(['Vorschlag', 'Antwortentwurf', 'Quellen (2)', 'POLICY-001', 'Der Text aus der Zeit des Vorschlags ist nicht gespeichert.']);
     });
 });
 
@@ -307,7 +307,7 @@ describe('bug fixes', function () {
         saveReply($id, ['text' => 'Spät bearbeitet']);
         $this->travel(2)->days();
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Ergebnis der Analyse')->assertSee('Spät bearbeitet', false);
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Vorschlag')->assertSee('Spät bearbeitet', false);
     });
 
     test('editing an older analysis does not replace a newer latest one', function () {

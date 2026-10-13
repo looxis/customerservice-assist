@@ -97,7 +97,7 @@
                 @if ($steps !== [])
                     <div>
                         <h3 class="text-sm font-semibold text-slate-900">Für diesen Fall <span class="font-normal text-slate-600">– von der KI aus dem Fall abgeleitet</span></h3>
-                        <p class="mt-1 text-xs text-slate-600">Nur Hinweise zum Abhaken für dich. Die Kästchen wirken sich nicht auf die Analyse aus und werden nicht gespeichert.</p>
+                        <p class="mt-1 text-xs text-slate-600">Nur Hinweise zum Abhaken für dich. Die Kästchen wirken sich nicht auf den Vorschlag aus und werden nicht gespeichert.</p>
                         <ul class="mt-2 space-y-1 text-sm">
                             @foreach ($steps as $step)
                                 <li><label class="flex items-start gap-2"><input type="checkbox" class="mt-1 rounded border-slate-300 text-brand focus:ring-brand"><span>{{ $step }}</span></label></li>
@@ -113,7 +113,7 @@
                             @error('klaerung_text')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
                             @error('klaerung_option')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
                             @error('klaerung_analyse')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
-                            <p class="mt-1 text-xs text-slate-600">Gilt für die KI als geprüfter Fakt. Danach geht die Analyse mit diesem Ergebnis weiter.</p>
+                            <p class="mt-1 text-xs text-slate-600">Gilt für die KI als geprüfter Fakt. Danach geht es mit diesem Ergebnis weiter.</p>
                             <x-button type="submit" variant="secondary" class="mt-2" x-bind:disabled="busy || (choice === '' && note.trim() === '')"><x-icon name="refresh" size="16" /> Mit diesem Ergebnis fortsetzen</x-button>
                         </div>
                     </form>

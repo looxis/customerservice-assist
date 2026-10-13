@@ -34,7 +34,7 @@
         </x-ticket.header>
         @isset($analysis)
             @if ($analysis['resultMissing'])
-                <x-alert type="warning">Diese Analyse ist nicht mehr verfügbar.</x-alert>
+                <x-alert type="warning">Dieser Vorschlag ist nicht mehr verfügbar.</x-alert>
             @endif
 
             @if ($analysis['deletion'])

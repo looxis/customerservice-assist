@@ -2,11 +2,11 @@
     <x-card>
         <h2 class="text-base font-semibold text-slate-900">Brauchbarkeit der Vorschläge</h2>
         @if ($success === null)
-            <p class="mt-2 text-sm text-slate-600">In den letzten {{ config('analysis.feedback_success_days') }} Tagen wurde noch keine Analyse bewertet.</p>
+            <p class="mt-2 text-sm text-slate-600">In den letzten {{ config('analysis.feedback_success_days') }} Tagen wurde noch kein Vorschlag bewertet.</p>
         @else
             <p class="mt-2 text-sm text-slate-900">
                 <span class="font-display text-2xl font-semibold">{{ $success['share'] }} %</span>
-                „unverändert nutzbar“ oder „leicht angepasst“ – {{ $success['rated'] }} bewertete Analysen der letzten {{ config('analysis.feedback_success_days') }} Tage, ohne Testläufe. Ziel laut PRD: mindestens 70 %.
+                „unverändert nutzbar“ oder „leicht angepasst“ – {{ $success['rated'] }} bewertete Vorschläge der letzten {{ config('analysis.feedback_success_days') }} Tage, ohne Testläufe. Ziel laut PRD: mindestens 70 %.
             </p>
         @endif
     </x-card>

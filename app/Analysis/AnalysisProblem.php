@@ -12,7 +12,7 @@ enum AnalysisProblem: string
     public function message(): string
     {
         return match ($this) {
-            self::Unavailable => 'Die Analyse ist gerade nicht möglich. Bitte erneut versuchen.',
+            self::Unavailable => 'Der Vorschlag ist gerade nicht möglich. Bitte erneut versuchen.',
             self::Misconfigured => 'Die Verbindung zum Sprachmodell ist nicht eingerichtet oder ungültig. Bitte wende dich an den Entwickler.',
             self::InvalidResult => 'Das Sprachmodell hat kein verwertbares Ergebnis geliefert. Bitte erneut versuchen.',
             self::KnowledgeTooLarge => 'Wissen und Ticketverlauf sind zu umfangreich. Bitte die Zusammenfassung des bisherigen Verlaufs verwenden oder den Admin informieren.',

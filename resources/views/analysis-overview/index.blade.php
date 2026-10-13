@@ -5,7 +5,7 @@
     $productName = fn (string $slug): string => $productTitles[$slug] ?? $slug;
 @endphp
 
-<x-layouts.app title="Analysen" width="6xl">
+<x-layouts.app title="Vorschläge" width="6xl">
     <x-card>
         <form method="GET" action="{{ route('analysis-overview.index') }}" class="space-y-4" aria-label="Filter">
             @if ($filter->problem)
@@ -93,7 +93,7 @@
 
     <section aria-label="Kennzahlen" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <x-card>
-            <p class="text-xs font-semibold text-slate-600">Analysen</p>
+            <p class="text-xs font-semibold text-slate-600">Vorschläge</p>
             <p class="mt-1 font-display text-2xl font-semibold text-slate-900">{{ $figures['count'] }}</p>
             <p class="mt-1 text-xs text-slate-600">{{ $figures['rated'] }} mit Feedback · Ziel „unverändert/leicht“: mind. 70 %</p>
         </x-card>
@@ -118,7 +118,7 @@
                 </p>
                 <p class="mt-1 text-xs text-slate-600">
                     Ausfallquote: {{ $router['failure_share'] === null ? '–' : $router['failure_share'].' %' }}
-                    · Ergänzungen je ausgeführter Analyse: {{ $router['additions'] === null ? '–' : number_format($router['additions'], 1, ',', '.') }}
+                    · Ergänzungen je ausgeführtem Vorschlag: {{ $router['additions'] === null ? '–' : number_format($router['additions'], 1, ',', '.') }}
                     · zusätzlicher Umfang: {{ $router['characters'] === null ? '–' : number_format($router['characters'], 0, ',', '.').' Zeichen' }}
                     · Laufzeit: {{ $router['duration_ms'] === null ? '–' : number_format($router['duration_ms'] / 1000, 1, ',', '.').' s' }}
                     · Tokens (Ein/Aus): {{ $router['input_tokens'] === null ? '–' : number_format($router['input_tokens'], 0, ',', '.').' / '.number_format($router['output_tokens'], 0, ',', '.') }}
@@ -130,7 +130,7 @@
 
     <x-card class="p-0">
         @if ($rows->isEmpty())
-            <p class="p-6 text-sm text-slate-600">Keine Analysen für diese Auswahl. Lockere die Filter oder wähle einen längeren Zeitraum.</p>
+            <p class="p-6 text-sm text-slate-600">Keine Vorschläge für diese Auswahl. Lockere die Filter oder wähle einen längeren Zeitraum.</p>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[64rem] text-left text-sm">

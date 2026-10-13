@@ -4,7 +4,7 @@
 @if ($current === null && $names !== [])
     <div x-data x-show="! $store.staff.name" role="region" aria-label="Name wählen" class="rounded-md bg-warning-500/10 p-4 ring-1 ring-warning-500/20 ring-inset">
         <p class="text-sm font-semibold text-warning-700">Bitte wähle zuerst deinen Namen.</p>
-        <p class="mt-1 text-sm text-slate-700">Analysen und Rückmeldungen werden diesem Namen zugeordnet. Du wählst ihn einmal; der Browser merkt ihn sich.</p>
+        <p class="mt-1 text-sm text-slate-700">Vorschläge und Rückmeldungen werden diesem Namen zugeordnet. Du wählst ihn einmal; der Browser merkt ihn sich.</p>
         <form
             method="POST"
             action="{{ route('staff.select') }}"

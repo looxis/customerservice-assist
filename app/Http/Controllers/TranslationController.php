@@ -58,7 +58,7 @@ class TranslationController extends Controller
         }
 
         if ($result === null) {
-            return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
+            return response()->json(['message' => 'Dieser Vorschlag ist nicht mehr verfügbar.'], 404);
         }
 
         return response()->json(['text' => $result['text']]);

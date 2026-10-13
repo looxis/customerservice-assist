@@ -231,7 +231,7 @@ describe('older results', function () {
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertOk()
             ->assertSeeText('Altes To-do')
-            ->assertSeeText('Fehlende Angaben (ältere Analyse)')
+            ->assertSeeText('Fehlende Angaben (älterer Vorschlag)')
             ->assertSeeText('Antwortentwurf (Deutsch)');
     });
 });

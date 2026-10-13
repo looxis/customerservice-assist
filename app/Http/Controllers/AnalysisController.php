@@ -72,12 +72,12 @@ class AnalysisController extends Controller
                 $orders = [...$orders, ...$lookup->orders];
 
                 if (! $lookup->found()) {
-                    $inputNotes[] = "Bestellung {$lookup->number->value} wurde in EOCS nicht gefunden; die Analyse kennt nur die Nummer.";
+                    $inputNotes[] = "Bestellung {$lookup->number->value} wurde in EOCS nicht gefunden; der Vorschlag kennt nur die Nummer.";
                 }
             }
         } catch (EocsException $exception) {
             $orders = [];
-            $inputNotes[] = 'Die Bestelldetails konnten nicht aus EOCS geladen werden ('.rtrim($exception->problem->message(), '.').'). Die Analyse kennt nur die Bestellnummern aus dem Ticket.';
+            $inputNotes[] = 'Die Bestelldetails konnten nicht aus EOCS geladen werden ('.rtrim($exception->problem->message(), '.').'). Der Vorschlag kennt nur die Bestellnummern aus dem Ticket.';
         }
 
         $loaded = array_map(fn (EocsOrder $order): string => $order->externalNumber, $orders);
@@ -203,15 +203,15 @@ class AnalysisController extends Controller
         $stored = $store->result($analysis);
 
         if ($stored === null || ($stored['ticket'] ?? null) !== $number) {
-            return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
+            return response()->json(['message' => 'Dieser Vorschlag ist nicht mehr verfügbar.'], 404);
         }
 
         if ($store->latest((string) $stored['scope']) !== $analysis) {
-            return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
+            return response()->json(['message' => 'Ältere Vorschläge sind nur lesbar.'], 409);
         }
 
         if (! is_array($stored['result']['reply'] ?? null)) {
-            return response()->json(['message' => 'Zu dieser Analyse gibt es noch keinen Antwortentwurf.'], 409);
+            return response()->json(['message' => 'Zu diesem Vorschlag gibt es noch keinen Antwortentwurf.'], 409);
         }
 
         $now = CarbonImmutable::now();
@@ -236,15 +236,15 @@ class AnalysisController extends Controller
         $stored = $store->result($analysis);
 
         if ($stored === null || ($stored['ticket'] ?? null) !== $number) {
-            return response()->json(['message' => 'Diese Analyse ist nicht mehr verfügbar.'], 404);
+            return response()->json(['message' => 'Dieser Vorschlag ist nicht mehr verfügbar.'], 404);
         }
 
         if ($store->latest((string) $stored['scope']) !== $analysis) {
-            return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
+            return response()->json(['message' => 'Ältere Vorschläge sind nur lesbar.'], 409);
         }
 
         if (! is_array($stored['result']['reply'] ?? null)) {
-            return response()->json(['message' => 'Zu dieser Analyse gibt es noch keinen Antwortentwurf.'], 409);
+            return response()->json(['message' => 'Zu diesem Vorschlag gibt es noch keinen Antwortentwurf.'], 409);
         }
 
         if ($store->ruleCheckBlocksCopy($analysis)) {

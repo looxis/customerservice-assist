@@ -57,7 +57,7 @@
             <p class="mt-1 text-slate-600">Alles im Geltungsbereich wurde abgerufen.</p>
         @else
             <form method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-2" x-data="{ busy: false }"
-                  x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Ticket wird analysiert …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })">
+                  x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })">
                 @csrf
                 @if ($stand)<input type="hidden" name="stand" value="{{ $stand }}">@endif
                 @foreach (['kundengruppe', 'kontext', 'variante', ...array_keys(\App\Http\Requests\AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)] as $field)
@@ -81,7 +81,7 @@
                     @endforeach
                 </ul>
                 @if ($isLatest)
-                    <p class="mt-3"><x-button type="submit" variant="secondary"><x-icon name="refresh" size="16" /> Zuschalten und neu analysieren</x-button></p>
+                    <p class="mt-3"><x-button type="submit" variant="secondary"><x-icon name="refresh" size="16" /> Zuschalten und neuen Vorschlag erstellen</x-button></p>
                 @endif
             </form>
         @endif

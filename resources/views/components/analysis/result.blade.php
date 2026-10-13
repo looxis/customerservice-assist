@@ -29,8 +29,8 @@
     <x-card>
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
-                <h2 id="result-heading" class="text-base font-semibold text-slate-900">Ergebnis der Analyse</h2>
-                <p class="mt-1 text-sm text-slate-600">Analyse von {{ $meta['staff'] }}, {{ $time($meta['created_at']) }} Uhr</p>
+                <h2 id="result-heading" class="text-base font-semibold text-slate-900">Vorschlag</h2>
+                <p class="mt-1 text-sm text-slate-600">Vorschlag von {{ $meta['staff'] }}, {{ $time($meta['created_at']) }} Uhr</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 @if (($retrieval['router']['status'] ?? null) === 'failed')
@@ -51,7 +51,7 @@
             <details class="group/history mt-3 rounded-md ring-1 ring-slate-200 ring-inset">
                 <summary class="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 hover:text-brand focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/history:rotate-90" />
-                    Frühere Analysen ({{ count($history) - 1 }})
+                    Frühere Vorschläge ({{ count($history) - 1 }})
                 </summary>
                 <ul class="divide-y divide-slate-100 border-t border-slate-100 text-sm">
                     @foreach ($history as $entry)
@@ -77,7 +77,7 @@
 
         @if (! $isLatest)
             <x-alert type="warning" class="mt-4">
-                Ältere Analyse vom {{ $time($meta['created_at']) }} Uhr – nur lesbar.
+                Älterer Vorschlag vom {{ $time($meta['created_at']) }} Uhr – nur lesbar.
                 <a href="{{ $link(null) }}" class="font-semibold underline">Zur neuesten</a>
             </x-alert>
         @endif
@@ -88,9 +88,9 @@
 
         @if ($result['new_messages'])
             <x-alert type="warning" class="mt-4">
-                <p>Seit dieser Analyse sind neue Nachrichten eingegangen.</p>
+                <p>Seit diesem Vorschlag sind neue Nachrichten eingegangen.</p>
                 <p class="mt-3">
-                    <x-button variant="secondary" x-data x-on:click="$dispatch('open-analysis-form')"><x-icon name="refresh" size="16" /> Neu analysieren</x-button>
+                    <x-button variant="secondary" x-data x-on:click="$dispatch('open-analysis-form')"><x-icon name="refresh" size="16" /> Neuen Vorschlag erstellen</x-button>
                 </p>
             </x-alert>
         @endif
@@ -219,14 +219,14 @@
                             <span class="font-medium">{{ $source['title'] ?? '–' }}</span>
                             @if ($source['type'])<x-badge compact>{{ $source['type'] }}</x-badge>@endif
                             @if ($source['draft'])<x-badge compact tone="warning">Entwurf</x-badge>@endif
-                            @if ($source['state'] === 'changed')<x-badge compact tone="info">Seit der Analyse geändert</x-badge>@endif
+                            @if ($source['state'] === 'changed')<x-badge compact tone="info">Seit dem Vorschlag geändert</x-badge>@endif
                             @if ($source['state'] === 'removed')<x-badge compact tone="danger">nicht mehr vorhanden</x-badge>@endif
                         </summary>
                         <div class="pb-4 pl-6">
                             @if ($source['html'])
                                 <x-knowledge.text :html="$source['html']" class="text-sm" />
                             @else
-                                <p class="text-slate-600">Der Text aus der Zeit der Analyse ist nicht gespeichert.</p>
+                                <p class="text-slate-600">Der Text aus der Zeit des Vorschlags ist nicht gespeichert.</p>
                             @endif
                             @if ($source['url'])
                                 <p class="mt-3"><a href="{{ $source['url'] }}" class="font-semibold text-brand hover:text-brand-hover">In der Knowledge-Übersicht öffnen</a></p>
@@ -256,7 +256,7 @@
             </x-analysis.section>
 
             @if ($legacyMissing !== [])
-                <x-analysis.section title="Fehlende Angaben (ältere Analyse)" :count="count($legacyMissing)">
+                <x-analysis.section title="Fehlende Angaben (älterer Vorschlag)" :count="count($legacyMissing)">
                     <ul class="space-y-2">
                         @foreach ($legacyMissing as $item)
                             <li>{{ $item['what'] ?? '' }} <span class="text-slate-600">– von {{ $item['from'] ?? '' }}</span><br><span class="font-medium">Rückfrage:</span> {{ $item['question'] ?? '' }}</li>
@@ -285,7 +285,7 @@
                 </x-analysis.section>
             @endif
 
-            <x-analysis.section title="Details zur Analyse">
+            <x-analysis.section title="Details zum Vorschlag">
                 <p class="font-mono text-xs text-slate-600">
                     {{ $meta['staff'] }} · {{ $time($meta['created_at']) }} Uhr · {{ $meta['model'] }} · Prompt {{ $meta['prompt_version'] }} · Wissensstand {{ $meta['knowledge_state'] }} · {{ number_format($meta['duration_ms'] / 1000, 1, ',', '.') }} s
                 </p>
