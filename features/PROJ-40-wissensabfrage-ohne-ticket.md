@@ -77,9 +77,9 @@ Heute gibt es die App nur zu einem Zammad-Ticket. Mitarbeiter haben aber auch Fr
 - Browser: Chrome, Firefox, Safari; Seite für Desktop und Tablet gedacht, mobil nutzbar.
 
 ## Open Questions
-- [ ] Wie viele Fragen zeigt der persönliche Verlauf, und wo steht er (Seite „Frage stellen“ oder Seitenleiste)?
-- [ ] Soll die Option „Antwortentwurf“ auch nachträglich per Button am Vorschlag angeboten werden, oder reicht die Nachfrage?
-- [ ] Wie lang darf der Text sein (gleich wie das Kontextfeld oder länger für eingefügte Kundentexte)?
+- [x] Persönlicher Verlauf: Empfehlung der Architektur: 10 Einträge auf der Seite „Frage stellen“ (zu bestätigen).
+- [x] Nachträglicher Entwurf: über die Nachfrage mit Kontrollkästchen, kein eigener Knopf (Architektur-Empfehlung, zu bestätigen).
+- [x] Textlänge: Empfehlung 6000 Zeichen (länger als das Kontextfeld wegen eingefügter Kundentexte), zu bestätigen.
 - [ ] Wie wird die Namensgebung der Navigation endgültig („Ticket analysieren“ bleibt oder wird z. B. „Ticket bearbeiten“)?
 - [ ] Zählt die Frage ohne Ticket in einer eigenen Kennzahl (z. B. „Gestellte Fragen“) in der Seitenleiste?
 
@@ -101,12 +101,89 @@ Heute gibt es die App nur zu einem Zammad-Ticket. Mitarbeiter haben aber auch Fr
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Frage = Fall mit F-Kennung in der bestehenden Analyse-Tabelle, keine neue Tabelle | Protokoll, Feedback, Lücken, Fortsetzen, Aufbewahrung und Verschlüsselung gelten sofort; eine Datenbankänderung ist nicht nötig | 2026-10-13 |
+| Zulässige Kennung in den Adressen für Feedback, Lücke, Entwurf, Kopieren, Rückübersetzung wird auf F-Kennung erweitert; die Ticketseite bleibt nur für Ziffern | Wiederverwendung statt doppelter Wege; ein Zammad-Abruf mit F-Kennung ist ausgeschlossen | 2026-10-13 |
+| Eigener Eingang und Controller, künstliches (nie gespeichertes) Ticket mit einer Nachricht für den Analysekern | Wissensabruf, Platzhalter und Validierung bleiben unverändert | 2026-10-13 |
+| Dritter Zustand „nur Auskunft“ im Analysevertrag | Antwortentwurf nur auf Wunsch, ohne ihn als „zuerst intern klären“ auszugeben | 2026-10-13 |
+| Prompt-Zusatz nur zur Form (kein Ticket, Text vom Mitarbeiter, Entwurf gewünscht ja/nein) | Fachliche Regeln bleiben in der Wissensdatenbank | 2026-10-13 |
+| Keine Übersetzung und keine Zusammenfassung für Fragen | Beides hängt an Zammad-Nachrichten; die KI versteht Fremdsprachen direkt | 2026-10-13 |
+| Nachfrage = Fortsetzen aus PROJ-39 mit Kontrollkästchen für den Entwurf | Ein Mechanismus für Klärung, Nachfrage und nachträglichen Entwurf | 2026-10-13 |
+| Umbenennung „Analyse“ → „Vorschlag“ als eigener Schritt vor dem neuen Weg | Viele Texte und Tests; Trennung hält die Änderungen prüfbar | 2026-10-13 |
+| Ticket-Übersicht und „Bearbeitete Tickets“ zählen keine Fragen, Analysen-Übersicht bekommt Filter | Fragen sind keine Tickets; Auswertung bleibt vergleichbar | 2026-10-13 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Grundidee
+Eine Frage ohne Ticket wird intern wie ein **Fall mit einer einzigen Nachricht** behandelt. Der Text des Mitarbeiters übernimmt die Rolle des Tickettextes; alles Weitere (gezielter Wissensabruf mit Router, Kundengruppe und Produkt, Platzhalter für Kontaktdaten, feste Ergebnisstruktur, Quellen, Protokoll, Feedback, Wissenslücken, Fortsetzung aus PROJ-39) läuft über denselben Weg wie die Ticketanalyse. Es entsteht keine zweite Analyse-Maschine, sondern nur ein anderer Eingang und eine andere Seite.
+
+Backend ist nötig (Speicherung, KI-Aufruf), es kommen **keine neuen Pakete** und **keine neue Datenbanktabelle** dazu.
+
+### A) Seitenstruktur
+```
+Seitenleiste
++-- Ticket analysieren (bleibt, Umbenennung offen)
++-- Frage stellen (neu)
+
+Seite „Frage stellen“
++-- Hinweis: keine Kundendaten eintragen
++-- Formular
+|   +-- Textfeld (Frage, Anrufnotiz oder eingefügter Kundentext)
+|   +-- Kundengruppe (Standard „Noch unklar“)
+|   +-- Produkte (optional)
+|   +-- Kontrollkästchen „Auch einen Antwortentwurf an den Kunden formulieren“
++-- Meine letzten Fragen (nur eigene, Datum + Textanfang, öffnet die Frage)
+
+Seite „Frage“ (nach dem Abschicken, auch später aus dem Verlauf)
++-- Ergebnis „Vorschlag“ (dieselbe Komponente wie beim Ticket)
+|   +-- Was ist zu tun? / Befugnis / Wissenslücken
+|   +-- Antwortentwurf (nur wenn gewünscht) ODER Hinweis „Kein Antwortentwurf angefordert“
+|   +-- Feedback, Wissenslücke melden, Begründung, Quellen, Wissensabruf
++-- Interne Abläufe (Klärung, Schritte, Arbeitsanleitungen) wie bei PROJ-39
++-- Nachfrage / Ergänzung (Textfeld + Kontrollkästchen „Antwortentwurf formulieren“)
+```
+Wiederverwendet werden die vorhandenen Komponenten (`analysis/result`, `analysis/procedures`, `analysis/form`-Bausteine für Kundengruppe und Produkte, `reply-editor`, `feedback`, `gap-form`). Neu sind nur die Seiten „Frage stellen“ und „Frage“ und ein kleiner Block für die Nachfrage.
+
+### B) Datenmodell (in Worten)
+Gespeichert wird in der **bestehenden Analyse-Tabelle**; es gibt keine neue Tabelle und keine Änderung an Spalten.
+```
+Jede Frage ist ein Fall mit einer eigenen Kennung statt einer Ticketnummer:
+- Kennung: der Buchstabe F plus acht Ziffern (z. B. F48201736), zufällig vergeben, nur für die App
+- Nachfragen derselben Frage behalten die Kennung; jede Nachfrage ist wie bei Tickets eine neue Zeile
+- Gespeichert wie jede Analyse: Mitarbeiter, Kundengruppe, Produkte, Kategorie, Modell, Prompt-Version,
+  Wissensstand, Kennzahlen (offen lesbar) sowie der Text der Frage und der ganze Vorschlag (verschlüsselt)
+- Die Frage steht im verschlüsselten Inhalt als „Anfrage“; ein Ticket (Zammad) gibt es nicht
+- Nachfragen werden wie die Klärungen aus PROJ-39 gespeichert (Frage + Antwort + Name + Zeit)
+- Aufbewahrung 12 Monate wie bisher, danach werden die Inhalte gelöscht
+```
+Der Verlauf je Mitarbeiter ist eine Abfrage: „alle Fälle mit Kennung F…, Mitarbeiter = ich, neueste zuerst, höchstens 10, je Frage nur die neueste Zeile“. Feedback und gemeldete Wissenslücken nutzen ihre bestehenden Tabellen mit der F-Kennung an der Stelle der Ticketnummer.
+
+### C) Tech-Entscheidungen (begründet)
+- **Fall mit F-Kennung statt eigener Tabelle:** Alles, was Analysen schon können (Protokoll, Feedback, Wissenslücken, Entwurf bearbeiten, Kopieren, Fortsetzen, Aufbewahrung, Verschlüsselung, Admin-Übersicht), funktioniert damit sofort, und es gibt nur einen Weg zu pflegen. Die Kennzeichnung „Frage ohne Ticket“ ergibt sich aus der Kennung; dafür braucht es keine Datenbankänderung.
+- **Zulässige Kennungen erweitern:** Die bestehenden Adressen für Feedback, Lücke melden, Entwurf speichern und Kopieren erlauben bisher nur Ziffern. Sie erlauben künftig zusätzlich die F-Kennung; die Seite „Ticket“ selbst bleibt auf echte Ticketnummern beschränkt. Die Ticketanalyse darf mit einer F-Kennung nie ein Zammad-Ticket abrufen.
+- **Eigene Eingangsseite und eigener Controller für die Frage:** „Frage stellen“ und „Frage“ sind eigene Seiten, weil das Ticket-Formular am Zammad-Abruf hängt. Der Kern (`CaseAnalyzer`) bekommt den Text als einzige Nachricht eines künstlichen, nie gespeicherten Tickets; dadurch ändern sich Wissensabruf und Validierung nicht.
+- **Neuer Zustand im Analysevertrag: „nur Auskunft“:** Neben „Antwort“ und „erst intern klären“ (PROJ-39) kommt der dritte Fall „Auskunft für den Mitarbeiter, kein Antwortentwurf“. Wird der Entwurf ausdrücklich verlangt, gilt wie bisher „Antwort“. Das Kontrollkästchen geht als Angabe in den Prompt; entscheiden über Form und Inhalt tut weiterhin die Wissensdatenbank, nicht der Prompt.
+- **Kleiner Prompt-Zusatz, keine fachlichen Regeln:** Ein kurzer Abschnitt sagt der KI, dass es kein Ticket gibt, der Text vom Mitarbeiter stammt (Frage, Notiz oder eingefügte Kundennachricht), und ob ein Entwurf gewünscht ist. Er wird versioniert wie die anderen Prompts.
+- **Kontaktdaten:** Der vorhandene Platzhalter-Mechanismus wird auf den Text angewendet, bevor er an den Anbieter geht; der Hinweis steht am Textfeld. Bestellnummern im Text werden nicht in EOCS nachgeschlagen.
+- **Keine Übersetzung der Frage, kein Zusammenfassen:** Beides hängt an Zammad-Nachrichten. Ein fremdsprachiger Kundentext wird von der KI direkt verstanden; der Entwurf kommt in der Sprache des Textes.
+- **Nachfragen über die Fortsetzung aus PROJ-39:** Die Nachfrage mit dem Kontrollkästchen „Antwortentwurf formulieren“ ist dasselbe Fortsetzen wie die interne Klärung. Dadurch ist der nachträgliche Entwurf ohne eigenen Knopf abgedeckt.
+- **Schutz:** Wie bei Tickets Namensauswahl Pflicht, Begrenzung der KI-Aufrufe pro Minute, Prüfung aller Eingaben in eigenen Prüfklassen, Text wird beim Anzeigen maskiert. Nachfragen sind nur an der neuesten Zeile der Frage und nur für den Mitarbeiter möglich, dem sie gehört; fremde Fragen lassen sich nicht öffnen.
+- **Auswirkungen auf Zählungen:** „Bearbeitete Tickets“ (Seitenleiste, PROJ-41) und die Ticket-Übersicht (PROJ-35) zählen keine Fragen. Die Analysen-Übersicht (PROJ-14) bekommt eine Kennzeichnung „Frage“ und einen Filter „Tickets / Fragen“, die Kennzahlen gelten für die gefilterte Menge.
+- **Begriffe in der Oberfläche zuerst und für beide Wege:** Als eigener Schritt wird „Analyse“ in sichtbaren Texten durch „Vorschlag“ ersetzt (Überschriften, Knöpfe, Verlauf, Hilfetexte, Seite „Über die App“). Code, Datenbank und Protokolle behalten „Analyse“. Dieser Schritt berührt viele Texte und Tests und wird deshalb getrennt vom neuen Weg umgesetzt.
+
+### D) Reihenfolge der Umsetzung
+1. **Begriffe:** „Analyse“ → „Vorschlag“ in der Oberfläche beider Wege, Tests und Hilfetexte anpassen.
+2. **Vertrag:** Zustand „nur Auskunft“, Prompt-Zusatz, Prüfung, Anzeige ohne Entwurf.
+3. **Eingang:** Seite „Frage stellen“, künstliches Ticket, Speichern, Anzeige der Frage, Verlauf je Mitarbeiter.
+4. **Fortsetzen:** Nachfrage mit Kontrollkästchen für den Entwurf.
+5. **Auswirkungen:** Zählungen, Analysen-Übersicht, Über die App.
+
+### E) Abhängigkeiten
+- Keine neuen Pakete.
+- Konfiguration: eine Obergrenze für die Länge des Fragetextes (Vorschlag 6000 Zeichen, damit eingefügte Kundentexte Platz haben) und die Zahl der Einträge im Verlauf (Vorschlag 10).
+
 
 ## QA Test Results
 _To be added by /qa_
