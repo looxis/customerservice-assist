@@ -678,6 +678,7 @@ test('the cost of one analysis follows the configured price of the model, model 
 
 describe('the check of the summary for the router', function () {
     $warnings = function (string $summary): string {
+        config(['knowledge.retrieval.summary_min_length' => 60]);
         $library = knowledgeBase(rtrDoc(1, ['summary' => $summary, 'triggers' => ['Eisberg']]));
 
         return messagesOf($library, 'warning');
@@ -692,10 +693,12 @@ describe('the check of the summary for the router', function () {
         expect($warnings('Gilt, wenn ein Kunde sich über die Größe des eingelaserten Motivs im Glas beklagt.'))->not->toContain('summary');
     });
 
-    test('the limit is configurable', function () use ($warnings) {
+    test('the limit is configurable', function () {
+        $library = knowledgeBase(rtrDoc(1, ['summary' => 'Wenn es klein ist.', 'triggers' => ['Eisberg']]));
         config(['knowledge.retrieval.summary_min_length' => 10]);
+        $again = knowledgeBase(rtrDoc(1, ['summary' => 'Wenn es klein ist.', 'triggers' => ['Eisberg']]));
 
-        expect($warnings('Wenn es klein ist.'))->not->toContain('sehr kurz');
+        expect(messagesOf($again, 'warning'))->not->toContain('sehr kurz');
     });
 });
 
