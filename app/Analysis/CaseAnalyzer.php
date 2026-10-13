@@ -68,6 +68,7 @@ class CaseAnalyzer
             $prompt = new Prompt($prompt->name, $prompt->version.'+'.$questionRules->version, $prompt->text."\n\n".$questionRules->text);
         }
 
+        $outOfScope = $active ? $this->outOfScope($request, $context) : [];
         $parts = $this->parts($request, $pseudonymizer->hasDeliveryAddress(), $active);
         $started = hrtime(true);
         $retrieval = null;
@@ -125,7 +126,7 @@ class CaseAnalyzer
             'notes' => [...$notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
-            ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router)]),
+            ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
             'meta' => [
                 'staff' => $request->staffName,
                 'test_until' => $request->ticket->rewoundAt()?->toIso8601String(),
@@ -398,7 +399,7 @@ class CaseAnalyzer
      * @param  list<string>  $manual
      * @return array<string, mixed>
      */
-    private function record(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard, array $manual, ?string $ruleCheck, ?RouterOutcome $router = null): array
+    private function record(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard, array $manual, ?string $ruleCheck, ?RouterOutcome $router = null, array $outOfScope = []): array
     {
         $reasons = [];
 
@@ -422,6 +423,7 @@ class CaseAnalyzer
                 ];
             }, $selection->selected)),
             'not_retrieved' => array_values(array_map(fn (array $item): array => ['id' => $item['document']->id, 'title' => $item['document']->title, 'code' => $item['code'], 'detail' => $item['detail']], $retrieval->notRetrieved)),
+            'out_of_scope' => $outOfScope,
             'suppressed' => $retrieval->suppressed,
             'conditions' => array_map(fn (Evaluation $evaluation): array => ['result' => $evaluation->result->value, 'order' => $evaluation->order, 'order_unclear' => $evaluation->orderUnclear, 'checks' => $evaluation->checks], $retrieval->evaluations),
             'unclassified' => $retrieval->unclassified,
@@ -433,6 +435,27 @@ class CaseAnalyzer
             'sizes' => ['knowledge' => $selection->characterCount(), 'mandatory' => $retrieval->mandatoryCharacters, 'target' => $retrieval->target, 'available' => $retrieval->available],
             'warnings' => $retrieval->warnings,
         ];
+    }
+
+    /**
+     * The documents that were not even checked because customer group or product put them out of scope
+     * (PROJ-44), with the cause: no product chosen, another product, or another customer group.
+     *
+     * @return list<array{id: string|null, title: string|null, cause: string, reason: string, products: list<string>}>
+     */
+    private function outOfScope(AnalysisRequest $request, CaseContext $context): array
+    {
+        return array_values(array_map(function (KnowledgeSelectionEntry $entry) use ($request): array {
+            $document = $entry->document;
+
+            return [
+                'id' => $document->id,
+                'title' => $document->title,
+                'cause' => $request->customerGroup->exclusionReason($document) !== null ? 'group' : ($request->products === [] ? 'product-missing' : 'product'),
+                'reason' => $entry->reason,
+                'products' => $document->boundProducts(),
+            ];
+        }, $this->selector->scope($context)['excluded']));
     }
 
     /**

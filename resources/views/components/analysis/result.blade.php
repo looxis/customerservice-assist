@@ -165,6 +165,20 @@
                 </x-alert>
             @endif
 
+            @php($withoutProduct = collect($retrieval['out_of_scope'] ?? [])->where('cause', 'product-missing'))
+            @if ($withoutProduct->isNotEmpty() && ! ($meta['unknown_product'] ?? null))
+                @php($productNames = collect(app(\App\Knowledge\KnowledgeSelector::class)->products())->mapWithKeys(fn (array $product): array => [$product['slug'] => $product['name'] ?? $product['title']]))
+                <x-alert type="warning">
+                    <p class="font-semibold">Ohne Produktwahl nicht berücksichtigt</p>
+                    <p class="mt-1">{{ $withoutProduct->count() }} {{ $withoutProduct->count() === 1 ? 'Dokument gilt' : 'Dokumente gelten' }} nur für bestimmte Produkte
+                        ({{ $withoutProduct->pluck('products')->flatten()->unique()->take(4)->map(fn ($slug) => $productNames[$slug] ?? $slug)->implode(', ') }}{{ $withoutProduct->pluck('products')->flatten()->unique()->count() > 4 ? ' …' : '' }}) und wurde nicht geprüft, weil kein Produkt gewählt war.
+                        Geht es um ein Produkt, wähle es und erstelle den Vorschlag neu.</p>
+                    @unless ($question)
+                        <p class="mt-2"><x-button variant="secondary" x-data x-on:click="$dispatch('open-analysis-form')"><x-icon name="refresh" size="16" /> Produkt wählen und neu erstellen</x-button></p>
+                    @endunless
+                </x-alert>
+            @endif
+
             @if (($meta['knowledge_fingerprints'] ?? null) === [])
                 <x-alert type="warning">
                     <p class="font-semibold">Kein Wissen für diesen Fall</p>

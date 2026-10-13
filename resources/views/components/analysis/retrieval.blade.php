@@ -86,6 +86,43 @@
             </form>
         @endif
 
+        @php
+            $outOfScope = collect($retrieval['out_of_scope'] ?? []);
+            $productNames = collect(app(\App\Knowledge\KnowledgeSelector::class)->products())->mapWithKeys(fn (array $product): array => [$product['slug'] => $product['name'] ?? $product['title']]);
+            $scopeGroups = [
+                'product-missing' => ['Gelten nur für bestimmte Produkte – es war keins gewählt', 'Diese Dokumente wurden gar nicht geprüft. Gehört der Fall zu einem Produkt, wähle es und erstelle den Vorschlag neu.'],
+                'product' => ['Gelten für andere Produkte als die gewählten', null],
+                'group' => ['Gelten nur für andere Kundengruppen', null],
+            ];
+        @endphp
+        @if ($outOfScope->isNotEmpty())
+            <details class="mt-4 rounded-md ring-1 ring-slate-200 ring-inset" id="ausserhalb-geltungsbereich" @if ($outOfScope->contains('cause', 'product-missing')) open @endif>
+                <summary class="cursor-pointer p-3 font-semibold">Nicht geprüft, außerhalb des Geltungsbereichs ({{ $outOfScope->count() }})</summary>
+                <div class="space-y-4 p-3 pt-0">
+                    @foreach ($scopeGroups as $cause => [$heading, $note])
+                        @php
+                            $items = $outOfScope->where('cause', $cause)->values();
+                        @endphp
+                        @if ($items->isNotEmpty())
+                            <div>
+                                <p class="font-medium text-slate-900">{{ $heading }} ({{ $items->count() }})</p>
+                                @if ($note)<p class="mt-1 text-xs text-slate-600">{{ $note }}</p>@endif
+                                <ul class="mt-2 space-y-1 text-xs">
+                                    @foreach ($items->take(30) as $item)
+                                        <li><span class="font-mono text-slate-600">{{ $item['id'] }}</span> {{ $item['title'] ?? '–' }}
+                                            @if ($cause !== 'group' && ($item['products'] ?? []) !== [])<span class="text-slate-600">– {{ collect($item['products'])->map(fn ($slug) => $productNames[$slug] ?? $slug)->implode(', ') }}</span>@endif
+                                            @if ($cause === 'group')<span class="text-slate-600">– {{ $item['reason'] }}</span>@endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                @if ($items->count() > 30)<p class="mt-1 text-xs text-slate-600">… und {{ $items->count() - 30 }} weitere</p>@endif
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </details>
+        @endif
+
         @if ($admin && $router !== null)
             @php
                 $statusLabels = ['executed' => 'ausgeführt', 'skipped' => 'regulär übersprungen', 'disabled' => 'deaktiviert', 'failed' => 'fehlgeschlagen'];

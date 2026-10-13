@@ -62,6 +62,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P1 | Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | In Progress |
 | – | Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | In Progress |
 | – | Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | In Progress |
+| – | Sichtbar machen, welches Wissen wegen Produkt oder Kundengruppe nicht geprüft wurde | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
