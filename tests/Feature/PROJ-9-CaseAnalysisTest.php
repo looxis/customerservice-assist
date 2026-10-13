@@ -551,7 +551,7 @@ describe('missing knowledge', function () {
         CaseAgent::fake([caseAnswer(['knowledge_gaps' => $gaps])]);
         analysisTicket();
 
-        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse')->assertDontSeeText('Wissenslücken');
+        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse')->assertDontSeeText('Für diesen Fall fehlt eine Regel');
     })->with(['empty' => [[]], 'no topic' => [[['topic' => ' ', 'question' => 'x']]], 'not a list' => ['x']]);
 
     test('the prompt separates internal steps from missing rules', function () {

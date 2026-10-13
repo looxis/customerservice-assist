@@ -170,8 +170,8 @@ describe('list of gaps for admins', function () {
     test('admins see the sidebar entry with the open count; others neither entry nor page', function () {
         KnowledgeGap::factory()->count(2)->create();
 
-        $this->withCookie('staff_name', 'Etienne')->get('/')->assertSeeTextInOrder(['Wissenslücken', '2']);
-        $this->withCookie('staff_name', 'Nele')->get('/')->assertDontSeeText('Wissenslücken');
+        $this->withCookie('staff_name', 'Etienne')->get('/')->assertSee('href="'.route('knowledge-gaps.index').'"', false)->assertSeeTextInOrder(['Wissenslücken', '2']);
+        $this->withCookie('staff_name', 'Nele')->get('/')->assertDontSee('href="'.route('knowledge-gaps.index').'"', false);
         $this->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index'))->assertForbidden();
     });
 

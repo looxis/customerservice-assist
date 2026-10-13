@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Analysis\AppStats;
 use App\Analysis\KnowledgeGapLog;
 use App\Eocs\EocsClient;
 use App\Http\LocalRedirect;
@@ -68,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
                 'testModeAvailable' => $testMode->isAvailable(request()),
                 'testModeActive' => $testMode->isActive(request()),
                 'ticketOverviewAvailable' => $testMode->isAvailable(request()),
+                'stats' => app(AppStats::class)->all(),
                 'openGapCount' => $testMode->isAvailable(request()) ? app(KnowledgeGapLog::class)->openCount() : null,
             ]);
         });

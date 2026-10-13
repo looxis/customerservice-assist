@@ -116,7 +116,7 @@ describe('blocked analysis', function () {
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertSeeTextInOrder(['Noch kein Antwortentwurf', 'Interne Abläufe', 'Zuerst zu klären', 'Was wird zurückgenommen?', 'Nur Display zurück', 'Nur Glasfoto-Muster zurück', 'Beides zurück', 'Kein Bedarf – kann entsorgt werden', 'Für diesen Fall', 'Bei der Produktionsleitung nachfragen'])
-            ->assertDontSeeText('Wissenslücken')
+            ->assertDontSeeText('Für diesen Fall fehlt eine Regel')
             ->assertDontSeeText('Antwortentwurf (Deutsch)')
             ->assertDontSeeText('Interne To-dos');
     });
