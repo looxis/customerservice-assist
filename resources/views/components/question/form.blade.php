@@ -32,7 +32,7 @@
             <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format($max, 0, ',', '.') }}</p>
         </x-field>
 
-        <x-analysis.scope-fields :analysis="$analysis" :chosen-products="old('produkte', $analysis['suggestedProducts'] ?? [])" />
+        <x-analysis.scope-fields :analysis="$analysis" :chosen-products="old('produkte', $analysis['suggestedProducts'] ?? [])" :no-product="(bool) old('kein_produktbezug')" :unknown-name="(string) old('produkt_ohne_wissen', '')" />
 
         @error('kundengruppe') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
         @error('produkte.*') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror

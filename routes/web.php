@@ -2,6 +2,7 @@
 
 use App\Analysis\QuestionNumber;
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\AdvancedModeController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AnalysisOverviewController;
 use App\Http\Controllers\FeedbackController;
@@ -28,6 +29,7 @@ Route::get('/ueber-die-app', AboutController::class)->name('about');
 
 Route::post('/name', StaffSelectionController::class)->name('staff.select');
 Route::post('/testmodus', TestModeController::class)->name('test-mode.switch');
+Route::post('/erweitert', AdvancedModeController::class)->name('advanced-mode.switch');
 
 Route::get('/ablaeufe/{id}', [ProcedureController::class, 'show'])->where('id', '[A-Z]+-[0-9]{3}')->name('procedures.show');
 

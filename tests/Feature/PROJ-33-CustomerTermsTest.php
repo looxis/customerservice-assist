@@ -31,7 +31,7 @@ afterEach(fn () => cleanUpKnowledgeBases());
 
 function formHtml(string $url = '/tickets/2137942'): string
 {
-    return test()->withCookie('staff_name', 'Nele')->get($url)->getContent();
+    return withChips(test()->withCookie('staff_name', 'Nele')->get($url)->getContent());
 }
 
 describe('knowledge check', function () {
@@ -74,7 +74,7 @@ describe('suggestion from the ticket', function () {
         expect($html)->toMatch('/value="3d-glass-photo"\s+checked/')
             ->toContain('(erkannt im Ticket: ‚Glasstein‘)')
             ->not->toMatch('/value="magic-mug"\s+checked/')
-            ->and(strpos($html, 'value="3d-glass-photo"'))->toBeLessThan(strpos($html, 'value="magic-mug"'));
+            ->and(array_column(scopeConfig($html)['products'], 'slug')[0])->toBe('3d-glass-photo');
     });
 
     test('a term at the start of a longer word and in the ticket title counts, inside a word it does not', function (string $title, string $body, bool $match) {

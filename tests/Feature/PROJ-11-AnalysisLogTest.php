@@ -45,9 +45,9 @@ function logAnswer(array $overrides = []): array
 
 function logAnalysis(string $staff = 'Nele', array $fields = []): string
 {
-    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge([
-        'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Foto am Telefon besprochen',
-    ], $fields))->headers->get('Location');
+    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge([
+        'kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Foto am Telefon besprochen',
+    ], $fields)))->headers->get('Location');
 
     parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
 
@@ -82,7 +82,7 @@ describe('lasting storage', function () {
     test('a failed analysis is logged without content', function () {
         CaseAgent::fake(fn () => throw new ConnectionException('down'));
 
-        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf']);
+        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf']);
 
         expect(Analysis::query()->sole())->status->toBe('failed')->error->toBe('Unavailable')->staff_name->toBe('Nele')->content->toBeNull();
     });
@@ -237,7 +237,7 @@ describe('qa additions', function () {
         CaseAgent::fake([logAnswer()]);
         logAnalysis();
         CaseAgent::fake(fn () => throw new ConnectionException('down'));
-        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf']);
+        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf']);
 
         expect(Analysis::query()->count())->toBe(2);
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('Frühere Vorschläge');

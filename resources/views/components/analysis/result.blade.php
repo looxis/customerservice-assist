@@ -157,6 +157,14 @@
                 </x-alert>
             @endif
 
+            @if ($meta['unknown_product'] ?? null)
+                <x-alert type="warning">
+                    <p class="font-semibold">Kein Produktwissen zu „{{ $meta['unknown_product'] }}“</p>
+                    <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Bitte melde das fehlende Wissen, damit es ergänzt wird.</p>
+                    <button type="button" class="mt-1 text-xs font-semibold underline" x-data x-on:click="$dispatch('report-gap', { topic: @js('Produktwissen: '.$meta['unknown_product']), missing: @js('Produktwissen zu „'.$meta['unknown_product'].'“') })">Wissenslücke melden</button>
+                </x-alert>
+            @endif
+
             @if (($meta['knowledge_fingerprints'] ?? null) === [])
                 <x-alert type="warning">
                     <p class="font-semibold">Kein Wissen für diesen Fall</p>

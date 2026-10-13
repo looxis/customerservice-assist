@@ -44,9 +44,9 @@ function asTester(string $name = 'Etienne', bool $testMode = true): object
 
 function analyzeRewound(array $fields = []): TestResponse
 {
-    return test()->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge([
-        'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => '', 'stand' => '11',
-    ], $fields));
+    return test()->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge([
+        'kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => '', 'stand' => '11',
+    ], $fields)));
 }
 
 function caseResult(): array
@@ -99,7 +99,7 @@ describe('rewinding', function () {
     });
 
     test('the preview and the order suggestions only use the rewound thread', function () {
-        $html = asTester()->get('/tickets/2137942?stand=11')->getContent();
+        $html = asTester()->withCookie('advanced_mode', '1')->get('/tickets/2137942?stand=11')->getContent();
         $preview = str($html)->after('Was an die KI geht')->before('Zusätzliche Informationen / eigene Einschätzung')->toString();
 
         expect($preview)->toContain('Können zwei Bestellungen')->not->toContain('Schade, dann bitte stornieren')
@@ -109,7 +109,7 @@ describe('rewinding', function () {
     test('only the rewound thread is sent to the ai and the result is marked as a test run', function () {
         CaseAgent::fake([caseResult()]);
 
-        $response = asTester()->from('/tickets/2137942?stand=11')->withCookie('test_mode', '1')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => '', 'stand' => '11']);
+        $response = asTester()->from('/tickets/2137942?stand=11')->withCookie('test_mode', '1')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => '', 'stand' => '11']);
 
         $response->assertRedirect();
         expect((string) $response->headers->get('Location'))->toContain('stand=11');

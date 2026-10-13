@@ -3,6 +3,7 @@
 namespace App\Knowledge;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Picks the knowledge for a case deterministically by customer group and
@@ -44,14 +45,20 @@ class KnowledgeSelector
     /**
      * Products with at least one usable product file, sorted by title.
      *
-     * @return list<array{slug: string, title: string}>
+     * @return list<array{slug: string, title: string, name: string, terms: list<string>}>
      */
     public function products(): array
     {
         return $this->library->usable()
             ->filter(fn (KnowledgeDocument $document): bool => $document->productSlug() !== null)
             ->groupBy(fn (KnowledgeDocument $document): string => $document->productSlug())
-            ->map(fn (Collection $files, string $slug): array => ['slug' => $slug, 'title' => $this->productTitle($slug, $files)])
+            ->map(fn (Collection $files, string $slug): array => [
+                'slug' => $slug,
+                'title' => $this->productTitle($slug, $files),
+                // The short name for lists and chips: the title up to the colon (PROJ-42).
+                'name' => trim(Str::before($this->productTitle($slug, $files), ':')),
+                'terms' => $files->flatMap(fn (KnowledgeDocument $document): array => $document->customerTerms())->unique()->values()->all(),
+            ])
             ->sortBy(fn (array $product): string => $this->sortKey($product['title']).'|'.$product['slug'])
             ->values()
             ->all();

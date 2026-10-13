@@ -1,4 +1,4 @@
-@props(['ticket', 'customerGroup' => null, 'canDelete' => false])
+@props(['ticket', 'canDelete' => false, 'advanced' => false])
 
 {{-- Header of a loaded ticket (PROJ-6). --}}
 <x-card>
@@ -41,14 +41,12 @@
                 @endif
             </dd>
         </div>
-        <div>
-            <dt class="text-slate-600">Kundengruppe</dt>
-            <dd class="mt-1 text-slate-900">{{ $customerGroup ?? 'noch nicht gewählt' }}</dd>
-        </div>
-        <div>
-            <dt class="text-slate-600">Zammad-Gruppe</dt>
-            <dd class="mt-1 text-slate-900">{{ $ticket->group ?? '–' }}</dd>
-        </div>
+        @if ($advanced)
+            <div>
+                <dt class="text-slate-600">Zammad-Gruppe</dt>
+                <dd class="mt-1 text-slate-900">{{ $ticket->group ?? '–' }}</dd>
+            </div>
+        @endif
         <div>
             <dt class="text-slate-600">Nachrichten</dt>
             <dd class="mt-1 text-slate-900">

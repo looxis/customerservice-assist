@@ -64,9 +64,9 @@ function stepBlocked(array $overrides = []): array
 
 function stepRun(array $fields = [], string $staff = 'Nele'): string
 {
-    $response = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge([
-        'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Fotohändler',
-    ], $fields));
+    $response = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge([
+        'kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Fotohändler',
+    ], $fields)));
 
     parse_str((string) parse_url((string) $response->headers->get('Location'), PHP_URL_QUERY), $query);
 
@@ -307,7 +307,7 @@ describe('security', function () {
         $id = stepRun();
 
         $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '999999']), [
-            'klaerung_analyse' => $id, 'klaerung_option' => 'none', 'kundengruppe' => 'reseller', 'variante' => 'verlauf',
+            'klaerung_analyse' => $id, 'klaerung_option' => 'none', 'kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf',
         ])->assertSessionHasErrors('klaerung_analyse');
         CaseAgent::assertPromptedTimes(1);
     });

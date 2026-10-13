@@ -45,7 +45,7 @@ describe('page "Frage stellen"', function () {
         $html = $this->get(route('questions.create'))->getContent();
 
         expect($html)->toContain('action="'.route('questions.store').'"')->toContain('name="_token"')
-            ->and($html)->toMatch('/<option value="unclear"\s+selected/')
+            ->and($html)->toMatch('/<option value=""\s+selected>Bitte wählen/')
             ->and($html)->not->toMatch('/name="antwortentwurf"[^>]*checked/');
     });
 

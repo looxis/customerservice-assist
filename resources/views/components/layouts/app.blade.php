@@ -55,6 +55,17 @@
         <header class="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 md:px-8">
             <h1 class="min-w-0 truncate font-display text-lg font-semibold text-slate-900">{{ $title }}</h1>
             <div class="flex shrink-0 items-center gap-3">
+                <form method="POST" action="{{ route('advanced-mode.switch') }}">
+                    @csrf
+                    <input type="hidden" name="aktiv" value="{{ $advancedModeActive ? '0' : '1' }}">
+                    <button type="submit" role="switch" aria-checked="{{ $advancedModeActive ? 'true' : 'false' }}" title="Zeigt die technischen Teile des Formulars: Ticketkontext, Vorschau für die KI, Zammad-Gruppe"
+                            class="inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand">
+                        <span @class(['relative inline-flex h-5 w-9 shrink-0 rounded-full transition', 'bg-brand' => $advancedModeActive, 'bg-slate-300' => ! $advancedModeActive])>
+                            <span @class(['absolute top-0.5 size-4 rounded-full bg-white shadow-1 transition', 'left-4.5' => $advancedModeActive, 'left-0.5' => ! $advancedModeActive])></span>
+                        </span>
+                        Erweitert
+                    </button>
+                </form>
                 @if ($testModeAvailable)
                     <form method="POST" action="{{ route('test-mode.switch') }}">
                         @csrf

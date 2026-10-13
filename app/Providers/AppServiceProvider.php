@@ -10,6 +10,7 @@ use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
+use App\Staff\AdvancedMode;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\MessageBody;
@@ -66,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'staffNames' => $staff->names(),
                 'currentStaff' => $staff->current(request()),
+                'advancedModeActive' => app(AdvancedMode::class)->isActive(request()),
                 'testModeAvailable' => $testMode->isAvailable(request()),
                 'testModeActive' => $testMode->isActive(request()),
                 'ticketOverviewAvailable' => $testMode->isAvailable(request()),

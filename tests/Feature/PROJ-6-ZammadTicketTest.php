@@ -180,7 +180,7 @@ describe('header', function () {
             zammadArticle(['id' => 2, 'sender' => 'Agent', 'from' => 'Nele', 'created_at' => '2026-10-02T08:30:00.000Z']),
         ]);
 
-        $this->get('/tickets/2137942')->assertSeeTextInOrder([
+        $this->withCookie('advanced_mode', '1')->get('/tickets/2137942')->assertSeeTextInOrder([
             'Ticket#2137942', 'Zaubertasse – Motiv erscheint nicht', 'Offen',
             'Kunde', 'Erika Beispiel', 'erika@example.org',
             'Zammad-Gruppe', 'Kundenservice',

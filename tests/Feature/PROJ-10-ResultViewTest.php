@@ -55,9 +55,9 @@ function resultAnswer(array $overrides = []): array
 
 function runAnalysis(array $fields = [], string $staff = 'Nele'): string
 {
-    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge([
-        'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Telefonat geführt',
-    ], $fields))->headers->get('Location');
+    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge([
+        'kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Telefonat geführt',
+    ], $fields)))->headers->get('Location');
 
     parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
 
@@ -244,15 +244,16 @@ describe('finding the latest analysis', function () {
 });
 
 describe('ticket header', function () {
-    test('the header names the chosen customer group apart from the zammad group', function () {
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Kundengruppe', 'noch nicht gewählt', 'Zammad-Gruppe', 'Kundenservice']);
+    test('the header has no customer group, the zammad group only in the advanced mode, and the group of the proposal stands in the form summary', function () {
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('noch nicht gewählt')->assertDontSeeText('Zammad-Gruppe')->getContent();
+        expect(str($html)->before('Vorschlag erstellen')->toString())->not->toContain('Kundengruppe');
+
+        $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '1')->get('/tickets/2137942')->assertSeeTextInOrder(['Zammad-Gruppe', 'Kundenservice']);
 
         CaseAgent::fake([resultAnswer()]);
-        runAnalysis(['kundengruppe' => 'reseller']);
+        runAnalysis(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Kundengruppe', 'Foto-Fachhändler / Reseller', 'Zammad-Gruppe', 'Kundenservice']);
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Erstellt mit: Foto-Fachhändler / Reseller');
     });
 });
 
@@ -292,7 +293,7 @@ describe('qa additions', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis();
         CaseAgent::fake(fn () => throw new ConnectionException('down'));
-        $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Zweiter Versuch']);
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Zweiter Versuch']);
 
         expect($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())
             ->toMatch('/<details id="analyse-details"[^>]*\sopen\s/');

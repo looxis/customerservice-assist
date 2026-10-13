@@ -43,7 +43,7 @@ function feedbackAnswer(array $overrides = []): array
 function feedbackAnalysis(array $fields = [], string $staff = 'Nele'): string
 {
     CaseAgent::fake([feedbackAnswer()]);
-    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge(['kundengruppe' => 'reseller', 'variante' => 'verlauf'], $fields))->headers->get('Location');
+    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf'], $fields)))->headers->get('Location');
     parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
 
     return $query['analyse'];
@@ -282,7 +282,7 @@ describe('qa additions', function () {
 
     test('a gap topic from the ai with quotes does not break the report button', function () {
         CaseAgent::fake([feedbackAnswer(['knowledge_gaps' => [['topic' => 'Kunde sagt "geht nicht" \' </script>', 'question' => 'x']]])]);
-        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf']);
+        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf']);
 
         expect($this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent())->not->toContain('</script>\'')->toContain('Lücke melden');
     });

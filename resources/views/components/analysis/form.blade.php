@@ -1,4 +1,4 @@
-@props(['number', 'analysis', 'selected' => [], 'testMode' => false, 'unloadedOrders' => []])
+@props(['number', 'analysis', 'selected' => [], 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false])
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
@@ -10,6 +10,16 @@
     $startOpen = ! $collapsible || session('analysis_error') || $errors->any();
     $usedGroup = collect($analysis['groups'])->firstWhere('key', $inputs['kundengruppe'] ?? $analysis['suggestedGroup'])?->label;
     $usedProducts = collect($analysis['products'])->whereIn('slug', $inputs['produkte'] ?? [])->pluck('title')->all();
+    $knownOrders = $analysis['hasOrders'] || $unloadedOrders !== [] || $selected !== [];
+    $orderLine = match (true) {
+        $analysis['hasOrders'] => 'Bestellung: aus EOCS geladen und berücksichtigt.',
+        $unloadedOrders !== [] => 'Bestellung: '.implode(', ', $unloadedOrders).' – wird beim Erstellen aus EOCS geladen.',
+        $selected !== [] => 'Bestellung: '.implode(', ', $selected).' ausgewählt.',
+        default => 'Keine Bestellung bekannt – der Vorschlag nutzt nur das Ticket.',
+    };
+    $oldInput = session()->hasOldInput();
+    $unknownName = (string) ($oldInput ? old('produkt_ohne_wissen', '') : ($inputs['produkt_ohne_wissen'] ?? ''));
+    $noProduct = $oldInput ? (bool) old('kein_produktbezug') : (bool) ($inputs['kein_produktbezug'] ?? ($inputs !== [] && ($inputs['produkte'] ?? []) === [] && $unknownName === ''));
     $usedVariant = \App\Analysis\ContextVariant::tryFrom((string) ($inputs['variante'] ?? ''))?->label();
 @endphp
 
@@ -51,12 +61,16 @@
                 <input type="hidden" name="bestellungen[]" value="{{ $value }}">
             @endforeach
 
-            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" />
+            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" />
 
-            @unless ($analysis['hasOrders'])
+            <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}
+                @if ($unloadedOrders !== [] || $selected !== [] || $analysis['hasOrders']) <span class="text-slate-600">Auswahl und Laden stehen oben unter „Bestellungen“.</span>@endif
+            </p>
+
+            @unless ($knownOrders)
                 <details class="group rounded-md ring-1 ring-slate-200 ring-inset" @if (collect(array_keys(\App\Http\Requests\AnalyzeTicketRequest::MANUAL_ORDER_FIELDS))->contains(fn ($field) => filled(old($field)))) open @endif>
                     <summary class="cursor-pointer list-none p-3 text-sm font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
-                        <x-icon name="chevron-down" size="16" class="inline transition group-open:rotate-180" /> Bestelldaten von Hand (keine EOCS-Bestellung geladen)
+                        <x-icon name="chevron-down" size="16" class="inline transition group-open:rotate-180" /> Bestelldaten von Hand (keine Bestellnummer bekannt)
                     </summary>
                     <div class="grid gap-3 px-3 pb-3 md:grid-cols-2">
                         <x-input name="bestellung_nummer" label="Bestellnummer" :value="old('bestellung_nummer', $inputs['bestellung_nummer'] ?? null)" maxlength="60" />
@@ -68,7 +82,7 @@
                 </details>
             @endunless
 
-            @if ($offers)
+            @if ($advanced && $offers)
                 <fieldset>
                     <legend class="block text-sm font-medium text-slate-900">Was soll an die KI gehen?</legend>
                     <div class="mt-1 space-y-1">
@@ -85,9 +99,10 @@
                     @endif
                 </fieldset>
             @else
-                <input type="hidden" name="variante" value="{{ $analysis['defaultVariant']->value }}">
+                <input type="hidden" name="variante" value="{{ $variant }}">
             @endif
 
+            @if ($advanced)
             <details class="group rounded-md ring-1 ring-slate-200 ring-inset">
                 <summary class="cursor-pointer list-none p-3 text-sm font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
                     <x-icon name="chevron-down" size="16" class="inline transition group-open:rotate-180" /> Was an die KI geht (Ticketteil, Kontaktdaten ersetzt)
@@ -105,6 +120,7 @@
                     <p class="mt-2 text-xs text-slate-600">Dazu kommen Bestelldaten (ohne Adressen und Zahlungsdaten), Kundengruppe, Produkte, deine zusätzlichen Informationen und das passende Wissen.</p>
                 </div>
             </details>
+            @endif
 
             @if ($testMode)
                 <x-alert type="warning">
@@ -122,9 +138,9 @@
             @error('produkte.*') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
             @error('variante') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
 
-            @if ($unloadedOrders !== [])
+            @if ($advanced && $unloadedOrders !== [])
                 <div class="rounded-md bg-slate-50 p-3 text-sm ring-1 ring-slate-200 ring-inset">
-                    <p class="text-slate-900">Vor dem Vorschlag ruft die App die Bestelldetails aus EOCS ab: <span class="font-mono">{{ implode(', ', $unloadedOrders) }}</span></p>
+                    <p class="text-slate-900">Erweitert: Die App ruft die Bestelldetails aus EOCS ab: <span class="font-mono">{{ implode(', ', $unloadedOrders) }}</span></p>
                     <label class="mt-2 inline-flex items-center gap-2 text-slate-700">
                         <input type="checkbox" name="ohne_bestelldetails" value="1" @checked(old('ohne_bestelldetails')) class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
                         Bestelldetails nicht abrufen (der Vorschlag kennt dann nur die Bestellnummer)

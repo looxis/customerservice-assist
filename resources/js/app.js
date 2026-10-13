@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import scopeFields from './scope-fields';
 
 window.Alpine = Alpine;
 
@@ -119,5 +120,7 @@ Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
         this.busy = false;
     },
 }));
+
+Alpine.data('scopeFields', scopeFields);
 
 Alpine.start();

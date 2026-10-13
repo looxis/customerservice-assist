@@ -39,7 +39,7 @@ function procedureCase(array $actions, string $category = 'complaint', string $g
         'reasoning' => 'x', 'knowledge_gaps' => [], 'knowledge_ids' => [],
         'confidence' => ['level' => 'MITTEL', 'reasons' => []], 'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag'],
     ]]);
-    test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => $group, 'variante' => 'verlauf']);
+    test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => $group, 'variante' => 'verlauf']);
 
     return test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent();
 }

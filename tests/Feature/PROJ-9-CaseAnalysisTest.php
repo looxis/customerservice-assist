@@ -92,36 +92,36 @@ function analysisOrder(): array
 
 function analyze(array $fields = [], string $staff = 'Nele'): TestResponse
 {
-    return test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge([
-        'kundengruppe' => 'private-amazon', 'variante' => 'verlauf', 'kontext' => '',
-    ], $fields));
+    return test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge([
+        'kein_produktbezug' => '1', 'kundengruppe' => 'private-amazon', 'variante' => 'verlauf', 'kontext' => '',
+    ], $fields)));
 }
 
 describe('analysis form', function () {
-    test('the ticket page has the analysis form with group, products, variants and context field', function () {
+    test('the ticket page has the analysis form with group, product search and context field', function () {
         analysisTicket();
 
         $this->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Vorschlag erstellen', 'Kundengruppe', 'Produkt(e)', 'Zaubertasse', 'Zusätzliche Informationen / eigene Einschätzung', 'Vorschlag erstellen'])
+            ->assertSeeTextInOrder(['Vorschlag erstellen', 'Kundengruppe', 'Produkt(e)', 'Kein Produktbezug', 'Zusätzliche Informationen / eigene Einschätzung', 'Vorschlag erstellen'])
             ->assertSee('action="'.route('tickets.analysis.run', ['number' => '2137942']).'"', false);
     });
 
     test('group and products are suggested from the loaded eocs order, manual order data is hidden', function () {
         analysisTicket(orders: [analysisOrder()]);
 
-        $html = $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))->getContent();
+        $html = withChips($this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))->getContent());
 
         expect($html)->toMatch('/<option value="private-amazon"\s+selected/')
             ->toMatch('/value="magic-mug"\s+checked/')
             ->not->toContain('Bestelldaten von Hand');
     });
 
-    test('without an order the group is unclear and manual order fields are offered', function () {
+    test('without an order no group is preselected, the user must choose, and manual order fields are offered', function () {
         analysisTicket();
 
         $html = $this->get('/tickets/2137942')->assertSeeText('Bestelldaten von Hand')->getContent();
 
-        expect($html)->toMatch('/<option value="unclear"\s+selected/');
+        expect($html)->toMatch('/<option value=""\s+selected>Bitte wählen/')->and(scopeConfig($html)['group'])->toBe('');
     });
 
     test('a single message offers no variants', function () {
@@ -137,7 +137,7 @@ describe('analysis form', function () {
         }
         analysisTicket($articles);
 
-        expect($this->get('/tickets/2137942')->getContent())->toMatch('/'.preg_quote($expected, '/').'\s*<span class="text-xs text-slate-600">\(empfohlen\)/');
+        expect($this->withCookie('advanced_mode', '1')->get('/tickets/2137942')->getContent())->toMatch('/'.preg_quote($expected, '/').'\s*<span class="text-xs text-slate-600">\(empfohlen\)/');
     })->with([
         'four earlier short messages' => [5, 100, 'Ganzer Verlauf'],
         'five earlier messages' => [6, 100, 'Letzte Kundennachricht + Zusammenfassung'],
@@ -148,9 +148,17 @@ describe('analysis form', function () {
     test('the preview shows the ticket part with contact data replaced', function () {
         analysisTicket();
 
-        $this->get('/tickets/2137942')
+        $this->withCookie('advanced_mode', '1')->get('/tickets/2137942')
             ->assertSee('Was an die KI geht')
             ->assertSee('Erreichbar unter [E-MAIL_1] oder [TELEFON_1]', false);
+    });
+
+    test('without the advanced mode the technical parts stay out of the form and the recommended variant is sent', function () {
+        analysisTicket();
+
+        $html = $this->get('/tickets/2137942')->assertDontSee('Was an die KI geht')->assertDontSee('Erreichbar unter [E-MAIL_1]', false)->assertDontSeeText('Zammad-Gruppe')->getContent();
+
+        expect($html)->toContain('name="variante" value="verlauf"');
     });
 });
 
@@ -200,7 +208,7 @@ describe('running an analysis', function () {
         CaseAgent::fake();
         analysisTicket();
 
-        $this->from('/tickets/2137942')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf', 'kontext' => 'Foto geprüft'])
+        $this->from('/tickets/2137942')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'unclear', 'variante' => 'verlauf', 'kontext' => 'Foto geprüft'])
             ->assertRedirect('/tickets/2137942')
             ->assertSessionHasInput('kontext', 'Foto geprüft');
 
@@ -249,7 +257,7 @@ describe('running an analysis', function () {
         CaseAgent::fake([caseAnswer(['knowledge_ids' => []])]);
         analysisTicket(orders: [analysisOrder()]);
 
-        analyze(['kundengruppe' => 'unclear', 'bestellungen' => ['402-0000000-0000001']]);
+        analyze(['kein_produktbezug' => '1', 'kundengruppe' => 'unclear', 'bestellungen' => ['402-0000000-0000001']]);
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Kundengruppe: Noch unklar') && ! $prompt->contains('POLICY-002'));
     });
@@ -330,7 +338,7 @@ describe('running an analysis', function () {
 
         CaseAgent::assertNeverPrompted();
     })->with([
-        'unknown group' => [['kundengruppe' => 'vip']],
+        'unknown group' => [['kein_produktbezug' => '1', 'kundengruppe' => 'vip']],
         'unknown product' => [['produkte' => ['rakete']]],
         'unknown variant' => [['variante' => 'alles']],
         'context too long' => [['kontext' => str_repeat('a', 4001)]],
@@ -492,9 +500,9 @@ describe('remembered choice', function () {
         $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorbelegt: wie im angezeigten Vorschlag');
 
         Analysis::query()->delete();
-        $html = $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')
+        $html = withChips($this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')
             ->assertSeeText('Vorbelegt: zuletzt gewählt von Nele am 06.10.2026, 14:05 Uhr')
-            ->getContent();
+            ->getContent());
 
         expect($html)->toMatch('/<option value="reseller"\s+selected/')
             ->toMatch('/value="magic-mug"\s+checked/');
@@ -504,7 +512,7 @@ describe('remembered choice', function () {
         CaseAgent::fake([caseAnswer()]);
         analysisTicket(orders: [analysisOrder()]);
 
-        analyze(['kundengruppe' => 'reseller']);
+        analyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
         expect($this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))->getContent())
             ->toMatch('/<option value="reseller"\s+selected/');
@@ -523,8 +531,8 @@ describe('remembered choice', function () {
         CaseAgent::fake([caseAnswer(), caseAnswer()]);
         fakeZammad(ticket: ['organization_id' => 12]);
 
-        analyze(['kundengruppe' => 'looxis-pro']);
-        analyze(['kundengruppe' => 'unclear']);
+        analyze(['kein_produktbezug' => '1', 'kundengruppe' => 'looxis-pro']);
+        analyze(['kein_produktbezug' => '1', 'kundengruppe' => 'unclear']);
 
         expect(app(AnalysisStore::class)->customerGroup('organization-12'))->toBe('looxis-pro')
             ->and(app(AnalysisStore::class)->customerGroup('customer-77'))->toBeNull();
@@ -534,7 +542,7 @@ describe('remembered choice', function () {
         app(AnalysisStore::class)->putCustomerGroup('customer-77', 'gibt-es-nicht');
         analysisTicket();
 
-        expect($this->get('/tickets/2137942')->assertDontSeeText('Vorbelegt:')->getContent())->toMatch('/<option value="unclear"\s+selected/');
+        expect($this->get('/tickets/2137942')->assertDontSeeText('Vorbelegt:')->getContent())->toMatch('/<option value=""\s+selected>Bitte wählen/');
     });
 });
 
@@ -635,7 +643,7 @@ describe('bug fixes', function () {
         CaseAgent::fake([caseAnswer(['knowledge_ids' => []])]);
         analysisTicket();
 
-        $this->get(analyze(['kundengruppe' => 'reseller'])->headers->get('Location'))->assertSeeText('Kein Wissen für diesen Fall');
+        $this->get(analyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller'])->headers->get('Location'))->assertSeeText('Kein Wissen für diesen Fall');
     });
 
     test('with knowledge there is no such hint', function () {
@@ -680,7 +688,7 @@ describe('bug fixes', function () {
 
         analyze();
         analyze();
-        test()->from('/tickets/2137942')->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf'])
+        test()->from('/tickets/2137942')->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'unclear', 'variante' => 'verlauf'])
             ->assertRedirect('/tickets/2137942')
             ->assertSessionHas('analysis_error', 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.');
 
@@ -738,11 +746,15 @@ describe('order numbers known from the ticket', function () {
         analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000001 ist defekt.</p>'])], [analysisOrder()]);
 
         $this->get('/tickets/2137942')
-            ->assertSeeText('Vor dem Vorschlag ruft die App die Bestelldetails aus EOCS ab: 402-0000000-0000001')
+            ->assertSeeText('Bestellung: 402-0000000-0000001 – wird beim Erstellen aus EOCS geladen.')
+            ->assertDontSee('name="ohne_bestelldetails"', false);
+
+        $this->withCookie('advanced_mode', '1')->get('/tickets/2137942')
+            ->assertSeeText('Erweitert: Die App ruft die Bestelldetails aus EOCS ab: 402-0000000-0000001')
             ->assertSee('name="ohne_bestelldetails"', false);
 
-        $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
-            ->assertDontSee('name="ohne_bestelldetails"', false);
+        $this->withCookie('advanced_mode', '1')->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
+            ->assertDontSee('name="ohne_bestelldetails"', false)->assertSeeText('Bestellung: aus EOCS geladen und berücksichtigt.');
     });
 
     test('the prompt tells the model never to ask for an order number it was given', function () {

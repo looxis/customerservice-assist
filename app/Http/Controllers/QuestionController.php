@@ -33,7 +33,7 @@ class QuestionController extends Controller
         return view('questions.create', [
             'form' => [
                 'groups' => $selector->customerGroups(),
-                'suggestedGroup' => 'unclear',
+                'suggestedGroup' => '',
                 'groupSource' => null,
                 'products' => $selector->products(),
                 'suggestedProducts' => [],
@@ -67,9 +67,10 @@ class QuestionController extends Controller
                 employeeContext: '',
                 variant: ContextVariant::FullThread,
                 summary: null,
-                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'antwortentwurf' => $replyWanted],
+                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'antwortentwurf' => $replyWanted],
                 questionText: $text,
                 replyWanted: $replyWanted,
+                unknownProduct: $request->unknownProduct(),
             ));
         } catch (AnalysisException $exception) {
             return redirect()->route('questions.create')->withInput()
@@ -123,6 +124,7 @@ class QuestionController extends Controller
                 decisions: $request->decisions($by),
                 questionText: $text,
                 replyWanted: $replyWanted,
+                unknownProduct: is_string($inputs['produkt_ohne_wissen'] ?? null) && trim($inputs['produkt_ohne_wissen']) !== '' ? trim($inputs['produkt_ohne_wissen']) : null,
             ));
         } catch (AnalysisException $exception) {
             return redirect()->to(route('questions.show', ['number' => $number, 'analyse' => $request->input('klaerung_analyse')]).'#nachfrage')->withInput()

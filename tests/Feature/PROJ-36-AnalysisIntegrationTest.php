@@ -79,7 +79,7 @@ function retrOrder(array $overrides = []): array
 
 function retrAnalyze(array $input = []): void
 {
-    test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), array_merge(['kundengruppe' => 'reseller', 'variante' => 'verlauf'], $input));
+    test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), withProductAnswer(array_merge(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf'], $input)));
 }
 
 function retrStored(): Analysis
@@ -419,12 +419,12 @@ describe('the standing instructions and the versions', function () {
         retrAnalyze();
         $third = retrStored();
 
-        expect($first->prompt_version)->toBe('analysis-2026-10-13.2+retrieval-2026-10-13.2')
+        expect($first->prompt_version)->toBe('analysis-2026-10-13.3+retrieval-2026-10-13.2')
             ->and($first->retrieval_version)->toMatch('/^2026-10-13\.1\/[0-9a-f]{8}$/')
             ->and($second->retrieval_version)->not->toBe($first->retrieval_version)
             ->and($first->content['retrieval']['configuration'])->toMatchArray(['version' => $first->retrieval_version])
             ->and($first->content['retrieval']['configuration']['budget']['target'])->toBe(40000)
-            ->and($third->prompt_version)->toBe('analysis-2026-10-13.2')->and($third->retrieval_version)->toBeNull();
+            ->and($third->prompt_version)->toBe('analysis-2026-10-13.3')->and($third->retrieval_version)->toBeNull();
     });
 });
 
@@ -655,7 +655,7 @@ describe('the real knowledge base end to end (QA)', function () {
     $analyze = function (string $text, array $answer = [], array $input = []): void {
         retrTicket($text);
         CaseAgent::fake([retrAnswer($answer)]);
-        retrAnalyze(array_merge(['kundengruppe' => 'private-looxis-de'], $input));
+        retrAnalyze(withProductAnswer(array_merge(['kein_produktbezug' => '1', 'kundengruppe' => 'private-looxis-de'], $input)));
     };
 
     test('with both switches on a quote with the own logo gets the quote rules and no rights document, with reasons and a small prompt', function () use ($analyze) {
@@ -695,7 +695,7 @@ describe('the real knowledge base end to end (QA)', function () {
         ]);
         retrTicket('Die Tasse kam kaputt an.');
 
-        retrAnalyze(['kundengruppe' => 'private-looxis-de']);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'private-looxis-de']);
 
         $stored = retrStored();
 
@@ -787,7 +787,7 @@ describe('the router in the analysis (PROJ-37)', function () {
         RouterAgent::fake([['additions' => [], 'categories' => []]]);
         CaseAgent::fake([retrAnswer()]);
 
-        retrAnalyze(['kundengruppe' => 'reseller']);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
         RouterAgent::assertNeverPrompted();
 
@@ -814,7 +814,7 @@ describe('the router in the analysis (PROJ-37)', function () {
         RouterAgent::fake([['additions' => [], 'categories' => []]]);
         CaseAgent::fake([retrAnswer()]);
 
-        retrAnalyze(['kundengruppe' => 'reseller', 'bestellungen' => ['402-0000000-0000001']]);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'bestellungen' => ['402-0000000-0000001']]);
 
         RouterAgent::assertPrompted(fn ($prompt) => ! str_contains($prompt->prompt, 'erika@example.org') && ! str_contains($prompt->prompt, '1234567') && str_contains($prompt->prompt, '[E-MAIL') && ! str_contains($prompt->prompt, '402-0000000-0000001'));
     });
@@ -870,7 +870,7 @@ describe('the router in the analysis (PROJ-37)', function () {
         retrTicket('Vielen Dank!');
         RouterAgent::fake([fn () => throw new RuntimeException('Server Error')]);
         CaseAgent::fake([retrAnswer()]);
-        retrAnalyze(['kundengruppe' => 'reseller']);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
         test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.retrStored()->uuid)->assertOk()->assertDontSeeText('Erweiterte Wissenssuche nicht verfügbar.');
         expect(retrStored()->router_status)->toBe('skipped');
@@ -880,7 +880,7 @@ describe('the router in the analysis (PROJ-37)', function () {
         config(['knowledge.router.active' => false]);
         retrTicket($eisberg);
         CaseAgent::fake([retrAnswer()]);
-        retrAnalyze(['kundengruppe' => 'reseller']);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
         test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.retrStored()->uuid)->assertOk()->assertDontSeeText('Erweiterte Wissenssuche nicht verfügbar.');
         expect(retrStored()->router_status)->toBe('disabled');
@@ -891,7 +891,7 @@ describe('the router in the analysis (PROJ-37)', function () {
         retrTicket('Das Motiv ist sehr klein. '.str_repeat('Füllwort und noch ein Satz. ', 200).'Bitte um Rückmeldung.');
         RouterAgent::fake([['additions' => [], 'categories' => []]]);
         CaseAgent::fake([retrAnswer()]);
-        retrAnalyze(['kundengruppe' => 'reseller']);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
         $id = retrStored()->uuid;
 
         RouterAgent::assertPrompted(fn ($prompt) => str_contains($prompt->prompt, 'Zeichen ausgelassen') && str_contains($prompt->prompt, 'Bitte um Rückmeldung.'));
@@ -929,7 +929,7 @@ describe('the router in the analysis (PROJ-37)', function () {
             ['id' => 'PERMISSION-003', 'rank' => 2, 'basis' => 'current', 'fit' => 'clear', 'reason' => 'befohlen', 'evidence' => ''],
         ], 'categories' => []]]);
         CaseAgent::fake([retrAnswer()]);
-        retrAnalyze(['kundengruppe' => 'reseller']);
+        retrAnalyze(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
         $stored = retrStored();
 

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Analysis\AnalysisStore;
 use App\Analysis\Clarification;
 use App\Analysis\ContextVariant;
+use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -15,6 +16,8 @@ use Illuminate\Validation\Validator;
 
 class AnalyzeTicketRequest extends FormRequest
 {
+    use ChecksProductChoice;
+
     /**
      * Fields for order data typed in by hand, with their German label for the model.
      */
@@ -80,6 +83,7 @@ class AnalyzeTicketRequest extends FormRequest
             'bestellung_datum' => ['nullable', 'string', 'max:30'],
             'bestellung_produkt' => ['nullable', 'string', 'max:200'],
             'bestellung_personalisierung' => ['nullable', 'string', 'max:2000'],
+            ...$this->productRules(),
             'klaerung_analyse' => ['nullable', 'string', 'max:64'],
             'klaerung_option' => ['nullable', 'string', 'max:100'],
             'klaerung_text' => ['nullable', 'string', 'max:'.config('analysis.max_context_length')],
@@ -93,6 +97,8 @@ class AnalyzeTicketRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             if (! $this->filled('klaerung_analyse')) {
+                $this->checkProductChoice($validator);
+
                 return;
             }
 

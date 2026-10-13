@@ -55,9 +55,9 @@ function qReply(string $text = 'Guten Tag, wir senden Ihnen die Ware erneut zu.'
  */
 function ask(array $fields = [], string $staff = 'Nele'): array
 {
-    $response = test()->withCookie('staff_name', $staff)->post(route('questions.store'), array_merge([
-        'text' => 'Darf ich bei einem Fachhändler einen Neuversand ohne Rücksprache auslösen?', 'kundengruppe' => 'reseller',
-    ], $fields));
+    $response = test()->withCookie('staff_name', $staff)->post(route('questions.store'), withProductAnswer(array_merge([
+        'text' => 'Darf ich bei einem Fachhändler einen Neuversand ohne Rücksprache auslösen?', 'kein_produktbezug' => '1', 'kundengruppe' => 'reseller',
+    ], $fields)));
 
     preg_match('#/frage/(F\d{8})\?analyse=([0-9a-f-]{36})#', (string) $response->headers->get('Location'), $match);
 
@@ -158,35 +158,35 @@ describe('refusals', function () {
     test('an empty, a too long text, an unknown group and an unknown product are refused without a model call', function (array $fields, string $error) {
         CaseAgent::fake([qAnswer()]);
 
-        $this->withCookie('staff_name', 'Nele')->post(route('questions.store'), array_merge(['text' => 'Frage', 'kundengruppe' => 'reseller'], $fields))->assertSessionHasErrors($error);
+        $this->withCookie('staff_name', 'Nele')->post(route('questions.store'), withProductAnswer(array_merge(['text' => 'Frage', 'kein_produktbezug' => '1', 'kundengruppe' => 'reseller'], $fields)))->assertSessionHasErrors($error);
         CaseAgent::assertNeverPrompted();
     })->with([
         'empty' => [['text' => ' '], 'text'],
         'too long' => [['text' => str_repeat('x', 6001)], 'text'],
-        'group' => [['kundengruppe' => 'erfunden'], 'kundengruppe'],
+        'group' => [['kein_produktbezug' => '1', 'kundengruppe' => 'erfunden'], 'kundengruppe'],
         'product' => [['produkte' => ['gibt-es-nicht']], 'produkte.0'],
     ]);
 
     test('without a chosen name nothing is asked and the input stays', function () {
         CaseAgent::fake([qAnswer()]);
 
-        $this->withCookie('staff_name', '')->post(route('questions.store'), ['text' => 'Frage', 'kundengruppe' => 'reseller'])->assertRedirect()->assertSessionHas('error');
+        $this->withCookie('staff_name', '')->post(route('questions.store'), ['text' => 'Frage', 'kein_produktbezug' => '1', 'kundengruppe' => 'reseller'])->assertRedirect()->assertSessionHas('error');
         CaseAgent::assertNeverPrompted();
     });
 
     test('an unreachable provider shows a message with the retry offer and keeps the input', function () {
         CaseAgent::fake(fn () => throw new ConnectionException('down'));
 
-        $response = $this->withCookie('staff_name', 'Nele')->post(route('questions.store'), ['text' => 'Meine Frage', 'kundengruppe' => 'reseller']);
+        $response = $this->withCookie('staff_name', 'Nele')->post(route('questions.store'), ['text' => 'Meine Frage', 'kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
         $response->assertRedirect(route('questions.create'))->assertSessionHas('question_error')->assertSessionHas('question_retry', true);
-        $this->followingRedirects()->withCookie('staff_name', 'Nele')->post(route('questions.store'), ['text' => 'Meine Frage', 'kundengruppe' => 'reseller'])->assertSee('Meine Frage');
+        $this->followingRedirects()->withCookie('staff_name', 'Nele')->post(route('questions.store'), ['text' => 'Meine Frage', 'kein_produktbezug' => '1', 'kundengruppe' => 'reseller'])->assertSee('Meine Frage');
         expect(Analysis::query()->where('status', 'completed')->count())->toBe(0);
     });
 
     test('a ticket page and a ticket analysis never work with a question number', function () {
         $this->get('/tickets/F12345678')->assertNotFound();
-        $this->withCookie('staff_name', 'Nele')->post('/tickets/F12345678/analyse', ['kundengruppe' => 'reseller', 'variante' => 'verlauf'])->assertNotFound();
+        $this->withCookie('staff_name', 'Nele')->post('/tickets/F12345678/analyse', ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf'])->assertNotFound();
         Http::assertNothingSent();
     });
 

@@ -233,7 +233,7 @@ describe('checking the reply draft in german', function () {
             'reasoning' => 'x', 'knowledge_gaps' => [], 'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []],
             'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => $language, 'text' => $language === 'Deutsch' ? 'Guten Tag, bitte senden Sie ein Foto.' : 'Buongiorno, ci invii una foto per favore.'],
         ]]);
-        $location = test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf'])->headers->get('Location');
+        $location = test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'unclear', 'variante' => 'verlauf'])->headers->get('Location');
         parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
 
         return $query['analyse'];
@@ -321,7 +321,7 @@ describe('analysis', function () {
             'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []], 'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Italienisch', 'text' => 'Buongiorno'],
         ]]);
 
-        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf']);
+        test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'unclear', 'variante' => 'verlauf']);
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('la tazza che ho ricevuto') && ! $prompt->contains('UEBERSETZT'));
         ticketPage()->assertSeeText('UEBERSETZT');

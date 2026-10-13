@@ -146,6 +146,7 @@ class CaseAnalyzer
                 'variant' => $request->variant->value,
                 'customer_group' => $request->customerGroup->key,
                 'products' => $request->products,
+                'unknown_product' => $request->unknownProduct,
                 'orders' => array_map(fn (EocsOrder $order): string => $order->externalNumber, $request->orders),
                 'duration_ms' => $totals['duration'],
                 'input_tokens' => $totals['input'],
@@ -469,7 +470,8 @@ class CaseAnalyzer
         return [
             'case' => "# Fall\n"
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
-                .'Produkte: '.($request->products === [] ? 'kein Produktbezug / unklar' : implode(', ', $request->products)),
+                .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
+                .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} (Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu)"),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
                 .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),

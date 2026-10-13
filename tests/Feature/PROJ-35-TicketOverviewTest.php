@@ -45,7 +45,7 @@ function overviewAnalysis(string $staff = 'Nele'): string
         'knowledge_ids' => [], 'confidence' => ['level' => 'NIEDRIG', 'reasons' => []],
         'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
     ]]);
-    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf'])->headers->get('Location');
+    $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf'])->headers->get('Location');
     parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
 
     return $query['analyse'];

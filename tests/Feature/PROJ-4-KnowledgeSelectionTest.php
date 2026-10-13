@@ -115,8 +115,19 @@ describe('value lists', function () {
         ]);
 
         expect(app(KnowledgeSelector::class)->products())->toBe([
-            ['slug' => '3d-glass-photo', 'title' => '3D-Glasfoto'],
-            ['slug' => 'lunchbox', 'title' => 'Lunchbox'],
+            ['slug' => '3d-glass-photo', 'title' => '3D-Glasfoto', 'name' => '3D-Glasfoto', 'terms' => []],
+            ['slug' => 'lunchbox', 'title' => 'Lunchbox', 'name' => 'Lunchbox', 'terms' => []],
+        ]);
+    });
+
+    test('a product has a short name (the title up to the colon) and the customer terms of all its files for the search (PROJ-42)', function () {
+        knowledgeBase([
+            ...productDoc('3d-glass-photo', 'PRODUCT-002', ['title' => '3D-Glasfotos: Produktfamilie, 3D-Aufbereitung', 'customer_terms' => ['Viamant']], 'products/3d-glass-photo/overview.md'),
+            ...productDoc('3d-glass-photo', 'PRODUCT-003', ['title' => 'Produktion', 'customer_terms' => ['Viamant', 'Glasstein']], 'products/3d-glass-photo/production.md'),
+        ]);
+
+        expect(app(KnowledgeSelector::class)->products())->toBe([
+            ['slug' => '3d-glass-photo', 'title' => '3D-Glasfotos: Produktfamilie, 3D-Aufbereitung', 'name' => '3D-Glasfotos', 'terms' => ['Viamant', 'Glasstein']],
         ]);
     });
 

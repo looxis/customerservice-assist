@@ -43,4 +43,7 @@ return [
 
     'test_mode_cookie' => 'test_mode',
 
+    // Advanced mode (PROJ-42): a switch per browser for everybody, not only for admins.
+    'advanced_mode_cookie' => 'advanced_mode',
+
 ];

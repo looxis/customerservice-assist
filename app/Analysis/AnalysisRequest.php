@@ -22,6 +22,7 @@ final readonly class AnalysisRequest
      * @param  list<array{question: string, answer: string, by: string, at: string}>  $decisions  Internal clarifications of earlier steps of this case (PROJ-39).
      * @param  string|null  $questionText  The text of a question without a ticket (PROJ-40); null for a ticket.
      * @param  bool  $replyWanted  Whether a reply draft for the customer was asked for (always true for a ticket).
+     * @param  string|null  $unknownProduct  Name of a product the employee typed because the knowledge base has none (PROJ-42).
      */
     public function __construct(
         public Ticket $ticket,
@@ -40,6 +41,7 @@ final readonly class AnalysisRequest
         public array $decisions = [],
         public ?string $questionText = null,
         public bool $replyWanted = true,
+        public ?string $unknownProduct = null,
     ) {}
 
     public function isQuestion(): bool

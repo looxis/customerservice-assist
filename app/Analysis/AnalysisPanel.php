@@ -173,7 +173,7 @@ class AnalysisPanel
             return [$remembered, 'bei früheren Tickets dieses Kunden gewählt'];
         }
 
-        return [$this->suggester->customerGroup(null)->key, null];
+        return ['', null];
     }
 
     /**

@@ -26,7 +26,7 @@
             <x-alert type="warning">{{ $rewindProblem }}</x-alert>
         @endif
 
-        <x-ticket.header :ticket="$ticket" :customer-group="$analysis['chosenGroupLabel'] ?? null" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
+        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
@@ -47,7 +47,7 @@
                 <x-analysis.procedures :result="$analysis['result']" :number="$number" :stand="$analysis['stand']" />
             @endif
 
-            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false"
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false"
                              :unloaded-orders="collect($suggestions ?? [])->reject(fn ($order) => $order->isEocsId() || in_array($order->value, $selected ?? [], true))->pluck('value')->values()->all()" />
         @endisset
 

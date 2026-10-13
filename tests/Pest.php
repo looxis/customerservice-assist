@@ -160,3 +160,53 @@ function amazonNotice(string $message, string $order = '402-0000000-0000001', ar
         .'<p>Dieser Service wird ausschließlich für die Kommunikation mit Käufern angeboten.</p>'
         .'</td></tr></table></td></tr></table></center>';
 }
+
+/**
+ * The product answer of the proposal form (PROJ-42): a test that passes a product or a typed name does not
+ * also say "no product" (the default of the helpers).
+ *
+ * @param  array<string, mixed>  $fields
+ * @return array<string, mixed>
+ */
+function withProductAnswer(array $fields): array
+{
+    if (! empty($fields['produkte']) || ! empty($fields['produkt_ohne_wissen'])) {
+        unset($fields['kein_produktbezug']);
+    }
+
+    return $fields;
+}
+
+/**
+ * The configuration of the product and group fields of the proposal form (PROJ-42) as the page hands it to Alpine.
+ *
+ * @return array{products: list<array<string, mixed>>, selected: list<string>, reasons: array<string, list<string>>, mentioned: list<string>, unknown: string, none: bool, group: string}
+ */
+function scopeConfig(string $html): array
+{
+    preg_match('/x-data="scopeFields\((.*?)\)"\s+class=/s', $html, $match);
+
+    $expression = html_entity_decode($match[1] ?? '', ENT_QUOTES | ENT_HTML5);
+
+    if (preg_match("/^JSON\.parse\('(.*)'\)$/s", $expression, $json) === 1) {
+        $expression = str_replace(['\\u0022', '\\u0027'], ['"', "'"], $json[1]);
+    }
+
+    return json_decode($expression, true) ?? [];
+}
+
+/**
+ * The page plus a plain-text rendering of the preselected product chips (the chips themselves are drawn
+ * by Alpine in the browser): `value="slug" checked (reason · reason)` for each selected product.
+ */
+function withChips(string $html): string
+{
+    $config = scopeConfig($html);
+
+    foreach ($config['selected'] ?? [] as $slug) {
+        $reasons = $config['reasons'][$slug] ?? [];
+        $html .= "\n".'<input value="'.$slug.'" checked>'.($reasons === [] ? '' : ' ('.implode(' · ', $reasons).')');
+    }
+
+    return $html;
+}
