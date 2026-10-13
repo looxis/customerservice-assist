@@ -260,6 +260,7 @@ Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Eur
 | `invoice-send` | Rechnung versenden (vorhandene Rechnung als PDF) |
 | `quote` | Angebot erstellen |
 | `order-confirmation` | Auftrag bestätigen |
+| `pickup` | Selbstabholung |
 
 Fehlt ein passender Vorgang, nicht selbst erfinden, sondern als neuen Wert vorschlagen. `customer_types`, `sales_channels`, `products` und `categories` funktionieren wie bei allen anderen Typen: Ein Ablauf nur für Amazon bekommt `sales_channels: [amazon]`.
 

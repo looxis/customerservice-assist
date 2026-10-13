@@ -44,6 +44,17 @@ function procedureCase(array $actions, string $category = 'complaint', string $g
     return test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent();
 }
 
+test('a procedure for pickup is shown under internal procedures with the label Selbstabholung', function () {
+    knowledgeBase([
+        'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+        'procedures/procedure-005-abholung.md' => knowledgeDoc(['id' => 'PROCEDURE-005', 'type' => 'procedure', 'title' => 'Abholung vorbereiten', 'actions' => ['pickup']], "Gilt für alle.\n\n# Voraussetzungen\n\n- Termin steht\n\n# Arbeitsschritte\n\n1. Abholzettel drucken\n\n# Abschlusskontrolle\n\n- [ ] Vermerkt."),
+    ]);
+
+    $html = procedureCase(['pickup']);
+
+    expect($html)->toContain('PROCEDURE-005')->toContain('Abholung vorbereiten')->toContain('Selbstabholung')->toContain('Abholzettel drucken');
+});
+
 describe('suggestions', function () {
     test('procedures for the recommended actions are suggested within scope, in the order of the actions, each once', function () {
         $finder = app(ProcedureFinder::class);

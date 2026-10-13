@@ -27,6 +27,7 @@
 | `address-change` | Adressänderung |
 | `photo-request` | Foto anfordern |
 | `escalation` | Eskalation / Vier-Augen-Prüfung |
+| `pickup` | Selbstabholung (seit 2026-10-13; wie alle späteren Werte, z. B. `invoice-send`, `quote`, `order-confirmation`, steht die maßgebliche Liste in `config/knowledge.php`) |
 
 ## User Stories
 - Als Aushilfe möchte ich nach der Analyse sofort die passende interne Anleitung sehen (z. B. wie ein Neuversand angelegt wird), damit ich die empfohlene Maßnahme ohne Rückfrage richtig umsetze.

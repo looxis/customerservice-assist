@@ -107,6 +107,7 @@ return [
         'invoice-send' => 'Rechnung versenden',
         'quote' => 'Angebot erstellen',
         'order-confirmation' => 'Auftrag bestätigen',
+        'pickup' => 'Selbstabholung',
     ],
 
     /*

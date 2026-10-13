@@ -1,7 +1,9 @@
 <?php
 
+use App\Analysis\ResultValidator;
 use App\Knowledge\CaseContext;
 use App\Knowledge\KnowledgeSelector;
+use App\Knowledge\ProcedureFinder;
 
 afterEach(fn () => cleanUpKnowledgeBases());
 
@@ -52,6 +54,38 @@ describe('document type', function () {
         config(['knowledge.actions.gift-card' => 'Gutschein']);
 
         expect(knowledgeBase(['procedures/procedure-001-a.md' => procedureDoc(['actions' => ['gift-card']])])->issues())->toBeEmpty();
+    });
+
+    test('pickup (Selbstabholung) is a valid action for procedures and permissions, with its label and the existing ones unchanged', function () {
+        $library = knowledgeBase([
+            'procedures/procedure-001-a.md' => procedureDoc(['actions' => ['pickup']]),
+            'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => ['pickup'], 'agent_allowed' => true]),
+        ]);
+
+        expect($library->issues())->toBeEmpty()
+            ->and(config('knowledge.actions.pickup'))->toBe('Selbstabholung')
+            ->and(array_slice(array_keys(config('knowledge.actions')), 0, 13))->toBe(['return', 'reshipment', 'reproduction', 'goodwill-reproduction', 'refund', 'partial-refund', 'cancellation', 'address-change', 'photo-request', 'escalation', 'invoice-send', 'quote', 'order-confirmation']);
+    });
+
+    test('the procedure finder suggests a pickup procedure and the catalogue groups it under its action', function () {
+        knowledgeBase(['procedures/procedure-001-a.md' => procedureDoc(['actions' => ['pickup'], 'title' => 'Selbstabholung vorbereiten'])]);
+        $finder = app(ProcedureFinder::class);
+        $group = app(KnowledgeSelector::class)->customerGroup('reseller');
+
+        expect(array_map(fn ($document) => $document->id, $finder->suggested($group, [], 'product-question', ['pickup'])))->toBe(['PROCEDURE-001'])
+            ->and(array_keys($finder->catalogue($group, [])))->toContain('pickup');
+    });
+
+    test('the analysis keeps pickup as an action and the authoring guide lists it', function () {
+        $checked = (new ResultValidator)->check([
+            'summary' => ['incident' => 'a', 'customer_wish' => 'b'], 'category' => 'order-process-question', 'recommendation' => 'Abholung abstimmen.',
+            'actions' => ['pickup', 'unbekannt'], 'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
+            'reasoning' => 'r', 'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []],
+            'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag'],
+        ], []);
+
+        expect($checked['result']['actions'])->toBe(['pickup'])
+            ->and(file_get_contents(base_path('docs/KNOWLEDGE_AUTHORING_GUIDE.md')))->toContain('| `pickup` | Selbstabholung |');
     });
 
     test('a permission may name several actions as a list', function () {
