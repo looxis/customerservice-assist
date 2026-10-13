@@ -6,6 +6,9 @@
             $classLabels = config('knowledge.retrieval.classes');
             $leftOut = collect($retrieval['not_retrieved'])->where('code', 'out_of_space');
             $switchable = collect($retrieval['not_retrieved']);
+            $router = $retrieval['router'] ?? null;
+            $originLabels = ['core' => 'Grundwissen', 'trigger' => 'Durch Auslöser oder Bedingung ausgewählt', 'router' => 'Vom KI-Router ergänzt', 'manual' => 'Manuell zugeschaltet', 'safeguard' => 'Nachgeladen wegen Maßnahme'];
+            $routerCut = ($router['cut']['a_shortened'] ?? 0) > 0 || ($router['cut']['b_removed'] ?? 0) > 0;
         @endphp
 
         <p class="font-semibold">Abgerufen ({{ count($retrieval['documents']) }})</p>
@@ -15,11 +18,23 @@
                     <span class="font-mono text-xs text-slate-600">{{ $item['id'] }}</span>
                     <span class="font-medium">{{ $item['title'] ?? '–' }}</span>
                     <x-badge compact>{{ $classLabels[$item['class']] ?? $item['class'] }}</x-badge>
+                    @php
+                        $origin = $item['origin'] ?? (str_contains(implode(' ', $item['reasons']), 'von Hand zugeschaltet') ? 'manual' : (($item['class'] ?? '') === 'core' ? 'core' : 'trigger'));
+                    @endphp
+                    <x-badge compact :tone="$origin === 'router' ? 'info' : 'neutral'">{{ $originLabels[$origin] ?? $originLabels['trigger'] }}</x-badge>
                     @if ($item['unverified'])<x-badge compact tone="warning">Voraussetzung ungeklärt</x-badge>@endif
-                    <span class="block text-xs text-slate-600">{{ implode('; ', $item['reasons']) }}</span>
+                    @if ($origin === 'router')
+                        <span class="block text-xs text-slate-600">KI-Einschätzung: {{ \Illuminate\Support\Str::after(implode('; ', $item['reasons']), 'KI-Router: ') }}</span>
+                    @else
+                        <span class="block text-xs text-slate-600">{{ implode('; ', $item['reasons']) }}</span>
+                    @endif
                 </li>
             @endforeach
         </ul>
+
+        @if ($routerCut)
+            <p class="mt-3 text-xs text-slate-600">Hinweis: Der Text, den die erweiterte Wissenssuche geprüft hat, war sehr lang und wurde gekürzt ({{ ($router['cut']['a_shortened'] ?? 0) > 0 ? 'die aktuelle Nachricht in der Mitte, sichtbar markiert' : 'der frühere Verlauf' }}).</p>
+        @endif
 
         @if ($leftOut->isNotEmpty())
             <x-alert type="warning" class="mt-4">
@@ -69,6 +84,38 @@
                     <p class="mt-3"><x-button type="submit" variant="secondary"><x-icon name="refresh" size="16" /> Zuschalten und neu analysieren</x-button></p>
                 @endif
             </form>
+        @endif
+
+        @if ($admin && $router !== null)
+            @php
+                $statusLabels = ['executed' => 'ausgeführt', 'skipped' => 'regulär übersprungen', 'disabled' => 'deaktiviert', 'failed' => 'fehlgeschlagen'];
+            @endphp
+            <details class="mt-4 rounded-md ring-1 ring-slate-200 ring-inset" id="router-details">
+                <summary class="cursor-pointer p-3 font-semibold">Erweiterte Wissenssuche (Router, nur Admins): {{ $statusLabels[$router['status']] ?? $router['status'] }}</summary>
+                <div class="space-y-2 p-3 pt-0 text-xs text-slate-700">
+                    <p>{{ $router['reason'] }}</p>
+                    @if (isset($router['pool_total']))
+                        <p>Kandidaten: {{ $router['pool_total'] }} im Pool, {{ count($router['presented'] ?? []) }} dem Router gezeigt{{ ($router['preselected'] ?? false) ? ' (Vorauswahl über der Obergrenze, ausgelassen: '.count($router['left_out'] ?? []).')' : '' }}. Text an den Router: {{ number_format($router['text_characters'] ?? 0, 0, ',', '.') }} Zeichen.</p>
+                    @endif
+                    @if (($router['proposals'] ?? []) !== [])
+                        <p class="font-semibold">Vorschläge des Routers</p>
+                        <ul class="space-y-1">
+                            @foreach ($router['proposals'] as $proposal)
+                                <li><span class="font-mono">{{ $proposal['id'] }}</span> (Rang {{ $proposal['rank'] }}, {{ $proposal['basis'] === 'current' ? 'aktuelles Anliegen' : 'früherer Verlauf' }}): {{ $proposal['accepted'] ? 'übernommen' : 'verworfen – '.$proposal['rejection'] }}<br><span class="text-slate-600">KI-Einschätzung: {{ $proposal['reason'] }}</span>@if ($proposal['evidence'] !== '')<br><span class="text-slate-600">Beleg: {{ $proposal['evidence'] }}</span>@endif</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    @if (($router['categories'] ?? []) !== [])
+                        <p class="font-semibold">Erkannte Fallarten (KI-Einschätzung, kein Filter)</p>
+                        <ul class="list-disc pl-5">
+                            @foreach ($router['categories'] as $category)
+                                <li>{{ config('knowledge.category_labels.'.$category['key'], $category['key']) }}: {{ $category['reason'] }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    <p class="font-mono text-slate-600">Modell {{ $router['model'] ?? '–' }} · Router-Version {{ $router['version'] ?? '–' }} · Anweisung {{ $router['prompt_version'] ?? '–' }} · Tokens {{ $router['input_tokens'] ?? 0 }}/{{ $router['output_tokens'] ?? 0 }} · {{ $router['duration_ms'] ?? 0 }} ms{{ ($router['cost'] ?? null) !== null ? ' · geschätzt '.number_format($router['cost'], 4, ',', '.').' $' : '' }}</p>
+                </div>
+            </details>
         @endif
 
         @if ($admin)

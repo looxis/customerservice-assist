@@ -32,7 +32,14 @@
                 <p class="mt-1 text-sm text-slate-600">Analyse von {{ $meta['staff'] }}, {{ $time($meta['created_at']) }} Uhr</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                @if ($ruleIncomplete)<x-badge tone="danger">Regelprüfung unvollständig</x-badge>@endif
+                @if (($retrieval['router']['status'] ?? null) === 'failed')
+            <div role="status" class="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200 ring-inset" id="router-ausfall">
+                <p class="font-medium">Erweiterte Wissenssuche nicht verfügbar.</p>
+                <p class="mt-1">Der Antwortvorschlag wurde mit der regulären Wissensauswahl erstellt. Möglicherweise wurde weiteres relevantes Wissen nicht berücksichtigt. Bitte den Vorschlag besonders sorgfältig prüfen.</p>
+            </div>
+        @endif
+
+        @if ($ruleIncomplete)<x-badge tone="danger">Regelprüfung unvollständig</x-badge>@endif
                 @if ($gaps !== [])<x-badge tone="warning">Wissenslücke</x-badge>@endif
                 @if ($r['assessment'] ?? null)<x-badge :tone="$assessment[$r['assessment']] ?? 'neutral'">{{ ucfirst($r['assessment']) }}</x-badge>@endif
                 <x-badge :tone="$confidence[$r['confidence']['level']] ?? 'neutral'">Confidence {{ $r['confidence']['level'] }}</x-badge>

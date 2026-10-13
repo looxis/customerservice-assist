@@ -1,6 +1,7 @@
 <?php
 
 use App\Analysis\Agents\CaseAgent;
+use App\Analysis\Agents\RouterAgent;
 use App\Models\Analysis;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -719,5 +720,191 @@ describe('the real knowledge base end to end (QA)', function () {
         config(['knowledge.retrieval.required' => true]);
 
         $this->artisan('knowledge:check')->assertSuccessful();
+    });
+});
+
+describe('the router in the analysis (PROJ-37)', function () {
+    $eisberg = "leider ist das Motiv, welches eingelasert wurde, sehr klein und der Eisberg ist auch etwas anders als unser Muster.\nDas Bild sieht irgendwie sehr verloren darin aus.\nDas Motiv in unserem aktuellen Eisberg L (vom Kunden) ist sogar etwas kleiner als unser Musterbild im Eisberg M.\nBilder im Anhang - der Auftrag ist natürlich wieder einmal eilig";
+    $routerAnswer = fn (array $ids): array => [
+        'additions' => array_map(fn (string $id, int $rank): array => ['id' => $id, 'rank' => $rank, 'basis' => 'current', 'reason' => 'Die Kundenbeschreibung deutet auf eine Beanstandung der Motivgröße hin.', 'evidence' => ''], $ids, array_keys($ids)),
+        'categories' => [['key' => 'complaint', 'reason' => 'Beanstandung des gelieferten Produkts']],
+    ];
+
+    beforeEach(fn () => config(['knowledge.retrieval.active' => true, 'knowledge.router.active' => true]));
+
+    test('the Eisberg case: PRODUCT-006, PLAYBOOK-018 and PLAYBOOK-019 reach the analysis without any note of the employee', function () use ($eisberg, $routerAnswer) {
+        retrTicket($eisberg);
+        RouterAgent::fake([$routerAnswer(['PRODUCT-006', 'PLAYBOOK-018', 'PLAYBOOK-019'])]);
+        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['PLAYBOOK-018']])]);
+
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
+
+        $stored = retrStored();
+        $record = $stored->content['retrieval'];
+        $origins = collect($record['documents'])->mapWithKeys(fn (array $item): array => [$item['id'] => $item['origin']]);
+
+        expect($stored->content['sent_input'])->toContain('## PRODUCT-006')->toContain('## PLAYBOOK-018')->toContain('## PLAYBOOK-019')
+            ->and($origins['PRODUCT-006'])->toBe('router')->and($origins['PLAYBOOK-018'])->toBe('router')->and($origins['PLAYBOOK-019'])->toBe('router')
+            ->and($origins['POLICY-004'])->toBe('core')
+            ->and($record['router']['status'])->toBe('executed')->and($record['router']['additions'])->toHaveCount(3)
+            ->and($record['router']['pool'])->toContain('PRODUCT-006', 'PLAYBOOK-018', 'PLAYBOOK-019')
+            ->and(collect($record['documents'])->firstWhere('id', 'PLAYBOOK-018')['reasons'][0])->toStartWith('KI-Router: ')
+            ->and($stored->router_status)->toBe('executed')->and($stored->router_additions)->toBe(3)->and($stored->router_characters)->toBeGreaterThan(1000)
+            ->and($stored->content['sent_input'])->not->toContain('erika@example.org');
+    });
+
+    test('without the router the same case does not find the three documents (so the router makes the difference)', function () use ($eisberg) {
+        config(['knowledge.router.active' => false]);
+        retrTicket($eisberg);
+        CaseAgent::fake([retrAnswer()]);
+
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
+
+        $stored = retrStored();
+
+        expect($stored->content['sent_input'])->not->toContain('## PLAYBOOK-018')->not->toContain('## PLAYBOOK-019')->not->toContain('## PRODUCT-006')
+            ->and($stored->router_status)->toBe('disabled')->and($stored->content['retrieval']['router']['status'])->toBe('disabled');
+    });
+
+    test('a router failure leaves the deterministic result, is logged with its reason and does not block the analysis', function () use ($eisberg) {
+        retrTicket($eisberg);
+        RouterAgent::fake([fn () => throw new RuntimeException('Server Error')]);
+        CaseAgent::fake([retrAnswer()]);
+
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
+
+        $stored = retrStored();
+
+        expect($stored->status)->toBe('completed')
+            ->and($stored->router_status)->toBe('failed')->and($stored->router_additions)->toBe(0)
+            ->and($stored->content['retrieval']['router']['reason'])->toBe('API-Fehler')
+            ->and($stored->content['sent_input'])->not->toContain('## PLAYBOOK-018')
+            ->and($stored->rule_check)->not->toBe('incomplete');
+    });
+
+    test('a courtesy message skips the router with a logged reason and no model call', function () {
+        retrTicket('Vielen Dank!');
+        RouterAgent::fake([['additions' => [], 'categories' => []]]);
+        CaseAgent::fake([retrAnswer()]);
+
+        retrAnalyze(['kundengruppe' => 'reseller']);
+
+        RouterAgent::assertNeverPrompted();
+
+        expect(retrStored()->router_status)->toBe('skipped')->and(retrStored()->content['retrieval']['router']['reason'])->toContain('ohne Sachinhalt');
+    });
+
+    test('the safeguard keeps the router additions and does not call the router again', function () use ($eisberg, $routerAnswer) {
+        retrTicket($eisberg);
+        RouterAgent::fake([$routerAnswer(['PLAYBOOK-018'])]);
+        CaseAgent::fake([retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['PLAYBOOK-018']]), retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['PLAYBOOK-018', 'PERMISSION-001']])]);
+
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
+
+        RouterAgent::assertPromptedTimes(1);
+        CaseAgent::assertPromptedTimes(2);
+
+        $stored = retrStored();
+
+        expect($stored->content['sent_input'])->toContain('## PLAYBOOK-018')->toContain('## PERMISSION-001')->and($stored->passes)->toBe(2);
+    });
+
+    test('the router sends no contact data and no order data to the model', function () {
+        retrTicket('Mein Motiv ist klein, schreiben Sie an erika@example.org oder rufen Sie 0171 1234567 an.', [retrOrder()]);
+        RouterAgent::fake([['additions' => [], 'categories' => []]]);
+        CaseAgent::fake([retrAnswer()]);
+
+        retrAnalyze(['kundengruppe' => 'reseller', 'bestellungen' => ['402-0000000-0000001']]);
+
+        RouterAgent::assertPrompted(fn ($prompt) => ! str_contains($prompt->prompt, 'erika@example.org') && ! str_contains($prompt->prompt, '1234567') && str_contains($prompt->prompt, '[E-MAIL') && ! str_contains($prompt->prompt, '402-0000000-0000001'));
+    });
+
+    test('a router addition shows up with its origin in the stored analysis and the overview figures', function () use ($eisberg, $routerAnswer) {
+        retrTicket($eisberg);
+        RouterAgent::fake([$routerAnswer(['PLAYBOOK-018'])]);
+        CaseAgent::fake([retrAnswer()]);
+
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
+
+        $stored = retrStored();
+
+        expect($stored->router_input_tokens)->not->toBeNull()->and($stored->router_duration_ms)->not->toBeNull()
+            ->and($stored->content['retrieval']['router']['model'])->toBe(config('knowledge.router.model'))
+            ->and($stored->content['retrieval']['router']['version'])->toBe(config('knowledge.router.version'));
+    });
+    test('the result shows the four origins and the AI reason to everyone, the technical router details only to admins', function () use ($eisberg, $routerAnswer) {
+        config(['staff.admins' => ['Etienne']]);
+        retrTicket($eisberg);
+        RouterAgent::fake([array_replace_recursive($routerAnswer(['PLAYBOOK-018']), ['additions' => [['evidence' => '']]])]);
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo'], 'zusatzwissen' => ['PLAYBOOK-019']]);
+        $id = retrStored()->uuid;
+
+        $staff = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}");
+        $admin = test()->withCookie('staff_name', 'Etienne')->get("/tickets/2137942?analyse={$id}");
+
+        $staff->assertSeeText('Grundwissen')->assertSeeText('Vom KI-Router ergänzt')->assertSeeText('Manuell zugeschaltet')
+            ->assertSeeText('KI-Einschätzung: Die Kundenbeschreibung deutet auf eine Beanstandung der Motivgröße hin.')
+            ->assertDontSeeText('Erweiterte Wissenssuche (Router, nur Admins)')->assertDontSeeText('Vorschläge des Routers')->assertDontSee('router-details')
+            ->assertDontSeeText('Erweiterte Wissenssuche nicht verfügbar.');
+        $admin->assertSeeText('Erweiterte Wissenssuche (Router, nur Admins): ausgeführt')->assertSeeText('Vorschläge des Routers')->assertSeeText('Erkannte Fallarten (KI-Einschätzung, kein Filter)')
+            ->assertSeeText('Modell '.config('knowledge.router.model'))->assertSeeText('Router-Version '.config('knowledge.router.version'));
+    });
+
+    test('a router failure shows a calm notice in the result for everyone, a regular skip or the switch off shows none', function () use ($eisberg) {
+        config(['staff.admins' => ['Etienne']]);
+        retrTicket($eisberg);
+        RouterAgent::fake([fn () => throw new RuntimeException('Server Error')]);
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
+        $failed = retrStored()->uuid;
+
+        $page = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$failed}");
+
+        $page->assertSeeText('Erweiterte Wissenssuche nicht verfügbar.')->assertSeeText('Möglicherweise wurde weiteres relevantes Wissen nicht berücksichtigt. Bitte den Vorschlag besonders sorgfältig prüfen.')
+            ->assertDontSeeText('Regelprüfung unvollständig')->assertDontSeeText('API-Fehler');
+        test()->withCookie('staff_name', 'Etienne')->get("/tickets/2137942?analyse={$failed}")->assertSeeText('fehlgeschlagen')->assertSeeText('API-Fehler');
+    });
+
+    test('a regular skip shows no notice', function () {
+        retrTicket('Vielen Dank!');
+        RouterAgent::fake([fn () => throw new RuntimeException('Server Error')]);
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze(['kundengruppe' => 'reseller']);
+
+        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.retrStored()->uuid)->assertOk()->assertDontSeeText('Erweiterte Wissenssuche nicht verfügbar.');
+        expect(retrStored()->router_status)->toBe('skipped');
+    });
+
+    test('with the router switched off there is no notice and the status is deactivated', function () use ($eisberg) {
+        config(['knowledge.router.active' => false]);
+        retrTicket($eisberg);
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze(['kundengruppe' => 'reseller']);
+
+        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.retrStored()->uuid)->assertOk()->assertDontSeeText('Erweiterte Wissenssuche nicht verfügbar.');
+        expect(retrStored()->router_status)->toBe('disabled');
+    });
+
+    test('a very long current message is cut visibly and the hint says so to everyone', function () {
+        config(['knowledge.router.text_characters' => 1500]);
+        retrTicket('Das Motiv ist sehr klein. '.str_repeat('Füllwort und noch ein Satz. ', 200).'Bitte um Rückmeldung.');
+        RouterAgent::fake([['additions' => [], 'categories' => []]]);
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze(['kundengruppe' => 'reseller']);
+        $id = retrStored()->uuid;
+
+        RouterAgent::assertPrompted(fn ($prompt) => str_contains($prompt->prompt, 'Zeichen ausgelassen') && str_contains($prompt->prompt, 'Bitte um Rückmeldung.'));
+        test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertSeeText('wurde gekürzt')->assertSeeText('sichtbar markiert');
+    });
+
+    test('an analysis from before the router shows the old origins without errors', function () {
+        config(['knowledge.router.active' => false]);
+        retrTicket('Meine Tasse ist kaputt.');
+        CaseAgent::fake([retrAnswer()]);
+        retrAnalyze();
+        $id = retrStored()->uuid;
+
+        test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertOk()->assertSeeText('Grundwissen')->assertDontSeeText('Vom KI-Router ergänzt');
     });
 });

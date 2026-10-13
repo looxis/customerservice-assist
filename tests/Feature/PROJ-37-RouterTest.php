@@ -4,6 +4,7 @@ use App\Analysis\Agents\RouterAgent;
 use App\Analysis\Pseudonymizer;
 use App\Knowledge\CaseContext;
 use App\Knowledge\CustomerGroup;
+use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\Retrieval\CaseFacts;
 use App\Knowledge\Retrieval\KnowledgeRetriever;
 use App\Knowledge\Retrieval\RetrievalResult;
@@ -507,5 +508,94 @@ describe('failures', function () {
         rtrRun(rtrDoc(1, ['triggers' => ['zzzz']]), rtrFacts(['Das Motiv ist sehr klein.']), fn () => throw new RuntimeException('boom'));
 
         RouterAgent::assertPromptedTimes(1);
+    });
+});
+
+describe('merging the additions into the budget', function () {
+    /**
+     * A document with a body of about the given size.
+     */
+    $sized = fn (int $number, int $size, array $fields = []): array => rtrDoc($number, $fields, "Gilt für alle.\n\n# Regel\n\n".str_repeat('x', $size));
+
+    $merge = function (array $files, CaseFacts $facts, array $additions, array $manual = [], int $target = 1000): RetrievalResult {
+        config(['knowledge.retrieval.budget.target' => $target]);
+        knowledgeBase($files);
+        $documents = app(KnowledgeLibrary::class)->all()->keyBy(fn ($document): string => (string) $document->id);
+
+        return app(KnowledgeRetriever::class)->retrieve(rtrContext(), $facts, $manual, null, array_map(fn (array $item): RouterAddition => new RouterAddition($documents[$item[0]], $item[1], 1, 'passt'), $additions));
+    };
+
+    test('without additions the result is exactly the result without the router', function () use ($sized, $merge) {
+        $files = $sized(1, 100, ['retrieval' => 'core']) + $sized(2, 300, ['triggers' => ['Eisberg']]) + $sized(3, 300);
+        $facts = rtrFacts(['Der Eisberg ist klein.']);
+
+        expect($merge($files, $facts, [])->ids())->toBe($merge($files, $facts, [])->ids())->toBe(['POLICY-001', 'POLICY-002']);
+    });
+
+    test('an addition is only added: every deterministic hit stays when there is room', function () use ($sized, $merge) {
+        $files = $sized(1, 100, ['retrieval' => 'core']) + $sized(2, 200, ['triggers' => ['Eisberg']]) + $sized(3, 200);
+        $result = $merge($files, rtrFacts(['Der Eisberg ist klein.']), [['POLICY-003', RouterAddition::STRONG]]);
+
+        expect($result->ids())->toBe(['POLICY-001', 'POLICY-002', 'POLICY-003']);
+
+        $origin = collect($result->retrieved)->mapWithKeys(fn ($item): array => [(string) $item->document->id => $item->origin]);
+
+        expect($origin->all())->toBe(['POLICY-001' => 'core', 'POLICY-002' => 'trigger', 'POLICY-003' => 'router']);
+    });
+
+    test('a strong addition may displace a weak deterministic hit in the budget, logged as left out for size', function () use ($sized, $merge) {
+        $files = $sized(1, 50, ['retrieval' => 'core']) + $sized(2, 500, ['triggers' => ['früher']]) + $sized(3, 500);
+        $result = $merge($files, rtrFacts(['Aktuell nichts.'], ['Früher stand etwas früher da.']), [['POLICY-003', RouterAddition::STRONG]], target: 700);
+        $left = collect($result->notRetrieved)->firstWhere(fn (array $item): bool => (string) $item['document']->id === 'POLICY-002');
+
+        expect($result->ids())->toBe(['POLICY-001', 'POLICY-003'])->and($left['code'])->toBe(RetrievalResult::OUT_OF_SPACE);
+    });
+
+    test('a weak addition never displaces a strong deterministic hit, and in a tier the hit comes first', function () use ($sized, $merge) {
+        $files = $sized(1, 50, ['retrieval' => 'core']) + $sized(2, 500, ['triggers' => ['Eisberg']]) + $sized(3, 500);
+        $result = $merge($files, rtrFacts(['Der Eisberg ist klein.']), [['POLICY-003', RouterAddition::WEAK]], target: 700);
+
+        expect($result->ids())->toBe(['POLICY-001', 'POLICY-002']);
+
+        $files = $sized(1, 50, ['retrieval' => 'core']) + $sized(2, 500, ['triggers' => ['Eisberg']]) + $sized(3, 500);
+
+        expect($merge($files, rtrFacts(['Der Eisberg ist klein.']), [['POLICY-003', RouterAddition::STRONG]], target: 700)->ids())->toBe(['POLICY-001', 'POLICY-002']);
+    });
+
+    test('a very large addition is skipped and smaller ones and the rest of the room are still used', function () use ($sized, $merge) {
+        $files = $sized(1, 50, ['retrieval' => 'core']) + $sized(2, 300, ['triggers' => ['Eisberg']]) + $sized(3, 900) + $sized(4, 200) + $sized(5, 100);
+        $result = $merge($files, rtrFacts(['Der Eisberg ist klein.']), [['POLICY-003', RouterAddition::STRONG], ['POLICY-004', RouterAddition::STRONG], ['POLICY-005', RouterAddition::WEAK]]);
+        $left = collect($result->notRetrieved)->firstWhere(fn (array $item): bool => (string) $item['document']->id === 'POLICY-003');
+
+        expect($result->ids())->toBe(['POLICY-001', 'POLICY-002', 'POLICY-004', 'POLICY-005'])->and($left['code'])->toBe(RetrievalResult::OUT_OF_SPACE);
+    });
+
+    test('a very large deterministic hit still ends its tier as before (PROJ-36), router additions behind it are left out', function () use ($sized, $merge) {
+        $files = $sized(1, 50, ['retrieval' => 'core']) + $sized(2, 1100, ['triggers' => ['Eisberg']]) + $sized(3, 100);
+        $result = $merge($files, rtrFacts(['Der Eisberg ist klein.']), [['POLICY-003', RouterAddition::STRONG]]);
+
+        expect($result->ids())->toBe(['POLICY-001']);
+    });
+
+    test('mandatory and hand-switched knowledge is never displaced by additions', function () use ($sized, $merge) {
+        $files = $sized(1, 600, ['retrieval' => 'core']) + $sized(2, 300) + $sized(3, 300);
+        $result = $merge($files, rtrFacts(['Nichts.']), [['POLICY-003', RouterAddition::STRONG]], manual: ['POLICY-002'], target: 1000);
+
+        expect($result->ids())->toContain('POLICY-001', 'POLICY-002');
+    });
+
+    test('an addition is not mandatory even when its document is a binding rule: it can be left out, the mandatory part stays', function () use ($sized, $merge) {
+        $files = $sized(1, 700, ['retrieval' => 'core']) + $sized(2, 600, ['retrieval' => 'binding', 'triggers' => ['zzzz']]);
+        $result = $merge($files, rtrFacts(['Nichts.']), [['POLICY-002', RouterAddition::STRONG]]);
+
+        expect($result->ids())->toBe(['POLICY-001'])->and($result->mandatoryCharacters)->toBeGreaterThan(700)->toBeLessThan(800);
+    });
+
+    test('an addition for a document that is already retrieved or not a candidate changes nothing', function () use ($sized, $merge) {
+        $files = $sized(1, 100, ['retrieval' => 'core']) + $sized(2, 100, ['triggers' => ['Eisberg']]);
+        $result = $merge($files, rtrFacts(['Der Eisberg ist klein.']), [['POLICY-001', RouterAddition::STRONG], ['POLICY-002', RouterAddition::WEAK]]);
+        $origin = collect($result->retrieved)->mapWithKeys(fn ($item): array => [(string) $item->document->id => $item->origin]);
+
+        expect($result->ids())->toBe(['POLICY-001', 'POLICY-002'])->and($origin['POLICY-001'])->toBe('core')->and($origin['POLICY-002'])->toBe('trigger');
     });
 });
