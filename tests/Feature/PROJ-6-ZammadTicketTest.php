@@ -229,7 +229,7 @@ describe('thread', function () {
             zammadArticle(['id' => 3, 'sender' => 'Agent', 'internal' => true, 'from' => 'Cara', 'created_at' => '2026-10-03T07:00:00.000Z']),
         ]);
 
-        preg_match_all('/<article\b[^>]*class="([^"]*)"/s', $this->get('/tickets/2137942')->getContent(), $classes);
+        preg_match_all('/<article\b[^>]*class="([^"]*)"/s', str($this->get('/tickets/2137942')->getContent())->after('id="verlauf"')->toString(), $classes);
 
         expect($classes[1])->toHaveCount(3)
             ->and($classes[1][0])->toContain('md:w-4/5')->toContain('border-l-brand')->toContain('md:mr-auto')
@@ -237,12 +237,13 @@ describe('thread', function () {
             ->and($classes[1][2])->toContain('md:w-4/5')->toContain('border-l-warning-500')->toContain('md:ml-auto');
     });
 
-    test('the newest message is highlighted and scrolled to', function () {
+    test('the newest message is highlighted, the page no longer jumps to it (PROJ-43)', function () {
         fakeZammad([zammadArticle(['id' => 1]), zammadArticle(['id' => 2, 'body' => '<p>Neu</p>', 'created_at' => '2026-10-03T07:00:00.000Z'])]);
 
         $html = $this->get('/tickets/2137942')->getContent();
 
         expect(substr_count($html, 'id="neueste-nachricht"'))->toBe(1)
+            ->and($html)->not->toContain('scrollIntoView({ block: \'start\' })')
             ->and($html)->toMatch('/id="neueste-nachricht".*?Neu<\/p>/s');
     });
 

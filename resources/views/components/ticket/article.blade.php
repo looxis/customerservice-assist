@@ -1,4 +1,4 @@
-@props(['article', 'latest' => false, 'latestLabel' => 'Neueste Nachricht', 'rewindUrl' => null, 'translation' => null, 'retranslate' => null])
+@props(['article', 'full' => false, 'latest' => false, 'latestLabel' => 'Neueste Nachricht', 'rewindUrl' => null, 'translation' => null, 'retranslate' => null])
 
 @php
     $tone = match ($article->kind) {
@@ -10,11 +10,12 @@
 
 {{-- One message of the ticket thread (PROJ-6). --}}
 <article
-    @if ($latest) id="neueste-nachricht" x-data x-init="$el.scrollIntoView({ block: 'start' })" @endif
+    @if ($latest) id="neueste-nachricht" @endif
     @class([
-        'scroll-mt-4 rounded-lg border-l-4 p-5 shadow-1 ring-1 wrap-anywhere md:w-4/5',
+        'scroll-mt-4 rounded-lg border-l-4 p-5 shadow-1 ring-1 wrap-anywhere',
+        'md:w-4/5' => ! $full,
         $tone['border'],
-        $tone['side'],
+        $tone['side'] => ! $full,
         'bg-white ring-slate-200' => $article->kind !== \App\Zammad\ArticleKind::Internal,
         'bg-warning-500/5 ring-warning-500/20' => $article->kind === \App\Zammad\ArticleKind::Internal,
         'ring-2 ring-brand' => $latest,

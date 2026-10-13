@@ -94,6 +94,23 @@ final readonly class Ticket
         };
     }
 
+    /**
+     * The message to read first (PROJ-43): the last customer message, which is the one a reply
+     * answers; without any customer message the last message of the ticket; null for an empty thread.
+     */
+    public function focusArticle(): ?TicketArticle
+    {
+        $last = null;
+
+        foreach ($this->articles as $article) {
+            if ($article->kind === ArticleKind::Customer) {
+                $last = $article;
+            }
+        }
+
+        return $last ?? ($this->articles === [] ? null : $this->articles[array_key_last($this->articles)]);
+    }
+
     public function lastArticleAt(): ?CarbonImmutable
     {
         return $this->articles === [] ? null : $this->articles[array_key_last($this->articles)]->createdAt;

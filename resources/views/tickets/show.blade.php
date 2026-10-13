@@ -6,7 +6,9 @@
 <x-layouts.app :title="'Ticket#'.$number" width="5xl">
     <x-staff.hint :names="$staffNames" :current="$currentStaff" />
 
-    <x-ticket.lookup :value="$ticket ? '' : 'Ticket#'.$number" />
+    @unless ($ticket)
+        <x-ticket.lookup :value="'Ticket#'.$number" />
+    @endunless
 
     @if ($problem)
         <x-alert type="error" role="alert">
@@ -22,6 +24,9 @@
     @endif
 
     @if ($ticket)
+        {{-- The message to read first (PROJ-43); a further ticket is fetched via "Ticket analysieren". --}}
+        <x-ticket.focus-message :ticket="$ticket" :translations="$translations ?? []" />
+
         @if ($rewindProblem ?? null)
             <x-alert type="warning">{{ $rewindProblem }}</x-alert>
         @endif
