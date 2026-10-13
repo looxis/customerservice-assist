@@ -72,7 +72,7 @@
                         <h3 class="text-sm font-semibold text-brand-700">Zuerst zu klären</h3>
                         <p class="mt-1 text-sm font-medium text-slate-900">{{ $decision['question'] }}</p>
                         @if ($decision['why'] !== '')<p class="mt-1 text-sm text-slate-600">{{ $decision['why'] }}</p>@endif
-                        @if ($canContinue)<p class="mt-3 text-sm text-slate-700">Wähle das Ergebnis deiner Klärung und bestätige unten mit „Mit diesem Ergebnis fortsetzen“.</p>@endif
+                        @if ($canContinue)<p class="mt-3 text-sm text-slate-700">Wähle das Ergebnis deiner Klärung oder trage unten ein eigenes ein, und bestätige mit „Mit diesem Ergebnis fortsetzen“.</p>@endif
                         <ul class="mt-2 space-y-2">
                             @foreach ($decision['options'] as $option)
                                 <li>
@@ -90,6 +90,9 @@
                                 </li>
                             @endforeach
                         </ul>
+                        @if ($canContinue)
+                            <x-analysis.clarification-input :decision="true" />
+                        @endif
                         @if (($decision['knowledge_ids'] ?? []) !== [])
                             <p class="mt-3 text-xs text-slate-600">Grundlage: <span class="font-mono">{{ implode(', ', $decision['knowledge_ids']) }}</span></p>
                         @endif
@@ -108,16 +111,11 @@
                     </div>
                 @endif
 
+                @if ($canContinue && ! $decision)
+                    <x-analysis.clarification-input />
+                @endif
+
                 @if ($canContinue)
-                        <div>
-                            <label for="klaerung-text" class="block text-sm font-semibold text-slate-900">{{ $decision ? 'Anderes Ergebnis oder Ergänzung' : 'Ergebnis der internen Prüfung' }}</label>
-                            <textarea id="klaerung-text" name="klaerung_text" rows="3" x-model="note" maxlength="{{ config('analysis.max_context_length') }}" class="mt-1 block w-full rounded-md border-slate-300 text-sm focus:border-brand focus:ring-brand"></textarea>
-                            @error('klaerung_text')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
-                            @error('klaerung_option')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
-                            @error('klaerung_analyse')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
-                            <p class="mt-1 text-xs text-slate-600">Gilt für die KI als geprüfter Fakt. Danach geht es mit diesem Ergebnis weiter.</p>
-                            <x-button type="submit" variant="secondary" class="mt-2" x-bind:disabled="busy || (choice === '' && note.trim() === '')"><x-icon name="refresh" size="16" /> Mit diesem Ergebnis fortsetzen</x-button>
-                        </div>
                     </form>
                 @endif
             </div>

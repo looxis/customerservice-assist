@@ -143,6 +143,17 @@ describe('blocked analysis', function () {
             ->and($html)->toContain('Nur Hinweise zum Abhaken');
     });
 
+    test('the free result is the last choice inside the box "Zuerst zu klären" and its field is visibly a field', function () {
+        CaseAgent::fake([stepBlocked()]);
+        stepRun();
+
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSeeTextInOrder(['Zuerst zu klären', 'Kein Bedarf – kann entsorgt werden', 'Anderes Ergebnis oder Ergänzung', 'Ohne gewählte Option gilt dein Text als Ergebnis', 'Mit diesem Ergebnis fortsetzen', 'Für diesen Fall'])
+            ->getContent();
+
+        expect($html)->toMatch('/<textarea id="klaerung-text"[^>]*class="[^"]*ring-1[^"]*ring-slate-300[^"]*"/')->and(substr_count($html, 'id="klaerung-text"'))->toBe(1);
+    });
+
     test('the copy and edit actions are refused without a reply', function () {
         CaseAgent::fake([stepBlocked()]);
         $id = stepRun();
