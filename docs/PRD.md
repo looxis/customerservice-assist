@@ -45,7 +45,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | – | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
 | P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
-| P1 | Tickettext manuell einfügen (Fallback ohne Zammad) | Roadmap |
+| P1 | Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Planned |
 | P1 | Zweiter LLM-Anbieter zum Vergleich | Roadmap |
 | P1 | Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Roadmap |
 | P2 | Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Roadmap |
@@ -59,7 +59,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | – | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | In Progress |
 | – | Dynamischer Abruf von Produktinformationen aus EOCS und später dem LOOXIS Content Studio (statt Markdown-Dateien für alle Produktdetails) | Roadmap |
 | – | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
-| P1 | Wissensabfrage ohne Ticket: Frage oder Anrufthema als Text eingeben, Antwort aus der Wissensdatenbank im selben Aufbau wie die Ticketanalyse; Begriff „Analyse“ in der Oberfläche überdenken | Roadmap |
+| P1 | Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | Planned |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
