@@ -59,6 +59,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | – | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | In Progress |
 | – | Dynamischer Abruf von Produktinformationen aus EOCS und später dem LOOXIS Content Studio (statt Markdown-Dateien für alle Produktdetails) | Roadmap |
 | – | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
+| P1 | Wissensabfrage ohne Ticket: Frage oder Anrufthema als Text eingeben, Antwort aus der Wissensdatenbank im selben Aufbau wie die Ticketanalyse; Begriff „Analyse“ in der Oberfläche überdenken | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
