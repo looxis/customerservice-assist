@@ -1,6 +1,6 @@
 # PROJ-39: Schrittweise Fallbearbeitung
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
