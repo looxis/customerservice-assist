@@ -7,6 +7,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\ProcedureController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketController;
@@ -34,6 +35,13 @@ Route::patch('/wissensluecken/{gap}', [KnowledgeGapController::class, 'update'])
 
 Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
+
+Route::get('/frage', [QuestionController::class, 'create'])->name('questions.create');
+Route::get('/frage/{number}', [QuestionController::class, 'show'])->where('number', 'F[0-9]{8}')->name('questions.show');
+Route::middleware('staff.selected')->group(function (): void {
+    Route::post('/frage', [QuestionController::class, 'store'])->middleware('throttle:language-model')->name('questions.store');
+    Route::post('/frage/{number}/nachfrage', [QuestionController::class, 'followUp'])->where('number', 'F[0-9]{8}')->middleware('throttle:language-model')->name('questions.follow-up');
+});
 
 Route::get('/tickets', [TicketController::class, 'lookup'])->name('tickets.lookup');
 Route::get('/tickets/{number}', [TicketController::class, 'show'])

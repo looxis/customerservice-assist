@@ -1,4 +1,4 @@
-@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null])
+@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null, 'question' => false])
 
 @php
     $r = $result['result'];
@@ -20,7 +20,8 @@
     $ruleIncomplete = ($rule['status'] ?? null) === 'incomplete';
     $ruleAcknowledged = $ruleIncomplete && ($rule['at'] ?? null) !== null;
     $retrieval = $result['retrieval'] ?? null;
-    $link = fn (?string $id): string => route('tickets.show', array_filter(['number' => $number, 'analyse' => $id, 'stand' => $stand])).'#ergebnis';
+    $infoOnly = ($r['next_step'] ?? 'reply') === 'info_only';
+    $link = fn (?string $id): string => route($question ? 'questions.show' : 'tickets.show', array_filter(['number' => $number, 'analyse' => $id, 'stand' => $stand])).'#ergebnis';
 @endphp
 
 {{-- Analysis result (PROJ-10): what to do and the reply first, the reasoning
@@ -86,7 +87,7 @@
             <p class="mt-2 inline-flex rounded-md bg-warning-500/10 px-2 py-1 text-xs font-semibold text-warning-700">Testlauf (Stand bis Nachricht vom {{ $time($meta['test_until']) }})</p>
         @endif
 
-        @if ($result['new_messages'])
+        @if ($result['new_messages'] ?? false)
             <x-alert type="warning" class="mt-4">
                 <p>Seit diesem Vorschlag sind neue Nachrichten eingegangen.</p>
                 <p class="mt-3">
@@ -188,6 +189,11 @@
             <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" :locked="$ruleIncomplete && ! $ruleAcknowledged" />
 
             <x-analysis.feedback :result="$result" :number="$number" />
+        @elseif ($infoOnly)
+            <x-alert type="info" class="mt-4" id="kein-entwurf-angefordert">
+                <p class="font-semibold">Kein Antwortentwurf angefordert</p>
+                <p class="mt-1">Das ist die Auskunft für dich. Möchtest du dem Kunden antworten, fordere unter <a href="#nachfrage" class="font-semibold underline">Nachfrage oder Ergänzung</a> einen Antwortentwurf an.</p>
+            </x-alert>
         @else
             <x-alert type="info" class="mt-4" id="noch-keine-antwort">
                 <p class="font-semibold">Noch kein Antwortentwurf – zuerst intern klären</p>

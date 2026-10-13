@@ -1,6 +1,6 @@
 # PROJ-40: Wissensabfrage ohne Ticket
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
@@ -184,6 +184,27 @@ Der Verlauf je Mitarbeiter ist eine Abfrage: „alle Fälle mit Kennung F…, Mi
 - Keine neuen Pakete.
 - Konfiguration: eine Obergrenze für die Länge des Fragetextes (Vorschlag 6000 Zeichen, damit eingefügte Kundentexte Platz haben) und die Zahl der Einträge im Verlauf (Vorschlag 10).
 
+
+## Implementation Notes
+
+### Frontend (2026-10-13)
+**Gebaut:**
+- Schritt 1 der Reihenfolge ist fertig: „Analyse“ → „Vorschlag“ in allen sichtbaren Texten (Ansichten, Meldungen, Admin-Seiten, `docs/ABOUT.md`) und in den Tests; Code, Datenbank und Protokoll behalten „Analyse“. Seitenleiste: „Vorschläge“ (Admin-Liste), Stufe „Vorschlag erstellt“ in der Ticket-Übersicht. Der Menüpunkt „Ticket analysieren“ bleibt (offen).
+- Neue Seite „Frage stellen“ (`/frage`, Route `questions.create`) mit Formular, Hinweis zu Kundendaten, Kontrollkästchen „Antwortentwurf“ und „Meine letzten Fragen“; Menüpunkt „Frage stellen“ (Symbol `chat`).
+- Gemeinsamer Baustein `analysis/scope-fields` (Kundengruppe + Produkte) für Ticket- und Fragenformular.
+- Ansicht `questions/show` mit Frage, Ergebnis (`analysis/result` und `analysis/procedures` mit Schalter `question`), Nachfrage (`question/follow-up`).
+- Ergebnis kennt den Zustand `info_only`: „Kein Antwortentwurf angefordert“ mit Verweis auf die Nachfrage.
+- Routen: `questions.create` (GET `/frage`), `questions.show` (GET `/frage/{F+8 Ziffern}`), `questions.store` (POST `/frage`), `questions.follow-up` (POST `/frage/{F…}/nachfrage`); `QuestionController` liefert für `store`, `show` und `followUp` bis zum Backend 501.
+
+**Vertrag für das Backend (Daten, die die Ansichten erwarten):**
+- `questions.create`: `form` (groups, suggestedGroup, groupSource, products, suggestedProducts, productReasons, mentionedProducts) und `recent` (Liste mit `number`, `created_at`, `excerpt`, `has_reply`).
+- `questions.show`: `question` (`text` mit eingesetzten Werten, `group_label`, `products_label`, `placeholders` bool), `result` wie bei Tickets (`AnalysisPanel`-Form inkl. `id`, `is_latest`, `has_reply`, `steps`, `procedures`, `decisions`, `new_messages=false`), `number` (F-Kennung), `history`, `admin`.
+- Formularfelder `questions.store`: `text`, `kundengruppe`, `produkte[]`, `antwortentwurf` (1 oder fehlt). `questions.follow-up`: `klaerung_analyse`, `klaerung_text`, `antwortentwurf`; die Klärungsformulare in „Interne Abläufe“ senden `klaerung_analyse` + `klaerung_option`/`klaerung_text` an dieselbe Route.
+- Fehlermeldungen: Sitzungswerte `question_error` und `question_retry` (Formular), Validierungsfehler an `text`, `kundengruppe`, `produkte.*`, `klaerung_text`, `klaerung_analyse`.
+- Konfiguration `analysis.max_question_length` (Standard 6000, die Ansichten nutzen schon den Standard).
+- Offen für das Backend: Zulassung der F-Kennung in den Adressen für Feedback, Lücke melden, Entwurf, Kopieren, Rückübersetzung (die Komponenten bauen ihre Adressen mit `tickets.analysis.*`); Zustand `info_only` im Vertrag.
+
+**Nicht gebaut / offen:** Menüname „Ticket analysieren“; mobile Seitenleiste (PROJ-26).
 
 ## QA Test Results
 _To be added by /qa_

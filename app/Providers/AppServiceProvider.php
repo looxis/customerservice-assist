@@ -59,7 +59,7 @@ class AppServiceProvider extends ServiceProvider
                     default => 'analysis_error',
                 }, 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.')));
 
-        View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show'], function (\Illuminate\View\View $view): void {
+        View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show', 'questions.create', 'questions.show'], function (\Illuminate\View\View $view): void {
             $staff = app(StaffDirectory::class);
             $testMode = app(TestMode::class);
 
