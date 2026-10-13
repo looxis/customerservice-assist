@@ -21,12 +21,14 @@ final readonly class CaseFacts
      * @param  list<OrderFacts>  $orders  The orders the concern may refer to (the reference order, or the candidates when it is unclear).
      * @param  string  $reference  How the orders were chosen: named, single, unclear or none.
      * @param  array{A: list<string>, B: list<string>, C: list<string>}  $tiers  Customer texts: A = the current concern, B = recent messages and the summary, C = the rest.
+     * @param  array{A: list<array{0: string, 1: string|null}>, B: list<array{0: string, 1: string|null}>, C: list<array{0: string, 1: string|null}>}  $parts  The same texts as pairs of original and German translation (null without translation), for the router (PROJ-37).
      */
     public function __construct(
         public array $values,
         public array $orders,
         public string $reference,
         public array $tiers,
+        public array $parts = ['A' => [], 'B' => [], 'C' => []],
     ) {}
 
     public function get(string $key): mixed

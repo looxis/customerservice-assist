@@ -45,15 +45,17 @@ class CaseFactsBuilder
     {
         $now ??= CarbonImmutable::now();
         $customer = array_values(array_filter($ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer));
-        $tiers = $this->tiers($ticket, $customer, $translations, $summary);
+        [$tiers, $parts] = $this->tiers($ticket, $customer, $translations, $summary);
         if (trim($employeeContext) !== '') {
             $tiers['A'][] = trim($employeeContext);
+            $parts['A'][] = [trim($employeeContext), null];
         }
 
         [$candidates, $reference] = $this->candidates($tiers['A'], $orders, $mentionedOrders, $now);
 
         foreach ($candidates as $candidate) {
             array_push($tiers['B'], ...$candidate->texts);
+            array_push($parts['B'], ...array_map(fn (string $text): array => [$text, null], $candidate->texts));
         }
 
         $last = $customer === [] ? null : $customer[array_key_last($customer)];
@@ -68,36 +70,44 @@ class CaseFactsBuilder
             'customer_message_count' => count($customer),
             'current_message_has_attachment' => $last === null ? null : $last->attachments !== [],
             'message_foreign' => $last === null ? null : $this->language->isForeign($lastText),
-        ], $candidates, $reference, $tiers);
+        ], $candidates, $reference, $tiers, $parts);
     }
 
     /**
      * @param  list<TicketArticle>  $customer
      * @param  array<int, array{text: string|null}>  $translations
-     * @return array{A: list<string>, B: list<string>, C: list<string>}
+     * @return array{0: array{A: list<string>, B: list<string>, C: list<string>}, 1: array{A: list<array{0: string, 1: string|null}>, B: list<array{0: string, 1: string|null}>, C: list<array{0: string, 1: string|null}>}}
      */
     private function tiers(Ticket $ticket, array $customer, array $translations, ?string $summary): array
     {
         $texts = array_map(fn (TicketArticle $article): string => $this->text($article, $translations), $customer);
+        $pairs = array_map(fn (TicketArticle $article): array => $this->pair($article, $translations), $customer);
         $a = [];
         $b = [];
         $c = [];
+        $pa = [];
+        $pb = [];
+        $pc = [];
 
         if ($texts !== []) {
             $count = count($texts);
             $current = $count - 1;
             $a[] = $texts[$current];
+            $pa[] = $pairs[$current];
 
             if ($current > 0 && mb_strlen(trim($texts[$current])) < self::SHORT_MESSAGE) {
                 $current--;
                 $a[] = $texts[$current];
+                $pa[] = $pairs[$current];
             }
 
             for ($index = $current - 1; $index >= 0; $index--) {
                 if (count($b) < self::RECENT_MESSAGES) {
                     $b[] = $texts[$index];
+                    $pb[] = $pairs[$index];
                 } else {
                     $c[] = $texts[$index];
+                    $pc[] = $pairs[$index];
                 }
             }
         }
@@ -105,16 +115,33 @@ class CaseFactsBuilder
         if (trim($ticket->title) !== '') {
             if (count($customer) <= self::YOUNG_TICKET) {
                 array_unshift($a, $ticket->title);
+                array_unshift($pa, [$ticket->title, null]);
             } else {
                 $c[] = $ticket->title;
+                $pc[] = [$ticket->title, null];
             }
         }
 
         if (trim((string) $summary) !== '') {
             $b[] = trim((string) $summary);
+            $pb[] = [trim((string) $summary), null];
         }
 
-        return ['A' => $a, 'B' => $b, 'C' => $c];
+        return [['A' => $a, 'B' => $b, 'C' => $c], ['A' => $pa, 'B' => $pb, 'C' => $pc]];
+    }
+
+    /**
+     * Original text and German translation of a customer message apart (null without translation).
+     *
+     * @param  array<int, array{text: string|null}>  $translations
+     * @return array{0: string, 1: string|null}
+     */
+    private function pair(TicketArticle $article, array $translations): array
+    {
+        $text = $article->hasText() ? TicketContext::plainText($article) : '';
+        $translated = $article->id === null ? null : ($translations[$article->id]['text'] ?? null);
+
+        return [trim($text), is_string($translated) && trim($translated) !== '' ? trim($translated) : null];
     }
 
     /**

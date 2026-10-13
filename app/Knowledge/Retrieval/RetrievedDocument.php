@@ -17,10 +17,22 @@ final readonly class RetrievedDocument
 
     public const string EXAMPLE = 'example';
 
+    /** Where a document came from (PROJ-37): basic knowledge, triggers or condition, the router, by hand, the action safeguard. */
+    public const string ORIGIN_CORE = 'core';
+
+    public const string ORIGIN_TRIGGER = 'trigger';
+
+    public const string ORIGIN_ROUTER = 'router';
+
+    public const string ORIGIN_MANUAL = 'manual';
+
+    public const string ORIGIN_SAFEGUARD = 'safeguard';
+
     /**
      * @param  string  $strength  mandatory (core, binding, by hand), strong or weak (triggered) or example.
      * @param  list<string>  $reasons
      * @param  list<string>  $unknownKeys  Keys of the condition whose facts were unknown; set when the document comes along only as a precaution.
+     * @param  string  $origin  One of the ORIGIN_ constants.
      */
     public function __construct(
         public KnowledgeDocument $document,
@@ -30,6 +42,7 @@ final readonly class RetrievedDocument
         public array $reasons,
         public bool $unverified = false,
         public array $unknownKeys = [],
+        public string $origin = self::ORIGIN_TRIGGER,
     ) {}
 
     public function reason(): string

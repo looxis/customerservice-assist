@@ -15,6 +15,8 @@ use App\Knowledge\Retrieval\KnowledgeRetriever;
 use App\Knowledge\Retrieval\KnowledgeTooLarge;
 use App\Knowledge\Retrieval\RetrievalResult;
 use App\Knowledge\Retrieval\RetrievedDocument;
+use App\Knowledge\Retrieval\Router\KnowledgeRouter;
+use App\Knowledge\Retrieval\Router\RouterOutcome;
 use Carbon\CarbonImmutable;
 
 /**
@@ -32,6 +34,7 @@ class CaseAnalyzer
         private readonly CaseFactsBuilder $facts,
         private readonly KnowledgeRetriever $retriever,
         private readonly Translator $translator,
+        private readonly KnowledgeRouter $router,
     ) {}
 
     /**
@@ -64,10 +67,11 @@ class CaseAnalyzer
         $started = hrtime(true);
         $retrieval = null;
         $hints = [];
+        $router = null;
 
         if ($active) {
             try {
-                [$selection, $retrieval, $hints] = $this->retrieve($request, $context, $selection, $prompt, $parts);
+                [$selection, $retrieval, $hints, $router] = $this->retrieve($request, $context, $selection, $prompt, $parts, $pseudonymizer);
             } catch (KnowledgeTooLarge) {
                 $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, AnalysisProblem::KnowledgeTooLarge->name, intdiv(hrtime(true) - $started, 1_000_000));
 
@@ -114,7 +118,7 @@ class CaseAnalyzer
             'notes' => [...$notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
-            ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck)]),
+            ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router)]),
             'meta' => [
                 'staff' => $request->staffName,
                 'test_until' => $request->ticket->rewoundAt()?->toIso8601String(),
@@ -131,6 +135,7 @@ class CaseAnalyzer
                 'passes' => $safeguard !== null && $safeguard['loaded'] !== [] ? 2 : 1,
                 'retrieval_version' => $retrieval === null ? null : KnowledgeRetriever::configurationVersion(),
                 'rule_check' => $ruleCheck,
+                ...$this->routerFigures($retrieval, $router),
                 'variant' => $request->variant->value,
                 'customer_group' => $request->customerGroup->key,
                 'products' => $request->products,
@@ -196,11 +201,11 @@ class CaseAnalyzer
      * knows, the result of the retrieval and the hints for documents whose condition is unclear.
      *
      * @param  array{case: string, orders: string, employee: string, ticket: string, rules: string}  $parts
-     * @return array{0: KnowledgeSelection, 1: RetrievalResult, 2: array<string, RetrievedDocument>}
+     * @return array{0: KnowledgeSelection, 1: RetrievalResult, 2: array<string, RetrievedDocument>, 3: RouterOutcome}
      *
      * @throws KnowledgeTooLarge
      */
-    private function retrieve(AnalysisRequest $request, CaseContext $context, KnowledgeSelection $base, Prompt $prompt, array $parts): array
+    private function retrieve(AnalysisRequest $request, CaseContext $context, KnowledgeSelection $base, Prompt $prompt, array $parts, Pseudonymizer $pseudonymizer): array
     {
         $facts = $this->facts->build(
             $request->ticket,
@@ -215,7 +220,13 @@ class CaseAnalyzer
 
         $without = mb_strlen($prompt->text) + mb_strlen($this->compose($parts, "# Wissen\n"));
         $available = (int) config('analysis.limits.context_characters') - (int) config('analysis.limits.answer_reserve_characters') - $without;
-        $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, max(0, $available));
+        $available = max(0, $available);
+        $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available);
+        $router = $this->router->run($context, $facts, $result, $request->extraKnowledge, $request->ticket, $pseudonymizer, $request->employeeContext);
+
+        if ($router->additions !== []) {
+            $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available, $router->additions);
+        }
 
         $warnings = [...array_values(array_filter($base->warnings, fn (string $warning): bool => ! str_starts_with($warning, 'Der Umfang'))), ...$result->warnings];
 
@@ -230,7 +241,7 @@ class CaseAnalyzer
             warnings: $warnings,
         );
 
-        return [$selection, $result, $this->hints($result)];
+        return [$selection, $result, $this->hints($result), $router];
     }
 
     /**
@@ -379,7 +390,7 @@ class CaseAnalyzer
      * @param  list<string>  $manual
      * @return array<string, mixed>
      */
-    private function record(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard, array $manual, ?string $ruleCheck): array
+    private function record(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard, array $manual, ?string $ruleCheck, ?RouterOutcome $router = null): array
     {
         $reasons = [];
 
@@ -399,6 +410,7 @@ class CaseAnalyzer
                     'reasons' => $item === null ? [$entry->reason] : $item->reasons,
                     'unverified' => $item?->unverified ?? false,
                     'unknown_keys' => $item?->unknownKeys ?? [],
+                    'origin' => $item?->origin ?? RetrievedDocument::ORIGIN_SAFEGUARD,
                 ];
             }, $selection->selected)),
             'not_retrieved' => array_values(array_map(fn (array $item): array => ['id' => $item['document']->id, 'title' => $item['document']->title, 'code' => $item['code'], 'detail' => $item['detail']], $retrieval->notRetrieved)),
@@ -408,9 +420,33 @@ class CaseAnalyzer
             'manual' => $manual,
             'safeguard' => $safeguard,
             'rule_check' => $ruleCheck,
+            'router' => $router?->toArray(),
             'configuration' => ['version' => KnowledgeRetriever::configurationVersion(), 'budget' => config('knowledge.retrieval.budget'), 'limits' => config('analysis.limits')],
             'sizes' => ['knowledge' => $selection->characterCount(), 'mandatory' => $retrieval->mandatoryCharacters, 'target' => $retrieval->target, 'available' => $retrieval->available],
             'warnings' => $retrieval->warnings,
+        ];
+    }
+
+    /**
+     * The figures of the router for the analysis overview (PROJ-14); empty without the targeted retrieval.
+     *
+     * @return array<string, mixed>
+     */
+    private function routerFigures(?RetrievalResult $retrieval, ?RouterOutcome $router): array
+    {
+        if ($retrieval === null || $router === null) {
+            return [];
+        }
+
+        $added = array_filter($retrieval->retrieved, fn (RetrievedDocument $item): bool => $item->origin === RetrievedDocument::ORIGIN_ROUTER);
+
+        return [
+            'router_status' => $router->status,
+            'router_additions' => count($added),
+            'router_characters' => array_sum(array_map(fn (RetrievedDocument $item): int => $item->document->length(), $added)),
+            'router_duration_ms' => $router->durationMs,
+            'router_input_tokens' => $router->inputTokens,
+            'router_output_tokens' => $router->outputTokens,
         ];
     }
 

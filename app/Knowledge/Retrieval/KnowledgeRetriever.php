@@ -5,6 +5,7 @@ namespace App\Knowledge\Retrieval;
 use App\Knowledge\CaseContext;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeSelector;
+use App\Knowledge\Retrieval\Router\RouterAddition;
 
 /**
  * Second stage of the knowledge selection (PROJ-36): from the documents that
@@ -40,10 +41,11 @@ class KnowledgeRetriever
     /**
      * @param  list<string>  $manualIds  Documents the employee switched on by hand.
      * @param  int|null  $available  Characters that are left for knowledge in the whole prompt; null = no limit (preview).
+     * @param  list<RouterAddition>  $additions  Documents the router adds (PROJ-37). They run through the same budget as strong or weak hits, behind the hits of their tier.
      *
      * @throws KnowledgeTooLarge when the mandatory knowledge alone does not fit into $available.
      */
-    public function retrieve(CaseContext $context, CaseFacts $facts, array $manualIds = [], ?int $available = null): RetrievalResult
+    public function retrieve(CaseContext $context, CaseFacts $facts, array $manualIds = [], ?int $available = null, array $additions = []): RetrievalResult
     {
         $settings = config('knowledge.retrieval');
         $evaluator = new WhenEvaluator($settings['when_keys']);
@@ -91,11 +93,31 @@ class KnowledgeRetriever
             $id = (string) $entry->document->id;
 
             if (in_array($id, $manualIds, true) && ! isset($mandatory[$id])) {
-                $mandatory[$id] = new RetrievedDocument($entry->document, $entry->document->retrieval() ?? 'core', RetrievedDocument::MANDATORY, 0, ['von Hand zugeschaltet']);
+                $mandatory[$id] = new RetrievedDocument($entry->document, $entry->document->retrieval() ?? 'core', RetrievedDocument::MANDATORY, 0, ['von Hand zugeschaltet'], origin: RetrievedDocument::ORIGIN_MANUAL);
                 unset($notRetrieved[$id]);
                 $strong = array_values(array_filter($strong, fn (RetrievedDocument $item): bool => $item->document->id !== $id));
                 $weak = array_values(array_filter($weak, fn (RetrievedDocument $item): bool => $item->document->id !== $id));
                 $examples = array_values(array_filter($examples, fn (RetrievedDocument $item): bool => $item->document->id !== $id));
+            }
+        }
+
+        $routerStrong = [];
+        $routerWeak = [];
+
+        foreach ($additions as $addition) {
+            $id = (string) $addition->document->id;
+
+            if (isset($mandatory[$id]) || ! isset($notRetrieved[$id])) {
+                continue;
+            }
+
+            unset($notRetrieved[$id]);
+            $item = new RetrievedDocument($addition->document, $addition->document->retrieval() ?? 'triggered', $addition->strength === RouterAddition::STRONG ? RetrievedDocument::STRONG : RetrievedDocument::WEAK, 0, ['KI-Router: '.$addition->reason], origin: RetrievedDocument::ORIGIN_ROUTER);
+
+            if ($addition->strength === RouterAddition::STRONG) {
+                $routerStrong[] = $item;
+            } else {
+                $routerWeak[] = $item;
             }
         }
 
@@ -118,11 +140,18 @@ class KnowledgeRetriever
         $chosen = $mandatory;
         $room = max(0, min($target, $available) - $mandatoryCharacters);
 
-        foreach ([$this->byScore($strong), $this->byScore($weak), $this->capExamples($examples, $context, $notRetrieved)] as $tier) {
+        foreach ([[...$this->byScore($strong), ...$routerStrong], [...$this->byScore($weak), ...$routerWeak], $this->capExamples($examples, $context, $notRetrieved)] as $tier) {
             foreach ($tier as $index => $item) {
                 $length = $item->document->length();
 
                 if ($length > $room) {
+                    if ($item->origin === RetrievedDocument::ORIGIN_ROUTER) {
+                        // A router addition that does not fit is skipped; smaller ones and the rest of the room stay usable.
+                        $notRetrieved[(string) $item->document->id] = ['document' => $item->document, 'code' => RetrievalResult::OUT_OF_SPACE, 'detail' => 'wegen Umfang nicht mitgesendet ('.implode('; ', $item->reasons).')'];
+
+                        continue;
+                    }
+
                     foreach (array_slice($tier, $index) as $left) {
                         $notRetrieved[(string) $left->document->id] = ['document' => $left->document, 'code' => RetrievalResult::OUT_OF_SPACE, 'detail' => 'wegen Umfang nicht mitgesendet ('.implode('; ', $left->reasons).')'];
                     }
@@ -171,7 +200,7 @@ class KnowledgeRetriever
         $example = in_array($document->type, self::EXAMPLE_TYPES, true);
 
         if ($class === 'core' || ($class === 'binding' && $example)) {
-            return new RetrievedDocument($document, $class, $example ? RetrievedDocument::EXAMPLE : RetrievedDocument::MANDATORY, 0, [$unclassified ? 'Grundwissen (noch nicht klassifiziert)' : 'Grundwissen']);
+            return new RetrievedDocument($document, $class, $example ? RetrievedDocument::EXAMPLE : RetrievedDocument::MANDATORY, 0, [$unclassified ? 'Grundwissen (noch nicht klassifiziert)' : 'Grundwissen'], origin: RetrievedDocument::ORIGIN_CORE);
         }
 
         $match = $this->matcher->match($facts->tiers, $document->triggers(), $document->excludeTriggers());
@@ -223,7 +252,7 @@ class KnowledgeRetriever
         $hasActions = $document->actions() !== [];
 
         if (! $hasTriggers && ! $hasWhen && ! $hasActions) {
-            return new RetrievedDocument($document, 'binding', RetrievedDocument::MANDATORY, 0, ['verbindlich im Geltungsbereich']);
+            return new RetrievedDocument($document, 'binding', RetrievedDocument::MANDATORY, 0, ['verbindlich im Geltungsbereich'], origin: RetrievedDocument::ORIGIN_CORE);
         }
 
         if ($match['hits'] !== []) {

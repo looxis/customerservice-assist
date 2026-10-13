@@ -298,6 +298,53 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Router (PROJ-37)
+    |--------------------------------------------------------------------------
+    |
+    | A cheap model call before the analysis adds documents the triggers missed.
+    | It only ever adds, from a pool of documents the retrieval did not take, and
+    | only works when the targeted retrieval is on. Values marked provisional are
+    | calibrated with the live check set before the router is switched on.
+    |
+    */
+
+    'router' => [
+        'active' => (bool) env('KNOWLEDGE_ROUTER_ACTIVE', false),
+
+        // Raise when the router logic or its settings change; stored with every analysis.
+        'version' => '2026-10-13.1',
+
+        // Own model setting so the router can be changed independently of the analysis.
+        'model' => env('ROUTER_MODEL', env('SUMMARY_MODEL', 'gpt-5.4-mini')),
+
+        // Seconds; no automatic retry.
+        'timeout' => (int) env('ROUTER_TIMEOUT', 15),
+
+        // Provisional: the router sees at most this many catalogue lines / characters.
+        'pool' => [
+            'max_lines' => 60,
+            'max_characters' => 15000,
+            // Share of the places reserved for documents with a specific scope (product or customer group).
+            'reserved_share' => 0.34,
+        ],
+
+        // Provisional: the most documents one analysis takes over from the router.
+        'max_additions' => 6,
+
+        // Provisional: characters of customer text sent to the router.
+        'text_characters' => 12000,
+
+        // A message made only of these words (and no attachment, no question) has no content of its own.
+        'courtesy_words' => ['danke', 'dankeschön', 'vielen', 'dank', 'ok', 'okay', 'perfekt', 'super', 'gut', 'alles', 'klar', 'prima', 'passt', 'schön', 'und', 'für', 'ihre', 'ihr', 'eure', 'die', 'der', 'das', 'schnelle', 'hilfe', 'antwort', 'bemühungen', 'mühe', 'bis', 'bald', 'liebe', 'lieber', 'grüße', 'grüsse', 'gruß', 'gruss', 'viele', 'freundliche', 'mit', 'freundlichen', 'mfg', 'lg', 'hallo', 'guten', 'tag', 'morgen', 'abend', 'ihnen', 'euch', 'ebenfalls', 'schönen', 'tolle', 'wochenende', 'thanks', 'thank', 'you', 'merci', 'grazie', 'ciao'],
+
+        // Optional price per million tokens by model; without an entry no cost is shown.
+        'prices' => [
+            // 'gpt-5.4-mini' => ['input' => 0.0, 'output' => 0.0],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Limits
     |--------------------------------------------------------------------------
     |

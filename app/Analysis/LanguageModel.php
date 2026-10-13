@@ -22,7 +22,7 @@ class LanguageModel
      *
      * @throws AnalysisException
      */
-    public function ask(Agent $agent, string $input, string $model, string $purpose, string $ticketNumber): array
+    public function ask(Agent $agent, string $input, string $model, string $purpose, string $ticketNumber, ?int $timeout = null): array
     {
         if (blank(config('ai.providers.'.config('analysis.provider').'.key'))) {
             throw new AnalysisException(AnalysisProblem::Misconfigured);
@@ -32,7 +32,7 @@ class LanguageModel
 
         try {
             /** @var AgentResponse $response */
-            $response = $agent->prompt($input, provider: config('analysis.provider'), model: $model, timeout: (int) config('analysis.timeout'));
+            $response = $agent->prompt($input, provider: config('analysis.provider'), model: $model, timeout: $timeout ?? (int) config('analysis.timeout'));
         } catch (Throwable $exception) {
             $problem = $this->problem($exception);
             $this->log($purpose, $ticketNumber, $model, $started, $problem->value, $exception::class);
