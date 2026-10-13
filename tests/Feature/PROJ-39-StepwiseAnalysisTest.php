@@ -252,3 +252,49 @@ describe('procedures next to case steps', function () {
         expect($html)->not->toMatch('/<details data-procedure="PROCEDURE-001"[^>]*\sopen/');
     });
 });
+
+describe('security', function () {
+    test('texts of the model and of the employee are escaped in the clarification area', function () {
+        CaseAgent::fake([stepBlocked([
+            'decision' => stepDecision(['question' => '<script>alert(1)</script>', 'options' => [
+                ['key' => 'a', 'label' => '<img src=x onerror=alert(2)>', 'consequence' => '<b>fett</b>'],
+                ['key' => 'b', 'label' => 'Zwei', 'consequence' => ''],
+            ]]),
+            'internal_steps' => ['<svg onload=alert(3)>'],
+        ])]);
+        stepRun();
+
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent();
+
+        expect($html)->not->toContain('<script>alert(1)</script>')
+            ->and($html)->not->toContain('<img src=x onerror=alert(2)>')
+            ->and($html)->not->toContain('<svg onload=alert(3)>')
+            ->and($html)->toContain('&lt;img src=x onerror=alert(2)&gt;');
+    });
+
+    test('a clarification text beyond the limit is refused', function () {
+        CaseAgent::fake([stepBlocked()]);
+        $id = stepRun();
+
+        stepContinue($id, ['klaerung_text' => str_repeat('x', (int) config('analysis.max_context_length') + 1)])->assertSessionHasErrors('klaerung_text');
+        CaseAgent::assertPromptedTimes(1);
+    });
+
+    test('an analysis of another ticket cannot be continued', function () {
+        CaseAgent::fake([stepBlocked()]);
+        $id = stepRun();
+
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '999999']), [
+            'klaerung_analyse' => $id, 'klaerung_option' => 'none', 'kundengruppe' => 'reseller', 'variante' => 'verlauf',
+        ])->assertSessionHasErrors('klaerung_analyse');
+        CaseAgent::assertPromptedTimes(1);
+    });
+
+    test('continuing needs a chosen name like every analysis', function () {
+        CaseAgent::fake([stepBlocked()]);
+        $id = stepRun();
+
+        $this->withCookie('staff_name', '')->post(route('tickets.analysis.run', ['number' => '2137942']), ['klaerung_analyse' => $id, 'klaerung_option' => 'none'])->assertRedirect();
+        CaseAgent::assertPromptedTimes(1);
+    });
+});
