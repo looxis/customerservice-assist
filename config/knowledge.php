@@ -315,10 +315,14 @@ return [
         'active' => (bool) env('KNOWLEDGE_ROUTER_ACTIVE', false),
 
         // Raise when the router logic or its settings change; stored with every analysis.
-        'version' => '2026-10-13.1',
+        'version' => '2026-10-13.2',
+
+        // Only proposals the model rates as clearly fitting are taken over; the others are logged as rejected.
+        'clear_only' => true,
 
         // Own model setting so the router can be changed independently of the analysis.
-        'model' => env('ROUTER_MODEL', env('SUMMARY_MODEL', 'gpt-5.4-mini')),
+        // First live check set (2026-10-13): gpt-5.4 19 of 20 and 5 of 5 on the Eisberg case in about 4 s; gpt-5.4-mini 15 of 20 and 2 of 5; gpt-5.5 18 of 20 and 5 of 5 but about 10 s.
+        'model' => env('ROUTER_MODEL', 'gpt-5.4'),
 
         // Seconds; no automatic retry.
         'timeout' => (int) env('ROUTER_TIMEOUT', 15),

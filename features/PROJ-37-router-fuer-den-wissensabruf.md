@@ -1,6 +1,6 @@
 # PROJ-37: Router für den Wissensabruf
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
@@ -433,6 +433,34 @@ Keine neuen. Genutzt werden die vorhandene KI-Anbindung (wie Analyse, Zusammenfa
 - **Kosten und Wartezeit:** pro Analyse ein kleiner Aufruf (grob 2.000 bis 5.000 Token Eingabe bei heutigem Bestand), Zeitlimit 15 s; Kennzahlen machen es sichtbar.
 - **Zu dünne Summaries:** siehe E.
 
+
+## Implementation Notes – Backend (2026-10-13)
+
+**Gebaut** (alle Teile hinter dem Schalter `KNOWLEDGE_ROUTER_ACTIVE`, Standard aus; wirksam nur bei aktivem PROJ-36):
+- `app/Knowledge/Retrieval/Router/`: `KnowledgeRouter` (Ablauf, Prüfung der Antwort), `RouterPool` (Pool-Regeln aus D1), `CandidatePreselector` (Obergrenze, Reservierung nach Produkt- und Gruppen-Spezifität, Textähnlichkeit), `RouterText` (Stufen A/B, Original und Übersetzung, bereinigt, Kürzung mit sichtbarer Marke), `ContentlessMessage`, `EvidenceCheck` (Beleg bei unterdrückten Treffern, mit Übersetzungs-Gegenstück), `RouterAddition`, `RouterOutcome` (inkl. Kostenschätzung nur mit hinterlegtem Preis).
+- `RouterAgent` und die versionierte Anweisung `resources/prompts/router.md` (Version 2026-10-13.2); `LanguageModel::ask` nimmt ein eigenes Zeitlimit.
+- `KnowledgeRetriever::retrieve(…, additions)`: Ergänzungen laufen als starke oder schwache Kandidaten durch dasselbe Budget, hinter den Treffern ihrer Stufe; eine nicht passende Ergänzung wird übersprungen, kleinere und der Rest des Platzes bleiben nutzbar. `RetrievedDocument` trägt jetzt die Herkunft (Grundwissen, Auslöser, Router, von Hand, Maßnahme).
+- `CaseAnalyzer`: Durchgang 1 deterministisch → Router → Durchgang 2 mit Ergänzungen; Protokoll `retrieval.router`, Herkunft je Dokument, neue Spalten an `analyses` (Migration `add_router_figures_to_analyses_table`).
+- Oberfläche: vier Herkunftsbezeichnungen, „KI-Einschätzung“, dezenter Ausfallhinweis, Hinweis bei gekürztem Router-Text, Admin-Teil „Erweiterte Wissenssuche“; Analysen-Übersicht mit Filter und Kennzahlen (nur Admin).
+- Autorenseite: Authoring Guide (summary für den Router, Positiv- und Negativbeispiele, `when` ist ein zusätzlicher Weg), Chat-Handbuch, Skill, About-Seite; weiche Warnung bei `summary` unter 60 Zeichen (`KNOWLEDGE_SUMMARY_MIN_LENGTH`, in Tests auf 0).
+- Tests: `PROJ-37-RouterTest.php` (Pool-Tabelle, Vorauswahl mit großen Wissensbasen, Router-Text, Prüfung der Antwort, Belegprüfung inkl. Übersetzung und Mehrfachanliegen, Ausfälle, Budget, Übersicht), Ende-zu-Ende-Fälle in `PROJ-36-AnalysisIntegrationTest.php` (Eisberg mit der echten Wissensbasis, Ausfall, Rückfall, Anzeige), Live-Prüfset `PROJ-37-RouterLiveTest.php` (Gruppe `router-live`, auf Abruf, Bericht nach `storage/app/router-live/`). Die normale Suite lässt das Live-Prüfset aus.
+- Eine bekannte Grenze der Vorauswahl ist als offener Test („todo“) ausgewiesen und zählt nicht als bestanden.
+
+**Abweichungen und Entscheidungen im Bau**
+- **Neues Feld `fit`** in der Router-Antwort (`clear`/`possible`): Nur eindeutig passende Vorschläge werden übernommen (`knowledge.router.clear_only`), die übrigen stehen im Protokoll als „nur möglicher Bezug“. Grund: Der erste Live-Lauf zeigte zu viele ungefähre Ergänzungen.
+- **Kategorien:** nur erkannt, protokolliert und angezeigt, ohne Rangwirkung (der von der Spec erlaubte Rückfall).
+- **Standardmodell `gpt-5.4`** (eigene Konfiguration `ROUTER_MODEL`), nicht das Zusammenfassungsmodell, siehe Vorabläufe.
+- **Neue Umgebungsvariablen** (konnten nicht in `.env.example` eingetragen werden, die Datei ist für den Assistenten gesperrt): `KNOWLEDGE_ROUTER_ACTIVE` (false), `ROUTER_MODEL` (gpt-5.4), `ROUTER_TIMEOUT` (15), `KNOWLEDGE_SUMMARY_MIN_LENGTH` (60).
+
+**Vorabläufe des Live-Prüfsets (2026-10-13, 16 Fälle, Eisberg 5-mal; noch nicht fachlich freigegeben)**
+
+| Modell (Anweisung 2026-10-13.2) | Fälle bestanden | Eisberg | Ergänzungen je Fall | Router-Laufzeit | Tokens Ein / Aus |
+|---|---|---|---|---|---|
+| gpt-5.4-mini | 15 von 20 | 2 von 5 | 1.9 | 2.4 s | 3229 / 204 |
+| gpt-5.5 | 18 von 20 | 5 von 5 | 2.4 | 10.2 s | 3229 / 570 |
+| gpt-5.4 | 19 von 20 | 5 von 5 | 2.2 | 3.8 s | 3229 / 211 |
+
+Erster Lauf mit der Anweisung .1 und `gpt-5.4-mini` ohne `fit`: Eisberg 5 von 5, aber 11 von 16 Fällen bestanden, weil viele ungefähre Dokumente (Schatten, Ton, Glossar) ergänzt wurden. Die Anweisung .2 mit `fit` und strengeren Regeln senkt das; `gpt-5.4-mini` verliert dabei den Eisberg-Fall (2 von 5), `gpt-5.4` hält ihn 5 von 5 bei rund 4 Sekunden. Beobachtet: `POLICY-029` (allgemeine Prüfangaben bei Reklamationen) wird von den größeren Modellen oft ergänzt und ist harmlos; der Rechte-Fall wurde mit POLICY-017 statt PLAYBOOK-014 gelöst (die Erwartung wurde auf POLICY-017 gesetzt). Die Abdeckung des Pools lag bei 33 bis 41 Dokumenten (keine Vorauswahl nötig).
 
 ## QA Test Results
 _To be added by /qa_

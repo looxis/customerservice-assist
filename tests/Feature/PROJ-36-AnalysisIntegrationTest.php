@@ -726,7 +726,7 @@ describe('the real knowledge base end to end (QA)', function () {
 describe('the router in the analysis (PROJ-37)', function () {
     $eisberg = "leider ist das Motiv, welches eingelasert wurde, sehr klein und der Eisberg ist auch etwas anders als unser Muster.\nDas Bild sieht irgendwie sehr verloren darin aus.\nDas Motiv in unserem aktuellen Eisberg L (vom Kunden) ist sogar etwas kleiner als unser Musterbild im Eisberg M.\nBilder im Anhang - der Auftrag ist natürlich wieder einmal eilig";
     $routerAnswer = fn (array $ids): array => [
-        'additions' => array_map(fn (string $id, int $rank): array => ['id' => $id, 'rank' => $rank, 'basis' => 'current', 'reason' => 'Die Kundenbeschreibung deutet auf eine Beanstandung der Motivgröße hin.', 'evidence' => ''], $ids, array_keys($ids)),
+        'additions' => array_map(fn (string $id, int $rank): array => ['id' => $id, 'rank' => $rank, 'basis' => 'current', 'fit' => 'clear', 'reason' => 'Die Kundenbeschreibung deutet auf eine Beanstandung der Motivgröße hin.', 'evidence' => ''], $ids, array_keys($ids)),
         'categories' => [['key' => 'complaint', 'reason' => 'Beanstandung des gelieferten Produkts']],
     ];
 

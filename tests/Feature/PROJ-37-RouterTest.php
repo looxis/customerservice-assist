@@ -112,9 +112,9 @@ function rtrAnswer(array $additions = [], array $categories = []): array
     return ['additions' => $additions, 'categories' => $categories];
 }
 
-function rtrAdd(string $id, int $rank = 1, string $basis = 'current', string $reason = 'Passt sinngemäß.', string $evidence = ''): array
+function rtrAdd(string $id, int $rank = 1, string $basis = 'current', string $reason = 'Passt sinngemäß.', string $evidence = '', string $fit = 'clear'): array
 {
-    return ['id' => $id, 'rank' => $rank, 'basis' => $basis, 'reason' => $reason, 'evidence' => $evidence];
+    return ['id' => $id, 'rank' => $rank, 'basis' => $basis, 'fit' => $fit, 'reason' => $reason, 'evidence' => $evidence];
 }
 
 describe('when the router runs', function () {
@@ -388,6 +388,17 @@ describe('checking the answer of the router', function () {
 
         expect($outcome->additionIds())->toBe(['POLICY-001', 'POLICY-002'])
             ->and(collect($outcome->details['proposals'])->firstWhere('id', 'POLICY-003')['rejection'])->toBe('wegen Obergrenze nicht übernommen');
+    });
+
+    test('only clearly fitting proposals are taken over, the others are logged with the reason', function () use ($files) {
+        $outcome = rtrRun($files(), rtrFacts(['Das Motiv ist sehr klein.']), rtrAnswer([rtrAdd('POLICY-001', 1, fit: 'clear'), rtrAdd('POLICY-002', 2, fit: 'possible')]));
+
+        expect($outcome->additionIds())->toBe(['POLICY-001'])
+            ->and(collect($outcome->details['proposals'])->firstWhere('id', 'POLICY-002')['rejection'])->toBe('nur möglicher Bezug (nicht eindeutig)');
+
+        config(['knowledge.router.clear_only' => false]);
+
+        expect(rtrRun($files(), rtrFacts(['Das Motiv ist sehr klein.']), rtrAnswer([rtrAdd('POLICY-002', 1, fit: 'possible')]))->additionIds())->toBe(['POLICY-002']);
     });
 
     test('categories are recognised, unknown ones dropped, an empty list is fine', function () use ($files) {

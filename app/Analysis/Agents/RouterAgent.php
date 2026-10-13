@@ -34,6 +34,7 @@ class RouterAgent implements Agent, HasStructuredOutput
         return [
             'additions' => $schema->array()->items($schema->object([
                 'id' => $schema->string()->description('ID eines Dokuments aus der Liste')->required(),
+                'fit' => $schema->string()->enum(['clear', 'possible'])->description('clear = die Anfrage beschreibt selbst, was das Dokument behandelt; possible = nur ähnliches Thema oder Vermutung')->required(),
                 'rank' => $schema->integer()->description('1 = wichtigste Ergänzung')->required(),
                 'basis' => $schema->string()->enum(['current', 'earlier'])->description('current = aktuelle Nachricht (auch bei Rückbezug), earlier = nur früherer Verlauf')->required(),
                 'reason' => $schema->string()->description('Ein Satz auf Deutsch als Einschätzung')->required(),

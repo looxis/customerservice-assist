@@ -129,6 +129,7 @@ class KnowledgeRouter
                 'id' => $id,
                 'rank' => (int) ($item['rank'] ?? $position + 1),
                 'basis' => $basis,
+                'fit' => ($item['fit'] ?? '') === 'clear' ? 'clear' : 'possible',
                 'reason' => mb_substr(trim((string) ($item['reason'] ?? '')), 0, 400),
                 'evidence' => mb_substr(trim((string) ($item['evidence'] ?? '')), 0, 600),
                 'accepted' => false,
@@ -137,6 +138,7 @@ class KnowledgeRouter
             $proposal['rejection'] = match (true) {
                 isset($seen[$id]) => 'Dublette',
                 isset($taken[$id]) => 'bereits ausgewählt',
+                $proposal['fit'] !== 'clear' && (bool) config('knowledge.router.clear_only', true) && isset($entries[$id]) => 'nur möglicher Bezug (nicht eindeutig)',
                 ! isset($entries[$id]) => 'nicht in der Liste des Routers',
                 default => $this->evidenceRejection($entries[$id], $proposal['evidence'], $text, $pseudonymizer),
             };
