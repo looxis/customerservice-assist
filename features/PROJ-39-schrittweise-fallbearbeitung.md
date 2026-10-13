@@ -50,10 +50,10 @@ Die Automatiktests prüfen den Ablauf mit gefaketen Antworten (`tests/Feature/PR
 - Überschrift „Zuerst zu klären“ lag auf der Rahmenlinie; Hand-Cursor fehlte.
 
 ### Offene Befunde
-- **QA-1 (Low):** Die Optionen schwanken von Lauf zu Lauf (Schlüssel, Reihenfolge, Zuschnitt). „Beides zurück“ aus dem Akzeptanztest kommt nicht als Option, sondern nur über das Freitextfeld (live geprüft: Option + „Display und Glasfoto-Muster sind beide noch da“ ergibt einen Entwurf zu beiden). Erwartbar bei KI-Ableitung, kein Fehler im Vertrag.
+- **QA-1 (Low, akzeptiert; Prompt verlangt jetzt die Kombination bei unabhängig betroffenen Gegenständen, im Live-Lauf kam sie nicht, weil die Optionen die Einordnung des „Aufstellers“ betreffen und sich ausschließen):** Die Optionen schwanken von Lauf zu Lauf (Schlüssel, Reihenfolge, Zuschnitt). „Beides zurück“ aus dem Akzeptanztest kommt nicht als Option, sondern nur über das Freitextfeld (live geprüft: Option + „Display und Glasfoto-Muster sind beide noch da“ ergibt einen Entwurf zu beiden). Erwartbar bei KI-Ableitung, kein Fehler im Vertrag.
 - **QA-2 (Low):** Die Optionen ordnen zuerst den „Aufsteller“ ein (Leihmaterial oder gekauftes Zubehör) statt Display/Muster. Fachlich begründet durch POLICY-027/PROCESS-012, weicht aber vom Wortlaut des Akzeptanztests ab.
-- **QA-3 (Medium):** Nach der Klärung steht in der Befugnis teils weiter „Freigabe nötig durch Produktionsleitung“, obwohl die Klärung vom Mitarbeiter eingetragen wurde („bereits geklärt von …“). Widersprüchlich für den Leser. Vorschlag: Prompt-Regel, dass `authority` den Stand nach den „Internen Klärungen“ beschreibt.
-- **QA-4 (Low/Medium):** Tonfall der Entwürfe: wiederholte Entschuldigung („keine positivere Nachricht“) bei „kein Bedarf“; kein freundlicher Abschied zur Geschäftsaufgabe; einmal Anrede „Sehr geehrte/r Herr/Frau …“. Das ist Prompt- und Wissensthema (TONE-002), die Wissensbasis blieb unverändert.
+- **QA-3 (Medium, behoben mit Prompt `analysis-2026-10-13.2`, live bestätigt: beide Läufe „Du darfst das selbst entscheiden“):** Nach der Klärung steht in der Befugnis teils weiter „Freigabe nötig durch Produktionsleitung“, obwohl die Klärung vom Mitarbeiter eingetragen wurde („bereits geklärt von …“). Widersprüchlich für den Leser. Vorschlag: Prompt-Regel, dass `authority` den Stand nach den „Internen Klärungen“ beschreibt.
+- **QA-4 (Low/Medium, behoben mit Prompt `analysis-2026-10-13.2`, live bestätigt: keine Entschuldigung mehr, Anrede „Guten Tag Herr/B. Rutkiewicz“, Schlusssatz „alles Gute“ zur Geschäftsaufgabe in beiden Läufen):** Tonfall der Entwürfe: wiederholte Entschuldigung („keine positivere Nachricht“) bei „kein Bedarf“; kein freundlicher Abschied zur Geschäftsaufgabe; einmal Anrede „Sehr geehrte/r Herr/Frau …“. Das ist Prompt- und Wissensthema (TONE-002), die Wissensbasis blieb unverändert.
 - **QA-5 (offen):** Kein Live-Lauf mit einem einfachen Standardticket (kein weiteres Ticket vorgegeben, keine fremden Kundendaten an die KI senden). Der Fall „soll weiter sofort einen Entwurf bekommen“ ist nur durch Fake-Tests belegt.
 - **QA-6 (offen):** Manuelle Browser-/Responsive-Prüfung (Firefox, Safari, 375/768 px) nicht durchgeführt; geprüft wurde im Chrome des Entwicklers nur der Klickpfad nach den Korrekturen.
 
@@ -66,3 +66,4 @@ Gesamte Pest-Suite grün (1263 Tests). Alte Analysen mit `internal_todos` und `m
 ### Empfehlung
 Keine Critical- oder High-Befunde. **Produktionsreif: JA**, mit QA-3 als wichtigstem Nachbesserungskandidat (Prompt) und QA-5/QA-6 als offene Prüfungen.
 
+**Nachprüfung 2026-10-13:** Prompt `analysis-2026-10-13.2`, zwei weitere Live-Läufe auf Ticket#2139826 (Zubehör und Leihmaterial ohne Bedarf), Suite grün. QA-3 und QA-4 geschlossen, QA-1 akzeptiert, QA-2, QA-5 und QA-6 offen.

@@ -253,6 +253,17 @@ describe('procedures next to case steps', function () {
     });
 });
 
+describe('prompt', function () {
+    test('it tells the model to describe the authority after the clarifications and to offer combined options', function () {
+        CaseAgent::fake([stepAnswer()]);
+        stepRun();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains((string) $prompt->agent->instructions(), 'Stand nach den „Internen Klärungen“')
+            && str_contains((string) $prompt->agent->instructions(), 'auch die Kombination')
+            && str_contains((string) $prompt->agent->instructions(), 'Entschuldige dich im Antwortentwurf nur'));
+    });
+});
+
 describe('security', function () {
     test('texts of the model and of the employee are escaped in the clarification area', function () {
         CaseAgent::fake([stepBlocked([
