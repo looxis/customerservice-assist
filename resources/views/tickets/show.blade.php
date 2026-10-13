@@ -44,7 +44,7 @@
             @if ($analysis['result'])
                 <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" />
 
-                <x-analysis.procedures :result="$analysis['result']" :number="$number" />
+                <x-analysis.procedures :result="$analysis['result']" :number="$number" :stand="$analysis['stand']" />
             @endif
 
             <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false"

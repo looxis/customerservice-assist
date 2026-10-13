@@ -3,7 +3,7 @@
 > Ausführlicher Projektkontext: `docs/INIT_PROJECT_DESCRIPTION.md`. Feste Vorgabe für die Knowledge Base: `docs/KNOWLEDGE_BASE_DESIGN.md`.
 
 ## Vision
-Customer Service Assist ist eine interne Web-App neben Zammad. Sie bereitet für ein Kundenservice-Ticket einen fachlich begründeten Vorschlag vor: Bewertung, empfohlene Maßnahme, Befugnis, fehlende Informationen und einen Antwortentwurf. Grundlage sind das Ticket aus Zammad, die Bestelldaten aus EOCS und eine versionierte Knowledge Base im selben Repository.
+Customer Service Assist ist eine interne Web-App neben Zammad. Sie bereitet für ein Kundenservice-Ticket einen fachlich begründeten Vorschlag vor: Bewertung, empfohlene Maßnahme, Befugnis, nötige interne Klärungen und einen Antwortentwurf (der bei einer blockierenden internen Klärung erst nach deren Ergebnis entsteht). Grundlage sind das Ticket aus Zammad, die Bestelldaten aus EOCS und eine versionierte Knowledge Base im selben Repository.
 
 Die App entscheidet und sendet nichts selbst. Ein Mensch prüft jeden Vorschlag und gibt jede Kundenantwort frei. Ziel ist, dass das Unternehmenswissen direkt in der Bearbeitung ankommt, statt in den Köpfen einzelner Personen zu stecken.
 
@@ -58,6 +58,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | – | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
 | – | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | In Progress |
 | – | Dynamischer Abruf von Produktinformationen aus EOCS und später dem LOOXIS Content Studio (statt Markdown-Dateien für alle Produktdetails) | Roadmap |
+| – | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

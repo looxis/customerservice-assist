@@ -9,8 +9,9 @@
     $time = fn (string $value): string => \Carbon\CarbonImmutable::parse($value)->setTimezone('Europe/Berlin')->format('d.m.Y, H:i');
     $usedDrafts = collect($result['sources'])->where('draft', true)->pluck('id')->all();
     $gaps = $r['knowledge_gaps'] ?? [];
-    $missing = $r['missing_information'] ?? [];
-    $todos = $r['internal_todos'] ?? [];
+    $legacyMissing = $r['missing_information'] ?? [];
+    $hasReply = $result['has_reply'] ?? true;
+    $decided = $result['decisions'] ?? [];
     $notes = $result['notes'] ?? [];
     $mayDecide = $r['authority']['agent_may_decide'] ?? false;
     $isLatest = $result['is_latest'] ?? true;
@@ -133,23 +134,9 @@
                 </span>
             </p>
 
-            @if ($missing !== [])
-                <div>
-                    <p class="font-semibold text-slate-900">Fehlende Informationen</p>
-                    <ul class="mt-2 space-y-2">
-                        @foreach ($missing as $item)
-                            <li class="rounded-md bg-white p-3 ring-1 ring-warning-500/20 ring-inset">
-                                <p class="text-slate-900">{{ $item['what'] }} <span class="text-slate-600">– von {{ $item['from'] }}</span></p>
-                                <p class="mt-1 text-slate-900"><span class="font-medium">Rückfrage:</span> {{ $item['question'] }}</p>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             @if ($gaps !== [])
                 <x-alert type="warning">
-                    <p class="font-semibold">Fehlendes Wissen</p>
+                    <p class="font-semibold">Wissenslücken</p>
                     <p class="mt-1">Für diesen Fall fehlt eine Regel in der Wissensdatenbank. Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und die Lücke mit „Lücke melden“ melden.</p>
                     <ul class="mt-2 space-y-2">
                         @foreach ($gaps as $gap)
@@ -188,9 +175,25 @@
             @endif
         </div>
 
-        <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" :locked="$ruleIncomplete && ! $ruleAcknowledged" />
+        @if ($decided !== [])
+            <div class="mt-4 rounded-lg bg-slate-50 p-4 text-sm ring-1 ring-slate-200 ring-inset">
+                <p class="font-semibold text-slate-900">Bereits intern geklärt</p>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                    @foreach ($decided as $item)<li>{{ $item['question'] }} → <span class="font-medium">{{ $item['answer'] }}</span> <span class="text-slate-600">({{ $item['by'] }})</span></li>@endforeach
+                </ul>
+            </div>
+        @endif
 
-        <x-analysis.feedback :result="$result" :number="$number" />
+        @if ($hasReply)
+            <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" :locked="$ruleIncomplete && ! $ruleAcknowledged" />
+
+            <x-analysis.feedback :result="$result" :number="$number" />
+        @else
+            <x-alert type="info" class="mt-4" id="noch-keine-antwort">
+                <p class="font-semibold">Noch kein Antwortentwurf – zuerst intern klären</p>
+                <p class="mt-1">Die Antwort an den Kunden hängt von einer internen Klärung ab. Sie steht unter <a href="#ablaeufe" class="font-semibold underline">Interne Abläufe</a>; nach dem Ergebnis geht die Analyse weiter.</p>
+            </x-alert>
+        @endif
 
         @if (session('gap_reported'))
             <x-alert type="success" class="mt-4">Wissenslücke gemeldet – danke.</x-alert>
@@ -252,13 +255,15 @@
                 <ul class="list-disc pl-5">@foreach ($r['confidence']['reasons'] ?? [] as $reason)<li>{{ $reason }}</li>@endforeach</ul>
             </x-analysis.section>
 
-            <x-analysis.section title="Interne To-dos" :count="count($todos)">
-                @if ($todos === [])
-                    <p class="text-slate-600">Keine.</p>
-                @else
-                    <ul class="list-disc pl-5">@foreach ($todos as $todo)<li>{{ $todo }}</li>@endforeach</ul>
-                @endif
-            </x-analysis.section>
+            @if ($legacyMissing !== [])
+                <x-analysis.section title="Fehlende Angaben (ältere Analyse)" :count="count($legacyMissing)">
+                    <ul class="space-y-2">
+                        @foreach ($legacyMissing as $item)
+                            <li>{{ $item['what'] ?? '' }} <span class="text-slate-600">– von {{ $item['from'] ?? '' }}</span><br><span class="font-medium">Rückfrage:</span> {{ $item['question'] ?? '' }}</li>
+                        @endforeach
+                    </ul>
+                </x-analysis.section>
+            @endif
 
             @if ($notes !== [] || ($meta['knowledge_warnings'] ?? []) !== [])
                 <x-analysis.section title="Prüfhinweise" :count="count($notes) + count($meta['knowledge_warnings'] ?? [])">

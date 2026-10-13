@@ -230,8 +230,8 @@ describe('checking the reply draft in german', function () {
         CaseAgent::fake([[
             'summary' => ['incident' => 'Tasse', 'customer_wish' => 'Ersatz'], 'category' => 'complaint', 'case_pattern' => null, 'assessment' => 'unklar',
             'recommendation' => 'Foto anfordern.', 'actions' => [], 'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-            'reasoning' => 'x', 'missing_information' => [], 'knowledge_gaps' => [], 'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []],
-            'internal_todos' => [], 'reply' => ['language' => $language, 'text' => $language === 'Deutsch' ? 'Guten Tag, bitte senden Sie ein Foto.' : 'Buongiorno, ci invii una foto per favore.'],
+            'reasoning' => 'x', 'knowledge_gaps' => [], 'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []],
+            'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => $language, 'text' => $language === 'Deutsch' ? 'Guten Tag, bitte senden Sie ein Foto.' : 'Buongiorno, ci invii una foto per favore.'],
         ]]);
         $location = test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf'])->headers->get('Location');
         parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
@@ -317,8 +317,8 @@ describe('analysis', function () {
         MessageTranslation::factory()->create(['ticket_number' => '2137942', 'article_id' => 1, 'fingerprint' => hash('sha256', 'Buongiorno, la tazza che ho ricevuto non funziona. Scrivetemi a maria@example.org, grazie.'), 'content' => ['text' => 'UEBERSETZT']]);
         CaseAgent::fake([[
             'summary' => ['incident' => 'x', 'customer_wish' => 'y'], 'category' => 'complaint', 'case_pattern' => null, 'assessment' => null, 'recommendation' => 'z', 'actions' => [],
-            'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null], 'reasoning' => 'r', 'missing_information' => [], 'knowledge_gaps' => [],
-            'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []], 'internal_todos' => [], 'reply' => ['language' => 'Italienisch', 'text' => 'Buongiorno'],
+            'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null], 'reasoning' => 'r', 'knowledge_gaps' => [],
+            'knowledge_ids' => [], 'confidence' => ['level' => 'MITTEL', 'reasons' => []], 'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Italienisch', 'text' => 'Buongiorno'],
         ]]);
 
         test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'unclear', 'variante' => 'verlauf']);

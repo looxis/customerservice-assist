@@ -115,7 +115,7 @@ describe('content of the real text', function () {
 
     test('missing information, missing knowledge and the context field are explained, with the test cycle', function () {
         $this->get(route('about'))
-            ->assertSeeTextInOrder(['Fehlende Informationen – uns fehlt etwas zum Fall.', 'Rückfrage', 'Fehlendes Wissen – uns fehlt eine Regel.', 'Fakten zum Fall', 'Regeln gehören nicht in dieses Feld'])
+            ->assertSeeTextInOrder(['Fehlende Angaben – uns fehlt etwas zum Fall.', 'Rückfrage', 'Wissenslücke – uns fehlt eine Regel.', 'Fakten zum Fall', 'Regeln gehören nicht in dieses Feld'])
             ->assertSeeTextInOrder(['Testen:', 'Lücke erkennen:', 'Wissen ergänzen:', 'Erneut testen:']);
     });
 

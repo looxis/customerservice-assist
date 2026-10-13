@@ -33,10 +33,10 @@ function feedbackAnswer(array $overrides = []): array
         'category' => 'order-process-question', 'case_pattern' => null, 'assessment' => null,
         'recommendation' => 'Nachfragen.', 'actions' => [],
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'Keine Regel.', 'missing_information' => [],
+        'reasoning' => 'Keine Regel.',
         'knowledge_gaps' => [['topic' => 'Bestellungen zusammenführen', 'question' => 'Geht eine gemeinsame Rechnung?']],
         'knowledge_ids' => [], 'confidence' => ['level' => 'NIEDRIG', 'reasons' => []],
-        'internal_todos' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
     ], $overrides);
 }
 

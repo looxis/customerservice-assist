@@ -94,7 +94,7 @@ class CaseAnalyzer
         $answer = $pass['answer'];
         $checked = $pass['checked'];
         $input = $pass['input'];
-        $cited = array_flip($checked['result']['knowledge_ids']);
+        $cited = array_flip([...$checked['result']['knowledge_ids'], ...($checked['result']['decision']['knowledge_ids'] ?? [])]);
         $last = $request->ticket->articles === [] ? null : $request->ticket->articles[array_key_last($request->ticket->articles)];
 
         $id = $this->store->putResult([
@@ -111,6 +111,7 @@ class CaseAnalyzer
             ], array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => isset($cited[$entry->document->id])))),
             'thread' => ['last_article_id' => $last?->id, 'last_article_at' => $last?->createdAt->toIso8601String(), 'count' => count($request->ticket->articles)],
             'inputs' => $request->formInput,
+            'decisions' => $request->decisions,
             'reply_edit' => null,
             'sent_input' => $input,
             'raw_response' => $answer['data'],
@@ -215,14 +216,14 @@ class CaseAnalyzer
             $request->mentionedOrders,
             $this->translator->translations($request->ticket),
             $request->variant === ContextVariant::LastWithSummary ? $request->summary?->text : null,
-            employeeContext: $request->employeeContext,
+            employeeContext: $request->factsText(),
         );
 
         $without = mb_strlen($prompt->text) + mb_strlen($this->compose($parts, "# Wissen\n"));
         $available = (int) config('analysis.limits.context_characters') - (int) config('analysis.limits.answer_reserve_characters') - $without;
         $available = max(0, $available);
         $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available);
-        $router = $this->router->run($context, $facts, $result, $request->extraKnowledge, $request->ticket, $pseudonymizer, $request->employeeContext);
+        $router = $this->router->run($context, $facts, $result, $request->extraKnowledge, $request->ticket, $pseudonymizer, $request->factsText());
 
         if ($router->additions !== []) {
             $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available, $router->additions);
@@ -464,7 +465,8 @@ class CaseAnalyzer
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? 'kein Produktbezug / unklar' : implode(', ', $request->products)),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
-            'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext)),
+            'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
+                .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),
             'ticket' => "# Ticket\n".(new TicketContext($request->ticket))->text($request->variant, $request->summary?->text),
             'rules' => "# Vorgaben\n"
                 .'Kategorien: '.implode(', ', array_map(fn (string $key): string => $key.' ('.config("knowledge.category_labels.{$key}", $key).')', config('knowledge.categories')))."\n"
@@ -513,7 +515,7 @@ class CaseAnalyzer
     private function hint(RetrievedDocument $item): string
     {
         if ($item->unverified) {
-            return 'Hinweis der App: Die Voraussetzung dieser Regel konnte nicht geprüft werden (fehlende Angaben: '.implode(', ', $item->unknownKeys).'). Behandle sie nicht als erfüllt. Wende die Regel nur an, wenn der Fall die Voraussetzung bestätigt; sonst nenne die fehlende Information unter den fehlenden Informationen.'."\n";
+            return 'Hinweis der App: Die Voraussetzung dieser Regel konnte nicht geprüft werden (fehlende Angaben: '.implode(', ', $item->unknownKeys).'). Behandle sie nicht als erfüllt. Wende die Regel nur an, wenn der Fall die Voraussetzung bestätigt; sonst nenne die fehlende Angabe als Rückfrage oder internen Schritt.'."\n";
         }
 
         return "Hinweis der App: Dieses Wissen wurde vom Mitarbeiter von Hand zugeschaltet.\n";

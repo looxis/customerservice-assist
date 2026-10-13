@@ -47,10 +47,10 @@ function caseAnswer(array $overrides = []): array
         'actions' => ['photo-request'],
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
         'reasoning' => 'Ohne Test kein Urteil.',
-        'missing_information' => [['what' => 'Foto der warmen Tasse', 'from' => 'Kunde', 'question' => 'Bitte senden Sie ein Foto.']],
+
         'knowledge_ids' => ['POLICY-001'],
         'confidence' => ['level' => 'MITTEL', 'reasons' => ['Bestellung gefunden']],
-        'internal_todos' => ['Antwort abwarten'],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => ['Antwort abwarten'],
         'reply' => ['language' => 'Deutsch', 'text' => "Hallo Erika,\nist diese Adresse korrekt: [LIEFERADRESSE]?\nViele Grüße"],
     ], $overrides);
 }
@@ -233,14 +233,14 @@ describe('running an analysis', function () {
                 'Ergebnis der Analyse', 'Analyse von Nele', 'Unklar', 'Confidence MITTEL',
                 'Was ist zu tun?', 'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
                 'Du darfst das selbst entscheiden.',
-                'Foto der warmen Tasse', 'Rückfrage:', 'Bitte senden Sie ein Foto.',
                 'Beruht teilweise auf Entwurfs-Wissen', 'POLICY-001',
                 'Antwortentwurf', 'Von der App eingesetzt: Lieferadresse', 'Hallo Erika,',
                 'Begründung', 'Ohne Test kein Urteil.',
                 'Quellen', 'POLICY-001', 'Entwurf',
                 'Kurzfassung', 'Die Tasse bleibt schwarz.', 'Ersatz', 'Reklamation', 'Thermoeffekt angeblich defekt',
-                'Bestellung gefunden', 'Antwort abwarten',
+                'Bestellung gefunden',
                 'Nele', 'gpt-5.5', 'Prompt analysis-',
+                'Interne Abläufe', 'Für diesen Fall', 'Antwort abwarten',
             ])
             ->assertSee("ist diese Adresse korrekt: Erika Beispiel\nMusterweg 7\n12345 Musterstadt\nDE?", false);
     });
@@ -544,24 +544,24 @@ describe('missing knowledge', function () {
         analysisTicket();
 
         $this->get(analyze()->headers->get('Location'))
-            ->assertSeeTextInOrder(['Wissenslücke', 'Fehlendes Wissen', 'Bestellungen zusammenführen', 'Offene Frage: Können zwei Bestellungen auf eine Rechnung?', 'Was ist passiert?']);
+            ->assertSeeTextInOrder(['Wissenslücke', 'Wissenslücken', 'Bestellungen zusammenführen', 'Offene Frage: Können zwei Bestellungen auf eine Rechnung?', 'Was ist passiert?']);
     });
 
     test('without a gap, or with an unusable one, nothing is shown', function (mixed $gaps) {
         CaseAgent::fake([caseAnswer(['knowledge_gaps' => $gaps])]);
         analysisTicket();
 
-        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse')->assertDontSeeText('Fehlendes Wissen');
+        $this->get(analyze()->headers->get('Location'))->assertSeeText('Ergebnis der Analyse')->assertDontSeeText('Wissenslücken');
     })->with(['empty' => [[]], 'no topic' => [[['topic' => ' ', 'question' => 'x']]], 'not a list' => ['x']]);
 
-    test('the prompt separates missing case information from missing rules', function () {
+    test('the prompt separates internal steps from missing rules', function () {
         CaseAgent::fake([caseAnswer()]);
         analysisTicket();
 
         analyze();
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => str_contains((string) $prompt->agent->instructions(), '`knowledge_gaps`')
-            && str_contains((string) $prompt->agent->instructions(), '`missing_information`'));
+            && str_contains((string) $prompt->agent->instructions(), '`internal_steps`'));
     });
 
     test('the context field explains what belongs into it', function () {

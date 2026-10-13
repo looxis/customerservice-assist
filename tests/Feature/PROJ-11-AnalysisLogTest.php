@@ -37,9 +37,9 @@ function logAnswer(array $overrides = []): array
         'category' => 'complaint', 'case_pattern' => null, 'assessment' => 'unklar',
         'recommendation' => 'Foto anfordern.', 'actions' => ['photo-request'],
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'Ohne Foto unklar.', 'missing_information' => [], 'knowledge_gaps' => [],
+        'reasoning' => 'Ohne Foto unklar.', 'knowledge_gaps' => [],
         'knowledge_ids' => ['POLICY-001'], 'confidence' => ['level' => 'MITTEL', 'reasons' => []],
-        'internal_todos' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Bitte senden Sie ein Foto an uns, [E-MAIL_1].'],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Bitte senden Sie ein Foto an uns, [E-MAIL_1].'],
     ], $overrides);
 }
 

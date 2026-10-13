@@ -54,8 +54,8 @@ function caseResult(): array
     return [
         'summary' => ['incident' => 'x', 'customer_wish' => 'y'], 'category' => 'complaint', 'case_pattern' => null, 'assessment' => null,
         'recommendation' => 'z', 'actions' => [], 'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'r', 'missing_information' => [], 'knowledge_gaps' => [], 'knowledge_ids' => [], 'confidence' => ['level' => 'NIEDRIG', 'reasons' => []],
-        'internal_todos' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Hallo'],
+        'reasoning' => 'r', 'knowledge_gaps' => [], 'knowledge_ids' => [], 'confidence' => ['level' => 'NIEDRIG', 'reasons' => []],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Hallo'],
     ];
 }
 

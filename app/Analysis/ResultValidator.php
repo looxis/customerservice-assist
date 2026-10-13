@@ -9,7 +9,7 @@ namespace App\Analysis;
  */
 class ResultValidator
 {
-    private const array REQUIRED = ['summary', 'category', 'recommendation', 'actions', 'authority', 'reasoning', 'missing_information', 'knowledge_ids', 'confidence', 'internal_todos', 'reply'];
+    private const array REQUIRED = ['summary', 'category', 'recommendation', 'actions', 'authority', 'reasoning', 'knowledge_ids', 'confidence', 'internal_steps', 'reply'];
 
     /**
      * @param  array<string, mixed>  $data
@@ -26,11 +26,20 @@ class ResultValidator
             }
         }
 
-        if (! is_string($data['reply']['text'] ?? null) || trim($data['reply']['text']) === '') {
+        $notes = [];
+        $data['next_step'] = ($data['next_step'] ?? 'reply') === 'internal_first' ? 'internal_first' : 'reply';
+        $data['internal_steps'] = array_values(array_filter(array_map(fn (mixed $step): string => is_string($step) ? trim($step) : '', (array) $data['internal_steps']), fn (string $step): bool => $step !== ''));
+        $data['decision'] = $this->decision($data['decision'] ?? null, $knowledgeIds, $notes, $data['internal_steps']);
+
+        if ($data['next_step'] === 'internal_first') {
+            if ($data['decision'] === null && $data['internal_steps'] === []) {
+                throw new AnalysisException(AnalysisProblem::InvalidResult, 'internal_first without decision or steps');
+            }
+
+            $data['reply'] = null;
+        } elseif (! is_string($data['reply']['text'] ?? null) || trim($data['reply']['text']) === '') {
             throw new AnalysisException(AnalysisProblem::InvalidResult, 'empty reply');
         }
-
-        $notes = [];
 
         $data['knowledge_gaps'] = array_values(array_filter(
             is_array($data['knowledge_gaps'] ?? null) ? $data['knowledge_gaps'] : [],
@@ -69,5 +78,56 @@ class ResultValidator
         }
 
         return ['result' => $data, 'notes' => $notes];
+    }
+
+    /**
+     * The choice offered to the employee: a formal check only. Unknown knowledge IDs are dropped
+     * (none are needed when the case itself settles the question); with fewer than two usable
+     * options the question becomes an internal step instead.
+     *
+     * @param  list<string>  $knowledgeIds
+     * @param  list<string>  $notes
+     * @param  list<string>  $steps
+     * @return array{question: string, why: string, options: list<array{key: string, label: string, consequence: string}>, knowledge_ids: list<string>}|null
+     */
+    private function decision(mixed $decision, array $knowledgeIds, array &$notes, array &$steps): ?array
+    {
+        if (! is_array($decision)) {
+            return null;
+        }
+
+        $question = is_string($decision['question'] ?? null) ? trim($decision['question']) : '';
+        $options = [];
+
+        foreach ((array) ($decision['options'] ?? []) as $option) {
+            $key = is_array($option) && is_string($option['key'] ?? null) ? trim($option['key']) : '';
+            $label = is_array($option) && is_string($option['label'] ?? null) ? trim($option['label']) : '';
+
+            if ($key !== '' && $label !== '' && ! isset($options[$key]) && count($options) < 6) {
+                $options[$key] = ['key' => $key, 'label' => $label, 'consequence' => is_string($option['consequence'] ?? null) ? trim($option['consequence']) : ''];
+            }
+        }
+
+        if ($question === '' || count($options) < 2) {
+            if ($question !== '') {
+                $steps[] = $question;
+                $notes[] = 'Die Entscheidung hatte keine zwei brauchbaren Optionen und wurde als interner Schritt übernommen.';
+            }
+
+            return null;
+        }
+
+        $ids = array_values(array_filter((array) ($decision['knowledge_ids'] ?? []), 'is_string'));
+
+        foreach (array_diff($ids, $knowledgeIds) as $id) {
+            $notes[] = "Unbekannte Quelle „{$id}“ bei der Entscheidung entfernt.";
+        }
+
+        return [
+            'question' => $question,
+            'why' => is_string($decision['why'] ?? null) ? trim($decision['why']) : '',
+            'options' => array_values($options),
+            'knowledge_ids' => array_values(array_unique(array_intersect($ids, $knowledgeIds))),
+        ];
     }
 }

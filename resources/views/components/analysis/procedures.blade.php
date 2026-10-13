@@ -1,10 +1,15 @@
-@props(['result', 'number'])
+@props(['result', 'number', 'stand' => null])
 
 @php
     $procedures = $result['procedures'] ?? ['suggested' => [], 'catalogue' => []];
     $suggested = $procedures['suggested'];
     $suggestedIds = array_column($suggested, 'id');
     $actionLabels = config('knowledge.actions');
+    $decision = $result['result']['decision'] ?? null;
+    $steps = $result['steps'] ?? [];
+    $awaiting = ($result['result']['next_step'] ?? 'reply') === 'internal_first';
+    $canContinue = $awaiting && ($result['is_latest'] ?? true);
+    $caseWork = $decision !== null || $steps !== [] || $awaiting;
     $missingActions = implode(', ', array_map(fn ($action) => $actionLabels[$action] ?? $action, $result['result']['actions'] ?? []));
 @endphp
 
@@ -50,10 +55,76 @@
     <div class="rounded-lg bg-slate-800/[0.03] p-5 ring-1 ring-slate-300 ring-inset md:p-6">
         <h2 id="procedures-heading" class="text-base font-semibold text-slate-900">Interne Abläufe <span class="font-normal text-slate-600">– intern, nicht an den Kunden</span></h2>
 
+        @if ($caseWork)
+            <div class="mt-4 space-y-4">
+                @if ($canContinue)
+                    <form method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="space-y-4" x-data="{ busy: false }" x-on:submit="if (busy) { $event.preventDefault() } else { busy = true }">
+                        @csrf
+                        <input type="hidden" name="klaerung_analyse" value="{{ $result['id'] }}">
+                        @if ($stand)<input type="hidden" name="stand" value="{{ $stand }}">@endif
+                        @foreach ($result['meta']['orders'] ?? [] as $order)<input type="hidden" name="bestellungen[]" value="{{ $order }}">@endforeach
+                @endif
+
+                @if ($decision)
+                    <fieldset class="rounded-lg bg-white p-4 ring-1 ring-brand/30 ring-inset" id="klaerung">
+                        <legend class="px-1 text-sm font-semibold text-slate-900">Zuerst zu klären</legend>
+                        <p class="text-sm font-medium text-slate-900">{{ $decision['question'] }}</p>
+                        @if ($decision['why'] !== '')<p class="mt-1 text-sm text-slate-600">{{ $decision['why'] }}</p>@endif
+                        <ul class="mt-3 space-y-2">
+                            @foreach ($decision['options'] as $option)
+                                <li>
+                                    @if ($canContinue)
+                                        <button type="submit" name="klaerung_option" value="{{ $option['key'] }}" x-bind:disabled="busy"
+                                                class="w-full rounded-md px-3 py-2 text-left text-sm ring-1 ring-slate-300 ring-inset hover:bg-brand/5 hover:ring-brand focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-60">
+                                            <span class="font-medium text-slate-900">{{ $option['label'] }}</span>
+                                            @if ($option['consequence'] !== '')<span class="mt-0.5 block text-xs text-slate-600">{{ $option['consequence'] }}</span>@endif
+                                        </button>
+                                    @else
+                                        <p class="rounded-md px-3 py-2 text-sm ring-1 ring-slate-200 ring-inset"><span class="font-medium text-slate-900">{{ $option['label'] }}</span>@if ($option['consequence'] !== '')<span class="mt-0.5 block text-xs text-slate-600">{{ $option['consequence'] }}</span>@endif</p>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                        @if (($decision['knowledge_ids'] ?? []) !== [])
+                            <p class="mt-3 text-xs text-slate-600">Grundlage: <span class="font-mono">{{ implode(', ', $decision['knowledge_ids']) }}</span></p>
+                        @endif
+                    </fieldset>
+                @endif
+
+                @if ($steps !== [])
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900">Für diesen Fall <span class="font-normal text-slate-600">– von der KI aus dem Fall abgeleitet</span></h3>
+                        <ul class="mt-2 space-y-1 text-sm">
+                            @foreach ($steps as $step)
+                                <li><label class="flex items-start gap-2"><input type="checkbox" class="mt-1 rounded border-slate-300 text-brand focus:ring-brand"><span>{{ $step }}</span></label></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if ($canContinue)
+                        <div>
+                            <label for="klaerung-text" class="block text-sm font-semibold text-slate-900">{{ $decision ? 'Anderes Ergebnis oder Ergänzung' : 'Ergebnis der internen Prüfung' }}</label>
+                            <textarea id="klaerung-text" name="klaerung_text" rows="3" maxlength="{{ config('analysis.max_context_length') }}" class="mt-1 block w-full rounded-md border-slate-300 text-sm focus:border-brand focus:ring-brand">{{ old('klaerung_text') }}</textarea>
+                            @error('klaerung_text')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
+                            @error('klaerung_option')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
+                            @error('klaerung_analyse')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
+                            <p class="mt-1 text-xs text-slate-600">Gilt für die KI als geprüfter Fakt. Danach geht die Analyse mit diesem Ergebnis weiter.</p>
+                            <x-button type="submit" variant="secondary" class="mt-2" x-bind:disabled="busy"><x-icon name="refresh" size="16" /> Mit diesem Ergebnis fortsetzen</x-button>
+                        </div>
+                    </form>
+                @endif
+            </div>
+        @endif
+
+        @if ($caseWork && $suggested !== [])
+            <p class="mt-4 text-sm font-semibold text-slate-900">Ergänzend aus der Wissensbasis</p>
+        @endif
+
         <div class="mt-4 space-y-3">
             @foreach ($suggested as $position => $procedure)
                 <div x-show="shown(@js($procedure['id']))">
-                    <x-analysis.procedure-card :procedure="$procedure" :open="$position === 0 || count($suggested) < 3" />
+                    <x-analysis.procedure-card :procedure="$procedure" :open="! $caseWork && ($position === 0 || count($suggested) < 3)" />
                 </div>
             @endforeach
 
@@ -61,7 +132,7 @@
                 <div x-html="fragments[id] || '<p class=&quot;text-sm text-slate-600&quot;>Ablauf wird geladen …</p>'"></div>
             </template>
 
-            <div x-show="none" @if ($suggested !== []) x-cloak @endif class="text-sm text-slate-600">
+            <div x-show="none" @if ($suggested !== [] || $caseWork) x-cloak @endif class="text-sm text-slate-600">
                 <p>Kein passender Ablauf hinterlegt.</p>
                 <button type="button" class="mt-1 text-sm font-semibold text-brand hover:text-brand-hover"
                         x-on:click="$dispatch('report-gap', { topic: '', missing: @js('Kein Arbeitsablauf für '.($missingActions !== '' ? $missingActions : 'diesen Fall')) })">Wissenslücke melden</button>

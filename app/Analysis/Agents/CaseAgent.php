@@ -49,7 +49,8 @@ class CaseAgent implements Agent, HasStructuredOutput
             'category' => $schema->string()->enum($this->categories)->required(),
             'case_pattern' => $schema->string()->description('Fallmuster, soweit bestimmbar')->nullable()->required(),
             'assessment' => $schema->string()->enum(['berechtigt', 'unberechtigt', 'unklar'])->description('Nur bei Reklamationen')->nullable()->required(),
-            'recommendation' => $schema->string()->description('Empfohlene Maßnahme in Worten')->required(),
+            'next_step' => $schema->string()->enum(['reply', 'internal_first'])->description('reply: ein Antwortentwurf ist sinnvoll. internal_first: erst eine interne Klärung, noch kein Antwortentwurf.')->required(),
+            'recommendation' => $schema->string()->description('Empfohlene Maßnahme in höchstens zwei Sätzen, ohne Schrittfolgen')->required(),
             'actions' => $schema->array()->items($schema->string()->enum($this->actions))->required(),
             'authority' => $schema->object([
                 'agent_may_decide' => $schema->boolean()->required(),
@@ -57,11 +58,6 @@ class CaseAgent implements Agent, HasStructuredOutput
                 'permission_id' => $schema->string()->nullable()->required(),
             ])->withoutAdditionalProperties()->required(),
             'reasoning' => $schema->string()->required(),
-            'missing_information' => $schema->array()->items($schema->object([
-                'what' => $schema->string()->required(),
-                'from' => $schema->string()->required(),
-                'question' => $schema->string()->required(),
-            ])->withoutAdditionalProperties())->required(),
             'knowledge_gaps' => $schema->array()->items($schema->object([
                 'topic' => $schema->string()->description('Thema der fehlenden Regel')->required(),
                 'question' => $schema->string()->description('Frage, die das Unternehmenswissen beantworten müsste')->required(),
@@ -71,11 +67,21 @@ class CaseAgent implements Agent, HasStructuredOutput
                 'level' => $schema->string()->enum(['HOCH', 'MITTEL', 'NIEDRIG'])->required(),
                 'reasons' => $schema->array()->items($schema->string())->required(),
             ])->withoutAdditionalProperties()->required(),
-            'internal_todos' => $schema->array()->items($schema->string())->required(),
+            'internal_steps' => $schema->array()->items($schema->string())->description('Konkrete interne Arbeitsschritte für diesen Fall')->required(),
+            'decision' => $schema->object([
+                'question' => $schema->string()->description('Die interne Entscheidung oder Auskunft, die zuerst nötig ist')->required(),
+                'why' => $schema->string()->description('Warum sie die Kundenantwort wesentlich ändert')->required(),
+                'options' => $schema->array()->items($schema->object([
+                    'key' => $schema->string()->description('Kurzer eindeutiger Schlüssel in Kleinbuchstaben')->required(),
+                    'label' => $schema->string()->required(),
+                    'consequence' => $schema->string()->description('Was daraus für die Antwort folgt und worauf es beruht')->required(),
+                ])->withoutAdditionalProperties())->required(),
+                'knowledge_ids' => $schema->array()->items($knowledgeId)->description('Nur wenn eine Wissensregel die Entscheidung trägt')->required(),
+            ])->withoutAdditionalProperties()->nullable()->required(),
             'reply' => $schema->object([
                 'language' => $schema->string()->description('Sprache des Antwortentwurfs, z. B. Deutsch')->required(),
                 'text' => $schema->string()->required(),
-            ])->withoutAdditionalProperties()->required(),
+            ])->withoutAdditionalProperties()->nullable()->required(),
         ];
     }
 }

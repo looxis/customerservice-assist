@@ -19,6 +19,7 @@ final readonly class AnalysisRequest
      * @param  list<array{number: string, channel: string|null, items: list<string>}>  $mentionedOrders  Order numbers known from the ticket but not loaded from EOCS.
      * @param  list<string>  $notes  Hints for the employee about how the input came about, shown with the result.
      * @param  list<string>  $extraKnowledge  IDs of documents the employee switched on by hand (PROJ-36).
+     * @param  list<array{question: string, answer: string, by: string, at: string}>  $decisions  Internal clarifications of earlier steps of this case (PROJ-39).
      */
     public function __construct(
         public Ticket $ticket,
@@ -34,5 +35,22 @@ final readonly class AnalysisRequest
         public array $mentionedOrders = [],
         public array $notes = [],
         public array $extraKnowledge = [],
+        public array $decisions = [],
     ) {}
+
+    /**
+     * The clarifications as lines for the prompt.
+     */
+    public function decisionsText(): string
+    {
+        return implode("\n", array_map(fn (array $decision): string => "- {$decision['question']} → {$decision['answer']} (geklärt von {$decision['by']})", $this->decisions));
+    }
+
+    /**
+     * Everything the employee stated as fact, for the knowledge retrieval.
+     */
+    public function factsText(): string
+    {
+        return trim($this->employeeContext."\n".$this->decisionsText());
+    }
 }

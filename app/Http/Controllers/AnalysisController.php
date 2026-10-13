@@ -128,6 +128,7 @@ class AnalysisController extends Controller
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),
+                decisions: $request->decisions((string) $staff->current($request)) ?? [],
             ));
         } catch (AnalysisException $exception) {
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);
@@ -209,6 +210,10 @@ class AnalysisController extends Controller
             return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
         }
 
+        if (! is_array($stored['result']['reply'] ?? null)) {
+            return response()->json(['message' => 'Zu dieser Analyse gibt es noch keinen Antwortentwurf.'], 409);
+        }
+
         $now = CarbonImmutable::now();
         $edit = $request->boolean('original')
             ? null
@@ -236,6 +241,10 @@ class AnalysisController extends Controller
 
         if ($store->latest((string) $stored['scope']) !== $analysis) {
             return response()->json(['message' => 'Ältere Analysen sind nur lesbar.'], 409);
+        }
+
+        if (! is_array($stored['result']['reply'] ?? null)) {
+            return response()->json(['message' => 'Zu dieser Analyse gibt es noch keinen Antwortentwurf.'], 409);
         }
 
         if ($store->ruleCheckBlocksCopy($analysis)) {

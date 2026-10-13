@@ -41,9 +41,9 @@ function overviewAnalysis(string $staff = 'Nele'): string
         'category' => 'order-process-question', 'case_pattern' => null, 'assessment' => null,
         'recommendation' => 'Nachfragen.', 'actions' => [],
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'Keine Regel.', 'missing_information' => [], 'knowledge_gaps' => [],
+        'reasoning' => 'Keine Regel.', 'knowledge_gaps' => [],
         'knowledge_ids' => [], 'confidence' => ['level' => 'NIEDRIG', 'reasons' => []],
-        'internal_todos' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
     ]]);
     $location = test()->withCookie('staff_name', $staff)->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => 'reseller', 'variante' => 'verlauf'])->headers->get('Location');
     parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);

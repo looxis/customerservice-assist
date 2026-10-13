@@ -30,9 +30,9 @@ function retrAnswer(array $overrides = []): array
         'category' => 'complaint', 'case_pattern' => null, 'assessment' => null,
         'recommendation' => 'Nachfragen.', 'actions' => [],
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'Keine Regel.', 'missing_information' => [], 'knowledge_gaps' => [],
+        'reasoning' => 'Keine Regel.', 'knowledge_gaps' => [],
         'knowledge_ids' => [], 'confidence' => ['level' => 'NIEDRIG', 'reasons' => []],
-        'internal_todos' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, wir prüfen das.'],
     ], $overrides);
 }
 
@@ -419,12 +419,12 @@ describe('the standing instructions and the versions', function () {
         retrAnalyze();
         $third = retrStored();
 
-        expect($first->prompt_version)->toBe('analysis-2026-10-09.2+retrieval-2026-10-13.1')
+        expect($first->prompt_version)->toBe('analysis-2026-10-13.1+retrieval-2026-10-13.2')
             ->and($first->retrieval_version)->toMatch('/^2026-10-13\.1\/[0-9a-f]{8}$/')
             ->and($second->retrieval_version)->not->toBe($first->retrieval_version)
             ->and($first->content['retrieval']['configuration'])->toMatchArray(['version' => $first->retrieval_version])
             ->and($first->content['retrieval']['configuration']['budget']['target'])->toBe(40000)
-            ->and($third->prompt_version)->toBe('analysis-2026-10-09.2')->and($third->retrieval_version)->toBeNull();
+            ->and($third->prompt_version)->toBe('analysis-2026-10-13.1')->and($third->retrieval_version)->toBeNull();
     });
 });
 

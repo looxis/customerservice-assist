@@ -36,8 +36,8 @@ function procedureCase(array $actions, string $category = 'complaint', string $g
         'summary' => ['incident' => 'Retoure', 'customer_wish' => 'Info'], 'category' => $category, 'case_pattern' => null, 'assessment' => null,
         'recommendation' => 'Retoure erfassen.', 'actions' => $actions,
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'x', 'missing_information' => [], 'knowledge_gaps' => [], 'knowledge_ids' => [],
-        'confidence' => ['level' => 'MITTEL', 'reasons' => []], 'internal_todos' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag'],
+        'reasoning' => 'x', 'knowledge_gaps' => [], 'knowledge_ids' => [],
+        'confidence' => ['level' => 'MITTEL', 'reasons' => []], 'next_step' => 'reply', 'decision' => null, 'internal_steps' => [], 'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag'],
     ]]);
     test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kundengruppe' => $group, 'variante' => 'verlauf']);
 

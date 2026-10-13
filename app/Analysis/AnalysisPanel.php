@@ -176,6 +176,8 @@ class AnalysisPanel
                 'text' => (string) $stored['reply_backtranslation']['text'],
                 'stale' => ($stored['reply_backtranslation']['fingerprint'] ?? null) !== hash('sha256', trim(is_array($edit) ? (string) $edit['text'] : $original)),
             ] : null,
+            'has_reply' => is_array($stored['result']['reply'] ?? null),
+            'steps' => array_values(array_filter((array) ($stored['result']['internal_steps'] ?? $stored['result']['internal_todos'] ?? []), 'is_string')),
             'sources' => $this->sources($stored),
             'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen,
         ];

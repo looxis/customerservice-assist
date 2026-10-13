@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Analysis\AnalysisStore;
 use App\Analysis\ContextVariant;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
+use Illuminate\Validation\Validator;
 
 class AnalyzeTicketRequest extends FormRequest
 {
@@ -23,9 +26,34 @@ class AnalyzeTicketRequest extends FormRequest
         'bestellung_personalisierung' => 'Personalisierung',
     ];
 
+    /**
+     * @var array<string, mixed>|null
+     */
+    private ?array $parent = null;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * Continuing a case after an internal clarification (PROJ-39): the form fields
+     * the employee does not send again come from the earlier analysis.
+     */
+    protected function prepareForValidation(): void
+    {
+        $parent = $this->parentAnalysis();
+
+        if ($parent === null) {
+            return;
+        }
+
+        $inputs = (array) ($parent['inputs'] ?? []);
+        $this->merge(array_filter(
+            $inputs,
+            fn (mixed $value, string $key): bool => ! $this->has($key) && $value !== null,
+            ARRAY_FILTER_USE_BOTH,
+        ));
     }
 
     /**
@@ -52,7 +80,84 @@ class AnalyzeTicketRequest extends FormRequest
             'bestellung_datum' => ['nullable', 'string', 'max:30'],
             'bestellung_produkt' => ['nullable', 'string', 'max:200'],
             'bestellung_personalisierung' => ['nullable', 'string', 'max:2000'],
+            'klaerung_analyse' => ['nullable', 'string', 'max:64'],
+            'klaerung_option' => ['nullable', 'string', 'max:100'],
+            'klaerung_text' => ['nullable', 'string', 'max:'.config('analysis.max_context_length')],
         ];
+    }
+
+    /**
+     * @return list<callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            if (! $this->filled('klaerung_analyse')) {
+                return;
+            }
+
+            $parent = $this->parentAnalysis();
+            $options = array_column((array) ($parent['result']['decision']['options'] ?? []), null, 'key');
+
+            if ($parent === null) {
+                $validator->errors()->add('klaerung_analyse', 'Diese Analyse ist nicht die neueste und kann nicht fortgesetzt werden.');
+            } elseif (! $this->filled('klaerung_option') && ! $this->filled('klaerung_text')) {
+                $validator->errors()->add('klaerung_text', 'Bitte eine Option wählen oder das Ergebnis der internen Klärung eingeben.');
+            } elseif ($this->filled('klaerung_option') && ! isset($options[$this->input('klaerung_option')])) {
+                $validator->errors()->add('klaerung_option', 'Diese Option gibt es nicht.');
+            }
+        }];
+    }
+
+    /**
+     * The earlier clarifications of the case plus the new one, built from the stored analysis
+     * (the option text never comes from the request), or null for an ordinary analysis.
+     *
+     * @return list<array{question: string, answer: string, by: string, at: string}>|null
+     */
+    public function decisions(string $by): ?array
+    {
+        $parent = $this->parentAnalysis();
+
+        if ($parent === null) {
+            return null;
+        }
+
+        $decision = $parent['result']['decision'] ?? null;
+        $label = $this->filled('klaerung_option') ? (string) (array_column((array) ($decision['options'] ?? []), null, 'key')[$this->input('klaerung_option')]['label'] ?? '') : '';
+        $note = trim((string) $this->input('klaerung_text', ''));
+
+        return [
+            ...array_values((array) ($parent['decisions'] ?? [])),
+            [
+                'question' => $decision['question'] ?? 'Interne Prüfung: '.Str::limit((string) ($parent['result']['recommendation'] ?? ''), 200),
+                'answer' => $label !== '' && $note !== '' ? "{$label} ({$note})" : ($label !== '' ? $label : $note),
+                'by' => $by,
+                'at' => now()->toIso8601String(),
+            ],
+        ];
+    }
+
+    /**
+     * The stored analysis this request continues; only the newest analysis of the ticket can be continued.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function parentAnalysis(): ?array
+    {
+        if ($this->parent !== null || ! is_string($this->input('klaerung_analyse')) || $this->input('klaerung_analyse') === '') {
+            return $this->parent;
+        }
+
+        $store = app(AnalysisStore::class);
+        $id = $this->input('klaerung_analyse');
+        $stored = $store->result($id);
+
+        if ($stored === null || ($stored['ticket'] ?? null) !== $this->route('number') || $store->latest((string) ($stored['scope'] ?? '')) !== $id) {
+            return null;
+        }
+
+        return $this->parent = $stored;
     }
 
     /**
@@ -84,6 +189,6 @@ class AnalyzeTicketRequest extends FormRequest
 
     protected function getRedirectUrl(): string
     {
-        return route('tickets.show', ['number' => $this->route('number'), 'bestellungen' => (array) $this->input('bestellungen', [])]).'#analyse';
+        return route('tickets.show', ['number' => $this->route('number'), 'bestellungen' => (array) $this->input('bestellungen', [])]).($this->filled('klaerung_analyse') ? '#ablaeufe' : '#analyse');
     }
 }

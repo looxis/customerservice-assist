@@ -45,10 +45,10 @@ function resultAnswer(array $overrides = []): array
         'category' => 'order-process-question', 'case_pattern' => null, 'assessment' => null,
         'recommendation' => 'Freundlich absagen.', 'actions' => [],
         'authority' => ['agent_may_decide' => true, 'approval_by' => null, 'permission_id' => null],
-        'reasoning' => 'Laut Regel nicht möglich.', 'missing_information' => [], 'knowledge_gaps' => [],
+        'reasoning' => 'Laut Regel nicht möglich.', 'knowledge_gaps' => [],
         'knowledge_ids' => ['POLICY-001', 'POLICY-002'],
         'confidence' => ['level' => 'HOCH', 'reasons' => ['Regel vorhanden']],
-        'internal_todos' => ['Nichts weiter'],
+        'next_step' => 'reply', 'decision' => null, 'internal_steps' => ['Nichts weiter'],
         'reply' => ['language' => 'Deutsch', 'text' => "Guten Tag,\nleider geht das nicht. Sendungsnummer: [TRACKINGNUMMER]"],
     ], $overrides);
 }
@@ -75,7 +75,7 @@ describe('layout', function () {
         runAnalysis();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Ergebnis der Analyse', 'Was ist zu tun?', 'Freundlich absagen.', 'Du darfst das selbst entscheiden.', 'Antwortentwurf (Deutsch)', 'Kopieren', 'Begründung', 'Quellen (2)', 'Kurzfassung', 'Confidence HOCH – Gründe (1)', 'Interne To-dos (1)', 'Details zur Analyse', 'Analyse', 'Analysiert mit:', 'Verlauf'])
+            ->assertSeeTextInOrder(['Ergebnis der Analyse', 'Was ist zu tun?', 'Freundlich absagen.', 'Du darfst das selbst entscheiden.', 'Antwortentwurf (Deutsch)', 'Kopieren', 'Begründung', 'Quellen (2)', 'Kurzfassung', 'Confidence HOCH – Gründe (1)', 'Details zur Analyse', 'Analyse', 'Analysiert mit:', 'Verlauf'])
             ->getContent();
 
         expect($html)->toMatch('/<details id="analyse-details"[^>]*x-data/')
