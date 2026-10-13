@@ -151,7 +151,8 @@ describe('blocked analysis', function () {
             ->assertSeeTextInOrder(['Zuerst zu klären', 'Kein Bedarf – kann entsorgt werden', 'Anderes Ergebnis oder Ergänzung', 'Ohne gewählte Option gilt dein Text als Ergebnis', 'Mit diesem Ergebnis fortsetzen', 'Für diesen Fall'])
             ->getContent();
 
-        expect($html)->toMatch('/<textarea id="klaerung-text"[^>]*class="[^"]*ring-1[^"]*ring-slate-300[^"]*"/')->and(substr_count($html, 'id="klaerung-text"'))->toBe(1);
+        expect($html)->toContain("loading-start', { title: 'Vorschlag wird erstellt …'")
+            ->and($html)->toMatch('/<textarea id="klaerung-text"[^>]*class="[^"]*ring-1[^"]*ring-slate-300[^"]*"/')->and(substr_count($html, 'id="klaerung-text"'))->toBe(1);
     });
 
     test('the copy and edit actions are refused without a reply', function () {

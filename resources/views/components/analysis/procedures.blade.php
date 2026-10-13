@@ -58,7 +58,7 @@
         @if ($caseWork)
             <div class="mt-4 space-y-4">
                 @if ($canContinue)
-                    <form method="POST" action="{{ $question ? route('questions.follow-up', ['number' => $number]) : route('tickets.analysis.run', ['number' => $number]) }}" class="space-y-4" x-data="{ busy: false, choice: @js((string) old('klaerung_option', '')), note: @js((string) old('klaerung_text', '')) }" x-on:submit="if (busy) { $event.preventDefault() } else { busy = true }">
+                    <form method="POST" action="{{ $question ? route('questions.follow-up', ['number' => $number]) : route('tickets.analysis.run', ['number' => $number]) }}" class="space-y-4" x-data="{ busy: false, choice: @js((string) old('klaerung_option', '')), note: @js((string) old('klaerung_text', '')) }" x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })" x-on:pageshow.window="busy = false">
                         @csrf
                         <input type="hidden" name="klaerung_analyse" value="{{ $result['id'] }}">
                         @if ($stand)<input type="hidden" name="stand" value="{{ $stand }}">@endif
