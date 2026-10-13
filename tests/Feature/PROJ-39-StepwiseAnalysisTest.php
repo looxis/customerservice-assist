@@ -132,6 +132,17 @@ describe('blocked analysis', function () {
             ->assertSeeText('Notiz im Ticket');
     });
 
+    test('the options are radio choices with a pointer cursor, confirmed by a separate button', function () {
+        CaseAgent::fake([stepBlocked()]);
+        stepRun();
+
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent();
+
+        expect($html)->toMatch('/<label class="[^"]*cursor-pointer[^"]*"[^>]*>\s*<input type="radio" name="klaerung_option" value="none"/')
+            ->and($html)->toContain('Mit diesem Ergebnis fortsetzen')
+            ->and($html)->toContain('Nur Hinweise zum Abhaken');
+    });
+
     test('the copy and edit actions are refused without a reply', function () {
         CaseAgent::fake([stepBlocked()]);
         $id = stepRun();
