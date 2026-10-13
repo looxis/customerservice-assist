@@ -12,7 +12,7 @@
     x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4"
 >
-    <div x-ref="box" tabindex="-1" role="alert" aria-live="assertive" class="outline-none "flex w-full max-w-sm flex-col items-center gap-3 rounded-lg bg-white p-8 text-center shadow-3">
+    <div x-ref="box" tabindex="-1" role="alert" aria-live="assertive" class="outline-none flex w-full max-w-sm flex-col items-center gap-3 rounded-lg bg-white p-8 text-center shadow-3">
         <x-icon name="refresh" size="28" class="animate-spin text-brand" />
         <p class="text-base font-semibold text-slate-900" x-text="title"></p>
         <p class="text-sm text-slate-600" x-show="text" x-text="text"></p>

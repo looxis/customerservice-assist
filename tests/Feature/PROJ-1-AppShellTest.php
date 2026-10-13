@@ -317,6 +317,16 @@ describe('leftovers fixed', function () {
         expect($html)->toContain('data-loading-overlay')->toContain('element.inert = open')->toContain('$refs.box.focus()');
     });
 
+    test('the loading message sits in a white box with all its classes in one class attribute', function () {
+        $html = $this->blade('<x-loading-overlay />')->__toString();
+
+        preg_match('/<div x-ref="box"[^>]*>/', $html, $tag);
+
+        expect($tag)->not->toBeEmpty()
+            ->and($tag[0])->toMatch('/class="[^"]*\\bbg-white\\b[^"]*"/')->toMatch('/class="[^"]*\\brounded-lg\\b[^"]*"/')
+            ->and($tag[0])->not->toMatch('/class="[^"]*"\s+\w/');
+    });
+
     test('small grey text uses a colour with enough contrast', function () {
         foreach (File::allFiles(resource_path('views')) as $file) {
             foreach (explode("\n", $file->getContents()) as $line) {
