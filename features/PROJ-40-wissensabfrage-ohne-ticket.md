@@ -1,6 +1,6 @@
 # PROJ-40: Wissensabfrage ohne Ticket
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
