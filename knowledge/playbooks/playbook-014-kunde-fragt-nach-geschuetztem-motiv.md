@@ -19,7 +19,7 @@ related_knowledge:
 - POLICY-018
 - TONE-002
 - TONE-007
-summary: "Kunde fragt nach Verwendung eines möglicherweise geschützten Motivs. Gilt, wenn der Kunde ausdrücklich nach Urheber-, Marken- oder Nutzungsrechten fragt; Rechte nicht ungefragt ansprechen; gilt nicht, wenn ein Geschäftskunde sein eigenes Logo liefert."
+summary: "Kunde fragt, ob ein möglicherweise fremdes oder geschütztes Motiv auf ein personalisiertes Produkt gedruckt, graviert oder anderweitig verwendet werden kann, z. B. eine bekannte Comicfigur, ein Film- oder Serienmotiv, ein Markenlogo oder ein fremdes Foto. Gilt auch ohne ausdrückliche Frage nach Urheber- oder Nutzungsrechten. Erläutert die Verantwortung des Kunden ohne rechtliche Einzelfallfreigabe. Nicht ungefragt thematisieren, wenn ein Geschäftskunde lediglich sein eigenes Firmenlogo bereitstellt."
 retrieval: triggered
 triggers:
 - Urheberrecht
