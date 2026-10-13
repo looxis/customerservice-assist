@@ -28,6 +28,8 @@ return [
         'expected' => ['POLICY-017', 'PLAYBOOK-014'], 'forbidden' => ['PLAYBOOK-018']],
     'own logo in a quote' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Wir brauchen 200 Tassen mit unserem Firmenlogo für eine Veranstaltung.',
         'expected' => ['PROCESS-010'], 'forbidden' => ['POLICY-017', 'PLAYBOOK-014', 'TONE-007', 'PROCESS-006']],
+    'own logo, order with file' => ['group' => 'reseller', 'products' => [], 'text' => 'Bitte bedrucken Sie 50 Kugelschreiber mit unserem Firmenlogo, die Datei hängt an.',
+        'forbidden' => ['POLICY-017', 'PLAYBOOK-014', 'TONE-007']],
     'two concerns, one suppressed hit' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Wir möchten 200 Tassen mit unserem Logo bestellen. Außerdem würden wir gern eine bekannte Zeichentrickfigur drucken.',
         'expected' => ['POLICY-017'], 'forbidden' => ['PLAYBOOK-018']],
     'invoice without the word' => ['group' => 'private-looxis-de', 'products' => [], 'text' => 'Ich brauche einen Beleg über meine Bestellung für die Steuer.',

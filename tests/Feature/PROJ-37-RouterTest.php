@@ -390,15 +390,21 @@ describe('checking the answer of the router', function () {
             ->and(collect($outcome->details['proposals'])->firstWhere('id', 'POLICY-003')['rejection'])->toBe('wegen Obergrenze nicht übernommen');
     });
 
-    test('only clearly fitting proposals are taken over, the others are logged with the reason', function () use ($files) {
+    test('by default a proposal rated only possible is taken over too: the fit rating is stored for diagnosis but excludes nothing', function () use ($files) {
+        $outcome = rtrRun($files(), rtrFacts(['Das Motiv ist sehr klein.']), rtrAnswer([rtrAdd('POLICY-001', 1, fit: 'clear'), rtrAdd('POLICY-002', 2, fit: 'possible')]));
+
+        expect(config('knowledge.router.clear_only'))->toBeFalse()
+            ->and($outcome->additionIds())->toBe(['POLICY-001', 'POLICY-002'])
+            ->and(collect($outcome->details['proposals'])->pluck('fit')->all())->toBe(['clear', 'possible']);
+    });
+
+    test('with the filter switched on only clearly fitting proposals are taken over, the others are logged with the reason', function () use ($files) {
+        config(['knowledge.router.clear_only' => true]);
         $outcome = rtrRun($files(), rtrFacts(['Das Motiv ist sehr klein.']), rtrAnswer([rtrAdd('POLICY-001', 1, fit: 'clear'), rtrAdd('POLICY-002', 2, fit: 'possible')]));
 
         expect($outcome->additionIds())->toBe(['POLICY-001'])
             ->and(collect($outcome->details['proposals'])->firstWhere('id', 'POLICY-002')['rejection'])->toBe('nur möglicher Bezug (nicht eindeutig)');
 
-        config(['knowledge.router.clear_only' => false]);
-
-        expect(rtrRun($files(), rtrFacts(['Das Motiv ist sehr klein.']), rtrAnswer([rtrAdd('POLICY-002', 1, fit: 'possible')]))->additionIds())->toBe(['POLICY-002']);
     });
 
     test('categories are recognised, unknown ones dropped, an empty list is fine', function () use ($files) {
@@ -729,7 +735,7 @@ describe('configuration (QA)', function () {
         $source = file_get_contents(base_path('config/knowledge.php'));
 
         expect($source)->toContain("env('KNOWLEDGE_ROUTER_ACTIVE', false)")->toContain("env('ROUTER_MODEL', 'gpt-5.4')")->toContain("env('ROUTER_TIMEOUT', 15)")
-            ->toContain("env('KNOWLEDGE_ROUTER_CLEAR_ONLY', true)")->toContain("env('KNOWLEDGE_SUMMARY_MIN_LENGTH', 60)");
+            ->toContain("env('KNOWLEDGE_ROUTER_CLEAR_ONLY', false)")->toContain("env('KNOWLEDGE_SUMMARY_MIN_LENGTH', 60)");
 
         $router = config('knowledge.router');
 

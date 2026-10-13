@@ -264,6 +264,7 @@ Die Kundensprache ist vielfältig und nicht vorhersehbar. Es darf nicht nötig s
 | Herkunft je Dokument als eigenes Feld im Protokoll | Nicht aus dem Text der Gründe ableiten | 2026-10-13 |
 | Live-Prüfset als eigene Testgruppe, nur auf Abruf, Bericht außerhalb des Repositorys | Echte Kosten und Daten nur gezielt; Reproduzierbarkeit | 2026-10-13 |
 | Bekannte Qualitätsgrenzen der Vorauswahl werden als „offen / bekannte Grenze“ ausgewiesen, nie als bestanden gezählt | Ehrliche Qualitätsaussage | 2026-10-13 |
+| `fit`-Filter standardmäßig aus (`KNOWLEDGE_ROUTER_CLEAR_ONLY=false`), `fit` bleibt als Diagnosewert gespeichert; keine Ersatzheuristik | QA: Der Filter verwarf PLAYBOOK-019 in 3 von 15 Eisberg-Läufen; ohne Filter 15 von 15 bei 0,67 zusätzlichen neutralen Dokumenten je Aufruf | 2026-10-13 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
@@ -519,17 +520,19 @@ Die ersten drei sowie `KNOWLEDGE_SUMMARY_MIN_LENGTH` sind dort laut Product Owne
 
 ### Bugs Found
 
-#### BUG-1: `fit`-Filter verwirft relevante Dokumente – High
+#### BUG-1: `fit`-Filter verwirft relevante Dokumente – High – BEHOBEN (2026-10-13)
 - **Schritte:** Live-Prüfset (`./vendor/bin/sail pest --group=router-live`) mit Standardkonfiguration (`KNOWLEDGE_ROUTER_CLEAR_ONLY=true`), Fall „eisberg original“.
 - **Erwartet:** PRODUCT-006, PLAYBOOK-018 und PLAYBOOK-019 in jedem der 5 Läufe (verbindlich).
 - **Tatsächlich:** 12 von 15 Läufen; in 3 fehlt PLAYBOOK-019, weil das Modell es als „nur möglich“ bewertet. Ohne Filter 15 von 15 und keine verbotene ID.
 - **Empfehlung:** Standard auf `clear_only = false` (Vorschläge mit „möglich“ übernehmen) oder den Filter entfernen; Rauschen (zusätzlich 0,67 Dokumente je Aufruf, vor allem POLICY-029) ist bei Beobachtung gering. **Fix before activation.** (Von der QA nicht selbst geändert.)
+- **Behoben:** `KNOWLEDGE_ROUTER_CLEAR_ONLY` ist jetzt standardmäßig `false` (`config/knowledge.php`); das Feld `fit` bleibt zur Diagnose gespeichert und schließt bei `false` nichts aus. Keine Ersatzheuristik. **Wichtig:** Die `.env` und die `.env.example` enthalten die Variable noch mit dem Wert `true` und überschreiben den neuen Standard; beide Zeilen müssen von Hand auf `KNOWLEDGE_ROUTER_CLEAR_ONLY=false` geändert werden (die Dateien sind für den Assistenten gesperrt). Die Tests erzwingen den Standard unabhängig von der `.env`.
 
-#### BUG-2: `summary` von PLAYBOOK-014 zu eng, der Router findet es nicht – Medium
+#### BUG-2: `summary` von PLAYBOOK-014 zu eng, der Router findet es nicht – Medium – BEHOBEN (2026-10-13)
 - **Schritte:** Live-Fall „rights without a trigger word“.
 - **Erwartet:** POLICY-017 und PLAYBOOK-014.
 - **Tatsächlich:** nur POLICY-017 (6 von 6 Läufen); PLAYBOOK-014 nie vorgeschlagen.
 - **Ursache:** `summary` verlangt, dass der Kunde „ausdrücklich“ nach Rechten fragt; das Playbook behandelt aber auch die Frage „Darf ich Figur/Marke/Logo X drucken?“. Vorschlag (nicht umgesetzt): `summary` so fassen, dass auch diese Frage ohne das Wort „Rechte“ erkennbar ist, `Rechte nicht ungefragt ansprechen` bleibt. Gezielte Korrektur nach Freigabe, kein Umschreiben des Bestands. **Fix in next sprint / vor Aktivierung empfohlen.**
+- **Behoben:** Nur die `summary` von PLAYBOOK-014 wurde geändert (Wortlaut des Product Owners: „Kunde fragt, ob ein möglicherweise fremdes oder geschütztes Motiv … gedruckt, graviert oder anderweitig verwendet werden kann, z. B. eine bekannte Comicfigur, ein Film- oder Serienmotiv, ein Markenlogo oder ein fremdes Foto. Gilt auch ohne ausdrückliche Frage nach Urheber- oder Nutzungsrechten. … Nicht ungefragt thematisieren, wenn ein Geschäftskunde lediglich sein eigenes Firmenlogo bereitstellt.“). Auslöser, Ausschlüsse und Text des Playbooks sind unverändert.
 
 #### Hinweise (keine Fehler)
 - POLICY-029 wird von `gpt-5.4` häufig ergänzt (siehe 4.); beobachten, keine Sonderregel.
@@ -537,11 +540,30 @@ Die ersten drei sowie `KNOWLEDGE_SUMMARY_MIN_LENGTH` sind dort laut Product Owne
 - Die Vorauswahl über der Obergrenze ist nur mit künstlichen Wissensbasen geprüft (heute 33 bis 41 Pool-Dokumente, keine Vorauswahl nötig).
 - Die Live-Läufe bestätigen die Wirkung des Routers: ohne ihn fehlen die drei Eisberg-Dateien, mit ihm (ohne Filter) sind sie in 15 von 15 Läufen da.
 
+### Zweite QA-Runde nach den Korrekturen (2026-10-13)
+**Konfiguration:** `gpt-5.4`, Anweisung 2026-10-13.2, Zeitlimit 15 s, `KNOWLEDGE_ROUTER_CLEAR_ONLY=false`, geänderte `summary` von PLAYBOOK-014. **Suite:** 1242 bestanden, 1 offen (bekannte Grenze). **Live-Prüfset:** 3 vollständige Durchläufe, je 21 Aufrufe (17 Fälle, Eisberg 5-mal, neu ein zweiter Negativfall „eigenes Firmenlogo, Bestellung mit Datei“); 63 von 63 Aufrufen bestanden.
+
+| Prüfpunkt | Ergebnis |
+|---|---|
+| **Eisberg: PRODUCT-006, PLAYBOOK-018, PLAYBOOK-019 in der endgültigen Auswahl** | **5 von 5 in jedem der 3 Durchläufe (15 von 15)** |
+| **Rechte-Fall** („Können Sie mir das Gesicht von Micky Maus auf eine Tasse drucken?“): POLICY-017 und PLAYBOOK-014 | **3 von 3** (beide in jedem Lauf) |
+| Verbotene Dokumente | 0 in 63 Aufrufen |
+| Eigenes Firmenlogo (Angebot, Bestellung mit Datei): kein POLICY-017, PLAYBOOK-014, TONE-007 | 6 von 6, keine Regression |
+| Fremdsprachfälle (Italienisch, Französisch, mit und ohne Übersetzung) | 12 von 12 |
+| Ausfälle / Zeitüberschreitungen | 0 / 0 |
+| Router-Laufzeit: Mittel / Median / p95 / Maximum | 3,8 s / 3,8 s / 5,5 s / 6,8 s |
+| Tokens Ein: Mittel / Maximum; Aus: Mittel / Maximum | 3.283 / 3.611; 205 / 378 |
+| Ergänzungen je Aufruf (Mittel) | 2,63 |
+
+Häufigste Ergänzungen: POLICY-029 (42 von 63), PLAYBOOK-018 und PRODUCT-006 (je 33), PLAYBOOK-019 (18), PLAYBOOK-014 und POLICY-017 (je 6, die Rechte-Fälle). Mit der Bewertung „nur möglich“ wurden 26 Dokumente übernommen, die der Filter früher verworfen hätte: 19-mal POLICY-029, 3-mal PLAYBOOK-019 (erwartet, im Eisberg-Fall), 3-mal POLICY-010, 2-mal GLOSSARY-004 und je einmal PLAYBOOK-010 und PLAYBOOK-002; kein verbotenes Dokument darunter.
+
+**Stand der Bugs:** BUG-1 und BUG-2 behoben und im Live-Prüfset bestätigt. Offen bleiben: die bekannte Grenze der Vorauswahl bei sehr großen Wissensbasen (offener Test, nicht bestanden gezählt), die Browser- und Responsive-Prüfung der Ergebnisansicht (manuell vor der Aktivierung), die `.env`-Werte (siehe BUG-1) und die Freigabe des Product Owners. **Production Ready: JA aus Sicht der automatisierten Prüfung; die Aktivierung bleibt bis zur Freigabe und zum manuellen Funktionstest ausgesetzt (`KNOWLEDGE_ROUTER_ACTIVE=false`).**
+
 ### Summary
 - **Acceptance Criteria:** alle bis auf den Eisberg-Live-Test (Standardkonfiguration) bestanden; 1 Güte-Test (bekannte Grenze) offen
 - **Bugs Found:** 2 (0 critical, 1 high, 1 medium, 0 low)
 - **Security:** keine Funde
-- **Production Ready:** **NEIN** in der heutigen Standardkonfiguration (BUG-1 High); **JA nach Umstellung von `fit`** und fachlicher Freigabe der Live-Ergebnisse
+- **Production Ready (erste Runde):** NEIN (BUG-1 High); nach den Korrekturen der zweiten Runde: **JA** aus Sicht der automatisierten Prüfung, vorbehaltlich Browser-Test und Freigabe
 - **Recommendation:** BUG-1 beheben (Standard `clear_only=false`), PLAYBOOK-014 `summary` gezielt nachbessern, Live-Prüfset erneut laufen lassen, dann Freigabe. Aktivierung bleibt ausgesetzt.
 
 
