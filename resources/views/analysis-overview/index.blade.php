@@ -66,6 +66,12 @@
                         <option value="{{ $model }}" @selected($filter->model === $model)>{{ $model }}</option>
                     @endforeach
                 </x-select>
+                <x-select name="router" label="Router-Entscheidung">
+                    <option value="">Alle</option>
+                    @foreach (\App\Analysis\AnalysisOverview::ROUTER_STATES as $key => $label)
+                        <option value="{{ $key }}" @selected($filter->router === $key)>{{ ucfirst($label) }}</option>
+                    @endforeach
+                </x-select>
                 <x-select name="prompt" label="Prompt-Version">
                     <option value="">Alle</option>
                     @foreach ($options['prompts'] as $prompt)
@@ -101,6 +107,25 @@
             <p class="mt-1 font-display text-2xl font-semibold text-slate-900">{{ $share($figures['copied_unchanged']) }}</p>
             <p class="mt-1 text-xs text-slate-600">{{ $figures['copied'] }} kopiert · {{ $figures['gaps'] }} {{ $figures['gaps'] === 1 ? 'Wissenslücke' : 'Wissenslücken' }} gemeldet</p>
         </x-card>
+        @if ($figures['router'] !== null)
+            @php($router = $figures['router'])
+            <x-card class="sm:col-span-2 lg:col-span-3" id="router-kennzahlen">
+                <p class="text-xs font-semibold text-slate-600">Erweiterte Wissenssuche (Router)</p>
+                <p class="mt-1 text-sm text-slate-900">
+                    @foreach (\App\Analysis\AnalysisOverview::ROUTER_STATES as $key => $label)
+                        {{ ucfirst($label) }}: <strong>{{ $router['states'][$key] ?? 0 }}</strong>{{ $loop->last ? '' : ' · ' }}
+                    @endforeach
+                </p>
+                <p class="mt-1 text-xs text-slate-600">
+                    Ausfallquote: {{ $router['failure_share'] === null ? '–' : $router['failure_share'].' %' }}
+                    · Ergänzungen je ausgeführter Analyse: {{ $router['additions'] === null ? '–' : number_format($router['additions'], 1, ',', '.') }}
+                    · zusätzlicher Umfang: {{ $router['characters'] === null ? '–' : number_format($router['characters'], 0, ',', '.').' Zeichen' }}
+                    · Laufzeit: {{ $router['duration_ms'] === null ? '–' : number_format($router['duration_ms'] / 1000, 1, ',', '.').' s' }}
+                    · Tokens (Ein/Aus): {{ $router['input_tokens'] === null ? '–' : number_format($router['input_tokens'], 0, ',', '.').' / '.number_format($router['output_tokens'], 0, ',', '.') }}
+                    · Kosten: {{ $router['cost'] === null ? 'nicht ermittelbar (kein Preis hinterlegt)' : 'geschätzt '.number_format($router['cost'], 4, ',', '.').' $' }}
+                </p>
+            </x-card>
+        @endif
     </section>
 
     <x-card class="p-0">
@@ -141,6 +166,7 @@
                                         @else
                                             <span class="text-slate-600">–</span>
                                         @endif
+                                        @if ($row->router_status === 'failed')<x-badge compact tone="warning" title="Die erweiterte Wissenssuche ist ausgefallen; es galt die reguläre Auswahl">Router ausgefallen</x-badge>@endif
                                         @if ($row->rule_check === 'incomplete')<x-badge compact tone="danger" title="{{ $row->rule_check_at ? 'Inzwischen von Hand geprüft' : 'Nicht bestätigt' }}">Regelprüfung unvollständig</x-badge>@endif
                                         @if ($row->test_until !== null || str_contains($row->scope_key, '.stand-'))<x-badge compact tone="warning">Testlauf</x-badge>@endif
                                     </div>

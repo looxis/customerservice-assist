@@ -1,6 +1,7 @@
 <?php
 
 use App\Analysis\Agents\RouterAgent;
+use App\Analysis\AnalysisOverview;
 use App\Analysis\Pseudonymizer;
 use App\Knowledge\CaseContext;
 use App\Knowledge\CustomerGroup;
@@ -15,6 +16,7 @@ use App\Knowledge\Retrieval\Router\RouterAddition;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
 use App\Knowledge\Retrieval\Router\RouterPool;
 use App\Knowledge\Retrieval\Router\RouterText;
+use App\Models\Analysis;
 use App\Orders\OrderNumberDetector;
 use App\Zammad\ArticleKind;
 use App\Zammad\Ticket;
@@ -598,4 +600,78 @@ describe('merging the additions into the budget', function () {
 
         expect($result->ids())->toBe(['POLICY-001', 'POLICY-002'])->and($origin['POLICY-001'])->toBe('core')->and($origin['POLICY-002'])->toBe('trigger');
     });
+});
+
+describe('the analysis overview (admin)', function () {
+    beforeEach(function () {
+        config(['staff.admins' => ['Etienne']]);
+        $this->travelTo(now()->setDate(2026, 10, 20)->setTime(12, 0));
+    });
+
+    $analyses = function (): void {
+        $base = ['created_at' => now()->subDay()];
+        Analysis::factory()->create([...$base, 'ticket_number' => '2200001', 'router_status' => 'executed', 'router_additions' => 3, 'router_characters' => 6000, 'router_duration_ms' => 4000, 'router_input_tokens' => 3000, 'router_output_tokens' => 300]);
+        Analysis::factory()->create([...$base, 'ticket_number' => '2200002', 'router_status' => 'executed', 'router_additions' => 1, 'router_characters' => 2000, 'router_duration_ms' => 2000, 'router_input_tokens' => 2000, 'router_output_tokens' => 100]);
+        Analysis::factory()->create([...$base, 'ticket_number' => '2200003', 'router_status' => 'failed', 'router_additions' => 0, 'router_duration_ms' => 15000]);
+        Analysis::factory()->create([...$base, 'ticket_number' => '2200004', 'router_status' => 'skipped']);
+        Analysis::factory()->create([...$base, 'ticket_number' => '2200005', 'router_status' => 'disabled']);
+        Analysis::factory()->create([...$base, 'ticket_number' => '2200006', 'router_status' => null]);
+    };
+
+    test('the filter separates executed, skipped, disabled and failed, and ignores a wrong value', function () use ($analyses) {
+        $analyses();
+        $overview = app(AnalysisOverview::class);
+        $rows = fn (array $input): array => $overview->page($overview->filter($input))->getCollection()->pluck('ticket_number')->sort()->values()->all();
+
+        expect($rows(['router' => 'executed']))->toBe(['2200001', '2200002'])
+            ->and($rows(['router' => 'failed']))->toBe(['2200003'])
+            ->and($rows(['router' => 'skipped']))->toBe(['2200004'])
+            ->and($rows(['router' => 'disabled']))->toBe(['2200005'])
+            ->and($rows(['router' => 'nonsense']))->toHaveCount(6);
+    });
+
+    test('the figures count the decisions, the failure share, the averages of executed analyses and show no cost without a price', function () use ($analyses) {
+        $analyses();
+        $overview = app(AnalysisOverview::class);
+        $figures = $overview->figures($overview->filter([]))['router'];
+
+        expect($figures['states'])->toEqualCanonicalizing(['executed' => 2, 'failed' => 1, 'skipped' => 1, 'disabled' => 1])
+            ->and($figures['failure_share'])->toBe(33)
+            ->and($figures['additions'])->toBe(2.0)->and($figures['characters'])->toBe(4000.0)->and($figures['duration_ms'])->toBe(3000.0)
+            ->and($figures['input_tokens'])->toBe(2500.0)->and($figures['output_tokens'])->toBe(200.0)
+            ->and($figures['cost'])->toBeNull();
+    });
+
+    test('with a price for the router model the cost is estimated', function () use ($analyses) {
+        $analyses();
+        config(['knowledge.router.prices' => [config('knowledge.router.model') => ['input' => 1.0, 'output' => 4.0]]]);
+        $overview = app(AnalysisOverview::class);
+
+        expect($overview->figures($overview->filter([]))['router']['cost'])->toBe(round((5000 * 1.0 + 400 * 4.0) / 1_000_000, 4));
+    });
+
+    test('without any router decision there is no router block', function () {
+        Analysis::factory()->create(['created_at' => now()->subDay(), 'router_status' => null]);
+        $overview = app(AnalysisOverview::class);
+
+        expect($overview->figures($overview->filter([]))['router'])->toBeNull();
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertDontSee('router-kennzahlen');
+    });
+
+    test('the page shows the filter, the figures and the failure mark to admins only', function () use ($analyses) {
+        $analyses();
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()
+            ->assertSeeText('Router-Entscheidung')->assertSeeText('Erweiterte Wissenssuche (Router)')->assertSeeText('Ausfallquote: 33 %')->assertSeeText('Router ausgefallen')
+            ->assertSeeText('nicht ermittelbar (kein Preis hinterlegt)');
+        $this->withCookie('staff_name', 'Nele')->get(route('analysis-overview.index'))->assertForbidden();
+    });
+});
+
+test('the cost of one analysis follows the configured price of the model, model names with dots included', function () {
+    config(['knowledge.router.prices' => ['gpt-5.4-mini' => ['input' => 0.5, 'output' => 2.0]]]);
+    $outcome = new RouterOutcome(RouterOutcome::EXECUTED, 'ok', details: ['model' => 'gpt-5.4-mini'], inputTokens: 4000, outputTokens: 500);
+
+    expect($outcome->cost())->toBe(round((4000 * 0.5 + 500 * 2.0) / 1_000_000, 6))
+        ->and((new RouterOutcome(RouterOutcome::EXECUTED, 'ok', details: ['model' => 'other'], inputTokens: 1, outputTokens: 1))->cost())->toBeNull();
 });

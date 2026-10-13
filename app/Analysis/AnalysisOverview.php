@@ -18,6 +18,14 @@ class AnalysisOverview
     public const int PER_PAGE = 50;
 
     /** @var array<string, string> */
+    /** The decisions of the router (PROJ-37) the overview can filter by. */
+    public const array ROUTER_STATES = [
+        'executed' => 'ausgeführt',
+        'skipped' => 'regulär übersprungen',
+        'disabled' => 'deaktiviert',
+        'failed' => 'fehlgeschlagen',
+    ];
+
     public const array COPY_STATES = [
         'copied-unchanged' => 'Kopiert (unverändert)',
         'copied-changed' => 'Kopiert (angepasst)',
@@ -62,6 +70,7 @@ class AnalysisOverview
             staff: $text('mitarbeiter', $options['staff']),
             model: $text('modell', $options['models']),
             prompt: $text('prompt', $options['prompts']),
+            router: $text('router', array_keys(self::ROUTER_STATES)),
             tests: ($input['testlaeufe'] ?? null) === '1',
             failed: ($input['fehlgeschlagen'] ?? null) === '1',
             problem: $problem,
@@ -95,7 +104,7 @@ class AnalysisOverview
     public function page(AnalysisFilter $filter, int $page = 1): LengthAwarePaginator
     {
         $rows = $this->query($filter)
-            ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'content_purged_at', 'content_deleted_at', 'rule_check', 'rule_check_at', 'created_at'])
+            ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'content_purged_at', 'content_deleted_at', 'rule_check', 'rule_check_at', 'router_status', 'router_additions', 'created_at'])
             ->withCount('gaps')
             ->orderByDesc('created_at')->orderByDesc('id')
             ->paginate(self::PER_PAGE, page: max(1, $page));
@@ -126,6 +135,43 @@ class AnalysisOverview
             'copied' => $copied,
             'copied_unchanged' => $share($set()->whereNotNull('reply_copied_at')->where('reply_copied_changed', false)->count(), $copied),
             'gaps' => KnowledgeGap::query()->whereIn('analysis_id', $set()->select('analyses.id'))->count(),
+            'router' => $this->routerFigures($set),
+        ];
+    }
+
+    /**
+     * The figures of the router for the filtered set (PROJ-37): what it decided, how often it failed, what it added and what it cost.
+     * Null while no analysis of the set has a router decision.
+     *
+     * @param  callable(): Builder<Analysis>  $set
+     * @return array{states: array<string, int>, failure_share: int|null, additions: float|null, characters: float|null, duration_ms: float|null, input_tokens: float|null, output_tokens: float|null, cost: float|null}|null
+     */
+    private function routerFigures(callable $set): ?array
+    {
+        $states = $set()->whereNotNull('router_status')->selectRaw('router_status, count(*) as total')->groupBy('router_status')->pluck('total', 'router_status')->map(fn ($value): int => (int) $value)->all();
+
+        if ($states === []) {
+            return null;
+        }
+
+        $executed = $set()->where('router_status', 'executed');
+        $average = fn (string $column): ?float => $executed->clone()->count() === 0 ? null : round((float) $executed->clone()->avg($column), 1);
+        $ran = ($states['executed'] ?? 0) + ($states['failed'] ?? 0);
+        $price = ((array) config('knowledge.router.prices'))[(string) config('knowledge.router.model')] ?? null;
+        $tokens = $set()->whereIn('router_status', ['executed', 'failed']);
+        $cost = is_array($price) && isset($price['input'], $price['output'])
+            ? round(((float) $tokens->clone()->sum('router_input_tokens') * (float) $price['input'] + (float) $tokens->clone()->sum('router_output_tokens') * (float) $price['output']) / 1_000_000, 4)
+            : null;
+
+        return [
+            'states' => $states,
+            'failure_share' => $ran === 0 ? null : (int) round(($states['failed'] ?? 0) / $ran * 100),
+            'additions' => $average('router_additions'),
+            'characters' => $average('router_characters'),
+            'duration_ms' => $average('router_duration_ms'),
+            'input_tokens' => $average('router_input_tokens'),
+            'output_tokens' => $average('router_output_tokens'),
+            'cost' => $cost,
         ];
     }
 
@@ -178,6 +224,7 @@ class AnalysisOverview
         $filter->staff === null || $query->where('staff_name', $filter->staff);
         $filter->model === null || $query->where('model', $filter->model);
         $filter->prompt === null || $query->where('prompt_version', $filter->prompt);
+        $filter->router === null || $query->where('router_status', $filter->router);
 
         if ($filter->feedback === 'none') {
             $query->where('status', 'completed')->whereNull('feedback_level');

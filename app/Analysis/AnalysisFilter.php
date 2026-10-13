@@ -22,6 +22,7 @@ final readonly class AnalysisFilter
         public ?string $staff = null,
         public ?string $model = null,
         public ?string $prompt = null,
+        public ?string $router = null,
         public bool $tests = false,
         public bool $failed = false,
         public ?string $problem = null,
@@ -36,7 +37,7 @@ final readonly class AnalysisFilter
 
         return $customPeriod
             || $this->group !== null || $this->product !== null || $this->category !== null || $this->feedback !== null
-            || $this->copy !== null || $this->staff !== null || $this->model !== null || $this->prompt !== null
+            || $this->copy !== null || $this->staff !== null || $this->model !== null || $this->prompt !== null || $this->router !== null
             || $this->tests || $this->failed;
     }
 }

@@ -57,7 +57,7 @@ final readonly class RouterOutcome
      */
     public function cost(): ?float
     {
-        $price = config('knowledge.router.prices.'.($this->details['model'] ?? ''));
+        $price = ((array) config('knowledge.router.prices'))[(string) ($this->details['model'] ?? '')] ?? null;
 
         if (! is_array($price) || ! isset($price['input'], $price['output'])) {
             return null;
