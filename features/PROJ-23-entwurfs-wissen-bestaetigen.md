@@ -1,6 +1,6 @@
 # PROJ-23: Entwurfs-Wissen bestätigen
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-14
 
@@ -66,6 +66,81 @@ Fast alle Wissensdateien stehen auf `draft` (110 Dateien, eine `active`). Die Ap
 | Nur Admins (Liste aus PROJ-32) | Es gibt noch keinen Login; die Liste ist die vorhandene Rolle | 2026-10-14 |
 
 ## Open Questions
-- [ ] Ist `knowledge/` in der Umgebung, in der die App im Testbetrieb läuft, für den Webserver beschreibbar (Docker-Volume, Rechte)? Ist es das nicht, braucht die Funktion dort eine andere Lösung (nur Entwicklungsumgebung).
-- [ ] Zählt ein Dokument als „verwendet“, wenn es nur abgerufen wurde, oder erst, wenn die KI es in `knowledge_ids` nennt? Vorschlag: beides getrennt zeigen.
-- [ ] Soll der Hinweis zu verwandten Entwürfen (`related_knowledge`) sperren oder nur warnen? Vorschlag: nur warnen.
+- [x] Ist `knowledge/` im Testbetrieb für den Webserver beschreibbar? In der Sail-Umgebung ja (geprüft: der Container-Nutzer kann in `knowledge/` schreiben). Für eine andere Produktionsumgebung ist es offen; dort sperrt die App den Knopf mit Begründung (Prüfung beim Anzeigen).
+- [x] Zählt ein Dokument als „verwendet“? Beides getrennt zeigen: „abgerufen“ (kam in den Prompt) und „von der KI genannt“ (stützt die Empfehlung). Beide stehen als Kennzahlen je Vorschlag vor.
+- [x] Soll ein verwandter Entwurf sperren? Nein, nur warnen.
+
+## Tech Design (Solution Architect)
+
+### Grundidee
+Die Funktion ist klein: Die vorhandene Dokumentseite der Knowledge-Übersicht bekommt einen Bereich „Status“, und eine neue Aktion ändert genau eine Zeile in der Datei. Es entstehen **keine neue Tabelle und keine neue Seite**. Alle Belege kommen aus Daten, die die App ohnehin speichert.
+
+### A) Aufbau der Oberfläche
+```
+Dokumentseite (bestehend, nur für Admins erweitert)
++-- Kopf mit Titel, ID, Statusplakette (bestehend)
++-- Bereich „Status“ (neu, nur Admins)
+|   +-- Aktueller Status in Klartext
+|   +-- Voraussetzungen als Liste
+|   |   +-- „Keine Prüfungsfehler“            (erfüllt / nicht erfüllt)
+|   |   +-- „Keine offenen Punkte in der Datei“ (erfüllt / nicht erfüllt)
+|   |   +-- „Datei ist beschreibbar“          (erfüllt / nicht erfüllt)
+|   +-- Belege
+|   |   +-- In wie vielen Vorschlägen abgerufen / von der KI genannt
+|   |   +-- Bewertungen (unverändert, leicht angepasst, stark verändert, verworfen, nicht bewertet)
+|   |   +-- Hinweis bei dünner Datenlage („Bisher nur in 2 Vorschlägen verwendet“)
+|   +-- Hinweis, wenn verwandtes Wissen noch Entwurf ist
+|   +-- Aktionen je nach Status
+|       +-- Entwurf:   „Als gültig bestätigen“
+|       +-- Gültig:    „Zurück auf Entwurf“ · „Als veraltet markieren“
+|       +-- Veraltet:  „Zurück auf Entwurf“
++-- Bestätigungsdialog (neu): fasst Aktion und Belege zusammen, Knopf „Ja, ändern“
++-- Meldung nach der Aktion (neu): „Datei geändert, bitte committen“
+```
+Mitarbeiter, die keine Admins sind, sehen den Bereich nicht. Für Vorlagen und Beispiele (`templates/`, `examples/`) erscheint keine Aktion.
+
+### B) Daten (in Klartext)
+- **Keine neuen Daten.** Der Status steht weiterhin nur in der Wissensdatei.
+- **Gelesen werden:** der Status und der Abschnitt „Noch zu klären“ aus der Datei, die Prüfergebnisse der Knowledge Base, und aus den Analysen die schon gespeicherten Kennzahlen: welche Dokumente abgerufen und welche von der KI genannt wurden, die Bewertung (Feedback) und ob es ein Testlauf war.
+- **Geändert wird:** ausschließlich die Zeile `status:` im Kopf der Datei.
+- **Ohne Inhalte:** Die Belege sind Zahlen. Kundeninhalte der Vorschläge werden nicht gelesen, damit funktioniert die Anzeige auch nach der Löschung der Inhalte nach 12 Monaten.
+
+### C) Tech-Entscheidungen (begründet)
+- **Gewöhnliche Seitenaktion statt eigener Schnittstelle:** Die Dokumentseite ist eine Blade-Seite; die drei Aktionen sind ein Formular mit Bestätigungsdialog (Alpine). Das passt zu den anderen Admin-Aktionen („Erledigt“ bei Wissenslücken).
+- **Admin-Prüfung wie bei den bestehenden Admin-Funktionen:** Dieselbe Admin-Liste wie bei Testmodus und Wissenslücken; die Prüfung steht auf dem Server (Anzeigen und Ausführen), nicht nur in der Oberfläche. Das ist später durch PROJ-15 (Login) ersetzbar.
+- **Nur die Statuszeile ändern, nicht die Datei neu schreiben:** Die Datei wird nicht eingelesen und neu ausgegeben, sondern nur die eine Zeile ersetzt. So bleiben Reihenfolge, Einrückung, Kommentare und Zeilenenden byte-genau; der Commit zeigt eine Zeile Änderung.
+- **Sicher schreiben:** Zuerst in eine Zwischendatei im selben Ordner, dann die Datei auf einmal ersetzen; schlägt etwas fehl, bleibt das Original unverändert. Rechte der Datei bleiben erhalten.
+- **Schutz vor veraltetem Stand:** Die Seite merkt sich den Fingerabdruck der Datei (gibt es seit PROJ-3). Beim Ausführen wird er verglichen; weicht die Datei ab (z. B. in VSCode geändert oder von einem anderen Admin bestätigt), passiert nichts und die Seite verlangt ein Neuladen.
+- **Voraussetzungen auf dem Server erneut prüfen:** Prüfungsfehler, offene Punkte, Ordnerart und Beschreibbarkeit werden beim Ausführen noch einmal geprüft, nicht nur beim Anzeigen. Der Abschnitt „Noch zu klären“ wird mit derselben Regel erkannt wie die bestehende Warnung der Prüfung.
+- **Belege aus den vorhandenen Kennzahlen:** Je Vorschlag sind die abgerufenen Dokumente und die von der KI genannten IDs als eigene Felder gespeichert, ebenso die Bewertung. Die Belege werden daraus zusammengezählt (ohne Testläufe und ohne fehlgeschlagene Vorschläge). Das ist schnell und braucht keine Inhalte.
+- **Keine Sperre durch Belege:** Dünne oder negative Belege zeigen nur einen Hinweis; die feste Schwelle ist ausdrücklich nicht gewollt.
+- **Wirkung auf neue Vorschläge:** Die App liest die Wissensdateien bei jeder Anfrage; nach der Änderung gilt der neue Status sofort. Kennzahlen in der Seitenleiste (60 Sekunden Zwischenspeicher) ziehen kurz danach nach. Bereits gespeicherte Vorschläge bleiben unverändert.
+- **Kein Git aus der App:** Die App ruft kein Git auf. Der Wissensstand in neuen Protokollen zeigt wie nach jeder Handänderung den Stand der Entwicklungsumgebung, bis du committest.
+- **Beschreibbarkeit prüfen:** Die Seite prüft Datei und Ordner auf Schreibrechte und sperrt den Knopf mit Begründung, damit die Funktion in einer schreibgeschützten Umgebung sauber ausfällt.
+
+### D) Reihenfolge der Umsetzung
+1. **Prüfen und Belege:** Voraussetzungen, Belege und Hinweise als Daten (ohne Oberfläche), mit Tests.
+2. **Aktion:** Statuszeile ändern mit Fingerabdruckprüfung, sicherem Schreiben und allen Ablehnungsfällen, mit Tests.
+3. **Oberfläche:** Bereich „Status“, Dialog und Meldungen auf der Dokumentseite.
+4. **Dokumentation:** Authoring Guide („Auf `active` setzt der Admin per Klick“), Seite „Über die App“ und Spec-Notizen.
+
+### E) Abhängigkeiten
+- Keine neuen Pakete.
+- Keine Datenbankänderung.
+- Keine neue Konfiguration (die Admin-Liste existiert).
+
+### F) Risiken und Grenzen
+- **Rechte im Dateisystem:** In Sail ist der Ordner beschreibbar; in einer anderen Umgebung kann er es nicht sein, dann ist der Knopf gesperrt.
+- **Doppelte Wahrheit:** Zwischen Klick und Commit liegt die Änderung nur im Arbeitsordner; wer dort `git checkout` ausführt, verliert sie. Das ist bewusst (kein Protokoll, keine Erinnerung).
+- **Geändertes Dokument, alter Bewertungsstand:** Die Belege beziehen sich auf alle bisherigen Versionen des Dokuments, nicht nur die aktuelle; der Admin sollte sie als Tendenz lesen.
+
+### Technische Entscheidungen
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Nur die Zeile `status:` ändern, Datei nicht neu ausgeben | Der Commit zeigt eine Zeile; Formatierung und Zeilenenden bleiben | 2026-10-14 |
+| Sicheres Schreiben über Zwischendatei und Ersetzen | Bei Fehlern bleibt das Original; kein halbes Schreiben | 2026-10-14 |
+| Fingerabdruck der Datei als Schutz vor veraltetem Stand | Verhindert Überschreiben paralleler Änderungen aus VSCode oder von anderen Admins | 2026-10-14 |
+| Voraussetzungen auf dem Server beim Ausführen erneut prüfen | Oberfläche allein ist kein Schutz | 2026-10-14 |
+| Belege aus gespeicherten Kennzahlen, keine Inhalte | Schnell, datensparsam, auch nach der 12-Monats-Löschung | 2026-10-14 |
+| Keine Datenbankänderung | Der Status gehört in die Datei (Git bleibt die Wahrheit) | 2026-10-14 |
+| Admin-Prüfung der vorhandenen Liste, serverseitig | Keine neue Rolle; später durch PROJ-15 ersetzbar | 2026-10-14 |
