@@ -85,7 +85,7 @@ describe('required answers', function () {
         CaseAgent::assertPromptedTimes(1);
     });
 
-    test('a name of a product without knowledge goes to the prompt, is stored and named in the result with the offer to report the gap', function () {
+    test('a name of a product without knowledge goes to the prompt, is stored and named in the result as reported automatically (PROJ-45)', function () {
         CaseAgent::fake([frAnswer()]);
 
         $location = frPost(['kundengruppe' => 'reseller', 'produkt_ohne_wissen' => ' Fotokalender '])->headers->get('Location');
@@ -95,7 +95,7 @@ describe('required answers', function () {
         $stored = app(AnalysisStore::class)->result($query['analyse']);
         expect($stored['inputs']['produkt_ohne_wissen'])->toBe('Fotokalender')->and($stored['meta']['unknown_product'])->toBe('Fotokalender');
 
-        $this->withCookie('staff_name', 'Nele')->get($location)->assertSeeText('Kein Produktwissen zu „Fotokalender“')->assertSeeText('Wissenslücke melden')->assertSee('Produktwissen: Fotokalender', false);
+        $this->withCookie('staff_name', 'Nele')->get($location)->assertSeeText('Kein Produktwissen zu „Fotokalender“')->assertSeeText('automatisch gemeldet');
     });
 
     test('a too long name is refused', function () {

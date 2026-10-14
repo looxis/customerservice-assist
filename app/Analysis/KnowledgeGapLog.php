@@ -4,6 +4,7 @@ namespace App\Analysis;
 
 use App\Models\Analysis;
 use App\Models\KnowledgeGap;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -39,6 +40,76 @@ class KnowledgeGapLog
                 'comment' => $this->filled($texts['comment'] ?? null),
             ],
         ]);
+    }
+
+    /**
+     * The gap of a product without knowledge (PROJ-45): created by the app when a proposal names such a
+     * product, once per ticket or question; a repeated proposal only refreshes the employee's notes.
+     * The topic is the one of the button "Wissenslücke melden", so a click afterwards shows "bereits gemeldet".
+     */
+    public function reportUnknownProduct(string $analysisId, string $name, string $notes, string $staff): ?KnowledgeGap
+    {
+        $analysis = Analysis::query()->where('uuid', $analysisId)->whereNotNull('content')->first();
+
+        if ($analysis === null) {
+            return null;
+        }
+
+        $hash = self::topicHash(self::unknownProductTopic($name));
+        $notes = trim($notes) === '' ? null : mb_substr(trim($notes), 0, 2000);
+        $existing = KnowledgeGap::query()->where('ticket_number', $analysis->ticket_number)->where('gap_topic_hash', $hash)->where('test_run', $analysis->test_until !== null)->latest('id')->first();
+
+        if ($existing !== null) {
+            if ($existing->status === 'open' && $existing->content !== null && $notes !== null && ($existing->content['notes'] ?? null) !== $notes) {
+                $existing->update(['analysis_id' => $analysis->id, 'content' => [...$existing->content, 'notes' => $notes]]);
+            }
+
+            return $existing;
+        }
+
+        return KnowledgeGap::query()->create([
+            'analysis_id' => $analysis->id,
+            'ticket_number' => $analysis->ticket_number,
+            'staff_name' => $staff,
+            'customer_group' => $analysis->customer_group,
+            'products' => $analysis->products ?? [],
+            'test_run' => $analysis->test_until !== null,
+            'gap_topic_hash' => $hash,
+            'content' => [
+                'missing' => 'Produktwissen zu „'.$name.'“',
+                'solution' => null,
+                'comment' => null,
+                'source' => 'auto',
+                'product' => $name,
+                'notes' => $notes,
+            ],
+        ]);
+    }
+
+    public static function unknownProductTopic(string $name): string
+    {
+        return 'Produktwissen: '.$name;
+    }
+
+    /**
+     * The products without knowledge that were asked for, most often first: one entry per name
+     * over the open automatic reports, with how many cases asked and the employees' notes.
+     *
+     * @return Collection<int, array{product: string, cases: int, last: Carbon, notes: list<string>}>
+     */
+    public function unknownProducts(): Collection
+    {
+        return KnowledgeGap::query()->where('status', 'open')->where('test_run', false)->whereNotNull('content')->whereNotNull('gap_topic_hash')->get()
+            ->filter(fn (KnowledgeGap $gap): bool => ($gap->content['source'] ?? null) === 'auto')
+            ->groupBy('gap_topic_hash')
+            ->map(fn (Collection $gaps): array => [
+                'product' => (string) ($gaps->first()->content['product'] ?? ''),
+                'cases' => $gaps->count(),
+                'last' => $gaps->max('created_at'),
+                'notes' => $gaps->map(fn (KnowledgeGap $gap): ?string => $gap->content['notes'] ?? null)->filter()->unique()->take(5)->values()->all(),
+            ])
+            ->sortByDesc(fn (array $row): int => $row['cases'])
+            ->values();
     }
 
     /**
@@ -96,6 +167,7 @@ class KnowledgeGapLog
             'Was fehlt: '.($content['missing'] ?? ''),
             ($content['solution'] ?? null) ? 'So lösen wir das: '.$content['solution'] : 'So lösen wir das: (noch offen – bitte beim Autor erfragen)',
             ($content['comment'] ?? null) ? 'Kommentar: '.$content['comment'] : null,
+            ($content['notes'] ?? null) ? 'Angaben des Mitarbeiters zum Fall (bitte als Wissen prüfen): '.$content['notes'] : null,
             'Kundengruppe: '.($groupLabels[$gap->customer_group] ?? $gap->customer_group ?? 'unbekannt'),
             'Produkte: '.(($gap->products ?? []) === [] ? 'kein Produktbezug' : implode(', ', $gap->products)),
             'Ticket: '.$gap->ticket_number,

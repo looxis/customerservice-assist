@@ -35,6 +35,7 @@ class CaseAnalyzer
         private readonly KnowledgeRetriever $retriever,
         private readonly Translator $translator,
         private readonly KnowledgeRouter $router,
+        private readonly KnowledgeGapLog $gaps,
     ) {}
 
     /**
@@ -156,6 +157,10 @@ class CaseAnalyzer
                 'knowledge_warnings' => $selection->warnings,
             ],
         ]);
+
+        if ($request->unknownProduct !== null) {
+            $this->gaps->reportUnknownProduct($id, $request->unknownProduct, $request->isQuestion() ? (string) $request->questionText : $request->employeeContext, $request->staffName);
+        }
 
         return $id;
     }

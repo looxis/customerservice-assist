@@ -20,15 +20,41 @@
         @endforeach
     </nav>
 
+    @if ($status === 'open' && $unknownProducts->isNotEmpty())
+        <x-card>
+            <h2 class="text-base font-semibold text-slate-900">Produkte ohne Wissen, nach Häufigkeit</h2>
+            <p class="mt-1 text-sm text-slate-600">Automatisch erfasst, wenn ein Vorschlag für ein Produkt ohne hinterlegtes Wissen erstellt wurde. Gezählt werden Tickets und Fragen, ohne Testläufe.</p>
+            <ul class="mt-3 divide-y divide-slate-100">
+                @foreach ($unknownProducts as $row)
+                    <li class="py-3 text-sm">
+                        <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span class="font-semibold text-slate-900">{{ $row['product'] }}</span>
+                            <x-badge compact tone="warning">{{ $row['cases'] }} {{ $row['cases'] === 1 ? 'Anfrage' : 'Anfragen' }}</x-badge>
+                            <span class="text-xs text-slate-600">zuletzt {{ $row['last']->setTimezone('Europe/Berlin')->format('d.m.Y') }}</span>
+                        </p>
+                        @foreach ($row['notes'] as $note)
+                            <p class="mt-1 whitespace-pre-line border-l-2 border-slate-200 pl-3 text-slate-700">{{ \Illuminate\Support\Str::limit($note, 300) }}</p>
+                        @endforeach
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+    @endif
+
     @forelse ($gaps as $gap)
         @php($content = $gap->content ?? [])
         <x-card>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                 <span class="font-semibold text-slate-900">{{ $gap->created_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span>
                 <span class="text-slate-600">{{ $gap->staff_name }}</span>
-                <a href="{{ route('tickets.show', ['number' => $gap->ticket_number]) }}" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $gap->ticket_number }}</a>
+                @if (\App\Analysis\QuestionNumber::isQuestion($gap->ticket_number))
+                    <a href="{{ route('questions.show', ['number' => $gap->ticket_number]) }}" class="font-mono text-brand hover:text-brand-hover">Frage {{ $gap->ticket_number }}</a>
+                @else
+                    <a href="{{ route('tickets.show', ['number' => $gap->ticket_number]) }}" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $gap->ticket_number }}</a>
+                @endif
                 <span class="text-slate-600">{{ $groups[$gap->customer_group] ?? $gap->customer_group ?? '–' }} · {{ ($gap->products ?? []) === [] ? 'kein Produktbezug' : implode(', ', $gap->products) }}</span>
                 @if ($gap->test_run)<x-badge compact tone="warning">Testlauf</x-badge>@endif
+                @if (($gap->content['source'] ?? null) === 'auto')<x-badge compact>automatisch erfasst</x-badge>@endif
             </div>
 
             @if ($gap->content === null)
@@ -37,6 +63,7 @@
                 <dl class="mt-3 space-y-2 text-sm">
                     <div><dt class="font-semibold text-slate-900">Was fehlt?</dt><dd class="mt-1 whitespace-pre-line text-slate-900">{{ $content['missing'] ?? '' }}</dd></div>
                     @if ($content['solution'] ?? null)<div><dt class="font-semibold text-slate-900">So lösen wir das</dt><dd class="mt-1 whitespace-pre-line text-slate-900">{{ $content['solution'] }}</dd></div>@endif
+                    @if ($content['notes'] ?? null)<div><dt class="font-semibold text-slate-900">Angaben des Mitarbeiters zum Fall</dt><dd class="mt-1 whitespace-pre-line text-slate-900">{{ $content['notes'] }}</dd></div>@endif
                     @if ($content['comment'] ?? null)<div><dt class="font-semibold text-slate-900">Kommentar</dt><dd class="mt-1 whitespace-pre-line text-slate-900">{{ $content['comment'] }}</dd></div>@endif
                     @if ($content['reason'] ?? null)<div><dt class="font-semibold text-slate-900">Grund fürs Verwerfen</dt><dd class="mt-1 text-slate-900">{{ $content['reason'] }}</dd></div>@endif
                 </dl>

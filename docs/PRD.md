@@ -63,6 +63,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | – | Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | Approved |
 | – | Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | In Progress |
 | – | Sichtbar machen, welches Wissen wegen Produkt oder Kundengruppe nicht geprüft wurde | Approved |
+| – | Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

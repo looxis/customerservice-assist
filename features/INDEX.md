@@ -63,4 +63,5 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-44 | Nicht geprüftes Wissen sichtbar machen | Im Ergebnis und im Wissensabruf sehen, welche Dokumente wegen Produkt oder Kundengruppe gar nicht geprüft wurden (z. B. kein Produkt gewählt); gelber Hinweis mit Knopf zum erneuten Erstellen; behebt außerdem das Speichern von Fragen bei aktivem Wissensabruf (Spalte `prompt_version`) | – | PROJ-4, PROJ-36, PROJ-42 | Approved | [Spec](PROJ-44-nicht-geprueftes-wissen-sichtbar.md) | 2026-10-13 |
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-45
+| PROJ-45 | Produkt ohne Wissen automatisch melden | Nennt ein Vorschlag ein Produkt ohne hinterlegtes Wissen, entsteht ohne Klick eine Wissenslücke mit den Angaben des Mitarbeiters (Freitext oder Fragetext); gleiche Produkte werden gezählt, die Admin-Seite „Wissenslücken“ zeigt die Produkte nach Häufigkeit | – | PROJ-12, PROJ-40, PROJ-42 | In Progress | [Spec](PROJ-45-produkt-ohne-wissen-automatisch-melden.md) | 2026-10-14 |
+## Next Available ID: PROJ-46
