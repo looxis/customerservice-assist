@@ -72,13 +72,21 @@
         </x-card>
 
         @forelse ($groups as $type => $documents)
-            <section class="overflow-hidden rounded-lg bg-white shadow-1 ring-1 ring-slate-200" aria-labelledby="group-{{ $type ?: 'ohne' }}">
-                <h2 id="group-{{ $type ?: 'ohne' }}" class="flex items-center gap-3 border-b border-slate-100 px-6 py-4 text-base font-semibold text-slate-900">
-                    {{ $types[$type]['label'] ?? 'Nicht zugeordnet' }}
-                    <x-badge compact>{{ $documents->count() }}</x-badge>
-                </h2>
+            <details class="group overflow-hidden rounded-lg bg-white shadow-1 ring-1 ring-slate-200" @if ($filtered) open @endif>
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                    <span class="min-w-0">
+                        <span class="flex items-center gap-3 text-base font-semibold text-slate-900">
+                            {{ $types[$type]['label'] ?? 'Nicht zugeordnet' }}
+                            <x-badge compact>{{ $documents->count() }}</x-badge>
+                        </span>
+                        @if ($types[$type]['description'] ?? null)
+                            <span class="mt-1 block text-sm font-normal text-slate-600">{{ $types[$type]['description'] }}</span>
+                        @endif
+                    </span>
+                    <x-icon name="chevron-down" class="shrink-0 text-slate-400 transition group-open:rotate-180" />
+                </summary>
 
-                <ul class="divide-y divide-slate-100">
+                <ul class="divide-y divide-slate-100 border-t border-slate-100">
                     @foreach ($documents as $document)
                         @php
                             $issues = $issuesByPath[$document->path] ?? collect();
@@ -130,7 +138,7 @@
                         </li>
                     @endforeach
                 </ul>
-            </section>
+            </details>
         @empty
             <x-card class="text-center">
                 <p class="text-sm font-semibold text-slate-900">Keine Dokumente gefunden</p>
