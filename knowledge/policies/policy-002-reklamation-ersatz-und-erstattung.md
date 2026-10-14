@@ -16,6 +16,8 @@ topics:
 related_knowledge:
 - POLICY-010
 - PLAYBOOK-006
+- POLICY-037
+- POLICY-038
 summary: "Gilt bei Reklamationen von Privatkunden: Ersatz oder Erstattung nach Mangel. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
 retrieval: core
 triggers:
@@ -30,9 +32,15 @@ Gilt für Privatkunden auf allen Vertriebskanälen. Bestätigte Anwendungsfälle
 
 Bei einer berechtigten Reklamation ist die bevorzugte Lösung eine kostenfreie Neuproduktion mit anschließendem Ersatzversand.
 
-Bei einem eindeutigen eigenen Fehler, beispielsweise vertauschter Ware oder falsch umgesetzter Personalisierung, kann stattdessen eine Erstattung in Betracht gezogen werden, wenn der Kunde diese ausdrücklich verlangt. Ein Erstattungswunsch allein begründet noch keine Erstattung.
+Bei einem eindeutigen groben eigenen Fehler kann stattdessen eine Erstattung in Betracht gezogen werden, wenn der Kunde diese ausdrücklich verlangt. Ob beispielsweise eine Verwechslung oder eine falsch umgesetzte Personalisierung als grober Fehler einzustufen ist, hängt von den tatsächlichen Auswirkungen ab; nicht jeder kleine Ausführungsfehler erfüllt diese Ausnahme. Ein Erstattungswunsch allein begründet noch keine Erstattung.
 
 Verlangt der Kunde keine Erstattung, wird eine passende Ersatzlösung angeboten. Eine lediglich vermutete Erstattungsabsicht ist kein Anlass, von sich aus eine Erstattung anzubieten.
+
+# Vergangener Anlass und produktspezifische Prüfung
+
+Ein vergangener Geburtstag, eine Taufe oder ein anderer bereits verstrichener Anlass begründet allein keine Erstattung und hebt den bevorzugten Ersatzweg nicht automatisch auf. Für alle Produkte gilt dazu POLICY-038 einschließlich der gesetzlichen Grenzen.
+
+Für Geschmacks- und Essbarkeitsreklamationen essbarer Fotos gilt die Spezialregel POLICY-037: erst die Probe prüfen, dann anhand des Ergebnisses über Ersatz oder Erstattung entscheiden. Die bloße Meldung „ungenießbar“ genügt nicht.
 
 # Gilt wenn
 
@@ -44,7 +52,7 @@ Eine Reklamation zu Qualität, gelieferter Ware oder Umsetzung der Personalisier
 2. Feststellen, ob ein Mangel, ein eindeutiger eigener Fehler oder eine noch ungeklärte Beanstandung vorliegt.
 3. Bei Interpretationsspielraum, etwa „Druck zu dunkel“ oder „einen Millimeter außerhalb der Mitte“, keine automatische Fehleranerkennung und keine automatische Erstattung vornehmen. Die tatsächliche Abweichung prüfen.
 4. Bei erforderlicher Korrektur bevorzugt kostenfreie Neuproduktion und Ersatzversand anbieten.
-5. Bei ausdrücklichem Erstattungswunsch und eindeutigem eigenem Fehler eine Erstattung als mögliche Lösung prüfen.
+5. Bei ausdrücklichem Erstattungswunsch und eindeutigem grobem eigenem Fehler eine Erstattung als mögliche Lösung prüfen.
 
 # Befugnis
 
@@ -52,7 +60,7 @@ Die Erstattungsbefugnis richtet sich nach PERMISSION-001, die Befugnis zur Neupr
 
 # Rücksendung bei korrigierender Neuproduktion
 
-Das für den Kunden personalisierte, beanstandete Produkt muss bei einer korrigierenden Neuproduktion nach dieser Vorgabe nicht zurückgesendet werden. Der Kunde kann es behalten und, wenn er möchte, zunächst verschenken und das korrigierte Produkt später nachreichen. Dies ist eine Möglichkeit, keine Verpflichtung.
+Das für den Kunden personalisierte, beanstandete Produkt muss bei einer korrigierenden Neuproduktion nach dieser allgemeinen Vorgabe nicht zurückgesendet werden. Davon zu unterscheiden ist eine zur Klärung erforderliche Prüfprobe; für Esspapier gilt POLICY-037. Soweit das Produkt für eine weitere Nutzung geeignet und unbedenklich ist, kann der Kunde es behalten und, wenn er möchte, zunächst verschenken und das korrigierte Produkt später nachreichen. Dies ist eine Möglichkeit, keine Verpflichtung. Bei einem Lebensmittel mit ungeklärten Auffälligkeiten ist dies keine Empfehlung zum weiteren Verzehr oder Verschenken.
 
 Für vertauschte Ware sowie die Rücksendung wiederverwendbarer, nicht personalisierter Bestandteile und den Ersatz einzelner Teile gilt POLICY-010. Die Prüfung einer Verwechslung ist in PLAYBOOK-006 beschrieben.
 
@@ -71,3 +79,4 @@ Ein subjektiv formulierter Vorwurf ist weder automatisch ein Mangel noch automat
 - https://www.gesetze-im-internet.de/bgb/__437.html
 - https://www.gesetze-im-internet.de/bgb/__439.html
 - https://www.gesetze-im-internet.de/bgb/__475d.html
+

@@ -16,6 +16,7 @@ related_knowledge:
 - PRODUCT-001
 - POLICY-037
 - PROCESS-014
+- POLICY-038
 summary: "Antwortweg für Beschwerden wie schmeckt nicht, bitter, ungenießbar oder normales Papier: Material erklären, frühere Vanillerezeptur einordnen und bei konkreten Auffälligkeiten eine Probe zur Prüfung anfordern."
 retrieval: triggered
 triggers:
@@ -45,6 +46,12 @@ Vorhandene Angaben aus Ticket und Bestellung verwenden. Unterscheiden:
 
 Nur fehlende Informationen erfragen, die den Fall klären, etwa die konkrete Auffälligkeit und ob noch eine Probe sowie Verpackungsangaben vorhanden sind. Bei Bedarf Lagerung und Verwendung erfragen, ohne einen Kundenfehler zu unterstellen.
 
+# Wenn der Anlass bereits vorbei ist
+
+Auch bei „die Taufe war gestern, alle haben es ausgespuckt, ich will mein Geld zurück“ zunächst die konkrete Beanstandung und eine Probe prüfen. Die Gästereaktion beweist keinen Mangel. Den verstrichenen Anlass dokumentieren, ohne daraus schon vor der Prüfung eine Erstattungszusage abzuleiten. Nicht vorwerfen, der Kunde hätte früher bestellen müssen.
+
+Nach der Prüfung die Lösung aus POLICY-037 anwenden: bei bestätigtem Mangel Ersatz beziehungsweise bei vergangenem Anlass auf Erstattungswunsch Erstattung; bei unklar gebliebenem Ergebnis die dortige Zweifelsregel.
+
 # Formulierungshilfe zur Materialerklärung
 
 „Es tut uns leid, dass Sie mit dem essbaren Foto unzufrieden sind. Wir verwenden dünnes essbares Papier aus Pflanzenfasern, das mit Lebensmittelfarben bedruckt wird. Es ist weitgehend geschmacksneutral und soll den Geschmack des Kuchens nicht wesentlich verändern. Die Zusammensetzung finden Sie auf der Verpackung beziehungsweise in der Zutatenliste.“
@@ -59,8 +66,9 @@ Nicht behaupten, jeder Mensch müsse das Produkt lecker oder völlig geschmacksn
 
 „Für die Prüfung genügt auch ein Teil des essbaren Fotos. Bitte senden Sie uns eine geeignete Probe möglichst ohne Kuchenreste, geschützt in lebensmittelgeeigneter Folie und einem Briefumschlag. Bitte verändern oder waschen Sie die Probe nicht und senden Sie keinen verderblichen Kuchen mit. Frankieren Sie den Brief zunächst selbst und legen Sie unbedingt die Ticketnummer [TICKETNUMMER] bei. Unsere Anschrift lautet: LOOXIS GmbH, Abteilung Reklamationen, Magdeburger Str. 11, 32423 Minden.“
 
-[TICKETNUMMER] vor Verwendung durch die tatsächliche Nummer ersetzen. Erstattungsinformation nach POLICY-037 ergänzen, sobald die erforderliche Zusagebefugnis beziehungsweise Freigabe vorliegt: Bei bestätigtem Mangel sowie bei nach der Prüfung verbleibenden Zweifeln werden Kaufpreis und Briefporto erstattet.
+[TICKETNUMMER] vor Verwendung durch die tatsächliche Nummer ersetzen. Die mögliche Lösung nach POLICY-037 erklären und erforderliche Freigaben beachten. Vor der Prüfung keine unbedingte Ersatz- oder Erstattungszusage allein aufgrund der Beschwerde geben.
 
 # Abschluss
 
 Das tatsächliche Prüfergebnis verständlich mitteilen. Bei einem negativen Befund nur das sagen, was die Untersuchung trägt, beispielsweise „Bei der Prüfung konnten wir die beschriebene Auffälligkeit nicht feststellen.“ Keine Behauptung, der Kunde habe gelogen. Bei einem unklaren Befund die Zweifelsregel anwenden.
+

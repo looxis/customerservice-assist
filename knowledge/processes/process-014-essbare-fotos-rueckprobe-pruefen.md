@@ -31,6 +31,8 @@ triggers:
 actions:
 - return
 - refund
+- reproduction
+- reshipment
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei angeforderten Rückproben wegen Geschmack, Bitterkeit oder vermuteter Nichtessbarkeit essbarer Fotos und personalisierter essbarer Tortenmotive.
@@ -59,8 +61,9 @@ Im Ticket festhalten: beide Prüfer, Vergleichsmaterial, konkrete Beobachtungen,
 2. Nach angemessener, für die konkrete Beanstandung aussagekräftiger Prüfung kein Mangel bestätigt und keine verbleibenden Zweifel.
 3. Probe nicht zuverlässig beurteilbar, widersprüchliche Einschätzungen oder sonst verbleibende Zweifel.
 
-Die Erstattungsentscheidung zu diesen drei Ergebnissen regelt POLICY-037.
+Die Entscheidung über Ersatz oder Erstattung zu diesen drei Ergebnissen regelt POLICY-037. Bei bestätigtem Mangel zusätzlich festhalten, ob der Anlass bereits vorbei ist und ob der Kunde ausdrücklich Erstattung statt Ersatz verlangt. Den vergangenen Anlass nicht mit dem Nachweis eines Mangels verwechseln.
 
 Die fehlende Möglichkeit, Bitterkeit sicher zu prüfen, fällt unter Ergebnis 3. Ein äußerlich unauffälliges Blatt genügt hierfür nicht als Begründung für Ergebnis 2.
 
 Die Erstattung erfolgt innerhalb der bestehenden finanziellen Befugnisse beziehungsweise nach erforderlicher Freigabe.
+
