@@ -1,6 +1,6 @@
 # PROJ-23: Entwurfs-Wissen bestätigen
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-14
 
@@ -29,25 +29,25 @@ Fast alle Wissensdateien stehen auf `draft` (110 Dateien, eine `active`). Die Ap
 ## Acceptance Criteria
 
 ### Knopf und Berechtigung
-- [ ] Angenommen ein Admin öffnet die Dokumentseite eines `draft`-Dokuments, wenn die Seite erscheint, dann sieht er „Als gültig bestätigen“; ein Dokument mit `active` bietet „Zurück auf Entwurf“ und „Als veraltet markieren“, ein `deprecated`-Dokument „Zurück auf Entwurf“.
-- [ ] Angenommen ein Mitarbeiter, der kein Admin ist, wenn er die Dokumentseite öffnet oder die Aktion direkt aufruft, dann sieht er keinen Knopf und die Aktion wird abgelehnt (403).
-- [ ] Angenommen der Ordner `knowledge/` ist nicht beschreibbar, wenn der Admin die Seite öffnet, dann ist der Knopf gesperrt und ein Hinweis nennt den Grund.
+- [x] Angenommen ein Admin öffnet die Dokumentseite eines `draft`-Dokuments, wenn die Seite erscheint, dann sieht er „Als gültig bestätigen“; ein Dokument mit `active` bietet „Zurück auf Entwurf“ und „Als veraltet markieren“, ein `deprecated`-Dokument „Zurück auf Entwurf“.
+- [x] Angenommen ein Mitarbeiter, der kein Admin ist, wenn er die Dokumentseite öffnet oder die Aktion direkt aufruft, dann sieht er keinen Knopf und die Aktion wird abgelehnt (403).
+- [x] Angenommen der Ordner `knowledge/` ist nicht beschreibbar, wenn der Admin die Seite öffnet, dann ist der Knopf gesperrt und ein Hinweis nennt den Grund.
 
 ### Voraussetzungen und Belege
-- [ ] Angenommen das Dokument hat Prüfungsfehler oder enthält einen Abschnitt „Noch zu klären“ oder eine offene Frage, wenn der Admin „Als gültig bestätigen“ sucht, dann ist der Knopf gesperrt und nennt die Gründe.
-- [ ] Angenommen ein Dokument wird bestätigt, wenn der Admin den Knopf wählt, dann zeigt die App vorher die Belege: in wie vielen Vorschlägen das Dokument verwendet wurde (ohne Testläufe), wie sie bewertet wurden (unverändert, leicht angepasst, stark verändert, verworfen, nicht bewertet) und bei dünner Datenlage den Hinweis „Bisher nur in N Vorschlägen verwendet“.
-- [ ] Angenommen der Admin bestätigt die Aktion im Dialog, wenn die Belege dünn oder negativ sind, dann ist das trotzdem möglich; es gibt keine feste Schwelle.
+- [x] Angenommen das Dokument hat Prüfungsfehler oder enthält einen Abschnitt „Noch zu klären“ oder eine offene Frage, wenn der Admin „Als gültig bestätigen“ sucht, dann ist der Knopf gesperrt und nennt die Gründe.
+- [x] Angenommen ein Dokument wird bestätigt, wenn der Admin den Knopf wählt, dann zeigt die App vorher die Belege: in wie vielen Vorschlägen das Dokument verwendet wurde (ohne Testläufe), wie sie bewertet wurden (unverändert, leicht angepasst, stark verändert, verworfen, nicht bewertet) und bei dünner Datenlage den Hinweis „Bisher nur in N Vorschlägen verwendet“.
+- [x] Angenommen der Admin bestätigt die Aktion im Dialog, wenn die Belege dünn oder negativ sind, dann ist das trotzdem möglich; es gibt keine feste Schwelle.
 
 ### Wirkung
-- [ ] Angenommen der Admin bestätigt „Als gültig bestätigen“, wenn die Aktion ausgeführt wird, dann steht in der Datei `status: active` und der Rest der Datei ist unverändert (Reihenfolge, Formatierung, Inhalt).
-- [ ] Angenommen die Datei wurde geändert, wenn die App den Wissensstand neu liest, dann erscheint das Dokument ohne Kennzeichnung „Entwurf“ in neuen Vorschlägen; bereits gespeicherte Vorschläge bleiben unverändert.
-- [ ] Angenommen „Als veraltet markieren“, wenn die Aktion ausgeführt wird, dann steht `status: deprecated` in der Datei und das Dokument wird in neuen Vorschlägen nicht mehr verwendet.
-- [ ] Angenommen die Aktion ist ausgeführt, wenn die Seite wieder erscheint, dann steht dort eine Meldung, dass die Datei geändert, aber noch nicht committet ist.
+- [x] Angenommen der Admin bestätigt „Als gültig bestätigen“, wenn die Aktion ausgeführt wird, dann steht in der Datei `status: active` und der Rest der Datei ist unverändert (Reihenfolge, Formatierung, Inhalt).
+- [x] Angenommen die Datei wurde geändert, wenn die App den Wissensstand neu liest, dann erscheint das Dokument ohne Kennzeichnung „Entwurf“ in neuen Vorschlägen; bereits gespeicherte Vorschläge bleiben unverändert.
+- [x] Angenommen „Als veraltet markieren“, wenn die Aktion ausgeführt wird, dann steht `status: deprecated` in der Datei und das Dokument wird in neuen Vorschlägen nicht mehr verwendet.
+- [x] Angenommen die Aktion ist ausgeführt, wenn die Seite wieder erscheint, dann steht dort eine Meldung, dass die Datei geändert, aber noch nicht committet ist.
 
 ### Fehler und Konflikte
-- [ ] Angenommen die Datei wurde seit dem Öffnen der Seite verändert (z. B. in VSCode), wenn der Admin die Aktion ausführt, dann wird sie nicht ausgeführt, und die Seite erklärt, dass die Datei neu geladen werden muss.
-- [ ] Angenommen das Schreiben schlägt fehl, wenn die Aktion ausgeführt wird, dann bleibt die Datei unverändert, und die Seite nennt den Fehler.
-- [ ] Angenommen die Datei hat keinen oder einen ungültigen `status`-Eintrag, wenn die Seite erscheint, dann bietet sie keine Aktion an und weist auf den Prüfungsfehler hin.
+- [x] Angenommen die Datei wurde seit dem Öffnen der Seite verändert (z. B. in VSCode), wenn der Admin die Aktion ausführt, dann wird sie nicht ausgeführt, und die Seite erklärt, dass die Datei neu geladen werden muss.
+- [x] Angenommen das Schreiben schlägt fehl, wenn die Aktion ausgeführt wird, dann bleibt die Datei unverändert, und die Seite nennt den Fehler.
+- [x] Angenommen die Datei hat keinen oder einen ungültigen `status`-Eintrag, wenn die Seite erscheint, dann bietet sie keine Aktion an und weist auf den Prüfungsfehler hin.
 
 ## Edge Cases
 - Zwei Admins öffnen dasselbe Dokument, einer bestätigt zuerst: der zweite sieht beim Ausführen die Meldung, dass der Status schon geändert ist (die Datei weicht vom geöffneten Stand ab).
@@ -154,3 +154,57 @@ Mitarbeiter, die keine Admins sind, sehen den Bereich nicht. Für Vorlagen und B
 - **Tests:** `tests/Feature/PROJ-23-DocumentStatusTest.php` (12): Anzeige je Status, Belege, Sperre bei offenem Abschnitt, Änderung genau einer Zeile (auch mit CRLF), Wechsel in alle Richtungen, 403 für andere, veraltete Datei, direkte Anfrage trotz Sperre, ungültige Wechsel/Pfade, nicht schreibbare Datei, Zeilenersetzung.
 - **Bitte im Browser prüfen:** Knöpfe, Bestätigungsfeld, Meldungen, 375/768 px; ein echter Klick auf ein Dokument im Arbeitsordner (danach in VSCode die eine geänderte Zeile ansehen und committen oder verwerfen).
 - **Beobachtet:** Die Rechte der Datei auf dem Host (`etienne`, 644) und im Sail-Container müssen für den Webserver-Nutzer passen; die Seite sperrt den Knopf sonst mit Begründung.
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-10-14
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+**Methode:** komplette Pest-Suite (1382 Tests, alle bestanden) und Abgleich jedes Kriteriums mit `PROJ-23-DocumentStatusTest.php` (19 Tests, davon 7 QA-Proben). Dateirechte in der Sail-Umgebung am echten Arbeitsordner geprüft (Webserver-Nutzer `sail` kann Datei und Ordner schreiben). **Nicht getestet:** Browser (Chrome, Firefox, Safari), Breiten 375/768/1440 px und ein echter Klick im Browser auf ein reales Dokument; der Dialog läuft in Alpine und ist nur über die Seite geprüft.
+
+### Acceptance Criteria Status
+- [x] AC-1 Aktionen je Status auf der Dokumentseite, nur für Admins (Test)
+- [x] AC-2 Nicht-Admin: kein Bereich, Aktion 403 (Test)
+- [x] AC-3 Nicht beschreibbare Datei oder Ordner: Knopf gesperrt mit Begründung (Tests für Datei und Ordner)
+- [x] AC-4 Prüfungsfehler und „Noch zu klären“ sperren, auch bei direkter Anfrage (Tests)
+- [x] AC-5 Belege vor dem Bestätigen, Hinweis bei dünner Datenlage (Test der Zahlen; Darstellung per Seite)
+- [x] AC-6 Bestätigen trotz dünner Belege möglich, keine feste Schwelle (Test: Dokument ohne Belege wird bestätigt)
+- [x] AC-7 Nur die Zeile `status:` ändert sich, auch bei CRLF (Tests)
+- [x] AC-8 Ein bestätigtes Dokument gilt neu eingelesen als `active` (Test)
+- [x] AC-9 Veraltet: nicht mehr in der verwendbaren Wissensbasis (Test)
+- [x] AC-10 Meldung „Datei geändert, noch nicht committet“ (Test über die Sitzungsmeldung)
+- [x] AC-11 Veränderte Datei: Aktion wird nicht ausgeführt (Test)
+- [x] AC-12 Schreiben schlägt fehl: Datei unverändert, Fehler genannt (Test)
+- [x] AC-13 Fehlender oder ungültiger `status`: keine Aktion, Hinweis (Test)
+
+### Edge Cases Status
+- [x] Zwei Admins, einer zuerst: der zweite scheitert am Fingerabdruck
+- [x] CRLF und Reihenfolge der Kopfzeilen: byte-genau
+- [x] `templates/` und `examples/`: keine Aktion (Code)
+- [x] Viele Verwendungen ohne Bewertung: „nicht bewertet“ statt Quote
+- [x] Verwandte Entwürfe: nur Hinweis
+
+### Security Audit Results
+- [x] Autorisierung serverseitig: Admin-Prüfung im Form Request (403), nicht nur in der Oberfläche
+- [x] Pfade: Der Pfad wird nur gegen eingelesene Dokumente verglichen und nie zum Öffnen einer beliebigen Datei benutzt (`../.env` wird abgelehnt)
+- [x] CSRF: Formular mit Token und Fingerabdruck (Test)
+- [x] Eingabevalidierung: Status auf drei Werte, Fingerabdruck 64 Zeichen (Test)
+- [x] Symbolische Verknüpfungen werden nicht beschrieben
+- [x] Keine Kundendaten betroffen; Belege sind Zahlen
+
+### Bugs Found
+Keine.
+
+#### Hinweise (keine Fehler)
+- Die Erkennung des Endes des Frontmatters akzeptiert eine Zeile, die mit `---` beginnt. Bei einer Wissensdatei mit einer Kopfzeile wie `---x` würde das Ende falsch erkannt; die Prüfung der Wissensbasis meldet solche Dateien ohnehin. Kein beobachteter Fall.
+- Ein Kommentar hinter dem Status (`status: draft # …`) geht beim Ändern verloren.
+- Zwischen Klick und Commit liegt die Änderung nur im Arbeitsordner; ein `git checkout` auf die Datei verwirft sie (so entschieden, kein Protokoll und keine Erinnerung).
+- Die Seite „Über die App“ erwähnt das Bestätigen noch nicht; sie sagt nur, Entwurfs-Wissen sei „noch nicht endgültig bestätigt“. Für den Entwicklerteil ein Satz denkbar.
+
+### Summary
+- **Acceptance Criteria:** 13/13 bestanden
+- **Bugs Found:** 0
+- **Security:** Pass
+- **Production Ready:** YES, mit einem Klicktest im Browser vor der ersten Nutzung

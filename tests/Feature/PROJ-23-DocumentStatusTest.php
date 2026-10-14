@@ -163,3 +163,67 @@ describe('changing the status', function () {
             ->and($changer->replaceStatus("---\nstatus: draft\nstatus: active\n---\n", 'active'))->toBeNull();
     });
 });
+
+describe('QA probes (PROJ-23)', function () {
+    test('a confirmed document is no longer a draft in the knowledge that is used', function () {
+        setStatus('policies/policy-001-a.md', 'active')->assertSessionHas('status_changed');
+
+        $library = app(KnowledgeLibrary::class);
+        $library->refresh();
+        $document = $library->usable()->first(fn ($candidate) => $candidate->id === 'POLICY-001');
+
+        expect($document->status)->toBe('active');
+    });
+
+    test('a retired document is no longer used', function () {
+        setStatus('policies/policy-002-b.md', 'deprecated')->assertSessionHas('status_changed');
+
+        $library = app(KnowledgeLibrary::class);
+        $library->refresh();
+
+        expect($library->usable()->pluck('id')->all())->not->toContain('POLICY-002');
+    });
+
+    test('a document with a prohibited status value offers no action and is refused', function () {
+        $file = statusFile('policy-001-a.md');
+        file_put_contents($file, str_replace('status: draft', 'status: irgendwas', file_get_contents($file)));
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))
+            ->assertOk()->assertSeeText('keine Statusänderung in der App möglich');
+        setStatus('policies/policy-001-a.md', 'active')->assertSessionHas('status_error');
+    });
+
+    test('a document with a check error cannot be confirmed', function () {
+        $file = statusFile('policy-001-a.md');
+        file_put_contents($file, preg_replace('/^title:.*\n/m', '', file_get_contents($file)));
+        $before = file_get_contents($file);
+
+        setStatus('policies/policy-001-a.md', 'active')->assertSessionHas('status_error');
+
+        expect(file_get_contents($file))->toBe($before);
+    });
+
+    test('the form carries the token and the fingerprint of the page', function () {
+        $html = $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->getContent();
+
+        expect($html)->toContain('name="_token"')->and($html)->toContain('name="fingerprint" value="'.fingerprintOf('policies/policy-001-a.md').'"');
+    });
+
+    test('a missing or malformed fingerprint is refused by the request', function () {
+        $this->withCookie('staff_name', 'Etienne')->post(route('knowledge.status', ['path' => 'policies/policy-001-a.md']), ['status' => 'active'])->assertSessionHasErrors('fingerprint');
+        $this->withCookie('staff_name', 'Etienne')->post(route('knowledge.status', ['path' => 'policies/policy-001-a.md']), ['status' => 'active', 'fingerprint' => 'abc'])->assertSessionHasErrors('fingerprint');
+    });
+
+    test('a folder that cannot be written blocks the actions with a reason', function () {
+        $directory = dirname(statusFile('policy-001-a.md'));
+        chmod($directory, 0555);
+
+        if (is_writable($directory)) {
+            chmod($directory, 0755);
+            $this->markTestSkipped('The folder stays writable for this user (for example root).');
+        }
+
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->assertSeeText('nicht geschrieben werden');
+        chmod($directory, 0755);
+    });
+});
