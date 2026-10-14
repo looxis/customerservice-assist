@@ -22,7 +22,7 @@ related_knowledge:
 - POLICY-032
 - POLICY-033
 - PLAYBOOK-023
-summary: "Ein Kunde hat eine schwarze, blaue oder andere farbige Fototasse bestellt und beanstandet die weiße Außenseite, weiße Freiflächen oder den unbedruckten Bereich am Henkel. Variante und Konfiguration prüfen, Produkteigenschaft von Falschlieferung oder Druckfehler unterscheiden und einen Änderungswunsch passend einordnen."
+summary: "Ein Kunde hat eine schwarze, blaue oder andere farbige Fototasse bestellt und beanstandet die weiße Außenseite, weiße Freiflächen oder den unbedruckten Bereich am Henkel. Variante und Konfiguration prüfen; die erste Antwort muss die Farbaufteilung erklären und ausdrücklich auf Produktbeschreibung und Produktfotos hinweisen."
 retrieval: triggered
 triggers:
 - schwarze Tasse
@@ -53,6 +53,16 @@ triggers:
 ---
 
 Gilt für weiße und farbige LOOXIS-Fototassen bei allen Kundenarten und Vertriebskanälen. Für eine tatsächlich bestellte Zaubertasse gelten PRODUCT-002 und die zugehörigen Thermoeffekt-Regeln.
+
+# Verbindlicher Inhalt der ersten Antwort
+
+Bei der Erklärung einer anders erwarteten Farbaufteilung gehören folgende Punkte zusammen in die erste Kundenantwort:
+
+1. Die bestellte Variante erläutern: farbiger Henkel und farbige Innenseite, weiße äußere Druckfläche.
+2. **Ausdrücklich sowohl die Produktbeschreibung als auch die Produktfotos nennen:** „Diese Farbaufteilung ist in der Produktbeschreibung erläutert und auf den Produktfotos dargestellt.“
+3. Falls das Anliegen möglicherweise anders gemeint ist und noch kein Foto vorliegt, die vorsorgliche Fotoanfrage ergänzen.
+
+Punkt 2 ist ein verpflichtender Antwortbestandteil, kein optionales Detail und nicht nur eine interne Prüfanweisung. Er bleibt auch in einer kurzen Antwort erhalten und steht unmittelbar nach der Erklärung der Farbaufteilung, vor einer möglichen Fotoanfrage. Der Hinweis bestätigt die beschriebene Produkteigenschaft; eine noch ungeprüfte Lieferung wird dadurch nicht als nachweislich korrekt bezeichnet.
 
 # Typisches Fallmuster
 
@@ -91,7 +101,7 @@ Die Produktgestaltung bereits in der ersten Antwort verständlich erklären und 
 
 Formulierungshilfe für eine bestellte schwarze Fototasse:
 
-„Es tut uns leid, dass Sie sich die Tasse anders vorgestellt haben. Bei der schwarzen Fototasse sind der Henkel und die Innenseite schwarz. Die Außenseite ist als Druckfläche weiß und wird mit Ihrer Gestaltung bedruckt. So ist die Variante auch in der Produktbeschreibung erläutert und insbesondere auf den Produktfotos dargestellt.
+„Es tut uns leid, dass Sie sich die Tasse anders vorgestellt haben. Bei der schwarzen Fototasse sind der Henkel und die Innenseite schwarz. Die Außenseite ist als Druckfläche weiß und wird mit Ihrer Gestaltung bedruckt. Diese Farbaufteilung ist in der Produktbeschreibung erläutert und auf den Produktfotos dargestellt.
 
 Die Auswahl ‚schwarz‘ färbt den äußeren Hintergrund nicht automatisch schwarz. Weiße Stellen in Ihrer Vorlage beziehungsweise nicht mit dem Motiv belegte Flächen bleiben auch auf der fertigen Tasse weiß. Zusätzlich bleibt der Bereich unmittelbar am Henkel technisch bedingt unbedruckt.“
 

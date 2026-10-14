@@ -67,6 +67,10 @@ Auch bei einer solchen vollflächigen Gestaltung bleibt die technische Ausnahme 
 
 # Darstellung im Angebot
 
+Bei einer Beanstandung der Farbaufteilung gehört der ausdrückliche Hinweis auf **Produktbeschreibung und Produktfotos bereits in die erste Kundenantwort**. Die bloße Erklärung von Henkel, Innenseite und weißer Druckfläche genügt nicht. Der Hinweis ist verbindlicher Bestandteil der Erklärung, auch wenn anschließend vorsorglich um ein Foto gebeten wird:
+
+„Diese Farbaufteilung ist in der Produktbeschreibung erläutert und auf den Produktfotos dargestellt.“
+
 Nach bestätigter Unternehmensauskunft werden die farbige Innenseite und der farbige Henkel, die weiße Außenseite sowie die Einschränkung am Henkel inzwischen ausdrücklich in den Bulletpoints, der Produktbeschreibung und den Produktfotos dargestellt beziehungsweise erläutert. Die Druckfläche ist auch im Konfigurator weiß sichtbar.
 
 Bei einer konkreten Reklamation die tatsächliche bestellte Variante, gespeicherte Gestaltung und gegebenenfalls die für den Auftrag maßgebliche Darstellung prüfen. Nicht allein aus der heute beschriebenen Darstellung auf den Inhalt jedes früheren Angebots schließen.
