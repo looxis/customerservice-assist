@@ -10,6 +10,7 @@
 - **In Review** - `/qa` active, testing in progress
 - **Approved** - `/qa` passed, no critical/high bugs, ready to deploy
 - **Deployed** - `/deploy` done, live in production
+- **Zurückgestellt** - consciously put on hold, not planned for now; the reason stays in the description
 
 ## Features
 
@@ -29,12 +30,12 @@ The ID order is the recommended build order (exceptions: PROJ-24 was added later
 | PROJ-10 | Ergebnisansicht | Alle Ergebnisteile anzeigen, Antwortentwurf bearbeiten und kopieren, Knowledge-Quellen einsehen, Hinweis auf verwendetes Entwurfs-Wissen | P0 | PROJ-9 | Approved | [Spec](PROJ-10-ergebnisansicht.md) | 2026-10-02 |
 | PROJ-11 | Analyse-Protokoll und Verlauf | Jede Analyse reproduzierbar speichern, frühere Analysen je Ticket anzeigen, erneut analysieren | P0 | PROJ-5, PROJ-9 | Approved | [Spec](PROJ-11-analyse-protokoll-und-verlauf.md) | 2026-10-02 |
 | PROJ-12 | Feedback und Wissenslücke | Vier-Stufen-Feedback mit optionalem Kommentar, Wissenslücke zur Analyse melden | P0 | PROJ-10, PROJ-11 | Approved | [Spec](PROJ-12-feedback-und-wissensluecke.md) | 2026-10-02 |
-| PROJ-13 | Evaluation-Testlauf | Gold-Testfälle aus `evaluation/` durchrechnen und mit der erwarteten Lösung vergleichen | P1 | PROJ-9 | Roadmap | – | 2026-10-02 |
+| PROJ-13 | Evaluation-Testlauf | Gold-Testfälle aus `evaluation/` durchrechnen und mit der erwarteten Lösung vergleichen. Vormerkung (2026-10-14, Umsetzung später): `pestphp/pest-plugin-evals` prüfen (Packagist, v5.1.0 vom 2026-09-23, verlangt PHP ^8.4 und Pest ^5.2, passt zum Projekt): fachliche Qualität der KI-Antworten messen, auch mit einem zweiten Modell als Prüfer (LLM-as-a-Judge), Fälle schrittweise aus echten Tickets ablegen; Ziel ist, Verschlechterungen nach Änderungen an Prompt, Modell oder Wissensbasis frühzeitig zu erkennen | P1 | PROJ-9 | Roadmap | – | 2026-10-02 |
 | PROJ-14 | Analysen-Übersicht | Admin-Seite: eine Zeile je Analyse (Kundengruppe, Produkt, Kategorie, Modell, Prompt-Version, Feedback, Kopier-Stand, gemeldete Wissenslücken) mit Filtern, Seiten und wenigen Kennzahlen zur gefilterten Menge; Testläufe und Fehlgeschlagene zuschaltbar | – | PROJ-11, PROJ-12, PROJ-35 | Approved | [Spec](PROJ-14-analysen-uebersicht.md) | 2026-10-02 |
 | PROJ-15 | Benutzerverwaltung mit Login | Login über Laravel Fortify, Admin legt Nutzer an, Namensliste in der Datenbank | P1 | PROJ-5 | Roadmap | – | 2026-10-02 |
 | PROJ-16 | Tickettext manuell einfügen | Aufgegangen in PROJ-40: Analyse ohne Zammad-Abruf mit eingefügtem Text | P1 | PROJ-9 | Planned | [Spec](PROJ-40-wissensabfrage-ohne-ticket.md) | 2026-10-02 |
 | PROJ-17 | Zweiter LLM-Anbieter | Weiteren Anbieter anbinden und per Konfiguration umschalten | P1 | PROJ-9 | Roadmap | – | 2026-10-02 |
-| PROJ-18 | Historien-Auswertung | Zwei Jahre Zammad-Tickets nach Fallmustern und Testset-Kandidaten auswerten | P2 | PROJ-6 | Roadmap | – | 2026-10-02 |
+| PROJ-18 | Historien-Auswertung | Zwei Jahre Zammad-Tickets nach Fallmustern und Testset-Kandidaten auswerten. Zurückgestellt (2026-10-14): Zugang zur Zammad-Datenbank und Auswertung stehen in keinem Verhältnis zum Nutzen; Wissenslücken werden stattdessen an eingehenden Anfragen geschlossen (PROJ-12, PROJ-45), Testfälle für PROJ-13 können aus echten Fällen nach und nach entstehen | P2 | PROJ-6 | Zurückgestellt | – | 2026-10-02 |
 | PROJ-19 | Antwort nach Zammad übergeben | Antwortentwurf direkt als Entwurf oder Antwort ins Ticket schreiben | P2 | PROJ-10, PROJ-15 | Roadmap | – | 2026-10-02 |
 | PROJ-20 | Automatische Analyse bei Eingang | Neue Tickets ohne manuellen Anstoß vorab analysieren | P2 | PROJ-11 | Roadmap | – | 2026-10-02 |
 | PROJ-21 | Bildanalyse | Reklamationsfotos vom LLM mitbewerten lassen | P2 | PROJ-9 | Roadmap | – | 2026-10-02 |
