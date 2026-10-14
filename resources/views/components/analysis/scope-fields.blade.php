@@ -1,4 +1,4 @@
-@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => ''])
+@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen'])
 
 @php
     $products = collect($analysis['products'])->map(fn (array $product): array => [
@@ -48,7 +48,7 @@
             <span x-show="unknown !== ''" x-cloak class="inline-flex max-w-full items-center gap-1 rounded-full bg-warning-500/15 py-1 pr-1 pl-3 text-sm text-warning-700">
                 <input type="hidden" name="produkt_ohne_wissen" :value="unknown">
                 <span class="truncate" x-text="unknown"></span>
-                <span class="text-xs">(kein Wissen hinterlegt)</span>
+                <span class="text-xs">(noch kein Produktwissen)</span>
                 <button type="button" class="inline-flex size-6 cursor-pointer items-center justify-center rounded-full hover:bg-warning-500/20 focus-visible:outline-2 focus-visible:outline-brand" x-on:click="unknown = ''" aria-label="Produkt ohne hinterlegtes Wissen entfernen">×</button>
             </span>
         </div>
@@ -71,7 +71,7 @@
                 </template>
                 <li role="option" x-show="canAddUnknown" x-on:mousedown.prevent="addUnknown()" x-on:mousemove="active = matches.length" :aria-selected="(active === matches.length).toString()"
                     class="cursor-pointer border-t border-slate-100 px-3 py-2 text-warning-700" :class="active === matches.length ? 'bg-warning-500/10' : ''">
-                    <span x-text="'„' + query.trim() + '“ als Produkt ohne hinterlegtes Wissen verwenden'"></span>
+                    <span x-text="'„' + query.trim() + '“ – hierfür ist noch kein Produktwissen hinterlegt. Du kannst die Bezeichnung trotzdem verwenden.'"></span>
                 </li>
             </ul>
         </div>
@@ -84,7 +84,7 @@
         @foreach (($analysis['mentionedProducts'] ?? []) as $mentionedSlug)
             <p class="mt-1 text-xs font-medium text-warning-700">Im Ticket erwähnt: {{ $titles[$mentionedSlug] ?? $mentionedSlug }} ({{ implode(' · ', $reasons[$mentionedSlug] ?? []) }}) – nicht ausgewählt</p>
         @endforeach
-        <p x-show="unknown !== ''" x-cloak class="mt-1 text-xs font-medium text-warning-700">Zu diesem Produkt ist noch kein Wissen hinterlegt. Bitte nach dem Vorschlag eine Wissenslücke melden; die App erfindet nichts dazu.</p>
+        <p x-show="unknown !== ''" x-cloak class="mt-1 text-xs font-medium text-warning-700">Zu diesem Produkt ist noch kein Wissen hinterlegt; die App erfindet nichts dazu. Kennst du die gesuchte Information (z. B. eine Funktion)? Trage sie unter „{{ $infoField }}“ ein, die KI nutzt sie. Nach dem Vorschlag kannst du die Wissenslücke melden.</p>
         <p x-show="withoutProduct" x-cloak class="mt-1 text-xs font-medium text-warning-700">Ohne Produkt wird kein Produktwissen berücksichtigt. Geht es doch um ein Produkt, wähle es oder gib es oben ein – auch wenn es noch nicht in der Liste steht.</p>
         <p id="produkt-hinweis" class="mt-1 text-xs text-slate-600" x-show="selected.length === 0 && unknown === '' && !none">Bitte ein Produkt wählen, ein unbekanntes Produkt eingeben oder „Kein Produktbezug“ ankreuzen.</p>
         @error('produkte')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror
