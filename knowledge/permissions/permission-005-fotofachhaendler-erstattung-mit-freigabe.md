@@ -18,6 +18,7 @@ topics:
 - customer-type
 related_knowledge:
 - POLICY-034
+- POLICY-037
 - PERMISSION-001
 - PERMISSION-002
 - PERMISSION-006
@@ -33,7 +34,7 @@ Der Kundenservice darf eine Erstattung nur nach Geschäftsführerfreigabe verbin
 
 # Grenzen
 
-Die fachlichen Voraussetzungen und die freiwillige Erstattungsausnahme regelt POLICY-034. Bestehende gesetzliche Ansprüche bleiben unberührt; interne Freigaben dürfen ihre Erfüllung nicht vereiteln.
+Die fachlichen Voraussetzungen und die freiwillige Erstattungsausnahme regelt POLICY-034. Für Geschmacks- und Essbarkeitsreklamationen essbarer Fotos nach Probenprüfung gilt die fachliche Spezialregel aus POLICY-037; auch dabei bleibt die Geschäftsführerfreigabe unabhängig vom Betrag erforderlich. Bestehende gesetzliche Ansprüche bleiben unberührt; interne Freigaben dürfen ihre Erfüllung nicht vereiteln.
 
 Regelkonforme Neuproduktion und Ersatzversand bleiben nach PERMISSION-002 ohne Wertgrenze erlaubt. Für freiwillige nachträgliche Nachlässe auf behaltene Ware gilt PERMISSION-006.
 

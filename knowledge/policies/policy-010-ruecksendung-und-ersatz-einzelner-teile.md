@@ -16,6 +16,7 @@ related_knowledge:
 - PERMISSION-001
 - PERMISSION-002
 - PLAYBOOK-006
+- POLICY-037
 summary: "Rücksendung und Ersatz bei teilweise personalisierten Produkten. Gilt, wenn Teile ersetzt oder Ware zurückgeschickt werden soll."
 retrieval: triggered
 triggers:
@@ -55,7 +56,9 @@ Ist die Rücksendung wirtschaftlich sinnvoll, werden die betreffenden Teile zur�
 
 # Rücksendeetikett
 
-LOOXIS stellt ein vorausgefülltes und frankiertes DHL-Rücksendeetikett bereit. Der Kunde druckt es aus, schneidet es aus, klebt es auf das Paket und gibt das Paket bei DHL ab.
+Für angeforderte Esspapierproben wegen Geschmacks- oder Essbarkeitsbeschwerden gilt stattdessen POLICY-037: regulär selbst frankierter Brief, kein DHL-Retourenlabel und Erstattung des Briefportos nach dem dort geregelten Prüfergebnis.
+
+Für die übrigen hier geregelten Rücksendungen gilt: LOOXIS stellt ein vorausgefülltes und frankiertes DHL-Rücksendeetikett bereit. Der Kunde druckt es aus, schneidet es aus, klebt es auf das Paket und gibt das Paket bei DHL ab.
 
 # Verhältnis zur Erstattung
 

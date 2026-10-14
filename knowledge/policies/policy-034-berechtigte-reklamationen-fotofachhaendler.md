@@ -21,6 +21,7 @@ related_knowledge:
 - POLICY-033
 - POLICY-035
 - POLICY-036
+- POLICY-037
 - PERMISSION-002
 - PERMISSION-005
 - POLICY-008
@@ -72,6 +73,8 @@ Zusätzliche Wünsche werden nach den anwendbaren Kulanz- und Bestellregeln geso
 POLICY-010 gilt auch hier: Nur betroffene Teile ersetzen, unnötige Retouren personalisierter Ware vermeiden und erforderliche Rücksendungen nach der dortigen Regel abwickeln.
 
 # Erstattung als Ausnahme
+
+Für Geschmacks- und Essbarkeitsreklamationen essbarer Fotos nach Probenprüfung gilt die spezielle Erstattungsregel aus POLICY-037 auch bei Foto-Fachhändlern. Die Geschäftsführerfreigabe nach PERMISSION-005 bleibt erforderlich. Die folgenden zusätzlichen Voraussetzungen gelten für die sonstige freiwillige Erstattungsausnahme.
 
 Ein ausdrücklicher Erstattungswunsch allein ersetzt den kostenfreien Ersatzweg nicht. Eine freiwillige Erstattung kommt ausnahmsweise in Betracht, wenn LOOXIS einen sehr groben Fehler begangen hat und anhand des konkreten Falls nachvollziehbar ist, dass der Fachhändler dadurch seine Forderung gegenüber dem Endkunden nicht mehr durchsetzen kann.
 
