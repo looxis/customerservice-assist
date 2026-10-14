@@ -48,7 +48,7 @@ Eine Kundin hat auf Amazon eine Zaubertasse gekauft. Sie schreibt: „Das Motiv 
 # Gut zu wissen
 
 - **„Unklar" ist ein gutes Ergebnis.** Fehlen Informationen, soll die App nicht raten. Sie sagt dann, was fehlt und was zuerst zu klären ist, oder welche Rückfrage sinnvoll ist (mehr dazu im nächsten Abschnitt).
-- **Entwurfs-Wissen** ist Wissen, das noch nicht endgültig bestätigt ist. Die App verwendet es trotzdem und kennzeichnet es. Schau bei Entwurfs-Wissen ruhig kritisch hin. Wenn dir etwas falsch vorkommt, sag Bescheid; genau dafür ist die Kennzeichnung da.
+- **Entwurfs-Wissen** ist Wissen, das noch nicht endgültig bestätigt ist. Die App verwendet es trotzdem und kennzeichnet es. Schau bei Entwurfs-Wissen ruhig kritisch hin. Wenn dir etwas falsch vorkommt, sag Bescheid; genau dafür ist die Kennzeichnung da. Hat sich ein Dokument in der Praxis bewährt, bestätigt es ein Admin auf der Dokumentseite in der Knowledge-Übersicht per Klick („Als gültig bestätigen“). Die App zeigt dazu, wie oft das Dokument verwendet und wie es bewertet wurde. Danach gilt es nicht mehr als Entwurf. Dasselbe Werkzeug setzt ein Dokument zurück auf Entwurf oder markiert es als veraltet.
 - **Jede Empfehlung nennt ihre Quellen**, also die Knowledge-Dokumente, auf denen sie beruht. So kannst du nachlesen, warum die App etwas vorschlägt.
 - **Die Kundengruppe ist wichtig.** Für Privatkunden im Shop, auf Amazon, für Fachhändler, für LOOXIS-Pro und für White-Label-Kunden wie masterpics gelten teils unterschiedliche Regeln. Wählst du die falsche Gruppe, bekommt die KI die falschen Regeln.
 
