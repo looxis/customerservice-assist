@@ -1,6 +1,6 @@
 # PROJ-45: Produkt ohne hinterlegtes Wissen automatisch melden
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-14
 **Last Updated:** 2026-10-14
 
@@ -60,4 +60,44 @@ Nennt ein Mitarbeiter im Formular ein Produkt, zu dem es in der Wissensbasis nic
 - Hinweise im Formular (PROJ-42): Meldung „hierfür ist noch kein Produktwissen hinterlegt“ und der Hinweis, Wissen unter „Zusätzliche Informationen“ einzutragen.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-14 (zusammen mit PROJ-43)
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+**Methode:** komplette Pest-Suite (1363 Tests, alle bestanden), Abgleich jedes Kriteriums mit `PROJ-45-UnknownProductGapTest.php` (11 Tests, 4 davon QA-Proben). **Nicht getestet:** Browser und Breiten 375/768/1440 px (Admin-Seite und gelber Hinweis nur per Render-Test), Live-Lauf mit dem echten Modell.
+
+### Acceptance Criteria Status
+- [x] AC-1 Automatische offene Lücke ohne Klick, mit Mitarbeiter, Gruppe, Ticket/Frage und Kennzeichnung (Test)
+- [x] AC-2 Freitext (bzw. Fragetext) verschlüsselt an der Lücke, auf der Admin-Seite sichtbar (Test, Rohwert enthält den Text nicht)
+- [x] AC-3 Wiederholter Vorschlag legt keine zweite Zeile an, aktualisiert die Angaben (Test)
+- [x] AC-4 Hinweis „automatisch gemeldet“, kein Knopf (Test)
+- [x] AC-5 Admin-Seite: „Produkte ohne Wissen, nach Häufigkeit“ mit Anfragen, Datum, Angaben (Test)
+- [x] AC-6 Chat-Text enthält die Angaben des Mitarbeiters (Test)
+- [x] AC-7 Ohne Produkt ohne Wissen keine automatische Lücke (Test)
+- [x] AC-8 Frage ohne Ticket: Lücke mit F-Kennung, Link zur Frage (Test)
+
+### Edge Cases Status
+- [x] Testlauf zählt nicht in der Häufigkeitsliste (Test)
+- [x] Erledigte oder bereits gelöschte Lücke zählt nicht und bricht die Liste nicht (Test)
+- [x] Offene Lücken in der Seitenleiste zählen die automatischen mit (Test)
+- [x] Gleicher Name in anderer Groß-/Kleinschreibung zählt zusammen (gleicher Hash)
+
+### Security Audit Results
+- [x] Autorisierung: Admin-Seite für Nicht-Admins 403 (Test)
+- [x] XSS: Produktname und Angaben mit Markup werden maskiert (Test)
+- [x] Datenschutz: Angaben nur verschlüsselt gespeichert, Löschung nach 12 Monaten wie bei allen Lücken
+- [x] Keine neuen Routen oder Formulare, CSRF unverändert
+- Hinweis: Die Zusatzangaben werden nicht von Kontaktdaten bereinigt (wie beim Freitext einer manuell gemeldeten Lücke); der Hinweis am Eingabefeld bleibt die einzige Schutzmaßnahme.
+
+### Bugs Found
+Keine.
+
+#### Hinweise (keine Fehler)
+- Abweichende Schreibweisen desselben Produkts zählen getrennt (in der Spec als „Out of Scope“ geführt).
+- Der Aufruf, der die Lücke anlegt, läuft nach dem Speichern des Vorschlags; ein Fehler dort würde die Anzeige des Vorschlags unterbrechen. Bisher nicht beobachtet.
+
+### Summary
+- **Acceptance Criteria:** 8/8 bestanden
+- **Bugs Found:** 0
+- **Security:** Pass
+- **Production Ready:** YES, mit Browser-Durchgang der Admin-Seite

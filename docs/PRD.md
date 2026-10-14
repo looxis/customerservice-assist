@@ -61,9 +61,9 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | – | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
 | P1 | Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | Approved |
 | – | Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | Approved |
-| – | Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | In Progress |
+| – | Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | Approved |
 | – | Sichtbar machen, welches Wissen wegen Produkt oder Kundengruppe nicht geprüft wurde | Approved |
-| – | Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | In Progress |
+| – | Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

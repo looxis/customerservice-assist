@@ -113,3 +113,37 @@ describe('automatic gap for a product without knowledge', function () {
         expect(app(KnowledgeGapLog::class)->chatText($gap, []))->toContain('Angaben des Mitarbeiters zum Fall (bitte als Wissen prüfen): Funktion Y');
     });
 });
+
+describe('QA probes (PROJ-45)', function () {
+    test('the admin page is closed for others and escapes the product name and the notes', function () {
+        CaseAgent::fake([unknownAnswer()]);
+        runWithUnknown(['produkt_ohne_wissen' => '<b>Sockel</b>', 'kontext' => '<script>alert(1)</script>']);
+
+        $this->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index'))->assertForbidden();
+
+        $html = $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->getContent();
+        expect($html)->not->toContain('<script>alert(1)</script>')->and($html)->not->toContain('<b>Sockel</b>');
+    });
+
+    test('a test run is marked and not counted in the frequency list', function () {
+        $log = app(KnowledgeGapLog::class);
+        KnowledgeGap::factory()->create(['test_run' => true, 'gap_topic_hash' => 'h', 'content' => ['missing' => 'x', 'source' => 'auto', 'product' => 'Sockel', 'notes' => null]]);
+
+        expect($log->unknownProducts())->toHaveCount(0);
+    });
+
+    test('resolved gaps no longer count and a purged gap does not break the list', function () {
+        KnowledgeGap::factory()->create(['status' => 'done', 'gap_topic_hash' => 'h', 'content' => ['missing' => 'x', 'source' => 'auto', 'product' => 'Sockel', 'notes' => null]]);
+        KnowledgeGap::factory()->create(['status' => 'open', 'gap_topic_hash' => 'g', 'content' => null]);
+
+        expect(app(KnowledgeGapLog::class)->unknownProducts())->toHaveCount(0);
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertOk();
+    });
+
+    test('the sidebar count of open gaps includes the automatic ones', function () {
+        CaseAgent::fake([unknownAnswer()]);
+        runWithUnknown();
+
+        expect(app(KnowledgeGapLog::class)->openCount())->toBe(1);
+    });
+});
