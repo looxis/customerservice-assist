@@ -18,6 +18,7 @@ related_knowledge:
 - POLICY-002
 - PERMISSION-002
 - PROCESS-005
+- PERMISSION-004
 - PROCESS-007
 summary: "Prüfung einer Reklamation, das 3D-Motiv sei zu klein oder wirke verloren im Glaskörper. Gilt nicht für Reklamationen, die ausschließlich Helligkeit, Sichtbarkeit oder fehlende Motivteile betreffen."
 retrieval: triggered
@@ -67,7 +68,7 @@ Der Kunde findet das im Glas gelaserte Motiv zu klein oder bemängelt, dass es m
 
 Bei bestätigtem Fehler die nach Kundenart und Vertriebskanal geltenden Mängelregeln anwenden. Für Verbraucher gilt POLICY-002; die Befugnis für regelkonformen Ersatz ergibt sich aus PERMISSION-002.
 
-Bei technisch ordnungsgemäßer Gestaltung kann eine abweichende Motivwirkung auf Kundenwunsch als **kostenpflichtige, fallbezogen zu prüfende Kulanz-Neuanfertigung** in Betracht kommen. Hierfür könnte die Tiefe bewusst stärker gestaucht werden, um eine größere Darstellung in Höhe und Breite zu ermöglichen. Dabei geht räumliche Tiefenwirkung verloren. Die Möglichkeit und die Kosten vor einer Zusage prüfen; keinen pauschalen Prozentsatz oder Festpreis aus einem Einzelfall übernehmen.
+Bei technisch ordnungsgemäßer Gestaltung kann eine abweichende Motivwirkung auf Kundenwunsch als **kostenpflichtige, fallbezogen zu prüfende Kulanz-Neuanfertigung** in Betracht kommen. Hierfür könnte die Tiefe bewusst stärker gestaucht werden, um eine größere Darstellung in Höhe und Breite zu ermöglichen. Dabei geht räumliche Tiefenwirkung verloren. Die Möglichkeit vor einer Zusage prüfen. Der Kundenservice kann dabei bis zu 20 Prozent Nachlass auf den ursprünglichen Produktpreis selbst zusagen (PERMISSION-004); die Kulanzmöglichkeit schon im ersten Antwortentwurf nennen. Keinen Festpreis aus einem Einzelfall übernehmen.
 
 Erfordert die vereinbarte Neuanfertigung eine neue 3D-Interpretation, den dafür vorgesehenen Freigabeprozess nach PROCESS-007 beachten.
 
@@ -85,4 +86,4 @@ Nur Feststellungen nennen, die im konkreten Fall tatsächlich geprüft wurden. B
 - Aus einem zweidimensionalen Screenshot schließen, das 3D-Motiv könne problemlos größer gelasert werden.
 - Behaupten, es sei vollständig proportional zum realen Motiv modelliert; die Tiefe ist bereits regulär gestaucht.
 - Eine weitergehende Tiefenstauchung als grundsätzlich besseres Ergebnis darstellen.
-- Eine kostenpflichtige Neuanfertigung zu einem nicht bestätigten Preis zusagen.
+- Eine kostenpflichtige Neuanfertigung zu einem nicht bestätigten Preis zusagen; der Nachlass bis 20 Prozent nach PERMISSION-004 ist bestätigt.

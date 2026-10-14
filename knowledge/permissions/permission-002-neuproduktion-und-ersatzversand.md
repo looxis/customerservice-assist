@@ -17,6 +17,7 @@ related_knowledge:
 - POLICY-007
 - POLICY-008
 - PROCESS-001
+- PERMISSION-004
 customer_types:
 sales_channels:
 products:
@@ -48,6 +49,8 @@ Der Kundenservice darf eine regelkonforme Neuproduktion und den zugehörigen Ers
 Die Maßnahme muss durch eine anwendbare fachliche Regel gedeckt sein. Diese Befugnis macht eine kostenpflichtige Kulanzlösung nicht kostenlos und hebt einen vorgeschriebenen Bestellweg nicht auf.
 
 Der Kundenservice wählt die bestätigten Kulanzrabatte nach POLICY-007 beziehungsweise POLICY-008 innerhalb des dort genannten Rahmens nach Ermessen. Die Ausnahme für günstige Fachhändlerprodukte und der Vorrang von PROCESS-001 bleiben verbindlich.
+
+Den Nachlass bis 20 Prozent auf eine kostenpflichtige Kulanz-Neuanfertigung ohne Kundenfehler regelt PERMISSION-004.
 
 # Wertgrenze
 

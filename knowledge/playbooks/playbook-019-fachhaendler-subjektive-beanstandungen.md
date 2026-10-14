@@ -16,6 +16,7 @@ topics:
 - photo-quality
 related_knowledge:
 - PROCESS-005
+- PERMISSION-004
 summary: "Ein Foto-Fachhändler beanstandet subjektive Gestaltungs- oder Wahrnehmungsmerkmale, obwohl kein klarer Mangel feststeht. Klärt, ob der Endkunde selbst unzufrieden ist; gilt nicht als Hürde für objektiv erkennbare Fehler."
 retrieval: triggered
 triggers:
@@ -57,7 +58,7 @@ Die Qualitätskontrolle durch den Fachhändler ist erwünscht. Sie darf aber nic
 2. Ist kein objektiver Fehler bestätigt und betrifft die Beanstandung eine subjektiv wahrnehmbare Eigenschaft, die Herkunft der Kritik klären: Hat der Endkunde selbst die Ausführung beanstandet, oder handelt es sich derzeit um die Einschätzung des Händlers bei seiner Warenprüfung?
 3. Liegt eine konkrete Endkundenreklamation vor, das tatsächliche Anliegen fachlich prüfen. Kundenunzufriedenheit bedeutet nicht automatisch, dass ein Mangel vorliegt; sie darf aber auch nicht übergangen werden.
 4. Hat der Endkunde das Produkt noch nicht gesehen und geht es nur um eine vorsorgliche Geschmackseinschätzung des Fachhändlers, erklären, dass unterschiedliche Personen dieselbe Gestaltung unterschiedlich bewerten können. Bei ansonsten unauffälliger Ware kann angeregt werden, zunächst die tatsächliche Kundenreaktion abzuwarten.
-5. Wünscht der Händler unabhängig von einer Endkundenreaktion ausdrücklich eine andere Gestaltung, mögliche Änderungen und deren Konditionen getrennt von einer kostenfreien Mängelbeseitigung prüfen.
+5. Wünscht der Händler unabhängig von einer Endkundenreaktion ausdrücklich eine andere Gestaltung, mögliche Änderungen getrennt von einer kostenfreien Mängelbeseitigung prüfen. Eine kostenpflichtige Kulanz-Neuanfertigung mit bis zu 20 Prozent Nachlass auf den ursprünglichen Produktpreis darf der Kundenservice selbst zusagen (PERMISSION-004) und kann sie schon in der ersten Antwort nennen.
 
 # Entscheidungsgrundsatz
 

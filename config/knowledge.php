@@ -123,7 +123,7 @@ return [
 
     'action_hints' => [
         'reproduction' => 'kostenfreie Neuproduktion oder Ersatz bei einer berechtigten Reklamation (Mangel, eigener Fehler)',
-        'goodwill-reproduction' => 'kostenpflichtige oder vergünstigte Neuanfertigung aus Kulanz, weil der Fehler beim Kunden lag (Kundenfehler, Dateifehler, Tippfehler); nie bei berechtigter Reklamation',
+        'goodwill-reproduction' => 'kostenpflichtige oder vergünstigte Neuanfertigung aus Kulanz, weil der Fehler beim Kunden lag (Kundenfehler, Dateifehler, Tippfehler) oder die Reklamation unberechtigt ist und der Kunde eine andere Ausführung wünscht; nie bei berechtigter Reklamation',
         'partial-refund' => 'Teilerstattung oder Preisnachlass ohne Neuanfertigung',
     ],
 
