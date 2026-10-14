@@ -86,6 +86,8 @@ return [
 
     'statuses' => ['draft', 'active', 'deprecated'],
 
+    'statuses_labels' => ['draft' => 'Entwurf', 'active' => 'Gültig', 'deprecated' => 'Veraltet'],
+
     'usable_statuses' => ['draft', 'active'],
 
     'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro', 'b2b-whitelabel'],

@@ -1,6 +1,6 @@
 # PROJ-23: Entwurfs-Wissen bestätigen
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-14
 
@@ -144,3 +144,13 @@ Mitarbeiter, die keine Admins sind, sehen den Bereich nicht. Für Vorlagen und B
 | Belege aus gespeicherten Kennzahlen, keine Inhalte | Schnell, datensparsam, auch nach der 12-Monats-Löschung | 2026-10-14 |
 | Keine Datenbankänderung | Der Status gehört in die Datei (Git bleibt die Wahrheit) | 2026-10-14 |
 | Admin-Prüfung der vorhandenen Liste, serverseitig | Keine neue Rolle; später durch PROJ-15 ersetzbar | 2026-10-14 |
+
+## Implementation Notes
+- **Backend:** `app/Knowledge/DocumentStatusChanger.php` (erlaubte Wechsel, Sperren, Zeilenersetzung, sicheres Schreiben, Fingerabdruckprüfung), `DocumentEvidence.php` (Belege aus `knowledge_ids` und `knowledge_fingerprints`, ohne Testläufe und Fehlgeschlagene), `StatusChangeException`, `ChangeDocumentStatusRequest` (Admin-Prüfung über `TestMode::isAvailable`), Route `POST /knowledge/dokument/{path}/status`, `KnowledgeController::changeStatus()`.
+- **Oberfläche:** Bereich „Status“ in `knowledge/show.blade.php` (nur Admins), Bestätigung als Alpine-Formular unter den Knöpfen, Meldungen `status_changed` und `status_error`.
+- **Schreiben:** Zwischendatei im selben Ordner, Rechte der Datei übernommen, dann Ersetzen. Eine Datei ohne eindeutige Zeile `status:` im Kopf wird abgelehnt.
+- **Ausgeschlossen:** `templates/` und `examples/` (keine Aktion); Dokumente ohne ID oder mit unlesbarem Kopf.
+- **Doku:** Authoring Guide beschreibt den Klick.
+- **Tests:** `tests/Feature/PROJ-23-DocumentStatusTest.php` (12): Anzeige je Status, Belege, Sperre bei offenem Abschnitt, Änderung genau einer Zeile (auch mit CRLF), Wechsel in alle Richtungen, 403 für andere, veraltete Datei, direkte Anfrage trotz Sperre, ungültige Wechsel/Pfade, nicht schreibbare Datei, Zeilenersetzung.
+- **Bitte im Browser prüfen:** Knöpfe, Bestätigungsfeld, Meldungen, 375/768 px; ein echter Klick auf ein Dokument im Arbeitsordner (danach in VSCode die eine geänderte Zeile ansehen und committen oder verwerfen).
+- **Beobachtet:** Die Rechte der Datei auf dem Host (`etienne`, 644) und im Sail-Container müssen für den Webserver-Nutzer passen; die Seite sperrt den Knopf sonst mit Begründung.

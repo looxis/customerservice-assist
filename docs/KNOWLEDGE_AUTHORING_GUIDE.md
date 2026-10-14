@@ -69,7 +69,7 @@ Dateinamen: nur Kleinbuchstaben, Ziffern und Bindestriche; Umlaute ausschreiben 
 Pflicht in jeder Datei: `id`, `title`, `type`, `status`.
 
 - `type`: genau einer von `policy`, `permission`, `product`, `process`, `procedure`, `playbook`, `tone`, `glossary`, `example-good`, `example-bad`
-- `status`: neue Dateien immer `draft`. Auf `active` setzt sie nur der Autor nach fachlicher Prüfung; `draft` wird von der App mitverwendet und als Entwurfs-Wissen gekennzeichnet, `deprecated` nie.
+- `status`: neue Dateien immer `draft`. Auf `active` setzt sie nur der Autor nach fachlicher Prüfung, in der App per Klick „Als gültig bestätigen“ auf der Dokumentseite (nur Admins; die App ändert nur die Zeile `status:` in der Datei, anschließend die Änderung committen); `draft` wird von der App mitverwendet und als Entwurfs-Wissen gekennzeichnet, `deprecated` nie.
 - `last_reviewed`: Datum im Format `JJJJ-MM-TT`, nur wenn der Autor den Inhalt wirklich geprüft hat.
 - Listen als YAML-Listen, auch bei nur einem Eintrag. Leere Felder leer lassen, nicht mit Platzhaltern füllen.
 - Titel mit Doppelpunkt oder Anführungszeichen in Anführungszeichen setzen.

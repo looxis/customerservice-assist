@@ -797,7 +797,7 @@ describe('the router in the analysis (PROJ-37)', function () {
     test('the safeguard keeps the router additions and does not call the router again', function () use ($eisberg, $routerAnswer) {
         retrTicket($eisberg);
         RouterAgent::fake([$routerAnswer(['PLAYBOOK-018'])]);
-        CaseAgent::fake([retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['PLAYBOOK-018']]), retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['PLAYBOOK-018', 'PERMISSION-001']])]);
+        CaseAgent::fake([retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['PLAYBOOK-018']]), retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['PLAYBOOK-018', 'POLICY-034']])]);
 
         retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
 
@@ -806,7 +806,7 @@ describe('the router in the analysis (PROJ-37)', function () {
 
         $stored = retrStored();
 
-        expect($stored->content['sent_input'])->toContain('## PLAYBOOK-018')->toContain('## PERMISSION-001')->and($stored->passes)->toBe(2);
+        expect($stored->content['sent_input'])->toContain('## PLAYBOOK-018')->toContain('## POLICY-034')->and($stored->passes)->toBe(2);
     });
 
     test('the router sends no contact data and no order data to the model', function () {

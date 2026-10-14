@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangeDocumentStatusRequest;
 use App\Http\Requests\KnowledgeIndexRequest;
+use App\Knowledge\DocumentEvidence;
+use App\Knowledge\DocumentStatusChanger;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
+use App\Knowledge\StatusChangeException;
+use App\Staff\TestMode;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class KnowledgeController extends Controller
@@ -42,7 +49,7 @@ class KnowledgeController extends Controller
         ]);
     }
 
-    public function show(string $path, KnowledgeLibrary $library, KnowledgeMarkdown $markdown): View
+    public function show(string $path, Request $request, KnowledgeLibrary $library, KnowledgeMarkdown $markdown, DocumentStatusChanger $changer, DocumentEvidence $evidence, TestMode $testMode): View
     {
         // The path is only ever compared with documents the library has read;
         // it is never used to open a file.
@@ -71,8 +78,45 @@ class KnowledgeController extends Controller
             'html' => $document->parsed ? $markdown->render($document->body, $links) : null,
             'links' => $links,
             'typeLabel' => config("knowledge.types.{$document->type}.label"),
+            'statusPanel' => $testMode->isAvailable($request) ? $this->statusPanel($document, $changer, $evidence) : null,
             'backUrl' => $previous === $index || str_starts_with($previous, $index.'?') ? $previous : $index,
         ]);
+    }
+
+    /**
+     * Confirm, reset or retire a document: changes the status line of the file (PROJ-23), admins only.
+     */
+    public function changeStatus(string $path, ChangeDocumentStatusRequest $request, DocumentStatusChanger $changer): RedirectResponse
+    {
+        $back = redirect()->route('knowledge.show', ['path' => $path]);
+
+        try {
+            $changer->change($path, $request->validated('status'), $request->validated('fingerprint'));
+        } catch (StatusChangeException $exception) {
+            return $back->with('status_error', $exception->getMessage());
+        }
+
+        return $back->with('status_changed', $request->validated('status'));
+    }
+
+    /**
+     * @return array{status: string|null, actions: list<array{target: string, label: string, blockers: list<string>}>, evidence: array<string, mixed>, related: list<string>, writable: bool}
+     */
+    private function statusPanel(KnowledgeDocument $document, DocumentStatusChanger $changer, DocumentEvidence $evidence): array
+    {
+        $targets = $changer->targets($document);
+
+        return [
+            'status' => $document->status,
+            'actions' => array_map(fn (string $target): array => [
+                'target' => $target,
+                'label' => DocumentStatusChanger::LABELS[$target],
+                'blockers' => $changer->blockers($document, $target),
+            ], $targets),
+            'evidence' => $document->id === null ? [] : $evidence->for($document->id),
+            'related' => $changer->relatedDrafts($document),
+            'writable' => $changer->writable($document),
+        ];
     }
 
     /**

@@ -104,6 +104,72 @@
         </p>
     </x-card>
 
+    @if (session('status_changed'))
+        <x-alert type="success">Status auf „{{ config('knowledge.statuses_labels.'.session('status_changed'), session('status_changed')) }}“ gesetzt. Die Datei ist geändert, aber noch nicht committet.</x-alert>
+    @endif
+    @if (session('status_error'))
+        <x-alert type="error">{{ session('status_error') }}</x-alert>
+    @endif
+
+    @if ($statusPanel !== null && $document->parsed)
+        @php($evidence = $statusPanel['evidence'])
+        <x-card x-data="{ confirm: null }">
+            <h2 class="text-base font-semibold text-slate-900">Status</h2>
+
+            @if ($statusPanel['actions'] === [])
+                <p class="mt-2 text-sm text-slate-600">Für dieses Dokument ist keine Statusänderung in der App möglich.</p>
+            @else
+                @if ($evidence !== [])
+                    <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                        <div><dt class="text-slate-600">In Vorschlägen abgerufen</dt><dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $evidence['retrieved'] }}</dd></div>
+                        <div><dt class="text-slate-600">Von der KI genannt</dt><dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $evidence['named'] }}</dd></div>
+                        <div>
+                            <dt class="text-slate-600">Bewertung der genannten</dt>
+                            <dd class="mt-1 text-slate-900">
+                                @foreach (config('analysis.feedback_levels') as $level => $label){{ $evidence['ratings'][$level] }} {{ $label }}@if (! $loop->last) · @endif @endforeach
+                                · {{ $evidence['unrated'] }} nicht bewertet
+                            </dd>
+                        </div>
+                    </dl>
+                    @if ($evidence['thin'])
+                        <p class="mt-2 text-sm text-warning-700">Bisher nur in {{ $evidence['named'] }} {{ $evidence['named'] === 1 ? 'Vorschlag' : 'Vorschlägen' }} von der KI genannt. Das reicht für eine Entscheidung, ist aber eine dünne Grundlage.</p>
+                    @endif
+                    <p class="mt-1 text-xs text-slate-600">Ohne Testläufe und fehlgeschlagene Vorschläge, alle bisherigen Fassungen des Dokuments.</p>
+                @endif
+
+                @if ($statusPanel['related'] !== [])
+                    <p class="mt-3 text-sm text-warning-700">Verwandtes Wissen ist noch Entwurf: <span class="font-mono">{{ implode(', ', $statusPanel['related']) }}</span>. Das sperrt die Aktion nicht.</p>
+                @endif
+
+                <div class="mt-4 flex flex-wrap items-start gap-3">
+                    @foreach ($statusPanel['actions'] as $action)
+                        <div>
+                            <x-button type="button" :variant="$action['target'] === 'active' ? 'primary' : 'secondary'" :disabled="$action['blockers'] !== []" x-on:click="confirm = '{{ $action['target'] }}'">{{ $action['label'] }}</x-button>
+                            @foreach ($action['blockers'] as $blocker)
+                                <p class="mt-1 max-w-xs text-xs text-warning-700">{{ $blocker }}</p>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+
+                @foreach ($statusPanel['actions'] as $action)
+                    @continue($action['blockers'] !== [])
+                    <form x-show="confirm === '{{ $action['target'] }}'" x-cloak method="POST" action="{{ route('knowledge.status', ['path' => $document->path]) }}" class="mt-4 rounded-md bg-slate-50 p-4 ring-1 ring-slate-200 ring-inset">
+                        @csrf
+                        <input type="hidden" name="status" value="{{ $action['target'] }}">
+                        <input type="hidden" name="fingerprint" value="{{ $document->fingerprint }}">
+                        <p class="text-sm font-semibold text-slate-900">{{ $action['label'] }}?</p>
+                        <p class="mt-1 text-sm text-slate-700">In der Datei wird nur die Zeile „status:“ auf <span class="font-mono">{{ $action['target'] }}</span> gesetzt. Danach bitte die Änderung in VSCode committen.</p>
+                        <div class="mt-3 flex flex-wrap gap-3">
+                            <x-button type="submit">Ja, ändern</x-button>
+                            <x-button type="button" variant="secondary" x-on:click="confirm = null">Abbrechen</x-button>
+                        </div>
+                    </form>
+                @endforeach
+            @endif
+        </x-card>
+    @endif
+
     @if ($html !== null && $document->body !== '')
         <x-card>
             <x-knowledge.text :html="$html" />
