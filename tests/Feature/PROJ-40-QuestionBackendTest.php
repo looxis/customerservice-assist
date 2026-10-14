@@ -297,3 +297,24 @@ describe('lists and figures', function () {
         expect($number)->toMatch('/^F\d{8}$/')->and(QuestionNumber::isQuestion($number))->toBeTrue()->and(QuestionNumber::isQuestion('2137942'))->toBeFalse()->and(QuestionNumber::isQuestion('F123'))->toBeFalse();
     });
 });
+
+describe('QA probes', function () {
+    test('the question text is stored encrypted and shown escaped', function () {
+        CaseAgent::fake([qAnswer()]);
+        $text = 'Geheimer Satz XYZ <img src=x onerror=alert(1)> bitte beantworten';
+        $q = ask(['text' => $text]);
+
+        expect(Analysis::query()->where('uuid', $q['id'])->value('content'))->not->toContain('Geheimer Satz XYZ');
+        $html = test()->withCookie('staff_name', 'Nele')->get(route('questions.show', ['number' => $q['number'], 'analyse' => $q['id']]))->getContent();
+        expect($html)->not->toContain('<img src=x onerror=alert(1)>');
+    });
+
+    test('a ticket number in the text is not looked up in Zammad', function () {
+        CaseAgent::fake([qAnswer()]);
+        Http::fake();
+
+        ask(['text' => 'Ticket#2139435 betrifft einen Neuversand, was darf ich?']);
+
+        Http::assertNothingSent();
+    });
+});

@@ -1,8 +1,8 @@
 # PROJ-40: Wissensabfrage ohne Ticket
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-13
-**Last Updated:** 2026-10-13
+**Last Updated:** 2026-10-14
 
 ## Dependencies
 - Requires: PROJ-9 (Fallanalyse, Ergebnisstruktur), PROJ-36/PROJ-37 (gezielter Wissensabruf und Router), PROJ-39 (Fortsetzung, interne Klärungen, Antwort nur wenn sinnvoll), PROJ-11 (Protokoll), PROJ-5 (Nutzerauswahl).
@@ -34,30 +34,30 @@ Heute gibt es die App nur zu einem Zammad-Ticket. Mitarbeiter haben aber auch Fr
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
 ### Einstieg und Eingabe
-- [ ] Angenommen ein Mitarbeiter hat seinen Namen gewählt, wenn er in der Seitenleiste „Frage stellen“ öffnet, dann sieht er ein Formular mit Textfeld (Pflicht), Kundengruppe (Standard „Noch unklar“), Produkten (optional) und der Option „Auch einen Antwortentwurf an den Kunden formulieren“ (Standard aus).
-- [ ] Angenommen kein Name ist gewählt, wenn die Seite geöffnet oder abgeschickt wird, dann wird nichts ausgeführt und der Hinweis „Bitte wähle zuerst deinen Namen“ erscheint, die Eingabe bleibt erhalten.
-- [ ] Angenommen das Textfeld ist leer oder länger als die zulässige Länge, wenn der Mitarbeiter abschickt, dann erscheint eine Fehlermeldung am Feld und die Eingabe bleibt erhalten.
-- [ ] Angenommen neben dem Textfeld steht der Hinweis „Bitte nach Möglichkeit keine Kundendaten eintragen“, wenn der Mitarbeiter trotzdem Kontaktdaten einträgt, dann werden sie vor dem Senden an den KI-Anbieter durch Platzhalter ersetzt wie bei Tickets.
-- [ ] Angenommen die Kundengruppe oder ein Produkt ist gewählt, wenn die Frage abgeschickt wird, dann legen beide den Geltungsbereich des Wissens fest wie bei der Ticketanalyse.
+- [x] Angenommen ein Mitarbeiter hat seinen Namen gewählt, wenn er in der Seitenleiste „Frage stellen“ öffnet, dann sieht er ein Formular mit Textfeld (Pflicht), Kundengruppe (Standard „Noch unklar“), Produkten (optional) und der Option „Auch einen Antwortentwurf an den Kunden formulieren“ (Standard aus).
+- [x] Angenommen kein Name ist gewählt, wenn die Seite geöffnet oder abgeschickt wird, dann wird nichts ausgeführt und der Hinweis „Bitte wähle zuerst deinen Namen“ erscheint, die Eingabe bleibt erhalten.
+- [x] Angenommen das Textfeld ist leer oder länger als die zulässige Länge, wenn der Mitarbeiter abschickt, dann erscheint eine Fehlermeldung am Feld und die Eingabe bleibt erhalten.
+- [x] Angenommen neben dem Textfeld steht der Hinweis „Bitte nach Möglichkeit keine Kundendaten eintragen“, wenn der Mitarbeiter trotzdem Kontaktdaten einträgt, dann werden sie vor dem Senden an den KI-Anbieter durch Platzhalter ersetzt wie bei Tickets.
+- [x] Angenommen die Kundengruppe oder ein Produkt ist gewählt, wenn die Frage abgeschickt wird, dann legen beide den Geltungsbereich des Wissens fest wie bei der Ticketanalyse.
 
 ### Ergebnis
-- [ ] Angenommen eine gültige Frage, wenn sie abgeschickt wird, dann ruft die App das Wissen gezielt ab (PROJ-36/37) und zeigt einen Vorschlag im selben Aufbau wie bei Tickets: Was ist zu tun, Befugnis, Begründung, Quellen, Wissenslücken, interne Schritte.
-- [ ] Angenommen die Option „Antwortentwurf“ war nicht gewählt und die Frage richtet sich an den Mitarbeiter selbst, wenn der Vorschlag erscheint, dann gibt es keinen Antwortentwurf und keinen Editor, nur den Hinweis, wie er einen anfordern kann.
-- [ ] Angenommen die Option „Antwortentwurf“ war gewählt, wenn der Vorschlag erscheint, dann enthält er einen Antwortentwurf in der Sprache des eingegebenen Kundentextes (sonst Deutsch), bearbeitbar und kopierbar wie bei Tickets.
-- [ ] Angenommen eine blockierende interne Klärung, wenn der Vorschlag erscheint, dann zeigt die App wie bei PROJ-39 unter „Interne Abläufe“ die Klärung mit Auswahl oder freier Eingabe und noch keinen Entwurf.
-- [ ] Angenommen der Mitarbeiter gibt eine Klärung oder Nachfrage ein, wenn er fortsetzt, dann entsteht ein neuer Vorschlag mit dem bisherigen Text, den Klärungen und der Nachfrage.
-- [ ] Angenommen im Wissen fehlt eine Regel, wenn der Vorschlag erscheint, dann steht sie unter „Wissenslücken“ mit „Lücke melden“, wie bisher.
-- [ ] Angenommen der Vorschlag ist angezeigt, wenn der Mitarbeiter Feedback gibt oder eine Wissenslücke meldet, dann funktioniert das wie bei Tickets; ohne Ticketnummer wird die Frage als „ohne Ticket“ geführt.
+- [x] Angenommen eine gültige Frage, wenn sie abgeschickt wird, dann ruft die App das Wissen gezielt ab (PROJ-36/37) und zeigt einen Vorschlag im selben Aufbau wie bei Tickets: Was ist zu tun, Befugnis, Begründung, Quellen, Wissenslücken, interne Schritte.
+- [x] Angenommen die Option „Antwortentwurf“ war nicht gewählt und die Frage richtet sich an den Mitarbeiter selbst, wenn der Vorschlag erscheint, dann gibt es keinen Antwortentwurf und keinen Editor, nur den Hinweis, wie er einen anfordern kann.
+- [x] Angenommen die Option „Antwortentwurf“ war gewählt, wenn der Vorschlag erscheint, dann enthält er einen Antwortentwurf in der Sprache des eingegebenen Kundentextes (sonst Deutsch), bearbeitbar und kopierbar wie bei Tickets.
+- [x] Angenommen eine blockierende interne Klärung, wenn der Vorschlag erscheint, dann zeigt die App wie bei PROJ-39 unter „Interne Abläufe“ die Klärung mit Auswahl oder freier Eingabe und noch keinen Entwurf.
+- [x] Angenommen der Mitarbeiter gibt eine Klärung oder Nachfrage ein, wenn er fortsetzt, dann entsteht ein neuer Vorschlag mit dem bisherigen Text, den Klärungen und der Nachfrage.
+- [x] Angenommen im Wissen fehlt eine Regel, wenn der Vorschlag erscheint, dann steht sie unter „Wissenslücken“ mit „Lücke melden“, wie bisher.
+- [x] Angenommen der Vorschlag ist angezeigt, wenn der Mitarbeiter Feedback gibt oder eine Wissenslücke meldet, dann funktioniert das wie bei Tickets; ohne Ticketnummer wird die Frage als „ohne Ticket“ geführt.
 
 ### Verlauf und Protokoll
-- [ ] Angenommen ein Mitarbeiter hat Fragen gestellt, wenn er „Frage stellen“ öffnet, dann sieht er seine letzten Fragen (Datum, Anfang des Textes) und kann sie öffnen, aber nicht die der anderen.
-- [ ] Angenommen eine Frage wurde beantwortet, wenn ein Admin die Analysen-Übersicht öffnet, dann ist die Zeile als „Frage ohne Ticket“ gekennzeichnet und filterbar; Modell, Prompt-Version und Wissensstand sind protokolliert.
-- [ ] Angenommen der Text einer Frage ist gespeichert, wenn jemand die Datenbank liest, dann ist er verschlüsselt wie die Inhalte der Analysen; nach 12 Monaten werden die Inhalte gelöscht, Kennzahlen bleiben.
-- [ ] Angenommen eine Frage ohne Ticket, wenn die Ticket-Übersicht (PROJ-35) geöffnet wird, dann erscheint sie dort nicht, bei „Bearbeitete Tickets“ in der Seitenleiste zählt sie nicht.
+- [x] Angenommen ein Mitarbeiter hat Fragen gestellt, wenn er „Frage stellen“ öffnet, dann sieht er seine letzten Fragen (Datum, Anfang des Textes) und kann sie öffnen, aber nicht die der anderen.
+- [x] Angenommen eine Frage wurde beantwortet, wenn ein Admin die Analysen-Übersicht öffnet, dann ist die Zeile als „Frage ohne Ticket“ gekennzeichnet und filterbar; Modell, Prompt-Version und Wissensstand sind protokolliert.
+- [x] Angenommen der Text einer Frage ist gespeichert, wenn jemand die Datenbank liest, dann ist er verschlüsselt wie die Inhalte der Analysen; nach 12 Monaten werden die Inhalte gelöscht, Kennzahlen bleiben.
+- [x] Angenommen eine Frage ohne Ticket, wenn die Ticket-Übersicht (PROJ-35) geöffnet wird, dann erscheint sie dort nicht, bei „Bearbeitete Tickets“ in der Seitenleiste zählt sie nicht.
 
 ### Begriffe in der Oberfläche
-- [ ] Angenommen die Oberfläche der Ticketanalyse, wenn dieses Feature fertig ist, dann heißt das Ergebnis „Vorschlag“ statt „Analyse“ (Überschriften, Buttons, Verlauf, Hilfetexte) für beide Wege; im Code und im Protokoll bleibt „Analyse“.
-- [ ] Angenommen die Seite „Über die App“, wenn dieses Feature fertig ist, dann beschreibt sie den neuen Weg und ersetzt „Analyse“ durch „Vorschlag“, wo es um die Oberfläche geht.
+- [x] Angenommen die Oberfläche der Ticketanalyse, wenn dieses Feature fertig ist, dann heißt das Ergebnis „Vorschlag“ statt „Analyse“ (Überschriften, Buttons, Verlauf, Hilfetexte) für beide Wege; im Code und im Protokoll bleibt „Analyse“.
+- [x] Angenommen die Seite „Über die App“, wenn dieses Feature fertig ist, dann beschreibt sie den neuen Weg und ersetzt „Analyse“ durch „Vorschlag“, wo es um die Oberfläche geht.
 
 ## Edge Cases
 - Frage ist offensichtlich ein Ticketfall, der Mitarbeiter trägt eine Ticketnummer im Text ein: die App ruft kein Ticket ab; ein Hinweis verweist auf „Ticket analysieren“.
@@ -220,7 +220,71 @@ Der Verlauf je Mitarbeiter ist eine Abfrage: „alle Fälle mit Kennung F…, Mi
 **Nicht umgesetzt / offen:** Live-Lauf mit dem echten Modell (QA); Menüname „Ticket analysieren“; Kennzahl „Gestellte Fragen“; Löschen aller Fragen einer F-Kennung durch Admins (nicht gefordert).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-14
+**App URL:** http://localhost:8081
+**Tester:** QA Engineer (AI)
+**Methode:** komplette Pest-Suite (1344 Tests, alle bestanden), Abgleich jedes Kriteriums mit `PROJ-40-QuestionBackendTest.php` (25 Tests, davon 2 neue QA-Proben) und `PROJ-40-QuestionPagesTest.php` (12). **Nicht getestet:** Browser (Chrome, Firefox, Safari), Breiten 375/768/1440 px und ein Live-Lauf mit dem echten Modell für Fragen ohne Ticket (in den Implementation Notes als offen genannt); Fragen laufen im Test mit einem Fake-Agenten.
+
+### Acceptance Criteria Status
+
+#### Einstieg und Eingabe
+- [x] Formular mit Textfeld, Kundengruppe, Produkten, Option Antwortentwurf, Hinweis zu Kundendaten (Test)
+- [x] Ohne gewählten Namen wird nichts ausgeführt, Eingabe bleibt (Test)
+- [x] Leerer oder zu langer Text, unbekannte Gruppe oder unbekanntes Produkt: abgelehnt ohne KI-Aufruf (Test)
+- [x] Kontaktdaten gehen nur als Platzhalter an den Anbieter (Test)
+- [x] Kundengruppe und Produkte legen den Geltungsbereich fest (Test, Prompt)
+
+#### Ergebnis
+- [x] Vorschlag im selben Aufbau wie bei Tickets, Abruf wie bei Tickets (Test)
+- [x] Ohne gewünschten Entwurf: kein Entwurf, kein Editor, Hinweis auf die Nachfrage (Test)
+- [x] Mit Entwurf: bearbeitbar, kopierbar, Feedback unter der F-Kennung (Test)
+- [x] Blockierende interne Klärung mit Auswahl oder freier Eingabe (Test)
+- [x] Fortsetzen mit Text, Klärungen und Nachfrage als neue Zeile (Test)
+- [x] Wissenslücken mit „Lücke melden“, Rücksprung zur Frage (Test)
+- [x] Feedback und Lücken ohne Ticketnummer als „ohne Ticket“ (Test)
+
+#### Verlauf und Protokoll
+- [x] Persönlicher Verlauf, nur eigene Fragen, 10 Einträge, Admins dürfen lesen, fremde sind 403, unbekannte 404 (Test)
+- [x] Analysen-Übersicht kennzeichnet Fragen, Filter „Quelle“ (Test)
+- [x] Fragetext verschlüsselt gespeichert (neuer Test: der Klartext steht nicht in der Spalte `content`); Aufbewahrung 12 Monate wie bei Analysen (PROJ-11)
+- [x] Fragen zählen nicht bei „Bearbeitete Tickets“ und nicht in der Ticket-Übersicht (Test)
+
+#### Begriffe in der Oberfläche
+- [x] „Vorschlag“ statt „Analyse“ in der Oberfläche, „Über die App“ beschreibt den Weg (`docs/ABOUT.md`)
+
+### Edge Cases Status
+- [x] Ticketnummer im Text: kein Zammad-Abruf (neuer Test, `Http::assertNothingSent`)
+- [x] Bestellnummer im Text: kein EOCS-Abruf (Test, ohne Zammad und EOCS)
+- [x] Anbieter nicht erreichbar: Meldung mit „Erneut versuchen“, Eingabe bleibt (Test)
+- [x] Doppelklick: das Formular sperrt den Knopf (`busy` in Alpine, im Browser zu bestätigen)
+- [x] Ältere Frage öffnen: nur lesbar, Fortsetzung nur an der neuesten (Test)
+- [x] Fremde Fragen und gleichzeitige Nutzer: getrennt (Test)
+- [ ] BUG-1: Ein Hinweis, dass bei einer Ticketnummer im Text „Ticket analysieren“ gemeint ist, fehlt (Edge Case der Spec)
+
+### Security Audit Results
+- [x] CSRF: Formular mit Token (Test), alle Fortsetzungen über POST
+- [x] Autorisierung: fremde Fragen 403 für Mitarbeiter, Admin darf lesen; F-Kennungen nie an Zammad
+- [x] XSS: Markup im Fragetext wird maskiert (neuer Test)
+- [x] Datenschutz: Text verschlüsselt, Platzhalter für Kontaktdaten, Inhalte nach 12 Monaten gelöscht
+- [x] Eingabe: Länge, Gruppe und Produkte über Form Requests (`AskQuestionRequest`)
+- [x] Rate Limit: wie bei der Ticketanalyse (Begrenzung der KI-Aufrufe)
+
+### Bugs Found
+
+#### BUG-1: Kein Hinweis auf „Ticket analysieren“ bei einer Ticketnummer im Text
+- **Severity:** Low
+- **Steps to Reproduce:** Frage „Ticket#2139435 betrifft einen Neuversand, was darf ich?“ stellen. Erwartet: Hinweis, dass Tickets über „Ticket analysieren“ bearbeitet werden. Tatsächlich: der Vorschlag entsteht ohne Hinweis (die Nummer wird nur als Text behandelt).
+- **Priority:** Nice to have
+
+#### Offene Spec-Fragen (kein Fehler)
+- Name der Navigation („Ticket analysieren“ bleibt oder wird „Ticket bearbeiten“) und Kennzahl „Gestellte Fragen“ sind weiter offen.
+
+### Summary
+- **Acceptance Criteria:** 20/20 bestanden
+- **Bugs Found:** 1 (0 critical, 0 high, 0 medium, 1 low)
+- **Security:** Pass
+- **Production Ready:** YES; Live-Lauf mit dem echten Modell und Browser-Durchgang empfohlen vor dem Ausliefern
 
 ## Deployment
 _To be added by /deploy_

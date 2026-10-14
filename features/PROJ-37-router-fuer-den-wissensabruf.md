@@ -1,6 +1,6 @@
 # PROJ-37: Router für den Wissensabruf
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-13
 **Last Updated:** 2026-10-13
 
@@ -566,6 +566,9 @@ Häufigste Ergänzungen: POLICY-029 (42 von 63), PLAYBOOK-018 und PRODUCT-006 (j
 - **Production Ready (erste Runde):** NEIN (BUG-1 High); nach den Korrekturen der zweiten Runde: **JA** aus Sicht der automatisierten Prüfung, vorbehaltlich Browser-Test und Freigabe
 - **Recommendation:** BUG-1 beheben (Standard `clear_only=false`), PLAYBOOK-014 `summary` gezielt nachbessern, Live-Prüfset erneut laufen lassen, dann Freigabe. Aktivierung bleibt ausgesetzt.
 
+
+### Abnahme (2026-10-14)
+Der Product Owner hat den Router im Betrieb beobachtet („scheint zu funktionieren“) und gibt ihn frei; die langfristige Wirkung wird weiter beobachtet. Der Router ist in dieser Umgebung aktiv (`router.active = true`, `clear_only = false`, `gpt-5.4`). Offen bleiben die bekannte Grenze der Vorauswahl bei sehr großen Wissensbasen und die Browserprüfung der Ergebnisansicht.
 
 ## Deployment
 _To be added by /deploy_
