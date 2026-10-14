@@ -2,7 +2,7 @@
 id: PRODUCT-002
 title: Zaubertasse mit Thermoeffekt
 type: product
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

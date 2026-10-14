@@ -2,7 +2,7 @@
 id: PRODUCT-005
 title: 'Lunchbox mit Holzdeckel: Material, Druck, Verschluss und Pflege'
 type: product
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

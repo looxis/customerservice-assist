@@ -2,7 +2,7 @@
 id: PRODUCT-006
 title: '3D-Glasfoto: Motivgröße, Platzierung und räumliche Tiefe'
 type: product
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:
