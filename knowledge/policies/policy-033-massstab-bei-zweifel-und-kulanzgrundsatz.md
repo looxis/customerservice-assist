@@ -15,6 +15,10 @@ related_knowledge:
 - PERMISSION-004
 - POLICY-004
 - POLICY-032
+- POLICY-007
+- POLICY-008
+- POLICY-035
+- POLICY-036
 summary: "Gilt bei jeder Reklamation oder Unzufriedenheit, wenn Details unklar oder subjektiv sind: Maßstab ist das Versprechen auf der Produktseite, der Vergleich mit Muster und Produktfotos und der gesunde Menschenverstand; im Zweifel ist Kulanz möglich."
 retrieval: core
 triggers:
@@ -37,7 +41,9 @@ Offene Einzelheiten dieser Art klärt der Mitarbeiter bei Bedarf kurz mit einem 
 
 # Kulanz im Zweifel
 
-Im Zweifel ist Kulanz möglich. Immer möglich ist eine kostenpflichtige Neuanfertigung als Kulanz mit reduziertem Preis auf Basis des ursprünglichen Produktpreises; der Kundenservice darf dafür bis zu 20 Prozent Nachlass selbst zusagen (PERMISSION-004). Diese Möglichkeit kann schon in der ersten Antwort genannt werden, auch wenn die Reklamation unberechtigt ist.
+Im Zweifel ist Kulanz möglich. Eine kostenpflichtige Neuanfertigung mit reduziertem Preis auf Basis des ursprünglichen Produktpreises kann nach PERMISSION-004 angeboten werden; deren Voraussetzungen, Grenzen und Bestellwege bleiben maßgeblich. Insbesondere müssen die technische Machbarkeit und ein gegebenenfalls erforderlicher Freigabeprozess beachtet werden. Bei eindeutigem Kundenfehler gelten die besonderen Preisregeln nach POLICY-007 beziehungsweise POLICY-008 einschließlich der Ausnahme für günstige Fachhändlerprodukte.
+
+Soweit PERMISSION-004 anwendbar ist, darf der Kundenservice bis zu 20 Prozent Nachlass selbst zusagen. Diese Möglichkeit kann schon in der ersten Antwort genannt werden, auch wenn die Reklamation unberechtigt ist. Es handelt sich um einen Nachlass auf eine neue Anfertigung; ein nachträglicher Nachlass auf bereits gelieferte, behaltene Ware ist gesondert nach POLICY-036 zu behandeln.
 
 # Grenzen
 

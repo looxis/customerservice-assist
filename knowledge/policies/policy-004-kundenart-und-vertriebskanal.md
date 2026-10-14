@@ -11,6 +11,12 @@ topics:
   - sales-channel
   - customer-type
 summary: "Gilt bei jedem Fall: Zuerst Kundenart und Vertriebskanal prüfen, bevor eine Regel angewendet wird."
+related_knowledge:
+- POLICY-034
+- POLICY-035
+- POLICY-036
+- PERMISSION-005
+- PERMISSION-006
 retrieval: core
 triggers:
 exclude_triggers:
@@ -43,6 +49,10 @@ Vor der Anwendung einer fachlichen Regel müssen Kundenart und Vertriebskanal fe
 
 Bei B2B können andere Bedingungen gelten. Bei LOOXIS-Pro sind insbesondere Rohware, Auslandsversand, höhere Versandkosten und möglicher Speditionsversand zu berücksichtigen. Daraus folgt noch keine pauschale Zuordnung der Kosten oder Zusage eines kostenfreien Ersatzversands.
 
+# Bestätigte Regeln für Foto-Fachhändler
+
+Für berechtigte Reklamationen gilt POLICY-034 mit PERMISSION-002 (Ersatz) und PERMISSION-005 (Erstattung). Rücksendungen regelt POLICY-010, Änderungen POLICY-032 und Kulanz bei Kundenfehlern POLICY-008. Kleine optische Beanstandungen richten sich nach POLICY-035, freiwillige nachträgliche Nachlässe nach POLICY-036 und PERMISSION-006. Diese Fragen sind nicht mehr pauschal offen; andere B2B-Gruppen bleiben gesondert zu prüfen.
+
 # Noch nicht entscheidbar
 
 Ist Kundenart oder Kanal nicht zuverlässig bekannt, zuerst die Bestell- und Kundenstammdaten intern prüfen. Sind sie dort nicht ermittelbar, den Kunden gezielt fragen, wo und in welcher Eigenschaft er bestellt hat.
@@ -52,5 +62,5 @@ Fehlen die für den Kanal oder B2B-Fall benötigten Regeln, ist eine Wissenslüc
 # Noch zu klären
 
 - Konkrete Abweichungen für Amazon.
-- Rücknahme, Reklamation, Ersatz und Erstattung bei Foto-Fachhändlern/Resellern.
+- Rückgabewünsche von Foto-Fachhändlern ohne Mangel oder unabhängig von einer Reklamationslösung; daraus folgt keine Lücke bei der in POLICY-034 geregelten Fehlerkorrektur.
 - Rücknahme, Reklamation, Ersatz und Erstattung bei LOOXIS-Pro, einschließlich Auslands- und Speditionsversand.

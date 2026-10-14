@@ -13,11 +13,16 @@ topics:
 related_knowledge:
 - PERMISSION-003
 - POLICY-004
+- PERMISSION-005
+- PERMISSION-006
 customer_types:
+- b2c
+- b2b-pro
+- b2b-whitelabel
 sales_channels:
 products:
 categories:
-summary: "Befugnis für reguläre Erstattungen bis 35 Euro. Gilt, sobald eine Erstattung gewünscht oder empfohlen wird."
+summary: "Befugnis für fachlich regelkonforme reguläre Erstattungen bis 35 Euro bei ausdrücklichem Kundenwunsch. Gilt nicht für Foto-Fachhändlererstattungen oder freiwillige nachträgliche Nachlässe auf beanstandete, behaltene Ware; dafür gelten gesonderte Freigaben."
 retrieval: binding
 triggers:
 - Erstattung
@@ -31,7 +36,7 @@ actions:
 - refund
 ---
 
-Gilt für alle Kundenarten und Vertriebskanäle; die besondere Amazon-Kulanzbefugnis ist in PERMISSION-003 geregelt.
+Gilt für Privatkunden, LOOXIS-Pro- und White-Label-Kunden auf ihren jeweiligen Vertriebskanälen, soweit eine fachlich anwendbare Erstattungsregel vorliegt. Gilt nicht für Foto-Fachhändler/Reseller; hierfür gilt PERMISSION-005. Die besondere Amazon-Kulanzbefugnis ist in PERMISSION-003 geregelt.
 
 # Befugnis
 
@@ -50,6 +55,8 @@ Der ursprüngliche Produktpreis über 35 Euro liegt. Zuständig ist der Geschäf
 # Ausnahme
 
 Für die vereinbarte Amazon-Teilerstattung auf eine Kulanz-Nachbestellung gilt PERMISSION-003 statt dieser Wertgrenze.
+
+Freiwillige nachträgliche Preisnachlässe für Privatkunden auf beanstandete Ware, die behalten wird, benötigen unabhängig vom Betrag die Geschäftsführerfreigabe nach PERMISSION-006. Die 35-Euro-Befugnis erlaubt diese freiwillige Ausnahme nicht.
 
 # Noch nicht entscheidbar
 
