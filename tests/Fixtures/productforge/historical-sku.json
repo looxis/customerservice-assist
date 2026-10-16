@@ -1,0 +1,27 @@
+{
+  "data": {
+    "product": {
+      "id": 4001,
+      "name": "Demo Altprodukt",
+      "sku": "DEMO-NEW-1",
+      "type": "standalone",
+      "status": "inactive",
+      "master": null
+    },
+    "resolution": {
+      "resolved_via": "historical_sku",
+      "requested_sku": "DEMO-OLD-1",
+      "current_sku": "DEMO-NEW-1",
+      "historical_sku_valid_until": "2026-03-01T08:00:00+00:00"
+    },
+    "content": {
+      "technical_data": {
+        "own": "Maße: 10 cm",
+        "from_master": null,
+        "combined": "Maße: 10 cm"
+      }
+    },
+    "data_version": "sha256:c0de0000000000000000000000000000000000000000000000000000000000cc",
+    "generated_at": "2026-10-17T09:32:00+00:00"
+  }
+}

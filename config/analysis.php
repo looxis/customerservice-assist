@@ -36,6 +36,7 @@ return [
         'analysis' => resource_path('prompts/analysis.md'),
         'analysis-retrieval' => resource_path('prompts/analysis-retrieval.md'),
         'analysis-question' => resource_path('prompts/analysis-question.md'),
+        'analysis-products' => resource_path('prompts/analysis-products.md'),
         'summary' => resource_path('prompts/summary.md'),
         'translation' => resource_path('prompts/translation.md'),
         'router' => resource_path('prompts/router.md'),
@@ -118,6 +119,32 @@ return [
     'limits' => [
         'context_characters' => (int) env('ANALYSIS_CONTEXT_CHARACTERS', 300000),
         'answer_reserve_characters' => (int) env('ANALYSIS_ANSWER_RESERVE_CHARACTERS', 30000),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product information from ProductForge (PROJ-38)
+    |--------------------------------------------------------------------------
+    |
+    | The fields go into the prompt by fixed priority within a character budget
+    | (not by relevance to the concern). A field is sent whole or not at all.
+    | "max_total" caps the section, "reserve" stays free for rules loaded later
+    | (safeguard). "channels" maps the sales channel of the customer group to
+    | the text channel of ProductForge; any other channel gets no sales texts.
+    |
+    */
+
+    'product_info' => [
+        'max_total' => (int) env('ANALYSIS_PRODUCT_INFO_CHARACTERS', 20000),
+        'reserve' => (int) env('ANALYSIS_PRODUCT_INFO_RESERVE', 8000),
+        'max_selected' => 5,
+        'channels' => [
+            'looxis-de' => 'shop',
+            'looxis-pro' => 'shop',
+            'masterpics' => 'shop',
+            'fachhaendler' => 'shop',
+            'amazon' => 'amazon',
+        ],
     ],
 
     /*

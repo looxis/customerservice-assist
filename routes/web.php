@@ -9,6 +9,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\ProcedureController;
+use App\Http\Controllers\ProductSearchController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
@@ -29,6 +30,8 @@ Route::get('/knowledge/dokument/{path}', [KnowledgeController::class, 'show'])
     ->name('knowledge.show');
 
 Route::get('/ueber-die-app', AboutController::class)->name('about');
+
+Route::get('/produktsuche', ProductSearchController::class)->middleware(['staff.selected', 'throttle:60,1'])->name('products.search');
 
 Route::post('/name', StaffSelectionController::class)->name('staff.select');
 Route::post('/testmodus', TestModeController::class)->name('test-mode.switch');

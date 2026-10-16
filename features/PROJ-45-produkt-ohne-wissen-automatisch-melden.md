@@ -6,7 +6,7 @@
 
 ## Dependencies
 - Requires: PROJ-42 (Produkt ohne hinterlegtes Wissen im Formular), PROJ-12 (Wissenslücke melden), PROJ-14/„Wissenslücken“-Seite für Admins, PROJ-40 (Fragen ohne Ticket).
-- Verwandt: PROJ-38 (Produktdaten aus EOCS und Content Studio; später kann dieselbe Erfassung den Abruf anstoßen).
+- Verwandt: PROJ-38 (Produktinformationen aus ProductForge; liefert der Katalog Kundenservice-Wissen zum Produkt, entfällt die automatische Meldung, sonst bleibt sie mit Vermerk „Produktdaten vorhanden“).
 
 ## Ausgangslage
 Nennt ein Mitarbeiter im Formular ein Produkt, zu dem es in der Wissensbasis nichts gibt (z. B. „LED-Leuchtsockel“), sagt der Vorschlag dazu bewusst nichts zu. Die Lücke wurde bisher nur gemeldet, wenn die Mitarbeiterin selbst auf „Wissenslücke melden“ klickte – das tun Aushilfen selten. Der Admin sah nicht, wie oft ein Produkt ohne Wissen nachgefragt wird, und das, was der Mitarbeiter über das Produkt wusste (Freitext „Zusätzliche Informationen“), ging verloren.
@@ -18,7 +18,7 @@ Nennt ein Mitarbeiter im Formular ein Produkt, zu dem es in der Wissensbasis nic
 - Als Wissensautor möchte ich zu einer Lücke die Angaben des Mitarbeiters sehen, damit ich nicht bei null anfange.
 
 ## Out of Scope
-- Abruf des Produktwissens aus EOCS oder dem Content Studio (PROJ-38).
+- Abruf des Produktwissens aus dem Produktkatalog (umgesetzt in PROJ-38).
 - Automatisches Anlegen oder Ändern eines Produktdokuments in `knowledge/`.
 - Automatische Zusammenführung abweichender Schreibweisen desselben Produkts („LED Leuchtsockel“ und „LED-Leuchtsockel“): derselbe Name in anderer Groß- und Kleinschreibung zählt zusammen, Varianten bleiben getrennte Einträge.
 - Meldung für Dokumente, die nur wegen fehlender Produktwahl außerhalb des Geltungsbereichs liegen (PROJ-44).

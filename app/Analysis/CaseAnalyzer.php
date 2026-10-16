@@ -17,6 +17,8 @@ use App\Knowledge\Retrieval\RetrievalResult;
 use App\Knowledge\Retrieval\RetrievedDocument;
 use App\Knowledge\Retrieval\Router\KnowledgeRouter;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
+use App\ProductForge\ProductPromptBuilder;
+use App\ProductForge\ProductPromptState;
 use Carbon\CarbonImmutable;
 
 /**
@@ -36,6 +38,7 @@ class CaseAnalyzer
         private readonly Translator $translator,
         private readonly KnowledgeRouter $router,
         private readonly KnowledgeGapLog $gaps,
+        private readonly ProductPromptBuilder $productPrompts,
     ) {}
 
     /**
@@ -64,6 +67,11 @@ class CaseAnalyzer
             $prompt = new Prompt($prompt->name, $prompt->version.'+'.$rules->version, $prompt->text."\n\n".$rules->text);
         }
 
+        if (! $request->productPackage->isEmpty()) {
+            $productRules = Prompt::load('analysis-products');
+            $prompt = new Prompt($prompt->name, $prompt->version.'+'.$productRules->version, $prompt->text."\n\n".$productRules->text);
+        }
+
         if ($request->isQuestion()) {
             $questionRules = Prompt::load('analysis-question');
             $prompt = new Prompt($prompt->name, $prompt->version.'+'.$questionRules->version, $prompt->text."\n\n".$questionRules->text);
@@ -71,6 +79,7 @@ class CaseAnalyzer
 
         $outOfScope = $active ? $this->outOfScope($request, $context) : [];
         $parts = $this->parts($request, $pseudonymizer->hasDeliveryAddress(), $active);
+        $products = $request->productPackage->isEmpty() ? null : new ProductPromptState($this->productPrompts, $request->productPackage, $this->productPrompts->channel($request->customerGroup));
         $started = hrtime(true);
         $retrieval = null;
         $hints = [];
@@ -78,7 +87,7 @@ class CaseAnalyzer
 
         if ($active) {
             try {
-                [$selection, $retrieval, $hints, $router] = $this->retrieve($request, $context, $selection, $prompt, $parts, $pseudonymizer);
+                [$selection, $retrieval, $hints, $router] = $this->retrieve($request, $context, $selection, $prompt, $parts, $pseudonymizer, $products);
             } catch (KnowledgeTooLarge) {
                 $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, AnalysisProblem::KnowledgeTooLarge->name, intdiv(hrtime(true) - $started, 1_000_000));
 
@@ -86,13 +95,19 @@ class CaseAnalyzer
             }
         }
 
+        if ($products !== null && ! $active) {
+            $remaining = (int) config('analysis.limits.context_characters') - (int) config('analysis.limits.answer_reserve_characters') - mb_strlen($prompt->text) - mb_strlen($this->compose($parts, $this->knowledgeSection($selection, $hints)));
+            $products->fit(max(0, $remaining));
+        }
+
+        $parts['products'] = $products?->text() ?? '';
         $totals = ['attempts' => 0, 'duration' => 0, 'input' => 0, 'output' => 0];
         $pass = $this->pass($request, $prompt, $parts, $selection, $hints, $pseudonymizer, $model, $totals, $started, true);
         $safeguard = null;
-        $notes = [...$request->notes];
+        $notes = [...$request->notes, ...($products?->prompt()->notes ?? [])];
 
         if ($retrieval !== null) {
-            [$pass, $selection, $hints, $safeguard] = $this->safeguard($request, $prompt, $parts, $selection, $hints, $retrieval, $pass, $pseudonymizer, $model, $totals, $started);
+            [$pass, $selection, $hints, $safeguard] = $this->safeguard($request, $prompt, $parts, $selection, $hints, $retrieval, $pass, $pseudonymizer, $model, $totals, $started, $products);
             $notes = [...$notes, ...$this->retrievalNotes($retrieval, $selection, $hints, $safeguard)];
         }
 
@@ -127,6 +142,7 @@ class CaseAnalyzer
             'notes' => [...$notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
+            ...($products === null ? [] : ['product_data' => $request->productPackage->toStored(), 'product_sent' => $products->prompt()->record]),
             ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
             'meta' => [
                 'staff' => $request->staffName,
@@ -149,6 +165,7 @@ class CaseAnalyzer
                 'customer_group' => $request->customerGroup->key,
                 'products' => $request->products,
                 'unknown_product' => $request->unknownProduct,
+                'product_info_status' => $request->productPackage->status(),
                 'orders' => array_map(fn (EocsOrder $order): string => $order->externalNumber, $request->orders),
                 'duration_ms' => $totals['duration'],
                 'input_tokens' => $totals['input'],
@@ -158,8 +175,14 @@ class CaseAnalyzer
             ],
         ]);
 
-        if ($request->unknownProduct !== null) {
-            $this->gaps->reportUnknownProduct($id, $request->unknownProduct, $request->isQuestion() ? (string) $request->questionText : $request->employeeContext, $request->staffName);
+        if ($request->unknownProduct !== null && ! $request->productPackage->hasServiceKnowledge()) {
+            $text = $request->isQuestion() ? (string) $request->questionText : $request->employeeContext;
+
+            if ($request->productPackage->affected() !== []) {
+                $text = "Produktdaten in ProductForge vorhanden, aber kein Kundenservice-Wissen.\n".$text;
+            }
+
+            $this->gaps->reportUnknownProduct($id, $request->unknownProduct, $text, $request->staffName);
         }
 
         return $id;
@@ -168,7 +191,7 @@ class CaseAnalyzer
     /**
      * One round with the language model, including the one repeat for an unusable answer.
      *
-     * @param  array{case: string, orders: string, employee: string, ticket: string, rules: string}  $parts
+     * @param  array{case: string, orders: string, products?: string, employee: string, ticket: string, rules: string}  $parts
      * @param  array<string, RetrievedDocument>  $hints
      * @param  array{attempts: int, duration: int, input: int, output: int}  $totals
      * @return array{answer: array<string, mixed>, checked: array<string, mixed>, input: string}
@@ -214,12 +237,12 @@ class CaseAnalyzer
      * the rest, pick the documents. Returns the selection in the shape the rest of the analysis
      * knows, the result of the retrieval and the hints for documents whose condition is unclear.
      *
-     * @param  array{case: string, orders: string, employee: string, ticket: string, rules: string}  $parts
+     * @param  array{case: string, orders: string, products?: string, employee: string, ticket: string, rules: string}  $parts
      * @return array{0: KnowledgeSelection, 1: RetrievalResult, 2: array<string, RetrievedDocument>, 3: RouterOutcome}
      *
      * @throws KnowledgeTooLarge
      */
-    private function retrieve(AnalysisRequest $request, CaseContext $context, KnowledgeSelection $base, Prompt $prompt, array $parts, Pseudonymizer $pseudonymizer): array
+    private function retrieve(AnalysisRequest $request, CaseContext $context, KnowledgeSelection $base, Prompt $prompt, array $parts, Pseudonymizer $pseudonymizer, ?ProductPromptState $products = null): array
     {
         $facts = $this->facts->build(
             $request->ticket,
@@ -240,6 +263,16 @@ class CaseAnalyzer
 
         if ($router->additions !== []) {
             $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available, $router->additions);
+        }
+
+        // Product information (PROJ-38) only gets what is left after the mandatory knowledge and a reserve
+        // for rules loaded later; the optional documents then take the rest, so binding rules never give way.
+        if ($products !== null) {
+            $products->fit(max(0, min((int) config('analysis.product_info.max_total'), $available - $result->mandatoryCharacters - (int) config('analysis.product_info.reserve'))));
+
+            if ($products->characters() > 0) {
+                $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, max(0, $available - $products->characters()), $router->additions);
+            }
         }
 
         $warnings = [...array_values(array_filter($base->warnings, fn (string $warning): bool => ! str_starts_with($warning, 'Der Umfang'))), ...$result->warnings];
@@ -279,13 +312,13 @@ class CaseAnalyzer
      * did not ask for. The binding documents of that measure that are not in the prompt are added
      * and the analysis runs once more. If that is not possible, the warning says so; the first result stays.
      *
-     * @param  array{case: string, orders: string, employee: string, ticket: string, rules: string}  $parts
+     * @param  array{case: string, orders: string, products?: string, employee: string, ticket: string, rules: string}  $parts
      * @param  array<string, RetrievedDocument>  $hints
      * @param  array{answer: array<string, mixed>, checked: array<string, mixed>, input: string}  $pass
      * @param  array{attempts: int, duration: int, input: int, output: int}  $totals
      * @return array{0: array{answer: array<string, mixed>, checked: array<string, mixed>, input: string}, 1: KnowledgeSelection, 2: array<string, RetrievedDocument>, 3: array{first_actions: list<string>, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>}}
      */
-    private function safeguard(AnalysisRequest $request, Prompt $prompt, array $parts, KnowledgeSelection $selection, array $hints, RetrievalResult $retrieval, array $pass, Pseudonymizer $pseudonymizer, string $model, array &$totals, int|float $started): array
+    private function safeguard(AnalysisRequest $request, Prompt $prompt, array $parts, KnowledgeSelection $selection, array $hints, RetrievalResult $retrieval, array $pass, Pseudonymizer $pseudonymizer, string $model, array &$totals, int|float $started, ?ProductPromptState $products = null): array
     {
         $actions = array_values($pass['checked']['result']['actions'] ?? []);
         $record = ['first_actions' => $actions, 'loaded' => [], 'load_actions' => [], 'failed' => false, 'not_considered' => []];
@@ -296,15 +329,24 @@ class CaseAnalyzer
         }
 
         $room = $this->room($retrieval, $selection);
+        $free = $room + ($products?->characters() ?? 0);
         $added = [];
+        $needed = 0;
 
+        // Binding rules come before product information: the product section gives way if the room is short.
         foreach ($missing as $document) {
-            if ($document->length() > $room) {
+            if ($document->length() > $free) {
                 continue;
             }
 
-            $room -= $document->length();
+            $free -= $document->length();
+            $needed += $document->length();
             $added[(string) $document->id] = $document;
+        }
+
+        if ($products !== null && $needed > $room) {
+            $products->shrink($needed - $room);
+            $parts['products'] = $products->text();
         }
 
         foreach ($missing as $document) {
@@ -489,7 +531,7 @@ class CaseAnalyzer
     /**
      * The sections of the prompt except the knowledge (PROJ-36 measures them before it chooses).
      *
-     * @return array{case: string, orders: string, employee: string, ticket: string, rules: string}
+     * @return array{case: string, orders: string, products: string, employee: string, ticket: string, rules: string}
      */
     private function parts(AnalysisRequest $request, bool $hasDeliveryAddress, bool $neutralShipping): array
     {
@@ -499,8 +541,10 @@ class CaseAnalyzer
             'case' => "# Fall\n"
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
-                .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} (Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu)"),
+                .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} (Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu"
+                    .($request->productPackage->affected() === [] ? '' : '; Produktinformationen aus dem Katalog siehe Abschnitt „Produktinformationen“').')'),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
+            'products' => '',
             'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
                 .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),
             'ticket' => $request->isQuestion()
@@ -524,11 +568,11 @@ class CaseAnalyzer
     }
 
     /**
-     * @param  array{case: string, orders: string, employee: string, ticket: string, rules: string}  $parts
+     * @param  array{case: string, orders: string, products?: string, employee: string, ticket: string, rules: string}  $parts
      */
     private function compose(array $parts, string $knowledge): string
     {
-        return implode("\n\n", [$parts['case'], $parts['orders'], $parts['employee'], $parts['ticket'], $knowledge, $parts['rules']]);
+        return implode("\n\n", array_filter([$parts['case'], $parts['orders'], $parts['employee'], $parts['ticket'], $parts['products'] ?? '', $knowledge, $parts['rules']], fn (string $part): bool => $part !== ''));
     }
 
     /**

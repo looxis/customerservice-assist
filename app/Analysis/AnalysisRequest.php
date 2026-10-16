@@ -4,6 +4,7 @@ namespace App\Analysis;
 
 use App\Eocs\EocsOrder;
 use App\Knowledge\CustomerGroup;
+use App\ProductForge\ProductPackage;
 use App\Zammad\Ticket;
 
 /**
@@ -23,6 +24,7 @@ final readonly class AnalysisRequest
      * @param  string|null  $questionText  The text of a question without a ticket (PROJ-40); null for a ticket.
      * @param  bool  $replyWanted  Whether a reply draft for the customer was asked for (always true for a ticket).
      * @param  string|null  $unknownProduct  Name of a product the employee typed because the knowledge base has none (PROJ-42).
+     * @param  ProductPackage  $productPackage  Product information retrieved from ProductForge for this case (PROJ-38).
      */
     public function __construct(
         public Ticket $ticket,
@@ -42,6 +44,7 @@ final readonly class AnalysisRequest
         public ?string $questionText = null,
         public bool $replyWanted = true,
         public ?string $unknownProduct = null,
+        public ProductPackage $productPackage = new ProductPackage,
     ) {}
 
     public function isQuestion(): bool

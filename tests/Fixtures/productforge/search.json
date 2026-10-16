@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "id": 2001,
+      "name": "Demo Tortenaufleger eckig",
+      "sku": "DEMO-SQUARE",
+      "type": "master",
+      "status": "active",
+      "master": null
+    },
+    {
+      "id": 2002,
+      "name": "Demo Tortenaufleger eckig 16 cm",
+      "sku": "DEMO-SQUARE-16",
+      "type": "variant",
+      "status": "active",
+      "master": {
+        "id": 2001,
+        "name": "Demo Tortenaufleger eckig",
+        "sku": "DEMO-SQUARE"
+      }
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 2,
+    "total": 5,
+    "last_page": 3
+  }
+}

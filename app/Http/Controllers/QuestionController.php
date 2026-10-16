@@ -14,6 +14,8 @@ use App\Analysis\QuestionTicket;
 use App\Http\Requests\AskQuestionRequest;
 use App\Http\Requests\FollowUpQuestionRequest;
 use App\Knowledge\KnowledgeSelector;
+use App\ProductForge\ProductForgeClient;
+use App\ProductForge\ProductResolver;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use Illuminate\Contracts\View\View;
@@ -26,7 +28,7 @@ use Illuminate\Http\Request;
  */
 class QuestionController extends Controller
 {
-    public function create(Request $request, KnowledgeSelector $selector, AnalysisStore $store, StaffDirectory $staff): View
+    public function create(Request $request, KnowledgeSelector $selector, AnalysisStore $store, StaffDirectory $staff, ProductForgeClient $forge): View
     {
         $name = $staff->current($request);
 
@@ -39,6 +41,7 @@ class QuestionController extends Controller
                 'suggestedProducts' => [],
                 'productReasons' => [],
                 'mentionedProducts' => [],
+                'forge' => ['enabled' => $forge->isConfigured(), 'candidates' => [], 'selected' => [], 'notices' => []],
             ],
             'recent' => $name === null ? [] : $store->recentQuestions($name, (int) config('analysis.question_history')),
         ]);
@@ -47,7 +50,7 @@ class QuestionController extends Controller
     /**
      * Ask a new question and show the proposal.
      */
-    public function store(AskQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff): RedirectResponse
+    public function store(AskQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff, ProductResolver $productResolver): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -55,6 +58,12 @@ class QuestionController extends Controller
         $text = trim((string) $request->validated('text'));
         $replyWanted = $request->boolean('antwortentwurf');
         $products = array_values($request->validated('produkte', []));
+        $package = $productResolver->resolve($request->forgeSelection(), null);
+        $unknownProduct = $request->unknownProduct();
+
+        if ($unknownProduct === null && $products === [] && ! $request->boolean('kein_produktbezug')) {
+            $unknownProduct = $package->displayName();
+        }
 
         try {
             $id = $analyzer->analyze(new AnalysisRequest(
@@ -67,10 +76,11 @@ class QuestionController extends Controller
                 employeeContext: '',
                 variant: ContextVariant::FullThread,
                 summary: null,
-                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'antwortentwurf' => $replyWanted],
+                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'forge_produkte' => array_column($request->forgeSelection(), 'id'), 'forge_sku' => array_filter(array_column($request->forgeSelection(), 'sku', 'id')), 'antwortentwurf' => $replyWanted],
                 questionText: $text,
                 replyWanted: $replyWanted,
-                unknownProduct: $request->unknownProduct(),
+                unknownProduct: $unknownProduct,
+                productPackage: $package,
             ));
         } catch (AnalysisException $exception) {
             return redirect()->route('questions.create')->withInput()
@@ -98,7 +108,7 @@ class QuestionController extends Controller
     /**
      * A follow-up or the result of a clarification: a new version of the proposal with everything so far.
      */
-    public function followUp(string $number, FollowUpQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff): RedirectResponse
+    public function followUp(string $number, FollowUpQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff, ProductResolver $productResolver): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -108,6 +118,9 @@ class QuestionController extends Controller
         $inputs = (array) ($parent['inputs'] ?? []);
         $replyWanted = $request->replyWanted();
         $products = array_values((array) ($inputs['produkte'] ?? []));
+        $selection = array_map(fn (mixed $id): array => ['id' => (int) $id, 'sku' => is_string($inputs['forge_sku'][$id] ?? null) ? $inputs['forge_sku'][$id] : null], array_values((array) ($inputs['forge_produkte'] ?? [])));
+        $package = $productResolver->resolve($selection, (array) ($parent['product_data'] ?? []) ?: null);
+        $typed = is_string($inputs['produkt_ohne_wissen'] ?? null) && trim($inputs['produkt_ohne_wissen']) !== '' ? trim($inputs['produkt_ohne_wissen']) : null;
 
         try {
             $id = $analyzer->analyze(new AnalysisRequest(
@@ -124,7 +137,8 @@ class QuestionController extends Controller
                 decisions: $request->decisions($by),
                 questionText: $text,
                 replyWanted: $replyWanted,
-                unknownProduct: is_string($inputs['produkt_ohne_wissen'] ?? null) && trim($inputs['produkt_ohne_wissen']) !== '' ? trim($inputs['produkt_ohne_wissen']) : null,
+                unknownProduct: $typed ?? ($products === [] && empty($inputs['kein_produktbezug']) ? $package->displayName() : null),
+                productPackage: $package,
             ));
         } catch (AnalysisException $exception) {
             return redirect()->to(route('questions.show', ['number' => $number, 'analyse' => $request->input('klaerung_analyse')]).'#nachfrage')->withInput()

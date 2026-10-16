@@ -271,6 +271,49 @@
                 @endforelse
             </x-analysis.section>
 
+            @if (($result['product_sent'] ?? null) !== null)
+                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'all' => 'alle Felder'])
+                @php($reasonLabels = ['budget' => 'zu umfangreich für den Platz im Prompt', 'channel_unclear' => 'Kanal unklar', 'not_affected' => 'nicht als betroffen markiert'])
+                @php($forgeProducts = collect($result['product_data']['products'] ?? [])->keyBy('id'))
+                @php($sent = $result['product_sent'])
+                <x-analysis.section title="Produktinformationen" :count="count($sent['sent']['products'] ?? [])">
+                    @foreach ($sent['sent']['products'] ?? [] as $productId => $fields)
+                        @php($product = $forgeProducts->get($productId) ?? ['name' => 'Produkt '.$productId, 'sku' => null])
+                        <details class="group/product border-b border-slate-100 last:border-b-0">
+                            <summary class="flex cursor-pointer list-none flex-wrap items-center gap-2 py-2 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                                <x-icon name="chevron-right" size="14" class="text-slate-400 transition group-open/product:rotate-90" />
+                                <span class="font-medium">{{ $product['name'] }}</span>
+                                @if ($product['sku'] ?? null)<span class="font-mono text-xs text-slate-600">{{ $product['sku'] }}</span>@endif
+                                <span class="text-xs text-slate-600">abgerufen {{ \Carbon\CarbonImmutable::parse($product['fetched_at'] ?? now())->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span>
+                                @if (in_array((int) $productId, $result['product_data']['reused'] ?? [], true))<x-badge compact tone="info">aus erstem Schritt übernommen</x-badge>@endif
+                            </summary>
+                            <div class="pb-4 pl-6 text-sm">
+                                @foreach ($fields as $field => $fieldText)
+                                    <p class="mt-2 font-semibold">{{ $fieldLabels[$field] ?? $field }}</p>
+                                    <p class="whitespace-pre-line">{{ $fieldText }}</p>
+                                @endforeach
+                                @if ($admin)
+                                    <p class="mt-3 text-xs text-slate-600">ID {{ $productId }} · {{ $product['resolved_via'] ?? '–' }} · {{ $product['data_version'] ?? '–' }}</p>
+                                @endif
+                            </div>
+                        </details>
+                    @endforeach
+                    @foreach ($sent['sent']['shared'] ?? [] as $shared)
+                        <p class="mt-2 text-sm"><span class="font-semibold">Gemeinsamer Wissensursprung: {{ $shared['title'] }}</span><br><span class="whitespace-pre-line">{{ $shared['text'] }}</span></p>
+                    @endforeach
+                    @if (($sent['omitted'] ?? []) !== [])
+                        <p class="mt-3 text-sm text-slate-700">Nicht mitgesendet:
+                            {{ collect($sent['omitted'])->map(fn ($entry) => ($fieldLabels[$entry['field']] ?? $entry['field']).' ('.($reasonLabels[$entry['reason']] ?? $entry['reason']).')')->unique()->implode(', ') }}.</p>
+                    @endif
+                    @if (($sent['problems'] ?? []) !== [])
+                        <p class="mt-3 text-sm font-medium text-warning-700">Zu einem Produkt konnten keine Produktinformationen abgerufen werden. Der Vorschlag nutzt dazu nur die Wissensbasis.</p>
+                    @endif
+                    @if (($sent['sent']['products'] ?? []) === [] && ($sent['problems'] ?? []) === [])
+                        <p class="text-slate-600">Es wurden keine Produktfelder mitgesendet.</p>
+                    @endif
+                </x-analysis.section>
+            @endif
+
             @if ($retrieval)
                 <x-analysis.retrieval :result="$result" :number="$number" :retrieval="$retrieval" :meta="$meta" :is-latest="$isLatest" :admin="$admin" :stand="$stand" />
             @endif

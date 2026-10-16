@@ -1,0 +1,108 @@
+{
+  "data": {
+    "product": {
+      "id": 2002,
+      "name": "Demo Tortenaufleger eckig 16 cm",
+      "sku": "DEMO-SQUARE-16",
+      "type": "variant",
+      "status": "active",
+      "master": {
+        "id": 2001,
+        "name": "Demo Tortenaufleger eckig",
+        "sku": "DEMO-SQUARE",
+        "type": "master",
+        "status": "active"
+      }
+    },
+    "resolution": {
+      "resolved_via": "current_sku",
+      "requested_sku": "DEMO-SQUARE-16",
+      "current_sku": "DEMO-SQUARE-16",
+      "historical_sku_valid_until": null
+    },
+    "content": {
+      "technical_data": {
+        "own": "Format: 16 x 16 cm",
+        "from_master": "Material: Beispiel-Zuckerpapier; Dicke: 0,3 mm",
+        "combined": "Material: Beispiel-Zuckerpapier; Dicke: 0,3 mm\n\nFormat: 16 x 16 cm"
+      },
+      "included_in_delivery": {
+        "own": null,
+        "from_master": "1 Aufleger",
+        "combined": "1 Aufleger"
+      },
+      "care_instructions": {
+        "own": null,
+        "from_master": null,
+        "combined": null
+      },
+      "warnings": {
+        "own": null,
+        "from_master": "Trocken und lichtgeschützt lagern.",
+        "combined": "Trocken und lichtgeschützt lagern."
+      },
+      "description": {
+        "language": "de",
+        "format": "plain_text",
+        "shop": {
+          "own": "Jetzt in 16 cm.",
+          "from_master": "Beispielbeschreibung für den Shop.",
+          "combined": "Beispielbeschreibung für den Shop.\n\nJetzt in 16 cm.",
+          "mirrors_amazon": false
+        },
+        "amazon": {
+          "own": null,
+          "from_master": "Beispielbeschreibung für Amazon.",
+          "combined": "Beispielbeschreibung für Amazon."
+        }
+      },
+      "bullet_points": {
+        "format": {
+          "shop": "text; only <b></b> markup allowed",
+          "amazon": "plain_text"
+        },
+        "positions": [
+          {
+            "position": 1,
+            "variable": false,
+            "shop": "<b>Beispiel</b>-Vorteil",
+            "amazon": "Beispiel-Vorteil",
+            "shop_source": "master",
+            "amazon_source": "master"
+          },
+          {
+            "position": 2,
+            "variable": true,
+            "shop": "Passend für 16 cm",
+            "amazon": "Passend für 16 cm",
+            "shop_source": "variant",
+            "amazon_source": "variant"
+          }
+        ]
+      },
+      "customer_service_knowledge": {
+        "combined": "Beispieltext des Ursprungs (fiktiv).\n\nErgänzung zum eckigen Produkt (fiktiv).",
+        "origin_text": "Beispieltext des Ursprungs (fiktiv).",
+        "own_text": "Ergänzung zum eckigen Produkt (fiktiv).",
+        "origin": {
+          "id": 2010,
+          "name": "Demo Tortenaufleger rund",
+          "sku": "DEMO-ROUND",
+          "type": "master",
+          "status": "active"
+        },
+        "holder": {
+          "id": 2001,
+          "name": "Demo Tortenaufleger eckig",
+          "sku": "DEMO-SQUARE",
+          "type": "master",
+          "status": "active"
+        },
+        "inherited_from_master": true,
+        "holder_is_successor": false
+      }
+    },
+    "data_version": "sha256:3f1c0000000000000000000000000000000000000000000000000000000000aa",
+    "generated_at": "2026-10-17T09:30:00+00:00"
+  }
+}

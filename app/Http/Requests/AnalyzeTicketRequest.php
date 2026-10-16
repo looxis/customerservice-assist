@@ -131,7 +131,7 @@ class AnalyzeTicketRequest extends FormRequest
      *
      * @return array<string, mixed>|null
      */
-    private function parentAnalysis(): ?array
+    public function parentAnalysis(): ?array
     {
         if ($this->parent !== null || ! is_string($this->input('klaerung_analyse')) || $this->input('klaerung_analyse') === '') {
             return $this->parent;

@@ -88,4 +88,26 @@ return [
         'timeout' => env('EOCS_TIMEOUT', 10),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | ProductForge / LOOXIS Content Studio (PROJ-38)
+    |--------------------------------------------------------------------------
+    |
+    | Read-only product information API v1 (docs/productforge-product-api.md).
+    | "url" is the host root; /api/v1 is appended. The bearer token is only
+    | used server-side. "order_lookup" switches the automatic assignment of
+    | order positions (EOCS item_id = ProductForge SKU) on; products not yet
+    | maintained in ProductForge simply stay unknown. "timeout" is in seconds
+    | (capped at 30).
+    |
+    */
+
+    'productforge' => [
+        'url' => env('PRODUCTFORGE_URL'),
+        'token' => env('PRODUCTFORGE_TOKEN'),
+        'timeout' => env('PRODUCTFORGE_TIMEOUT', 10),
+        'retries' => env('PRODUCTFORGE_RETRIES', 2),
+        'order_lookup' => env('PRODUCTFORGE_ORDER_LOOKUP', true),
+    ],
+
 ];

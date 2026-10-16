@@ -13,6 +13,10 @@ use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Knowledge\ProcedureFinder;
 use App\Knowledge\ProcedureRenderer;
+use App\ProductForge\ForgeProduct;
+use App\ProductForge\KnowledgeAreaSuggester;
+use App\ProductForge\ProductForgeClient;
+use App\ProductForge\ProductForgeException;
 use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
@@ -29,6 +33,8 @@ class AnalysisPanel
         private readonly AnalysisStore $store,
         private readonly KnowledgeLibrary $library,
         private readonly KnowledgeMarkdown $markdown,
+        private readonly ProductForgeClient $forge,
+        private readonly KnowledgeAreaSuggester $areas,
     ) {}
 
     /**
@@ -75,6 +81,7 @@ class AnalysisPanel
             'groupSource' => $groupSource,
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
             ...$this->productSuggestions($context, $orders, $inputs['produkte'] ?? $choice['products'] ?? null),
+            'forge' => $this->forgeChoice($orders, $inputs, $result),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
             'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
@@ -261,6 +268,88 @@ class AnalysisPanel
             'suggestedProducts' => $chosen ?? $suggested,
             'productReasons' => $reasons,
             'mentionedProducts' => $chosen === null ? [] : array_values(array_diff(array_keys($fromText), $chosen)),
+        ];
+    }
+
+    /**
+     * The catalog products for the form (PROJ-38): the order positions found by their SKU (only when the
+     * automatic assignment is switched on) and the products chosen before. Nothing is guessed: a SKU
+     * that ProductForge does not know is named as unknown.
+     *
+     * @param  list<EocsOrder>  $orders
+     * @param  array<string, mixed>  $inputs
+     * @param  array<string, mixed>|null  $result
+     * @return array{enabled: bool, candidates: list<array<string, mixed>>, selected: list<int>, notices: list<string>}
+     */
+    private function forgeChoice(array $orders, array $inputs, ?array $result): array
+    {
+        if (! $this->forge->isConfigured()) {
+            return ['enabled' => false, 'candidates' => [], 'selected' => [], 'notices' => []];
+        }
+
+        $candidates = [];
+        $notices = [];
+        $tried = [];
+
+        if ((bool) config('services.productforge.order_lookup')) {
+            foreach ($orders as $order) {
+                foreach ($order->items as $item) {
+                    $sku = $item->itemNumber;
+
+                    if ($sku === null || $sku === '' || isset($tried[$sku])) {
+                        continue;
+                    }
+
+                    $tried[$sku] = true;
+
+                    try {
+                        $product = $this->forge->bySku($sku);
+                    } catch (ProductForgeException $exception) {
+                        $notices[] = "Position „{$item->name}“ (Art.-Nr. {$sku}): ".$exception->problem->message();
+
+                        continue;
+                    }
+
+                    $candidates[$product->id] ??= $this->candidate($product->identity(), $product->hasServiceKnowledge(), "Position: {$item->quantity} × {$item->name}", $sku);
+                }
+            }
+        }
+
+        $saved = [];
+
+        foreach ((array) ($result['product_data']['products'] ?? []) as $snapshot) {
+            $saved[(int) ($snapshot['id'] ?? 0)] = (array) $snapshot;
+        }
+
+        $selected = array_values(array_map('intval', (array) ($inputs['forge_produkte'] ?? [])));
+
+        foreach ($selected as $id) {
+            if (! isset($candidates[$id])) {
+                $snapshot = $saved[$id] ?? ['id' => $id, 'name' => 'Produkt '.$id, 'sku' => null, 'type' => 'standalone', 'status' => 'active', 'master' => null];
+                $product = ForgeProduct::fromSnapshot([...$snapshot, 'fetched_at' => $snapshot['fetched_at'] ?? now()->toIso8601String()]);
+                $candidates[$id] = $this->candidate($product->identity(), $product->hasServiceKnowledge(), 'zuvor gewählt', null);
+            }
+        }
+
+        if ($selected === [] && count($candidates) === 1) {
+            $selected = [array_key_first($candidates)];
+        }
+
+        return ['enabled' => true, 'candidates' => array_values($candidates), 'selected' => $selected, 'notices' => $notices];
+    }
+
+    /**
+     * @param  array{id: int, name: string, sku: ?string, type: string, status: string, master: ?array<string, mixed>}  $identity
+     * @return array<string, mixed>
+     */
+    private function candidate(array $identity, bool $hasServiceKnowledge, string $source, ?string $skuUsed): array
+    {
+        return [
+            ...$identity,
+            'source' => $source,
+            'sku_used' => $skuUsed,
+            'has_service_knowledge' => $hasServiceKnowledge,
+            'knowledge_slugs' => $this->areas->slugsFor($identity),
         ];
     }
 

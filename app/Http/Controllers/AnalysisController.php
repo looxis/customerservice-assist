@@ -24,6 +24,7 @@ use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
+use App\ProductForge\ProductResolver;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\OrderMentionItem;
@@ -40,7 +41,7 @@ class AnalysisController extends Controller
      * Run an analysis (stage 2, creating or refreshing the summary first when
      * that variant is chosen) and show the ticket with the result.
      */
-    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode): RedirectResponse
+    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode, ProductResolver $productResolver): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -106,6 +107,21 @@ class AnalysisController extends Controller
         if ($variant === ContextVariant::FullThread && $context->offersVariants() && mb_strlen($context->text($variant)) > (int) config('analysis.max_input_characters')) {
             return $back('Der Verlauf ist zu lang für die KI. Bitte „Letzte Kundennachricht + Zusammenfassung“ wählen – die letzte Kundennachricht wird immer vollständig übertragen.');
         }
+        // Product information (PROJ-38): a continuation keeps the data package of the case and only fetches
+        // products that are new; every other analysis fetches again and points out changed data.
+        $parent = $request->parentAnalysis();
+        $latestId = $store->latest($ticket->summaryKey());
+        $package = $productResolver->resolve(
+            $request->forgeSelection(),
+            $parent === null ? null : ((array) ($parent['product_data'] ?? []) ?: null),
+            $latestId === null ? null : ($store->result($latestId)['product_data'] ?? null),
+        );
+        $unknownProduct = $request->unknownProduct();
+
+        if ($unknownProduct === null && $request->validated('produkte', []) === [] && ! $request->boolean('kein_produktbezug')) {
+            $unknownProduct = $package->displayName();
+        }
+
         try {
             if ($variant === ContextVariant::LastWithSummary && ($summary === null || $summary->isStale($context->earlierFingerprint()))) {
                 if ($summary?->edited) {
@@ -125,12 +141,13 @@ class AnalysisController extends Controller
                 employeeContext: (string) $request->validated('kontext', ''),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'forge_sku', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),
                 decisions: $request->decisions((string) $staff->current($request)) ?? [],
-                unknownProduct: $request->unknownProduct(),
+                unknownProduct: $unknownProduct,
+                productPackage: $package,
             ));
         } catch (AnalysisException $exception) {
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);

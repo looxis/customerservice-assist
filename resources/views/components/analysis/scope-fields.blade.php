@@ -10,7 +10,16 @@
     $titles = collect($analysis['products'])->mapWithKeys(fn (array $product): array => [$product['slug'] => $product['name'] ?? $product['title']]);
     $reasons = $analysis['productReasons'] ?? [];
     $mentioned = array_map(fn (string $slug): string => '„'.($titles[$slug] ?? $slug).'“', $analysis['mentionedProducts'] ?? []);
+    $forge = $analysis['forge'] ?? ['enabled' => false, 'candidates' => [], 'selected' => [], 'notices' => []];
+    $forgeEnabled = (bool) $forge['enabled'];
+    $forgeSelected = array_values(array_map('intval', (array) old('forge_produkte', $forge['selected'])));
     $config = [
+        'forge' => [
+            'enabled' => $forgeEnabled,
+            'searchUrl' => route('products.search'),
+            'candidates' => $forge['candidates'],
+            'selected' => $forgeSelected,
+        ],
         'products' => $products,
         'selected' => array_values(array_intersect((array) $chosenProducts, array_column($products, 'slug'))),
         'reasons' => $reasons,
@@ -33,8 +42,60 @@
         <p x-show="groupUnclear" x-cloak class="mt-1 text-xs font-medium text-warning-700">Bei „Noch unklar“ gelten nur Regeln für alle Kundengruppen. Passt die Bestellung oder der Kanal, bitte die Gruppe wählen.</p>
     </div>
 
-    <fieldset class="min-w-0" aria-describedby="produkt-hinweis">
-        <legend class="block text-sm font-medium text-slate-900">Produkt(e)<span class="text-danger-500" aria-hidden="true"> *</span></legend>
+    @if ($forgeEnabled)
+        {{-- The concrete product from the catalog (PROJ-38): positions of the order or a search. --}}
+        <fieldset class="min-w-0 md:col-span-2" aria-describedby="katalog-hinweis">
+            <legend class="block text-sm font-medium text-slate-900">Produkt</legend>
+            <p id="katalog-hinweis" class="mt-1 text-xs text-slate-600">Um welches Produkt geht es? Daraus holt die App Produktdaten und Servicewissen aus dem Produktkatalog; bei einer allgemeinen Frage genügt ein Master ohne Größe.</p>
+
+            @foreach ($forge['notices'] as $notice)
+                <p class="mt-1 text-xs font-medium text-warning-700">{{ $notice }}</p>
+            @endforeach
+
+            <ul class="mt-2 space-y-2" x-show="forgeList.length > 0" x-cloak>
+                <template x-for="product in forgeList" :key="product.id">
+                    <li class="flex items-start gap-2 rounded-md px-3 py-2 ring-1 ring-slate-200 ring-inset">
+                        <input type="checkbox" class="mt-1 size-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand" :checked="forgeIsSelected(product.id)" x-on:change="forgeToggle(product.id)" :aria-label="'Betrifft ' + product.name">
+                        <template x-if="forgeIsSelected(product.id)"><span>
+                            <input type="hidden" name="forge_produkte[]" :value="product.id">
+                            <template x-if="product.sku_used"><input type="hidden" :name="'forge_sku[' + product.id + ']'" :value="product.sku_used"></template>
+                        </span></template>
+                        <span class="min-w-0 text-sm">
+                            <span class="font-medium text-slate-900" x-text="product.name"></span>
+                            <span class="block text-xs text-slate-600" x-text="forgeLabel(product)"></span>
+                            <span class="block text-xs text-slate-600" x-text="product.source + (forgeIsSelected(product.id) ? ' · betrifft den Fall' : '')"></span>
+                            <span class="block text-xs" :class="product.has_service_knowledge ? 'text-brand-700' : 'text-slate-600'" x-show="product.has_service_knowledge !== null && product.has_service_knowledge !== undefined" x-text="product.has_service_knowledge ? 'Produktdaten und Kundenservice-Wissen vorhanden' : 'Produktdaten vorhanden, kein Kundenservice-Wissen'"></span>
+                        </span>
+                    </li>
+                </template>
+            </ul>
+
+            <div class="relative mt-2" x-on:click.outside="forgeOpen = false">
+                <input type="text" x-model="forgeQuery" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="katalog-treffer" :aria-expanded="(forgeOpen && forgeHits.length > 0).toString()"
+                       placeholder="Produkt im Katalog suchen (Name, SKU oder Stichwort) …"
+                       x-on:focus="forgeOpen = true" x-on:input="forgeOpen = true; forgeSearch()" x-on:keydown.enter.prevent="forgeSearch()" x-on:keydown.escape="forgeOpen = false"
+                       class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">
+                <ul id="katalog-treffer" role="listbox" x-show="forgeOpen && forgeHits.length > 0" x-cloak class="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md bg-white py-1 text-sm shadow-3 ring-1 ring-slate-200">
+                    <template x-for="hit in forgeHits" :key="hit.id">
+                        <li role="option" class="cursor-pointer px-3 py-2 hover:bg-brand/10" x-on:mousedown.prevent="forgeAdd(hit)">
+                            <span class="font-medium text-slate-900" x-text="hit.name"></span>
+                            <span class="block truncate text-xs text-slate-600" x-text="forgeLabel(hit)"></span>
+                        </li>
+                    </template>
+                </ul>
+                <p class="mt-1 text-xs text-slate-600" x-show="forgeBusy" x-cloak>Suche läuft …</p>
+                <p class="mt-1 text-xs text-slate-600" x-show="forgeMessage !== ''" x-cloak x-text="forgeMessage"></p>
+            </div>
+        </fieldset>
+    @endif
+
+    <fieldset class="min-w-0 {{ $forgeEnabled ? 'md:col-span-2' : '' }}" aria-describedby="produkt-hinweis">
+        @if ($forgeEnabled)
+            <legend class="block text-sm font-medium text-slate-900">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0"> *</span></legend>
+            <p class="mt-1 text-xs text-slate-600">Zu welchem Bereich unserer Regeln gehört der Fall (z. B. Essbare Fotos)? Die App schlägt ihn aus dem Produkt vor; bitte nur ändern, wenn der Vorschlag nicht stimmt. Das ist nicht das Produkt selbst.</p>
+        @else
+            <legend class="block text-sm font-medium text-slate-900">Produkt(e)<span class="text-danger-500" aria-hidden="true"> *</span></legend>
+        @endif
 
         <div class="mt-1 flex flex-wrap gap-2" x-show="selected.length > 0 || unknown !== ''">
             <template x-for="slug in selected" :key="slug">
@@ -86,7 +147,8 @@
         @endforeach
         <p x-show="unknown !== ''" x-cloak class="mt-1 text-xs font-medium text-warning-700">Zu diesem Produkt ist noch kein Wissen hinterlegt; die App erfindet nichts dazu. Kennst du die gesuchte Information (z. B. eine Funktion)? Trage sie unter „{{ $infoField }}“ ein, die KI nutzt sie. Nach dem Vorschlag kannst du die Wissenslücke melden.</p>
         <p x-show="withoutProduct" x-cloak class="mt-1 text-xs font-medium text-warning-700">Ohne Produkt wird kein Produktwissen berücksichtigt. Geht es doch um ein Produkt, wähle es oder gib es oben ein – auch wenn es noch nicht in der Liste steht.</p>
-        <p id="produkt-hinweis" class="mt-1 text-xs text-slate-600" x-show="selected.length === 0 && unknown === '' && !none">Bitte ein Produkt wählen, ein unbekanntes Produkt eingeben oder „Kein Produktbezug“ ankreuzen.</p>
+        <p x-show="forgeWithoutArea" x-cloak class="mt-1 text-xs font-medium text-warning-700">Kein passender Wissensbereich gefunden: Es gelten die allgemeinen Regeln. Die Produktdaten aus dem Katalog gehen trotzdem mit, ihre Verfügbarkeit steht oben beim Produkt. Gibt es zu diesem Bereich noch kein Wissen, wird die Lücke automatisch gemeldet, sofern der Katalog dazu kein Servicewissen hat.</p>
+        <p id="produkt-hinweis" class="mt-1 text-xs text-slate-600" x-show="selected.length === 0 && unknown === '' && !none && forgeSelected.length === 0">Bitte ein Produkt wählen, ein unbekanntes Produkt eingeben oder „Kein Produktbezug“ ankreuzen.</p>
         @error('produkte')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror
         @error('kein_produktbezug')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror
         @error('produkt_ohne_wissen')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror

@@ -3,6 +3,7 @@
 use App\Knowledge\KnowledgeIssue;
 use App\Knowledge\KnowledgeLibrary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Yaml\Yaml;
@@ -209,4 +210,74 @@ function withChips(string $html): string
     }
 
     return $html;
+}
+
+/**
+ * A stored response of the ProductForge product API (PROJ-38), built after docs/productforge-product-api.md.
+ *
+ * @return array<string, mixed>
+ */
+function forgeFixture(string $name): array
+{
+    return json_decode((string) file_get_contents(base_path("tests/Fixtures/productforge/{$name}.json")), true, flags: JSON_THROW_ON_ERROR);
+}
+
+/**
+ * Switches the ProductForge connection on and fakes its API: details by SKU and by id (both keyed by the
+ * request value), and the search answer. Anything else is "not found" like the real API.
+ *
+ * @param  array<string, array<string, mixed>>  $bySku
+ * @param  array<int, array<string, mixed>>  $byId
+ * @param  array<string, mixed>|null  $search
+ */
+function fakeForge(array $bySku = [], array $byId = [], ?array $search = null): void
+{
+    static $state = null;
+    static $registeredOn = null;
+
+    $state ??= new ArrayObject;
+    $state->exchangeArray(['bySku' => $bySku, 'byId' => $byId, 'search' => $search]);
+
+    config(['services.productforge' => ['url' => 'https://forge.test', 'token' => 'pf-secret-token', 'timeout' => 5, 'retries' => 2, 'order_lookup' => false]]);
+
+    // The stub is registered once per test; later calls only change what it answers.
+    $http = Http::getFacadeRoot();
+
+    if ($registeredOn === $http) {
+        return;
+    }
+
+    $registeredOn = $http;
+
+    Http::fake(['forge.test/*' => function (Request $request) use ($state) {
+        $path = (string) parse_url($request->url(), PHP_URL_PATH);
+        parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+        $missing = Http::response(['error' => ['code' => 'product_not_found', 'message' => 'nicht gefunden']], 404);
+
+        if ($path === '/api/v1/products/by-sku') {
+            $found = $state['bySku'][(string) ($query['sku'] ?? '')] ?? null;
+
+            return $found === null ? $missing : Http::response($found);
+        }
+
+        if (preg_match('#^/api/v1/products/(\d+)$#', $path, $match) === 1) {
+            $found = $state['byId'][(int) $match[1]] ?? null;
+
+            return $found === null ? $missing : Http::response($found);
+        }
+
+        if ($path === '/api/v1/products') {
+            return Http::response($state['search'] ?? ['data' => [], 'meta' => ['page' => 1, 'per_page' => 20, 'total' => 0, 'last_page' => 1]]);
+        }
+
+        return Http::response(['error' => ['code' => 'not_found', 'message' => 'x']], 404);
+    }]);
+}
+
+/**
+ * The number of requests that went to the (faked) ProductForge host.
+ */
+function forgeRequests(): int
+{
+    return Http::recorded(fn (Request $request): bool => str_contains($request->url(), 'forge.test'))->count();
 }
