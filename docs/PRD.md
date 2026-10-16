@@ -45,7 +45,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | – | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
 | P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
-| P1 | Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Planned |
+| P1 | Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Approved |
 | P1 | Zweiter LLM-Anbieter zum Vergleich | Roadmap |
 | P1 | Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Approved |
 | P2 | Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Zurückgestellt |
