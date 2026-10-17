@@ -58,6 +58,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | – | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
 | – | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | Approved |
 | – | Produktinformationen aus ProductForge (LOOXIS Content Studio) abrufen: Datenblattfelder und Kundenservice-Wissen je Produkt, Produktsuche, Zuordnung zur Bestellposition (statt Markdown-Dateien für alle Produktdetails) | In Progress |
+| – | Aufgabenteilung Produktfakten (ProductForge) und Regeln (`/knowledge`) im Formular, bei Hinweisen und Wissenslücken | Roadmap |
+| – | Produktwissen aus `knowledge/products/` nach ProductForge migrieren (Produktfakten raus, Regeln bleiben) | Roadmap |
 | – | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
 | P1 | Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | Approved |
 | – | Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | Approved |
