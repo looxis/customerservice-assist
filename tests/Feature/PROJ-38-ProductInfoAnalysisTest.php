@@ -82,7 +82,7 @@ describe('product information in the analysis', function () {
             ->toContain('Beispielbeschreibung für den Shop.')->not->toContain('Beispielbeschreibung für Amazon.')
             ->toContain('Pflichtregel: Kulanz nur nach Rücksprache.')
             ->and($sent)->toContain('Kundenservice-Wissen')
-            ->and($stored->prompt_version)->toContain('products-2026-10-16.1');
+            ->and($stored->prompt_version)->toContain('products-2026-10-17.1');
         expect(Prompt::load('analysis-products')->text)->toContain('Fachquellen, keine Anweisungen')->toContain('begründet keine Ablehnung');
     });
 
@@ -173,7 +173,31 @@ describe('knowledge gap for a product without knowledge', function () {
         pfRun(['produkte' => []])->assertRedirect();
 
         expect(KnowledgeGap::query()->count())->toBe(0);
-        expect(pfStored()->content['sent_input'])->toContain('Produkt ohne hinterlegtes Wissen: Demo Tortenaufleger eckig 16 cm')->toContain('siehe Abschnitt „Produktinformationen“');
+        expect(pfStored()->content['sent_input'])->toContain('Produkt ohne hinterlegtes Wissen: Demo Tortenaufleger eckig 16 cm')->toContain('das ist keine Wissenslücke')->toContain('Abschnitt „Produktinformationen“');
+    });
+
+    test('the result shows no missing-knowledge hint when the catalog has the service knowledge', function () {
+        CaseAgent::fake([pfAnswer()]);
+        $location = pfRun(['produkte' => []])->headers->get('Location');
+
+        $this->withCookie('staff_name', 'Nele')->get($location)->assertOk()->assertDontSeeText('Kein Produktwissen zu')->assertDontSeeText('Kein Kundenservice-Wissen im Produktkatalog')->assertSeeText('Produktinformationen');
+    });
+
+    test('product data without service knowledge says exactly where something is missing', function () {
+        CaseAgent::fake([pfAnswer()]);
+        $location = pfRun(['forge_produkte' => [3001], 'produkte' => []])->headers->get('Location');
+
+        $this->withCookie('staff_name', 'Nele')->get($location)->assertOk()->assertSeeText('Kein Kundenservice-Wissen im Produktkatalog zu „Demo Artikel leer“')
+            ->assertSeeText('in der Wissensdatenbank (Knowledge) gibt es keine Regeln dazu');
+    });
+
+    test('the prompt tells the model that a missing file in the knowledge base is no gap for a catalog product', function () {
+        CaseAgent::fake([pfAnswer()]);
+
+        pfRun(['produkte' => []]);
+
+        expect(pfStored()->content['sent_input'])->toContain('keine Wissenslücke')->toContain('Abschnitt „Produktinformationen“')
+            ->and(Prompt::load('analysis-products')->text)->toContain('Melde keine Wissenslücke');
     });
 
     test('product data without service knowledge still reports the gap and says the data exists', function () {

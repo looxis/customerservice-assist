@@ -138,7 +138,7 @@
             @if ($gaps !== [])
                 <x-alert type="warning">
                     <p class="font-semibold">Wissenslücken</p>
-                    <p class="mt-1">{{ count($gaps) === 1 ? 'Für diesen Fall fehlt die folgende Regel' : 'Für diesen Fall fehlen die folgenden '.count($gaps).' Regeln' }} in der Wissensdatenbank. Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und jede Lücke mit „Lücke melden“ melden.</p>
+                    <p class="mt-1">{{ count($gaps) === 1 ? 'Für diesen Fall fehlt die folgende Regel' : 'Für diesen Fall fehlen die folgenden '.count($gaps).' Regeln' }} in der Wissensdatenbank (Regeln, Befugnisse und Abläufe unter „Knowledge“, nicht die Produktdaten aus dem Produktkatalog). Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und jede Lücke mit „Lücke melden“ melden.</p>
                     <ul class="mt-3 space-y-2 border-t border-warning-500/30 pt-3">
                         @foreach ($gaps as $gap)
                             @php($reportedBy = $reported['topics'][\App\Analysis\KnowledgeGapLog::topicHash($gap['topic'])] ?? null)
@@ -157,10 +157,17 @@
                 </x-alert>
             @endif
 
-            @if ($meta['unknown_product'] ?? null)
+            @php($catalogSelected = collect($result['product_data']['products'] ?? [])->whereIn('id', $result['product_data']['selected'] ?? []))
+            @php($catalogHasService = $catalogSelected->contains(fn ($product) => filled($product['content']['customer_service_knowledge']['combined'] ?? null)))
+            @if (($meta['unknown_product'] ?? null) && ! $catalogHasService)
                 @php($unknownReportedBy = $reported['topics'][\App\Analysis\KnowledgeGapLog::topicHash(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product']))] ?? null)
                 <x-alert type="warning">
-                    <p class="font-semibold">Kein Produktwissen zu „{{ $meta['unknown_product'] }}“</p>
+                    <p class="font-semibold">{{ $catalogSelected->isNotEmpty() ? 'Kein Kundenservice-Wissen im Produktkatalog zu' : 'Kein Produktwissen zu' }} „{{ $meta['unknown_product'] }}“</p>
+                    @if ($catalogSelected->isNotEmpty())
+                        <p class="mt-1 text-sm">Die Produktdaten aus dem Katalog liegen vor (siehe „Produktinformationen“), aber dort ist zu diesem Produkt kein Kundenservice-Wissen gepflegt, und in der Wissensdatenbank (Knowledge) gibt es keine Regeln dazu.</p>
+                    @else
+                        <p class="mt-1 text-sm">Weder im Produktkatalog noch in der Wissensdatenbank (Knowledge) ist zu diesem Produkt etwas hinterlegt.</p>
+                    @endif
                     @if ($unknownReportedBy)
                         <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Die fehlende Information wurde automatisch gemeldet, zusammen mit deinen Angaben aus dem Formular. Du musst nichts weiter tun.</p>
                     @else

@@ -546,8 +546,10 @@ class CaseAnalyzer
             'case' => "# Fall\n"
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
-                .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} (Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu"
-                    .($request->productPackage->affected() === [] ? '' : '; Produktinformationen aus dem Katalog siehe Abschnitt „Produktinformationen“').')'),
+                .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
+                    .($request->productPackage->affected() === []
+                        ? 'Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu'
+                        : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')'),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'products' => '',
             'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
