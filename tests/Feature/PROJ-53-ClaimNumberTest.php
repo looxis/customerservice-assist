@@ -7,6 +7,9 @@ use App\Orders\OrderFormats;
 use App\Orders\OrderNumberDetector;
 use App\Settings\SettingsRegistry;
 use App\Settings\SettingsStore;
+use App\Zammad\OrderMention;
+use App\Zammad\Ticket;
+use App\Zammad\ZammadClient;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -90,6 +93,15 @@ describe('in the ticket and in the analysis', function () {
         $html = test()->get('/tickets/2137942')->assertOk()->assertSeeText('302-8780527-8594717')->getContent();
 
         expect($html)->not->toContain('keine Bestellnummer gefunden');
+    });
+
+    test('a number from Amazon\'s notice and a claim number in the title are one order with the claim', function () {
+        $ticket = app(ZammadClient::class)->ticket('2137942');
+        $withNotice = new Ticket(...[...get_object_vars($ticket), 'orders' => [new OrderMention('302-8780527-8594717', 'Amazon-Nachricht', [])]]);
+
+        $found = app(OrderNumberDetector::class)->detect($withNotice);
+
+        expect($found)->toHaveCount(1)->and($found[0]->value)->toBe('302-8780527-8594717')->and($found[0]->claims)->toBe([1]);
     });
 
     test('an order not loaded yet names the claim in its label', function () {

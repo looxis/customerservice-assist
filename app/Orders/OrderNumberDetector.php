@@ -75,7 +75,8 @@ class OrderNumberDetector
         $text = $ticket->title."\n".implode("\n", array_map(fn (TicketArticle $article): string => $this->text($article), $ticket->articles));
 
         foreach ($this->inText($text) as $number) {
-            $found[$number->value] ??= $number;
+            $known = $found[$number->value] ?? null;
+            $found[$number->value] = $known === null ? $number : new OrderNumber($known->value, $known->format, $number->claims);
         }
 
         return array_values($found);
