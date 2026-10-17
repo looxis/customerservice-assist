@@ -61,6 +61,7 @@ final class SettingsRegistry
             'analysis-retrieval' => ['title' => 'Zusatz: gezielter Wissensabruf', 'hint' => 'Wird dem Kern angehängt, wenn der gezielte Wissensabruf aktiv ist.'],
             'analysis-question' => ['title' => 'Zusatz: Frage ohne Ticket', 'hint' => 'Wird dem Kern angehängt, wenn ein Vorschlag zu einer Frage („Frage stellen“) entsteht.'],
             'analysis-products' => ['title' => 'Zusatz: Produktinformationen', 'hint' => 'Wird dem Kern angehängt, wenn Produktinformationen aus dem Katalog vorliegen.'],
+            'analysis-related' => ['title' => 'Zusatz: zusammengehörige Tickets', 'hint' => 'Wird dem Kern angehängt, wenn früherer Verlauf aus zusammengehörigen Tickets mitgeschickt wird.'],
             'router' => ['title' => 'Router', 'hint' => 'Beim zusätzlichen Wissensvorschlag nach dem gezielten Abruf.'],
             'summary' => ['title' => 'Zusammenfassung', 'hint' => 'Bei der Zusammenfassung des bisherigen Verlaufs.'],
             'translation' => ['title' => 'Übersetzung', 'hint' => 'Bei jeder Übersetzung einer Nachricht und bei der Rückübersetzung des Antwortentwurfs.'],

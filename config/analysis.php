@@ -37,6 +37,7 @@ return [
         'analysis-retrieval' => resource_path('prompts/analysis-retrieval.md'),
         'analysis-question' => resource_path('prompts/analysis-question.md'),
         'analysis-products' => resource_path('prompts/analysis-products.md'),
+        'analysis-related' => resource_path('prompts/analysis-related.md'),
         'summary' => resource_path('prompts/summary.md'),
         'translation' => resource_path('prompts/translation.md'),
         'router' => resource_path('prompts/router.md'),
@@ -131,6 +132,11 @@ return [
     | the text channel of ProductForge; any other channel gets no sales texts.
     |
     */
+
+    'related_tickets' => [
+        'max' => 5,
+        'budget' => (int) env('ANALYSIS_RELATED_TICKETS_CHARACTERS', 16000),
+    ],
 
     'product_info' => [
         'max_total' => (int) env('ANALYSIS_PRODUCT_INFO_CHARACTERS', 20000),

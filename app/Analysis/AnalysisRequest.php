@@ -26,6 +26,7 @@ final readonly class AnalysisRequest
      * @param  string|null  $unknownProduct  Name of a product the employee typed because the knowledge base has none (PROJ-42).
      * @param  ProductPackage  $productPackage  Product information retrieved from ProductForge for this case (PROJ-38).
      * @param  list<array{claim: int, order: string}>  $claimReferences  Claim numbers the ticket names ("R1-302-…"), PROJ-53.
+     * @param  RelatedSection|null  $related  Earlier course of the tickets that belong to this case (PROJ-52).
      */
     public function __construct(
         public Ticket $ticket,
@@ -47,6 +48,7 @@ final readonly class AnalysisRequest
         public ?string $unknownProduct = null,
         public ProductPackage $productPackage = new ProductPackage,
         public array $claimReferences = [],
+        public ?RelatedSection $related = null,
     ) {}
 
     public function isQuestion(): bool

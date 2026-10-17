@@ -161,6 +161,17 @@ class TicketContext
         return "### {$header}\n".self::plainText($article);
     }
 
+    /**
+     * Every message of the ticket as text, our replies and notes included: for the earlier course of a related
+     * ticket (PROJ-52), where nothing after the last customer message is left out.
+     *
+     * @return list<string>
+     */
+    public function everyMessage(): array
+    {
+        return array_map(fn (TicketArticle $article): string => $this->message($article), array_values($this->ticket->articles));
+    }
+
     public static function plainText(TicketArticle $article): string
     {
         $html = preg_replace('/<(br|\/p|\/div|\/li|\/tr|\/h\d|\/blockquote)\b[^>]*>/i', "\n", $article->body->toHtml()) ?? '';

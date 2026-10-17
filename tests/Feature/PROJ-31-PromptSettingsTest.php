@@ -57,14 +57,14 @@ function putPrompts(array $changes = [], string $as = 'Etienne')
 }
 
 describe('the page', function () {
-    test('it lists four models and seven prompts with their defaults and when they are used', function () {
+    test('it lists four models and eight prompts with their defaults and when they are used', function () {
         $html = test()->withCookie('staff_name', 'Nele')->get(route('settings.prompts'))->assertOk()
             ->assertSeeText('Modell: Analyse')->assertSeeText('Modell: Router')->assertSeeText('Prompt: Analyse (Kern)')->assertSeeText('Prompt: Zusatz: Produktinformationen')->assertSeeText('Prompt: Übersetzung')
             ->assertSeeText('Wird dem Kern angehängt, wenn Produktinformationen aus dem Katalog vorliegen.')->assertSeeText('Fachliche Regeln, Befugnisse und Kulanz gehören in die Wissensbasis')
             ->assertSeeText('ändern dürfen nur Admins')->getContent();
 
         expect($html)->toContain('gpt-5.5')->toContain(e(Prompt::fromFile('analysis')->text === '' ? 'x' : substr(Prompt::fromFile('analysis')->text, 0, 40)))->not->toContain('>Speichern<');
-        expect(count(array_filter(SettingsRegistry::forPage('prompts'), fn ($group) => $group->kind === 'prompt')))->toBe(7);
+        expect(count(array_filter(SettingsRegistry::forPage('prompts'), fn ($group) => $group->kind === 'prompt')))->toBe(8);
     });
 
     test('the overview offers the page and the list of models comes from the provider without non-text models', function () {

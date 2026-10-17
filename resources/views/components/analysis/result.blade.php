@@ -283,6 +283,21 @@
                 @endforelse
             </x-analysis.section>
 
+            @if (($result['related']['tickets'] ?? []) !== [])
+                <x-analysis.section title="Zusammengehörige Tickets" :count="count($result['related']['tickets'])">
+                    <p class="text-sm text-slate-600">Der Verlauf dieser Tickets ist als früherer Verlauf in den Vorschlag eingeflossen.</p>
+                    <ul class="mt-2 space-y-2 text-sm">
+                        @foreach ($result['related']['tickets'] as $relatedTicket)
+                            <li>
+                                <a href="{{ route('tickets.show', ['number' => $relatedTicket['number']]) }}" class="font-mono font-semibold text-brand hover:text-brand-hover">{{ $relatedTicket['number'] }}</a>
+                                {{ $relatedTicket['title'] }}
+                                <span class="block text-xs text-slate-600">{{ $relatedTicket['state'] }} · {{ ['linked' => 'in Zammad verknüpft', 'order' => 'gleiche Bestellnummer', 'customer' => 'gleicher Kunde', 'manual' => 'von Hand ergänzt'][$relatedTicket['source']] ?? $relatedTicket['source'] }} · {{ $relatedTicket['included'] }} von {{ $relatedTicket['articles'] }} Nachrichten @if ($relatedTicket['omitted'] > 0)<span class="font-medium text-warning-700">({{ $relatedTicket['omitted'] }} ältere ausgelassen)</span>@endif</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-analysis.section>
+            @endif
+
             @if (($result['product_sent'] ?? null) !== null)
                 @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'eocs_bullet_points' => 'Bullet Points (EOCS)', 'eocs_description' => 'Beschreibung (EOCS)', 'all' => 'alle Felder'])
                 @php($reasonLabels = ['budget' => 'zu umfangreich für den Platz im Prompt', 'channel_unclear' => 'Kanal unklar', 'not_affected' => 'nicht als betroffen markiert'])

@@ -233,7 +233,7 @@ describe('loading orders', function () {
         $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => $numbers]))->assertOk();
 
         // Zammad: search, articles, customer; EOCS: ten orders, one follow-up check for the one found.
-        Http::assertSentCount(3 + 10 + 1);
+        expect(Http::recorded(fn ($request): bool => ! str_contains($request->url(), '/api/v1/links') && ! str_contains(urldecode($request->url()), 'customer_id:'))->count())->toBe(3 + 10 + 1);
     });
 
     test('an amazon order from the notice is merged with the eocs order into one block', function () {

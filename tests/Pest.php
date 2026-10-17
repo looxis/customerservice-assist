@@ -140,6 +140,7 @@ function fakeZammad(array $articles = [], array $ticket = [], array $extra = [])
     Http::fake(array_merge([
         'zammad.test/api/v1/tickets/search*' => Http::response([$ticket]),
         'zammad.test/api/v1/ticket_articles/by_ticket/*' => Http::response($articles === [] ? [zammadArticle()] : $articles),
+        'zammad.test/api/v1/links*' => Http::response(['links' => [], 'assets' => []]),
         'zammad.test/api/v1/users/77' => Http::response(['firstname' => 'Erika', 'lastname' => 'Beispiel', 'email' => 'erika@example.org']),
     ], $extra));
 }

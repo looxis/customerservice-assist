@@ -103,3 +103,11 @@ Keine neuen Pakete.
 | Abfragen über die Zammad-Schnittstelle `links` und `tickets/search` | Mit dem vorhandenen Zugang geprüft (2026-10-17) | 2026-10-17 |
 | Abschnitt als Snapshot im Protokoll, Fortsetzung ohne Neuabruf | Gleicher Datenstand innerhalb eines Falls | 2026-10-17 |
 | Zeichenbudget 16.000 mit Auslassung der ältesten Nachrichten | Prompt bleibt begrenzt; die neueste Nachricht je Ticket zählt am meisten | 2026-10-17 |
+
+## Implementation Notes (2026-10-17)
+- **Gebaut:** `ZammadClient::linkedTickets()` und `searchTickets()` (nur lesend), `RelatedTicketFinder` (verknüpft, zur Bestellung, weitere des Kunden der letzten 90 Tage; höchstens 10 je Quelle; Fehler führen nur zu einem Hinweis), `RelatedContextBuilder` und `RelatedSection` (Abschnitt „Früherer Verlauf (zusammengehörige Tickets)“, Budget je Ticket, älteste Nachrichten sichtbar ausgelassen, neueste je Ticket bleibt), Formularblock `components/analysis/related-tickets.blade.php`, Abschnitt im Ergebnis, Prompt-Zusatz `analysis-related` (Seite „Prompts und Modell“, acht Prompts).
+- **Vorauswahl:** verknüpfte Tickets immer; Tickets zur Bestellung nur, wenn das Ticket eine Reklamationsnummer (PROJ-53) nennt; weitere Tickets des Kunden nie. Nicht angeboten bei zurückgespulten Tickets (Testmodus) und Tickets ohne Zammad-ID.
+- **Fortsetzung:** übernimmt den gespeicherten Abschnitt aus der Vorgängeranalyse (`content.related`), kein neuer Abruf.
+- **Konfiguration:** `config('analysis.related_tickets')` mit `max` 5 und Zeichenbudget 16.000 (Umgebungsvariable `ANALYSIS_RELATED_TICKETS_CHARACTERS`, nur hier dokumentiert; `.env.example` bewusst nicht angefasst).
+- **Tests:** `tests/Feature/PROJ-52-RelatedTicketsTest.php` (18 Tests); `fakeZammad` in `tests/Pest.php` beantwortet `links` standardmäßig leer. Gesamtsuite: 1656 Tests, 1654 grün, 2 übersprungen.
+- **Geprüft am echten Ticket 2139944 (nur lesend):** verknüpft 2138745 (vorausgewählt), zur Bestellung 2138529 (vorausgewählt wegen Reklamationsnummer). Browser-Test und `/qa` stehen noch aus.

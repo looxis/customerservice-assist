@@ -148,7 +148,8 @@ describe('loading', function () {
         $this->get('/tickets/2137942')->assertOk();
         $this->get('/tickets/2137942')->assertOk();
 
-        Http::assertSentCount(6);
+        // The offers of related tickets (links, search by customer) are extra and not counted here.
+        expect(Http::recorded(fn ($request): bool => ! str_contains($request->url(), '/api/v1/links') && ! str_contains(urldecode($request->url()), 'customer_id:'))->count())->toBe(6);
     });
 
     test('the token never reaches the page', function () {

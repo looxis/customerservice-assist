@@ -65,6 +65,10 @@
                 <input type="hidden" name="bestellungen[]" value="{{ $value }}">
             @endforeach
 
+            @if ($analysis['related']['enabled'] ?? false)
+                <x-analysis.related-tickets :related="$analysis['related']" />
+            @endif
+
             <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" />
 
             <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}

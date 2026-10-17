@@ -8,6 +8,7 @@ use App\Analysis\ContextVariant;
 use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
+use App\Zammad\RelatedTicket;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -76,6 +77,12 @@ class AnalyzeTicketRequest extends FormRequest
             'ohne_bestelldetails' => ['sometimes', 'boolean'],
             'bestellungen' => ['sometimes', 'array', 'max:10'],
             'bestellungen.*' => ['string', 'max:40'],
+            'related' => ['sometimes', 'array', 'max:'.(int) config('analysis.related_tickets.max')],
+            'related.*' => ['string', 'regex:/^\d{1,20}$/'],
+            'related_manual' => ['nullable', 'string', 'regex:/^\s*\d{1,20}\s*$/'],
+            'related_set' => ['sometimes', 'boolean'],
+            'related_source' => ['sometimes', 'array'],
+            'related_source.*' => ['string', 'max:20'],
             'zusatzwissen' => ['sometimes', 'array', 'max:20'],
             'zusatzwissen.*' => ['string', 'regex:/^[A-Z]+(?:-[A-Z]+)*-\d{3}$/'],
             'bestellung_nummer' => ['nullable', 'string', 'max:60'],
@@ -96,6 +103,10 @@ class AnalyzeTicketRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
+            if (count($this->relatedNumbers()) > (int) config('analysis.related_tickets.max')) {
+                $validator->errors()->add('related', 'Höchstens '.config('analysis.related_tickets.max').' zusammengehörige Tickets.');
+            }
+
             if (! $this->filled('klaerung_analyse')) {
                 $this->checkProductChoice($validator);
 
@@ -154,6 +165,33 @@ class AnalyzeTicketRequest extends FormRequest
     public function attributes(): array
     {
         return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen'];
+    }
+
+    /**
+     * The numbers of the related tickets to take along: the ticked ones and the one typed in, without this ticket (PROJ-52).
+     *
+     * @return list<string>
+     */
+    public function relatedNumbers(): array
+    {
+        $numbers = array_map('strval', array_filter((array) $this->input('related', []), fn (mixed $number): bool => is_string($number) && preg_match('/^\d{1,20}$/', $number) === 1));
+        $manual = trim((string) $this->input('related_manual', ''));
+
+        if ($manual !== '' && preg_match('/^\d{1,20}$/', $manual) === 1) {
+            $numbers[] = $manual;
+        }
+
+        return array_values(array_filter(array_unique($numbers), fn (string $number): bool => $number !== (string) $this->route('number')));
+    }
+
+    /**
+     * Where a chosen related ticket came from (as the form offered it); typed-in ones are "manual".
+     */
+    public function relatedSource(string $number): string
+    {
+        $source = $this->input("related_source.{$number}");
+
+        return in_array($source, [RelatedTicket::LINKED, RelatedTicket::ORDER, RelatedTicket::CUSTOMER], true) && in_array($number, (array) $this->input('related', []), true) ? $source : RelatedTicket::MANUAL;
     }
 
     public function variant(): ContextVariant

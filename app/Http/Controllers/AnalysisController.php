@@ -10,6 +10,8 @@ use App\Analysis\AnalysisStore;
 use App\Analysis\CaseAnalyzer;
 use App\Analysis\ContextVariant;
 use App\Analysis\QuestionNumber;
+use App\Analysis\RelatedContextBuilder;
+use App\Analysis\RelatedSection;
 use App\Analysis\Summarizer;
 use App\Analysis\Summary;
 use App\Analysis\TicketContext;
@@ -41,7 +43,7 @@ class AnalysisController extends Controller
      * Run an analysis (stage 2, creating or refreshing the summary first when
      * that variant is chosen) and show the ticket with the result.
      */
-    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode, ProductResolver $productResolver): RedirectResponse
+    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode, ProductResolver $productResolver, RelatedContextBuilder $relatedBuilder): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -119,6 +121,23 @@ class AnalysisController extends Controller
         );
         $unknownProduct = $request->unknownProduct();
 
+        // Earlier course of the tickets that belong to this case (PROJ-52): a continuation keeps what the earlier step used.
+        if ($parent !== null) {
+            $related = RelatedSection::fromStored($parent['related'] ?? null);
+        } else {
+            $chosen = [];
+
+            foreach ($ticket->rewoundTo === null ? $request->relatedNumbers() : [] as $relatedNumber) {
+                try {
+                    $chosen[] = ['ticket' => $zammad->ticket($relatedNumber), 'source' => $request->relatedSource($relatedNumber)];
+                } catch (ZammadException) {
+                    $inputNotes[] = "Ticket {$relatedNumber} konnte nicht gelesen werden und fehlt im früheren Verlauf.";
+                }
+            }
+
+            $related = $chosen === [] ? null : $relatedBuilder->build($chosen);
+        }
+
         if ($unknownProduct === null && $request->validated('produkte', []) === [] && ! $request->boolean('kein_produktbezug')) {
             $unknownProduct = $package->displayName();
         }
@@ -142,13 +161,14 @@ class AnalysisController extends Controller
                 employeeContext: (string) $request->validated('kontext', ''),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),
                 decisions: $request->decisions((string) $staff->current($request)) ?? [],
                 unknownProduct: $unknownProduct,
                 productPackage: $package,
+                related: $related,
                 claimReferences: array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): array => ['claim' => $claim, 'order' => $number->value], $number->claims), $found) ?: [[]])),
             ));
         } catch (AnalysisException $exception) {

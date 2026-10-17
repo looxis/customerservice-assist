@@ -16,12 +16,14 @@ use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Knowledge\ProcedureFinder;
 use App\Knowledge\ProcedureRenderer;
+use App\Orders\OrderNumberDetector;
 use App\ProductForge\ForgeProduct;
 use App\ProductForge\KnowledgeAreaSuggester;
 use App\ProductForge\ProductForgeClient;
 use App\ProductForge\ProductForgeException;
 use App\ProductForge\ProductForgeProblem;
 use App\ProductForge\SkuDetector;
+use App\Zammad\RelatedTicketFinder;
 use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
@@ -41,6 +43,8 @@ class AnalysisPanel
         private readonly ProductForgeClient $forge,
         private readonly KnowledgeAreaSuggester $areas,
         private readonly EocsClient $eocs,
+        private readonly RelatedTicketFinder $relatedFinder,
+        private readonly OrderNumberDetector $orderNumbers,
     ) {}
 
     /**
@@ -88,6 +92,7 @@ class AnalysisPanel
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
             ...$this->productSuggestions($context, $orders, $inputs['produkte'] ?? $choice['products'] ?? null),
             'forge' => $this->forgeChoice($orders, $inputs, $result, $context->customerTexts()),
+            'related' => $this->relatedChoice($ticket, $inputs),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
             'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
@@ -277,6 +282,31 @@ class AnalysisPanel
             'productReasons' => $reasons,
             'mentionedProducts' => $chosen === null ? [] : array_values(array_diff(array_keys($fromText), $chosen)),
         ];
+    }
+
+    /**
+     * The tickets that may belong to this case, for the form (PROJ-52). Not offered for a rewound test ticket.
+     * What was ticked before is kept; at first the linked ones (and, with a claim number, those of the order) are ticked.
+     *
+     * @param  array<string, mixed>  $inputs
+     * @return array{enabled: bool, groups: array<string, list<array<string, mixed>>>, selected: list<string>, problems: list<string>}
+     */
+    private function relatedChoice(Ticket $ticket, array $inputs): array
+    {
+        if ($ticket->rewoundTo !== null || $ticket->id === 0) {
+            return ['enabled' => false, 'groups' => [], 'selected' => [], 'problems' => []];
+        }
+
+        $found = $this->relatedFinder->find($ticket, $this->orderNumbers->detect($ticket));
+        $groups = ['linked' => [], 'order' => [], 'customer' => []];
+
+        foreach ($found['tickets'] as $related) {
+            $groups[$related->source][] = $related->toArray();
+        }
+
+        $selected = array_key_exists('related_set', $inputs) ? array_values(array_map('strval', (array) ($inputs['related'] ?? []))) : $found['preselected'];
+
+        return ['enabled' => true, 'groups' => $groups, 'selected' => $selected, 'problems' => $found['problems']];
     }
 
     /**

@@ -75,6 +75,11 @@ class CaseAnalyzer
             $prompt = new Prompt($prompt->name, $prompt->version.'+'.$productRules->version, $prompt->text."\n\n".$productRules->text);
         }
 
+        if ($request->related !== null && ! $request->related->isEmpty()) {
+            $relatedRules = Prompt::load('analysis-related');
+            $prompt = new Prompt($prompt->name, $prompt->version.'+'.$relatedRules->version, $prompt->text."\n\n".$relatedRules->text);
+        }
+
         if ($request->isQuestion()) {
             $questionRules = Prompt::load('analysis-question');
             $prompt = new Prompt($prompt->name, $prompt->version.'+'.$questionRules->version, $prompt->text."\n\n".$questionRules->text);
@@ -107,7 +112,7 @@ class CaseAnalyzer
         $totals = ['attempts' => 0, 'duration' => 0, 'input' => 0, 'output' => 0];
         $pass = $this->pass($request, $prompt, $parts, $selection, $hints, $pseudonymizer, $model, $totals, $started, true);
         $safeguard = null;
-        $notes = [...$request->notes, ...($products?->prompt()->notes ?? [])];
+        $notes = [...$request->notes, ...($request->related?->notes ?? []), ...($products?->prompt()->notes ?? [])];
 
         if ($retrieval !== null) {
             [$pass, $selection, $hints, $safeguard] = $this->safeguard($request, $prompt, $parts, $selection, $hints, $retrieval, $pass, $pseudonymizer, $model, $totals, $started, $products);
@@ -145,6 +150,7 @@ class CaseAnalyzer
             'notes' => [...$notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
             'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
+            ...($request->related === null || $request->related->isEmpty() ? [] : ['related' => $request->related->toStored()]),
             ...($products === null ? [] : ['product_data' => $request->productPackage->toStored(), 'product_sent' => $products->prompt()->record]),
             ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
             'meta' => [
@@ -559,6 +565,7 @@ class CaseAnalyzer
                         : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')'),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'products' => '',
+            'related' => $request->related?->text ?? '',
             'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
                 .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),
             'ticket' => $request->isQuestion()
@@ -586,7 +593,7 @@ class CaseAnalyzer
      */
     private function compose(array $parts, string $knowledge): string
     {
-        return implode("\n\n", array_filter([$parts['case'], $parts['orders'], $parts['employee'], $parts['ticket'], $parts['products'] ?? '', $knowledge, $parts['rules']], fn (string $part): bool => $part !== ''));
+        return implode("\n\n", array_filter([$parts['case'], $parts['orders'], $parts['employee'], $parts['related'] ?? '', $parts['ticket'], $parts['products'] ?? '', $knowledge, $parts['rules']], fn (string $part): bool => $part !== ''));
     }
 
     /**

@@ -89,6 +89,79 @@ class ZammadClient
     }
 
     /**
+     * The tickets linked to this one in Zammad, in any direction (PROJ-52).
+     *
+     * @return list<RelatedTicket>
+     *
+     * @throws ZammadException
+     */
+    public function linkedTickets(int $ticketId): array
+    {
+        try {
+            $links = $this->get('links', ['link_object' => 'Ticket', 'link_object_value' => $ticketId])['links'] ?? [];
+            $tickets = [];
+
+            foreach (is_array($links) ? $links : [] as $link) {
+                $id = is_array($link) && ($link['link_object'] ?? null) === 'Ticket' ? (int) ($link['link_object_value'] ?? 0) : 0;
+
+                if ($id > 0 && $id !== $ticketId && ! isset($tickets[$id])) {
+                    $tickets[$id] = $this->relatedTicket($this->get("tickets/{$id}", ['expand' => 'true']), RelatedTicket::LINKED);
+                }
+            }
+
+            return array_values(array_filter($tickets));
+        } catch (ZammadException $exception) {
+            Log::warning('Zammad request failed', ['links' => $ticketId, 'problem' => $exception->problem->value, 'status' => $exception->httpStatus]);
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * Tickets that match a search query of Zammad, newest first (PROJ-52).
+     *
+     * @return list<RelatedTicket>
+     *
+     * @throws ZammadException
+     */
+    public function searchTickets(string $query, string $source, int $limit = 20): array
+    {
+        try {
+            $result = $this->get('tickets/search', ['query' => $query, 'limit' => $limit, 'expand' => 'true', 'sort_by' => 'created_at', 'order_by' => 'desc']);
+        } catch (ZammadException $exception) {
+            Log::warning('Zammad request failed', ['search' => true, 'problem' => $exception->problem->value, 'status' => $exception->httpStatus]);
+
+            throw $exception;
+        }
+
+        $rows = array_is_list($result) ? $result : ($result['tickets'] ?? []);
+
+        return array_values(array_filter(array_map(fn (mixed $row): ?RelatedTicket => is_array($row) ? $this->relatedTicket($row, $source) : null, is_array($rows) ? $rows : [])));
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function relatedTicket(array $data, string $source): ?RelatedTicket
+    {
+        if (! isset($data['id'], $data['number'])) {
+            return null;
+        }
+
+        $state = strtolower((string) ($data['state'] ?? ''));
+
+        return new RelatedTicket(
+            (int) $data['id'],
+            (string) $data['number'],
+            trim((string) ($data['title'] ?? '')) ?: '(ohne Betreff)',
+            self::STATE_LABELS[$state] ?? ($state ?: 'unbekannt'),
+            (int) ($data['article_count'] ?? 0),
+            $this->time($data['created_at'] ?? null),
+            $source,
+        );
+    }
+
+    /**
      * The number of the ticket with this Zammad ID, read without the search
      * index. The pair is remembered so the ticket can be loaded by number
      * even while Zammad's search does not know it yet.
