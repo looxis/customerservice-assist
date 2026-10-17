@@ -1,8 +1,8 @@
 # PROJ-38: Produktinformationen aus ProductForge
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-12
-**Last Updated:** 2026-10-16
+**Last Updated:** 2026-10-17
 
 ## Dependencies
 - Requires: PROJ-7 (Bestellung aus EOCS), PROJ-36 (Gezielter Wissensabruf), PROJ-40 (Frage stellen), PROJ-42 (Formular: Pflichtangaben), PROJ-45 (Produkt ohne Wissen melden), PROJ-39 (Fortsetzung).
@@ -44,7 +44,7 @@ ProductForge verwaltet konkrete Produktdaten, produktspezifisches Kundenservice-
 - [x] AC-3 Angenommen Bestellpositionen (bei aktivem Schalter), wenn dieselbe SKU mehrfach vorkommt, dann wird sie je Vorgang einmal abgerufen; Inhalte bleiben der jeweiligen Position zugeordnet.
 - [ ] AC-4 (Server getestet, Rückfrage „Sicher?“ und Vorauswahl im Browser noch nicht geprüft) Angenommen mehrere Positionen mit Treffern, wenn der Mitarbeiter absendet, dann senden nur als „betroffen“ markierte Produkte Inhalte (bei genau einem vorgewählt); ohne Auswahl erscheint die Rückfrage.
 - [x] AC-5 Angenommen keine Bestellposition passt, wenn der Mitarbeiter sucht, dann sieht er Kandidaten (Name, SKU, Typ, Master), wählt einen (auch Master) und die Details werden über die ID geladen; Mehrdeutiges wird nie automatisch gewählt.
-- [ ] AC-6 (Serverseite getestet, Alpine-Oberfläche im Browser noch nicht geprüft) Angenommen ein Produkt wurde gewählt, wenn das Formular erscheint, dann gibt es eine Produktwahl und einen vorgeschlagenen, vorausgefüllten „Wissensbereich“; ohne passenden Bereich steht „Kein passender Markdown-Wissensbereich“ und getrennt, was ProductForge hat.
+- [x] AC-6 (Server getestet; Wissensbereich-Vorschlag und Produktfeld vom Auftraggeber im Browser benutzt, 2026-10-17) Angenommen ein Produkt wurde gewählt, wenn das Formular erscheint, dann gibt es eine Produktwahl und einen vorgeschlagenen, vorausgefüllten „Wissensbereich“; ohne passenden Bereich steht „Kein passender Markdown-Wissensbereich“ und getrennt, was ProductForge hat.
 - [x] AC-7 Angenommen ein Produkt ist gewählt, wenn Regeln abgerufen werden, dann gelten die bisherigen Pflichtregeln für Kundengruppe und Wissensbereich unverändert (nie abhängig von SKU oder ID).
 - [x] AC-8 Angenommen Beschreibung und Bullet Points, wenn der Kanal Shop oder Amazon ist, dann wird nur der Kanaltext gesendet, ein fehlender Text bleibt fehlend; bei unklarem Kanal werden beide weggelassen und im Ergebnis vermerkt.
 - [x] AC-9 Angenommen die Felder Technische Daten, Lieferumfang, Pflege, Warnhinweise, Beschreibung, Bullet Points, Kundenservice-Wissen, wenn sie gesendet werden, dann in der wirksamen (`combined`/Kanal-)Form ohne erneute Vererbung; leere Werte entfallen; gleiche Wissensursprünge mehrerer Produkte stehen einmal.
@@ -86,3 +86,56 @@ ProductForge verwaltet konkrete Produktdaten, produktspezifisches Kundenservice-
 - **Tests:** `PROJ-38-ProductForgeClientTest` (23), `PROJ-38-ProductInfoAnalysisTest` (18), `PROJ-38-ProductSearchFormTest` (12); Fixtures `tests/Fixtures/productforge/` nach den Vertragsbeispielen A–D. Nicht durch einen Test abgedeckt: das Verkleinern des Produktanteils beim Safeguard-Nachladen und das Verhalten der Alpine-Oberfläche im Browser.
 - **Bestellzuordnung:** ProductForge führt dieselben SKUs wie EOCS; deshalb ist `PRODUCTFORGE_ORDER_LOOKUP` standardmäßig an. Produkte, die in ProductForge noch fehlen, erscheinen als „nicht verfügbar“. Ein Stichproben-Abgleich mit echten Bestellungen gehört in den Smoke-Test. Offen: echter Smoke-Test gegen ProductForge aus der Sail-Laufzeit. `PRODUCTFORGE_TIMEOUT` ist in Sekunden (Obergrenze 30).
 - Der Test `PROJ-36-AnalysisIntegrationTest` erwartete noch Prompt-Version `.1`; auf `.2` angepasst (Prompt-Datei steht seit Commit „updated prompt“ auf `.2`).
+
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-10-17
+**Tester:** QA Engineer (AI)
+**Methode:** Gesamtsuite (1504 Tests, 2 übersprungen, alle grün), gezielte Tests je Kriterium, Code-Review auf Geheimnisse/Injektion, Abruf der echten Systeme aus der Sail-Laufzeit (ProductForge Suche/SKU/ID, EOCS Items: Treffer, unbekannte Nummer). Nicht von mir getestet: Browser (Chrome/Firefox/Safari), Breakpoints 375/768/1440 px; der Auftraggeber hat Suche, Auswahl, Vorschlag und Ergebnis mit Ticket 2139862 selbst benutzt.
+
+### Acceptance Criteria Status
+- [x] AC-1 Keine Konfiguration/ungültiger Token: Analyse läuft weiter, Hinweis, Token nirgends (Test)
+- [x] AC-2 SKU unverändert, 404 ohne Ersatz, historische SKU und inaktive Produkte (Test)
+- [x] AC-3 Dieselbe SKU nur einmal je Vorgang, Zuordnung je Position (Test)
+- [ ] AC-4 „betroffen“-Auswahl und Rückfrage „Sicher?“: Serverlogik getestet (Vorauswahl nur bei einem Produkt, nur angekreuzte senden Inhalte), die Rückfrage im Browser nicht manuell geprüft
+- [x] AC-5 Suche ohne Bestellung, Master auswählbar, nichts automatisch gewählt (Test, echte Suche)
+- [x] AC-6 Produkt und Wissensbereich getrennt, Vorschlag aus dem Produkt (Test, im Browser benutzt)
+- [x] AC-7 bis AC-22 durch Tests belegt (siehe `PROJ-38-*Test.php`: Pflichtregeln bleiben, Kanalregel, Felder/Budget, Snapshots, Fortsetzung ohne Abruf, Wissenslücke, Quellenanzeige, Fehlerarten, Prompt-Regeln, SKU im Kundentext, EOCS-Ersatz inkl. Teil-Wissenslücke und Admin-Abschnitt, Suche mit EOCS-Ersatz)
+
+### Edge Cases Status
+- [x] Produkt ohne Servicewissen, ohne Master, inaktiv, historische SKU
+- [x] Suche ohne Treffer / zu kurz / unbekannte ID (404, 422, 409 ohne Namen)
+- [x] Zu viele oder ungültige IDs, zu lange SKU (Validierung vor jedem Abruf)
+- [x] EOCS nicht erreichbar, EOCS ohne Leserecht (Konfigurationsfehler), unbekannte Nummer
+
+### Security Audit Results
+- [x] Token nur serverseitig (`config`, Header `Authorization`), nicht in URL, Logs (nur Problemart und Status), Prompt, Protokoll, Fehlermeldungen oder Seiten (Tests)
+- [x] Kein Pfad-/Host-Einschleusen: Hostteil nur aus der Konfiguration, IDs als Ganzzahlen validiert, Suchbegriff und SKU nur als Query-Parameter
+- [x] XSS: Produktnamen und -texte nur escaped (`{{ }}`, `x-text`); `<script>` im Namen wird maskiert (Test)
+- [x] Kontaktdaten in Produkttexten werden vor dem Senden an die KI ersetzt (Test)
+- [x] Produkttexte als Fachquelle, nicht als Anweisung: Prompt-Regel; Allgemeine Regeln haben Vorrang (Test, Prompt prüfbar)
+- [x] Suche nur mit gewähltem Namen (409 sonst), begrenzt auf 60 Anfragen/Minute; nur GET
+- [x] Verschlüsselte Ablage der Produktdaten mit der Analyse (`content` ist `encrypted:array`)
+- Hinweis: Die App hat im MVP keine Anmeldung (Netz/VPN, gemeinsames Passwort); die Suche ist damit für jeden mit Netzzugang und Namen benutzbar, sie gibt aber nur Produktstammdaten zurück.
+
+### Regression
+- [x] Gesamtsuite grün; bestehende Tests, die das alte Verhalten festschrieben, wurden bewusst angepasst (PROJ-6, 7, 9, 32, 36, 43 per PROJ-48 und PROJ-38).
+
+### Bugs Found
+Keine offenen. Während der Entwicklung behoben: falsche URL (`localhost` im Container) wurde als „unerwartetes Format“ gemeldet (jetzt „nicht eingerichtet“), irreführende Wissenslücken-Hinweise bei Katalogprodukten, unerwartetes Verwerfen von KI-Antworten (Grund wird jetzt protokolliert).
+
+#### Hinweise (keine Fehler)
+- Der EOCS-Ersatz wurde mit Attrappen getestet; ein Produkt, das nur in EOCS steht, ist mit echten Daten noch nicht durchgespielt.
+- Das Verkleinern des Produktanteils beim Nachladen verbindlicher Regeln (Safeguard) ist ohne Test.
+- Jedes Öffnen eines Tickets mit erkannter Bestellnummer löst jetzt einen EOCS-Abruf aus (PROJ-7, Entscheidung 2026-10-17).
+- `product_info_status` steht nur im Protokoll, nicht in der Analysen-Übersicht.
+- Browser-/Breakpoint-Prüfung (Chrome/Firefox/Safari, 375/768/1440 px) und AC-4 stehen aus.
+
+### Summary
+- **Acceptance Criteria:** 21 von 22 bestanden (AC-4 nur serverseitig belegt)
+- **Bugs Found:** 0 offen
+- **Security:** bestanden
+- **Production Ready:** JA (keine Critical/High)
