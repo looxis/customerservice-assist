@@ -11,6 +11,7 @@ use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\ProductForge\ProductForgeClient;
+use App\Settings\KnowledgeValues;
 use App\Settings\MailRules;
 use App\Settings\SettingsStore;
 use App\Staff\AdvancedMode;
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(KnowledgeMarkdown::class, fn (): KnowledgeMarkdown => new KnowledgeMarkdown(config('knowledge')));
         $this->app->bind(KnowledgeSelector::class, fn (Application $app): KnowledgeSelector => new KnowledgeSelector($app->make(KnowledgeLibrary::class), config('knowledge')));
         $this->app->scoped(SettingsStore::class);
+        $this->app->singleton(KnowledgeValues::class);
         $this->app->bind(MessageBody::class, fn (Application $app): MessageBody => $app->make(MailRules::class)->messageBody());
         $this->app->bind(EocsClient::class, fn (): EocsClient => new EocsClient(config('services.eocs'), array_change_key_case(config('knowledge.order_channels', []), CASE_LOWER)));
         $this->app->bind(ProductForgeClient::class, fn (): ProductForgeClient => new ProductForgeClient(config('services.productforge')));
@@ -50,6 +52,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Saved values of the settings page (PROJ-50) are laid over the configuration of the knowledge base.
+        $this->app->booted(fn () => $this->app->make(KnowledgeValues::class)->apply());
+
         RateLimiter::for('language-model', fn (Request $request): Limit => Limit::perMinute((int) config('analysis.calls_per_minute'))
             ->by((app(StaffDirectory::class)->current($request) ?? '').'|'.$request->ip())
             ->response(fn (Request $request): RedirectResponse => LocalRedirect::back($request, route('tickets.analyze'))

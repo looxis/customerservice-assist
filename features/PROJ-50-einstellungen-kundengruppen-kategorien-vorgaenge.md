@@ -1,6 +1,6 @@
 # PROJ-50: Einstellungen – Kundengruppen, Kategorien, Vorgänge
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 
@@ -147,4 +147,12 @@ Keine neuen Pakete.
 
 ## Open Questions
 - [ ] Soll die Seite zusätzlich EOCS-Kanalnamen zeigen, die in Bestellungen vorkamen, aber noch keinem Kanal zugeordnet sind? Vorschlag: später, braucht eine Erfassung der gesehenen Namen.
-- [ ] Soll der Leitfaden (`docs/KNOWLEDGE_AUTHORING_GUIDE.md`) die festen Werte entfernen und auf den Kopier-Text verweisen? Vorschlag: ja, in dieser Spec.
+- [x] Soll der Leitfaden (`docs/KNOWLEDGE_AUTHORING_GUIDE.md`) die festen Werte entfernen und auf den Kopier-Text verweisen? Vorschlag: ja, in dieser Spec.
+
+## Implementation Notes
+- **Neu:** `KnowledgeValues` (Standardwerte aus der Konfiguration, Überlagerung der Konfiguration, Verwendung in Dokumenten, Prüfliste, Kopier-Text), `KnowledgeValueRules` (Bereinigen und Prüfen der sechs Gruppen, Schutz der Kundengruppen, Prüfungen über mehrere Gruppen), `ValuesSettingsRequest`, `ReleaseGroupRequest`, Seite `settings/values`, Bausteine `components/settings/records`, Alpine-Komponente `recordList`, sechs Gruppen (`kn_customer_types`, `kn_sales_channels`, `kn_groups`, `kn_order_channels`, `kn_categories`, `kn_actions`), Routen `settings.values*` und `settings.groups.release`.
+- **Geändert:** `CustomerGroup` (Status aktiv/in Vorbereitung/deaktiviert), `KnowledgeSelector::selectableGroups()` (nur aktive Gruppen im Formular und in der Prüfung der Eingabe; `customerGroup()` löst weiter alle auf), `AnalysisPanel`, beide Anfragen und `QuestionController` (wählbare Gruppen), `SettingGroup` (Typ `RECORDS`, `normalizeInput()`), `SettingsController` (`values`, `updateValues`, `release`, geschütztes Wiederherstellen und Zurücksetzen), `AppServiceProvider` (Überlagerung beim Start), Knowledge-Übersicht (zweiter Kopier-Text), Leitfaden (Hinweis „maßgeblich sind die aktuellen Werte der App“).
+- **Überlagerung:** Beim Start der App (und nach jedem Speichern) werden gespeicherte Werte über `config('knowledge.…')` gelegt, nur wo etwas gespeichert ist; die Dokumentenprüfung, die Auswahl, die Analyse, der Router und die Konsolenbefehle (`knowledge:check` geprüft) sehen dieselben Werte.
+- **Schutz:** Neue Gruppen und Gruppen mit geänderter Kundenart/geändertem Kanal sind „in Vorbereitung“ (auch beim Wiederherstellen); die Freigabe verlangt die einzelne Bestätigung jeder ausgeschlossenen verbindlichen Regel. Entfernen von Kundenarten, Kanälen, Kategorien und Vorgängen ist nur ohne Verwendung in Dokumenten (und Gruppen) möglich; Wiederherstellen und Zurücksetzen prüfen genauso.
+- **Tests:** `PROJ-50-ValuesSettingsTest` (28).
+- **Offen für `/qa`:** Bedienung im Browser (Zeilen, Pfeile, Status, Prüfliste, Freigabe mit Häkchen), 375/768/1440 px, Prüfung mit den echten Dokumenten und einer echten neuen Kundengruppe.

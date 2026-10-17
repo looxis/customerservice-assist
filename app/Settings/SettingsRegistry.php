@@ -5,6 +5,7 @@ namespace App\Settings;
 use App\Analysis\Prompt;
 use App\Orders\OrderFormats;
 use App\ProductForge\SkuDetector;
+use Closure;
 
 /**
  * All settings groups and pages of the app (PROJ-27). A later spec adds its groups here; the settings
@@ -29,6 +30,11 @@ final class SettingsRegistry
                 'title' => 'Mail-Anzeige',
                 'description' => 'Wie Nachrichten im Ticketverlauf bereinigt werden: Links, Signaturen, Fußtexte, Zitate und die Amazon-Nachricht.',
                 'route' => 'settings.mail',
+            ],
+            'values' => [
+                'title' => 'Kundengruppen und Werte',
+                'description' => 'Kundengruppen, Kundenarten, Vertriebskanäle, EOCS-Kanalnamen, Fallkategorien und Vorgänge.',
+                'route' => 'settings.values',
             ],
             'detection' => [
                 'title' => 'Erkennungsregeln',
@@ -82,6 +88,22 @@ final class SettingsRegistry
             $groups[] = new SettingGroup(Prompt::settingKey($name), 'prompts', 'Prompt: '.$prompt['title'], $prompt['hint'], SettingGroup::PROMPT, fn (): array => ['text' => Prompt::fromFile($name)->text, 'base' => Prompt::fromFile($name)->version], base: fn (): string => Prompt::fromFile($name)->version);
         }
 
+        $values = fn (string $key): Closure => fn (): array => app(KnowledgeValues::class)->defaults($key);
+        $keyLabel = [['field' => 'key', 'label' => 'Schlüssel', 'type' => 'key'], ['field' => 'label', 'label' => 'Name', 'type' => 'text']];
+        $groups[] = new SettingGroup('kn_customer_types', 'values', 'Kundenarten', 'Die Kundenart im Kopf der Wissensdokumente (`customer_types`). Der Schlüssel steht fest, sobald der Eintrag gespeichert ist; der Name ist jederzeit änderbar. Entfernen geht nur, wenn kein Dokument und keine Kundengruppe sie noch nennt.', SettingGroup::RECORDS, $values('kn_customer_types'), columns: $keyLabel);
+        $groups[] = new SettingGroup('kn_sales_channels', 'values', 'Vertriebskanäle', 'Der Vertriebskanal im Kopf der Wissensdokumente (`sales_channels`). Entfernen geht nur, wenn kein Dokument, keine Kundengruppe und keine EOCS-Zuordnung ihn noch nennt.', SettingGroup::RECORDS, $values('kn_sales_channels'), columns: $keyLabel);
+        $groups[] = new SettingGroup('kn_groups', 'values', 'Kundengruppen', 'Die Gruppen, die Mitarbeiter im Formular wählen (Reihenfolge wie hier). Eine neue Gruppe oder eine geänderte Kundenart/ein geänderter Kanal startet „in Vorbereitung“: Erst nach der Prüfung der Dokumente und der Freigabe ist sie wählbar. Gruppen werden deaktiviert, nicht entfernt.', SettingGroup::RECORDS, $values('kn_groups'), columns: [
+            ['field' => 'key', 'label' => 'Schlüssel', 'type' => 'key'], ['field' => 'label', 'label' => 'Name', 'type' => 'text'],
+            ['field' => 'customer_type', 'label' => 'Kundenart', 'type' => 'select', 'options' => 'types'], ['field' => 'sales_channel', 'label' => 'Vertriebskanal', 'type' => 'select', 'options' => 'channels'],
+            ['field' => 'status', 'label' => 'Status', 'type' => 'status'],
+        ]);
+        $groups[] = new SettingGroup('kn_order_channels', 'values', 'EOCS-Kanalnamen', 'Wie EOCS den Kanal einer Bestellung nennt, und zu welchem Vertriebskanal er gehört. Daraus schlägt die App die Kundengruppe vor (Groß-/Kleinschreibung egal; unbekannte Namen schlagen „Noch unklar“ vor).', SettingGroup::RECORDS, $values('kn_order_channels'), columns: [
+            ['field' => 'name', 'label' => 'Name in EOCS', 'type' => 'text'], ['field' => 'channel', 'label' => 'Vertriebskanal', 'type' => 'select', 'options' => 'channels'],
+        ]);
+        $groups[] = new SettingGroup('kn_categories', 'values', 'Fallkategorien', 'Die Art des Falls (`categories` in Dokumenten, Ergebnis der Analyse, Router). Entfernen geht nur, wenn kein Dokument sie noch nennt.', SettingGroup::RECORDS, $values('kn_categories'), columns: $keyLabel);
+        $groups[] = new SettingGroup('kn_actions', 'values', 'Vorgänge', 'Die konkrete Maßnahme eines Falls (`actions`, `action` in Dokumenten und Arbeitsabläufen). Der Hinweis sagt der KI, wann sie den Vorgang nennt (nur bei Verwechslungsgefahr nötig). Entfernen geht nur, wenn kein Dokument ihn noch nennt.', SettingGroup::RECORDS, $values('kn_actions'), columns: [
+            ['field' => 'key', 'label' => 'Schlüssel', 'type' => 'key'], ['field' => 'label', 'label' => 'Name', 'type' => 'text'], ['field' => 'hint', 'label' => 'Hinweis für die KI', 'type' => 'text'],
+        ]);
         $groups[] = new SettingGroup('order_formats', 'detection', 'Bestellnummern-Formate', 'Von oben nach unten angewendet; das erste passende Format zählt. Aufbau: „#“ Ziffer, „?“ Buchstabe, „*“ Buchstabe oder Ziffer, alles andere fester Text. Die Beispiele werden vor dem Speichern geprüft.', SettingGroup::FORMATS, fn (): array => OrderFormats::defaults());
         $groups[] = new SettingGroup('sku_keywords', 'detection', 'Artikelnummern: Stichwörter', 'Eine Zahl im Kundentext gilt nur dann als Artikelnummer (SKU), wenn direkt davor eines dieser Stichwörter steht. Groß-/Kleinschreibung egal.', SettingGroup::TEXTS, fn (): array => SkuDetector::defaultKeywords(), minLength: 2, maxLength: 40, allowEmpty: false);
         $groups[] = new SettingGroup('sku_digits', 'detection', 'Artikelnummern: Anzahl Ziffern', 'So viele Ziffern hat eine Artikelnummer bei LOOXIS.', SettingGroup::NUMBER, fn (): int => 5, max: 10, min: 3);

@@ -1,16 +1,39 @@
-@props(['group', 'value', 'version', 'isDefault', 'last' => null, 'history', 'canEdit' => false, 'outdated' => false])
+@props(['group', 'value', 'version', 'isDefault', 'last' => null, 'history', 'canEdit' => false, 'outdated' => false, 'options' => []])
 
 @php
     $name = 'settings['.$group->key.']';
     $messages = isset($errors) ? $errors->get('settings.'.$group->key) : [];
-    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS], true);
+    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS, \App\Settings\SettingGroup::RECORDS], true);
     $current = old('settings.'.$group->key, $single ? '' : $value);
     if ($group->kind === \App\Settings\SettingGroup::HOSTS && ! is_array($current)) { $current = $value; }
     $rows = $single ? [] : array_values((array) $current);
     $rows = $group->kind === \App\Settings\SettingGroup::HOSTS
         ? array_values(array_filter(array_map(fn ($row) => is_array($row) ? ['host' => (string) ($row['host'] ?? ''), 'mode' => ($row['mode'] ?? 'text') === 'clickable' ? 'clickable' : 'text'] : null, $rows), fn ($row) => $row !== null && $row['host'] !== ''))
         : array_values(array_filter(array_map(fn ($row) => is_string($row) ? $row : null, $rows), fn ($row) => $row !== null && $row !== ''));
-    $kinds = ['gespeichert' => 'gespeichert', 'wiederhergestellt' => 'wiederhergestellt', 'standard' => 'auf Standard zurückgesetzt'];
+    $present = function ($value): string {
+        if (! is_array($value)) {
+            return (string) $value;
+        }
+
+        if (isset($value['text'])) {
+            return (string) $value['text'];
+        }
+
+        return collect($value)->map(function ($item): string {
+            if (! is_array($item)) {
+                return (string) $item;
+            }
+
+            return match (true) {
+                isset($item['layout']) => $item['name'].': '.$item['layout'].(! empty($item['prefix']) ? ' (Vorsilbe '.$item['prefix'].')' : ''),
+                isset($item['host']) => $item['host'].' ('.(($item['mode'] ?? '') === 'clickable' ? 'klickbar' : 'Text').')',
+                isset($item['key']) => $item['key'].': '.($item['label'] ?? '').(! empty($item['status']) && $item['status'] !== 'active' ? ' ['.$item['status'].']' : '').(! empty($item['hint']) ? ' – '.$item['hint'] : ''),
+                isset($item['channel']) => ($item['name'] ?? '').' → '.$item['channel'],
+                default => json_encode($item, JSON_UNESCAPED_UNICODE),
+            };
+        })->implode("\n");
+    };
+    $kinds = ['gespeichert' => 'gespeichert', 'wiederhergestellt' => 'wiederhergestellt', 'standard' => 'auf Standard zurückgesetzt', 'freigegeben' => 'Gruppe freigegeben'];
 @endphp
 
 <x-card id="{{ $group->key }}" class="scroll-mt-4">
@@ -30,7 +53,9 @@
         <p class="mt-2 text-sm font-medium text-danger-700" role="alert">{{ $message }}</p>
     @endforeach
 
-    @if ($group->kind === \App\Settings\SettingGroup::FORMATS)
+    @if ($group->kind === \App\Settings\SettingGroup::RECORDS)
+        <x-settings.records :group="$group" :value="$value" :can-edit="$canEdit" :options="$options" />
+    @elseif ($group->kind === \App\Settings\SettingGroup::FORMATS)
         <x-settings.formats :group="$group" :value="$value" :can-edit="$canEdit" />
     @elseif ($group->kind === \App\Settings\SettingGroup::PROMPT)
         @if ($outdated)
@@ -104,7 +129,7 @@
                     <span class="text-slate-600">{{ $kinds[$entry->kind] ?? $entry->kind }} von {{ $entry->changed_by }}, {{ $entry->created_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span>
                     <details class="basis-full">
                         <summary class="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900">Wert dieser Version</summary>
-                        <pre class="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-900">{{ is_array($entry->value) && isset($entry->value['text']) ? $entry->value['text'] : (is_array($entry->value) && isset($entry->value[0]['layout']) ? collect($entry->value)->map(fn ($format) => $format['name'].': '.$format['layout'].(! empty($format['prefix']) ? ' (Vorsilbe '.$format['prefix'].')' : ''))->implode("\n") : (is_array($entry->value) ? collect($entry->value)->map(fn ($item) => is_array($item) ? ($item['host'] ?? '').' ('.(($item['mode'] ?? '') === 'clickable' ? 'klickbar' : 'Text').')' : (string) $item)->implode("\n") : $entry->value)) }}</pre>
+                        <pre class="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-900">{{ $present($entry->value) }}</pre>
                     </details>
                     @if ($canEdit)
                         <button type="submit" form="wiederherstellen-{{ $group->key }}-{{ $entry->version }}" class="text-xs font-semibold text-brand hover:text-brand-hover">Diese Version wiederherstellen</button>

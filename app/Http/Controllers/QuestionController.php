@@ -34,7 +34,7 @@ class QuestionController extends Controller
 
         return view('questions.create', [
             'form' => [
-                'groups' => $selector->customerGroups(),
+                'groups' => $selector->selectableGroups(),
                 'suggestedGroup' => '',
                 'groupSource' => null,
                 'products' => $selector->products(),

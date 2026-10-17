@@ -123,6 +123,29 @@ Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
 
 Alpine.data('scopeFields', scopeFields);
 
+// Records (key, name, …) of the knowledge values on the settings page (PROJ-50).
+Alpine.data('recordList', (config) => ({
+    rows: config.rows,
+
+    add() {
+        const row = { _saved: false };
+        config.fields.forEach((field) => { row[field] = field === 'status' ? 'preparing' : ''; });
+        this.rows.push(row);
+    },
+
+    remove(index) {
+        this.rows.splice(index, 1);
+    },
+
+    move(index, step) {
+        const target = index + step;
+
+        if (target >= 0 && target < this.rows.length) {
+            [this.rows[index], this.rows[target]] = [this.rows[target], this.rows[index]];
+        }
+    },
+}));
+
 // The order number formats on the settings page (PROJ-49): cards that can be added, moved and removed.
 Alpine.data('formatList', (config) => ({
     rows: config.rows,

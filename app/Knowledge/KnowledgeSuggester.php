@@ -90,7 +90,7 @@ class KnowledgeSuggester
     {
         $channels = array_change_key_case($this->config['order_channels'], CASE_LOWER);
         $channel = $channels[mb_strtolower(trim((string) $orderChannel))] ?? null;
-        $groups = $this->selector->customerGroups();
+        $groups = $this->selector->selectableGroups();
 
         foreach ($groups as $group) {
             if ($channel !== null && $group->salesChannel === $channel) {

@@ -67,7 +67,7 @@ class AnalyzeTicketRequest extends FormRequest
         $selector = app(KnowledgeSelector::class);
 
         return [
-            'kundengruppe' => ['required', 'string', Rule::in(array_map(fn (CustomerGroup $group): string => $group->key, $selector->customerGroups()))],
+            'kundengruppe' => ['required', 'string', Rule::in(array_map(fn (CustomerGroup $group): string => $group->key, $selector->selectableGroups()))],
             'produkte' => ['sometimes', 'array', 'max:10'],
             'produkte.*' => ['string', Rule::in(array_column($selector->products(), 'slug'))],
             'variante' => ['required', 'string', Rule::enum(ContextVariant::class)],

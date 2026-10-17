@@ -82,7 +82,7 @@ class AnalysisPanel
         $chosenGroup = $inputs['kundengruppe'] ?? $choice['group'] ?? null;
 
         return [
-            'groups' => $this->selector->customerGroups(),
+            'groups' => $this->selector->selectableGroups(),
             'suggestedGroup' => $group,
             'groupSource' => $groupSource,
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
@@ -168,14 +168,14 @@ class AnalysisPanel
      */
     private function suggestedGroup(Ticket $ticket, array $orders, ?array $choice): array
     {
-        $known = array_map(fn (CustomerGroup $group): string => $group->key, $this->selector->customerGroups());
+        $known = array_map(fn (CustomerGroup $group): string => $group->key, $this->selector->selectableGroups());
 
         if ($choice !== null && in_array($choice['group'], $known, true)) {
             return [$choice['group'], 'zuletzt gewählt von '.$choice['staff'].' am '.CarbonImmutable::parse($choice['at'])->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr'];
         }
 
         foreach ($orders as $order) {
-            foreach ($this->selector->customerGroups() as $group) {
+            foreach ($this->selector->selectableGroups() as $group) {
                 if ($order->channel !== null && $group->salesChannel === $order->channel) {
                     return [$group->key, 'aus dem Kanal der Bestellung'];
                 }

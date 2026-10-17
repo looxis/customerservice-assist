@@ -32,7 +32,7 @@ class AskQuestionRequest extends FormRequest
 
         return [
             'text' => ['required', 'string', 'max:'.config('analysis.max_question_length')],
-            'kundengruppe' => ['required', 'string', Rule::in(array_map(fn (CustomerGroup $group): string => $group->key, $selector->customerGroups()))],
+            'kundengruppe' => ['required', 'string', Rule::in(array_map(fn (CustomerGroup $group): string => $group->key, $selector->selectableGroups()))],
             'produkte' => ['sometimes', 'array', 'max:10'],
             'produkte.*' => ['string', Rule::in(array_column($selector->products(), 'slug'))],
             'antwortentwurf' => ['nullable', 'boolean'],

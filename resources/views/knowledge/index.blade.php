@@ -198,5 +198,6 @@
             Vergebene IDs, nächste freie ID je Typ und verwendete Schlagwörter. Diesen Block zu Beginn einer Sitzung in den Chat einfügen, zusammen mit dem Authoring Guide.
         </p>
         <x-copy-field class="mt-4" :text="$library->overview()" label="ID-Übersicht für den KI-Chat" />
+        <x-copy-field class="mt-4" :text="app(\App\Settings\KnowledgeValues::class)->copyText()" label="Erlaubte Werte für den KI-Chat (Kundenarten, Kanäle, Kategorien, Vorgänge)" />
     </x-collapsible>
 </x-layouts.app>

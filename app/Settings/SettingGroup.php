@@ -24,13 +24,15 @@ final readonly class SettingGroup
 
     public const string FORMATS = 'formats';
 
+    public const string RECORDS = 'records';
+
     public const int PROMPT_MAX = 30000;
 
     public const int MAX_ENTRIES = 100;
 
     /**
      * @param  Closure(): mixed  $default
-     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
+     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
      * @param  Closure(): string|null  $base  For a PROMPT: the version of the default file.
      */
     public function __construct(
@@ -48,6 +50,7 @@ final readonly class SettingGroup
         public int $max = 5,
         public int $min = 0,
         private ?Closure $base = null,
+        public array $columns = [],
     ) {}
 
     /**
@@ -76,6 +79,7 @@ final readonly class SettingGroup
             self::PROMPT => $this->prompt($input),
             self::MODEL => [is_string($input) ? trim($input) : $input, []],
             self::FORMATS => OrderFormatRules::normalize($input),
+            self::RECORDS => KnowledgeValueRules::normalize($this->key, $input),
             default => $this->texts($input),
         };
     }
@@ -97,6 +101,17 @@ final readonly class SettingGroup
     }
 
     /**
+     * The cleaned input of the settings form: like normalize(), and where the saved state matters (new customer
+     * groups wait for their release) it is applied. Never called for stored values.
+     *
+     * @return array{0: mixed, 1: list<string>}
+     */
+    public function normalizeInput(mixed $input): array
+    {
+        return $this->kind === self::RECORDS ? KnowledgeValueRules::normalize($this->key, $input, true) : $this->normalize($input);
+    }
+
+    /**
      * Messages for an unusable (already normalized) value; empty when it is fine.
      *
      * @return list<string>
@@ -106,6 +121,7 @@ final readonly class SettingGroup
         return match ($this->kind) {
             self::NUMBER => is_int($value) && $value >= $this->min && $value <= $this->max ? [] : ["Bitte eine Zahl von {$this->min} bis {$this->max} eingeben."],
             self::FORMATS => OrderFormatRules::errors($value),
+            self::RECORDS => KnowledgeValueRules::errors($this->key, $value),
             self::HOSTS => $this->hostErrors($value),
             self::PROMPT => $this->promptErrors($value),
             self::MODEL => is_string($value) && preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/', $value) === 1 ? [] : ['Ein Modellname besteht aus Buchstaben, Ziffern und . - _ : (höchstens 100 Zeichen).'],

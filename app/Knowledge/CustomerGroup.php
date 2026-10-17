@@ -13,12 +13,27 @@ final readonly class CustomerGroup
         public string $label,
         public ?string $customerType,
         public ?string $salesChannel,
+        public string $status = self::ACTIVE,
     ) {}
+
+    public const string ACTIVE = 'active';
+
+    public const string PREPARING = 'preparing';
+
+    public const string INACTIVE = 'inactive';
+
+    /**
+     * Only active groups can be chosen in a form; groups in preparation or deactivated still resolve for stored data (PROJ-50).
+     */
+    public function isSelectable(): bool
+    {
+        return $this->status === self::ACTIVE;
+    }
 
     /**
      * All groups from the "knowledge.customer_groups" configuration, in its order.
      *
-     * @param  array<string, array{label: string, customer_type: ?string, sales_channel: ?string}>  $groups
+     * @param  array<string, array{label: string, customer_type: ?string, sales_channel: ?string, status?: string}>  $groups
      * @return list<self>
      */
     public static function all(array $groups): array
@@ -26,7 +41,7 @@ final readonly class CustomerGroup
         $result = [];
 
         foreach ($groups as $key => $group) {
-            $result[] = new self($key, $group['label'], $group['customer_type'] ?? null, $group['sales_channel'] ?? null);
+            $result[] = new self($key, $group['label'], $group['customer_type'] ?? null, $group['sales_channel'] ?? null, $group['status'] ?? self::ACTIVE);
         }
 
         return $result;

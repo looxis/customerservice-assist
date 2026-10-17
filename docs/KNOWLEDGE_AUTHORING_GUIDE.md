@@ -180,6 +180,8 @@ Die Zusammenfassung und die Auslöser bleiben in Frontmatter und Text widerspruc
 
 Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das im Frontmatter. Die App berücksichtigt beide Felder bei der Auswahl, damit z. B. ein Fachhändler-Fall von Anfang an die Fachhändler-Regeln erhält und keine Regeln, die nur für Privatkunden gelten.
 
+> **Maßgeblich sind die aktuellen Werte der App**, nicht die Tabellen in dieser Anleitung (sie zeigen den Stand bei der Einführung). Die App führt die erlaubten Werte unter „Einstellungen > Kundengruppen und Werte“; den Kopier-Text dazu bekommst du vom Autor (er steht auch in der Knowledge-Übersicht). Verwende nur Werte aus diesem Text.
+
 `customer_types` – feste Werte:
 
 | Wert | Bedeutung |
@@ -243,7 +245,7 @@ Abgrenzung:
 
 Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Euro"), gehört sie in die Policy oder Permission; der Ablauf nennt deren ID.
 
-`actions` (Pflicht): Für welche Vorgänge gilt der Ablauf? Eine Liste aus diesen Werten:
+`actions` (Pflicht): Für welche Vorgänge gilt der Ablauf? Eine Liste aus den erlaubten Vorgängen (Stand bei der Einführung unten; maßgeblich ist der aktuelle Kopier-Text der App):
 
 | Wert | Vorgang |
 |---|---|
@@ -346,8 +348,8 @@ Vorhandene products-Slugs:
 Vorhandene topics-Werte:
 (Liste oder „noch keine")
 
-Erlaubte Vorgänge (actions):
-(Liste)
+Erlaubte Werte (Kopier-Text der App mit Kundenarten, Vertriebskanälen, Kategorien und Vorgängen):
+(Text einfügen)
 
 Vergebene order_keywords je Produkt:
 (Liste oder „noch keine")

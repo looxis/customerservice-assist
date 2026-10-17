@@ -22,6 +22,8 @@ class SettingsStore
 
     public const string DEFAULT = 'standard';
 
+    public const string RELEASED = 'freigegeben';
+
     /**
      * @var array<string, array{value: mixed, version: int, by: string|null, at: string|null}>|null
      */

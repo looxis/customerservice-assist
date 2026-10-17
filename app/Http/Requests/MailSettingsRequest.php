@@ -59,7 +59,7 @@ class MailSettingsRequest extends FormRequest
                     continue;
                 }
 
-                [$value, $notes] = $group->normalize($this->input("settings.{$key}"));
+                [$value, $notes] = $group->normalizeInput($this->input("settings.{$key}"));
 
                 foreach ($group->errors($value) as $message) {
                     $validator->errors()->add("settings.{$key}", $message);

@@ -31,6 +31,16 @@ class KnowledgeSelector
         return CustomerGroup::all($this->config['customer_groups']);
     }
 
+    /**
+     * The groups an employee may choose (active ones), in the order of the form.
+     *
+     * @return list<CustomerGroup>
+     */
+    public function selectableGroups(): array
+    {
+        return array_values(array_filter($this->customerGroups(), fn (CustomerGroup $group): bool => $group->isSelectable()));
+    }
+
     public function customerGroup(string $key): ?CustomerGroup
     {
         foreach ($this->customerGroups() as $group) {

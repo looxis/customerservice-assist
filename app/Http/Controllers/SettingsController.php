@@ -6,12 +6,18 @@ use App\Http\Requests\ChangeSettingVersionRequest;
 use App\Http\Requests\DetectionSettingsRequest;
 use App\Http\Requests\MailSettingsRequest;
 use App\Http\Requests\PromptSettingsRequest;
+use App\Http\Requests\ReleaseGroupRequest;
 use App\Http\Requests\TryDetectionRequest;
 use App\Http\Requests\TryMailSettingsRequest;
+use App\Http\Requests\ValuesSettingsRequest;
+use App\Knowledge\CustomerGroup;
+use App\Models\SettingVersion;
 use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\ProductForge\SkuDetector;
+use App\Settings\KnowledgeValueRules;
+use App\Settings\KnowledgeValues;
 use App\Settings\MailRules;
 use App\Settings\ModelCatalog;
 use App\Settings\SettingGroup;
@@ -79,6 +85,61 @@ class SettingsController extends Controller
             ],
             'notes' => $request->notes(),
         ]);
+    }
+
+    public function values(Request $request, SettingsStore $settings, TestMode $testMode, KnowledgeValues $values): View
+    {
+        $data = $this->pageData(ValuesSettingsRequest::PAGE, $request, $settings, $testMode);
+        $groups = collect((array) $settings->value('kn_groups'));
+        $checklists = [];
+
+        foreach ($groups->where('status', CustomerGroup::PREPARING) as $row) {
+            $checklists[$row['key']] = $values->checklist(new CustomerGroup($row['key'], $row['label'], $row['customer_type'], $row['sales_channel'], $row['status']));
+        }
+
+        return view('settings.values', [
+            ...$data,
+            'checklists' => $checklists,
+            'options' => ['types' => collect((array) $settings->value('kn_customer_types'))->pluck('label', 'key')->all(), 'channels' => collect((array) $settings->value('kn_sales_channels'))->pluck('label', 'key')->all()],
+            'copyText' => $values->copyText(),
+        ]);
+    }
+
+    public function updateValues(ValuesSettingsRequest $request, SettingsStore $settings, StaffDirectory $staff, KnowledgeValues $values): RedirectResponse
+    {
+        $response = $this->saveDrafts($request, ValuesSettingsRequest::PAGE, $settings, $staff);
+        $values->apply();
+
+        return $response;
+    }
+
+    /**
+     * Release a customer group after its documents were checked; binding rules that stay excluded are confirmed one by one.
+     */
+    public function release(string $group, ReleaseGroupRequest $request, SettingsStore $settings, StaffDirectory $staff, KnowledgeValues $values): RedirectResponse
+    {
+        $rows = collect((array) $settings->value('kn_groups'));
+        $row = $rows->firstWhere('key', $group);
+        abort_if($row === null || $row['status'] !== CustomerGroup::PREPARING, 404);
+
+        $back = redirect()->to(route('settings.values').'#gruppe-'.$group);
+
+        if ((int) $request->validated('version') !== $settings->version('kn_groups')) {
+            return $back->withErrors(['release' => 'Die Kundengruppen wurden inzwischen geändert. Bitte die Seite neu laden und die Freigabe erneut versuchen.']);
+        }
+
+        $binding = array_column($values->checklist(new CustomerGroup($row['key'], $row['label'], $row['customer_type'], $row['sales_channel'], $row['status']))['binding'], 'id');
+        $missing = array_diff($binding, (array) $request->validated('confirmed', []));
+
+        if ($missing !== []) {
+            return $back->withErrors(['release' => 'Bitte jede verbindliche Regel einzeln bestätigen, die für diese Gruppe ausgeschlossen bleibt: '.implode(', ', $missing).'.']);
+        }
+
+        $released = $rows->map(fn (array $item): array => $item['key'] === $group ? [...$item, 'status' => CustomerGroup::ACTIVE, 'released_by' => (string) $staff->current($request), 'released_at' => now()->toIso8601String(), 'confirmed_binding' => array_values($binding)] : $item)->all();
+        $settings->save('kn_groups', $released, (string) $staff->current($request), SettingsStore::RELEASED);
+        $values->apply();
+
+        return $back->with('released', $row['label']);
     }
 
     /**
@@ -171,22 +232,52 @@ class SettingsController extends Controller
         return redirect()->route('settings.mail')->withInput()->with('trial', ['ticket' => $saved->number, 'title' => $saved->title, 'messages' => $messages, 'notes' => $request->notes()]);
     }
 
-    public function restore(string $group, int $version, ChangeSettingVersionRequest $request, SettingsStore $settings, StaffDirectory $staff): RedirectResponse
+    public function restore(string $group, int $version, ChangeSettingVersionRequest $request, SettingsStore $settings, StaffDirectory $staff, KnowledgeValues $values): RedirectResponse
     {
         abort_if(SettingsRegistry::group($group) === null, 404);
+
+        if (in_array($group, KnowledgeValues::GROUP_KEYS, true)) {
+            $old = SettingVersion::query()->where('group_key', $group)->where('version', $version)->firstOrFail();
+
+            return $this->guarded($group, $old->value, SettingsStore::RESTORED, 'restored', $settings, $staff, $request, $values);
+        }
 
         $settings->restore($group, $version, (string) $staff->current($request)) || abort(404);
 
         return redirect()->route($this->routeOf($group))->with('restored', $group);
     }
 
-    public function reset(string $group, ChangeSettingVersionRequest $request, SettingsStore $settings, StaffDirectory $staff): RedirectResponse
+    public function reset(string $group, ChangeSettingVersionRequest $request, SettingsStore $settings, StaffDirectory $staff, KnowledgeValues $values): RedirectResponse
     {
         abort_if(SettingsRegistry::group($group) === null, 404);
+
+        if (in_array($group, KnowledgeValues::GROUP_KEYS, true)) {
+            return $this->guarded($group, SettingsRegistry::group($group)->default(), SettingsStore::DEFAULT, 'reset', $settings, $staff, $request, $values);
+        }
 
         $settings->reset($group, (string) $staff->current($request));
 
         return redirect()->route($this->routeOf($group))->with('reset', $group);
+    }
+
+    /**
+     * Restore or reset a value group of the knowledge base: the same protection as saving (nothing named by a document
+     * is removed, customer groups are not removed or released this way).
+     */
+    private function guarded(string $group, mixed $value, string $kind, string $flash, SettingsStore $settings, StaffDirectory $staff, Request $request, KnowledgeValues $values): RedirectResponse
+    {
+        $definition = SettingsRegistry::group($group);
+        [$value] = $definition->normalizeInput($value);
+        $errors = [...$definition->errors($value), ...(KnowledgeValueRules::crossErrors([$group => $value])[$group] ?? [])];
+
+        if ($errors !== []) {
+            return redirect()->route($this->routeOf($group))->withErrors(["settings.{$group}" => implode(' ', $errors)]);
+        }
+
+        $settings->save($group, $value, (string) $staff->current($request), $kind);
+        $values->apply();
+
+        return redirect()->route($this->routeOf($group))->with($flash, $group);
     }
 
     private function routeOf(string $group): string

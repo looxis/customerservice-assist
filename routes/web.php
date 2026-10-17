@@ -36,10 +36,13 @@ Route::get('/einstellungen', [SettingsController::class, 'index'])->name('settin
 Route::get('/einstellungen/mail-anzeige', [SettingsController::class, 'mail'])->name('settings.mail');
 Route::get('/einstellungen/prompts-und-modell', [SettingsController::class, 'prompts'])->name('settings.prompts');
 Route::get('/einstellungen/erkennungsregeln', [SettingsController::class, 'detection'])->name('settings.detection');
+Route::get('/einstellungen/kundengruppen-und-werte', [SettingsController::class, 'values'])->name('settings.values');
 Route::middleware('staff.selected')->group(function (): void {
     Route::put('/einstellungen/mail-anzeige', [SettingsController::class, 'updateMail'])->name('settings.mail.update');
     Route::put('/einstellungen/prompts-und-modell', [SettingsController::class, 'updatePrompts'])->name('settings.prompts.update');
     Route::put('/einstellungen/erkennungsregeln', [SettingsController::class, 'updateDetection'])->name('settings.detection.update');
+    Route::put('/einstellungen/kundengruppen-und-werte', [SettingsController::class, 'updateValues'])->name('settings.values.update');
+    Route::post('/einstellungen/kundengruppen/{group}/freigeben', [SettingsController::class, 'release'])->where('group', '[a-z0-9-]+')->name('settings.groups.release');
     Route::match(['put', 'post'], '/einstellungen/erkennungsregeln/ausprobieren', [SettingsController::class, 'tryDetection'])->middleware('throttle:30,1')->name('settings.detection.try');
     Route::match(['put', 'post'], '/einstellungen/mail-anzeige/ausprobieren', [SettingsController::class, 'tryMail'])->middleware('throttle:20,1')->name('settings.mail.try');
     Route::post('/einstellungen/{group}/standard', [SettingsController::class, 'reset'])->where('group', '[a-z_]+')->name('settings.reset');
