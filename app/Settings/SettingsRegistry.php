@@ -2,6 +2,8 @@
 
 namespace App\Settings;
 
+use App\Analysis\Prompt;
+
 /**
  * All settings groups and pages of the app (PROJ-27). A later spec adds its groups here; the settings
  * page, the storage, the history and the reset then work for them without further code.
@@ -26,6 +28,29 @@ final class SettingsRegistry
                 'description' => 'Wie Nachrichten im Ticketverlauf bereinigt werden: Links, Signaturen, Fußtexte, Zitate und die Amazon-Nachricht.',
                 'route' => 'settings.mail',
             ],
+            'prompts' => [
+                'title' => 'Prompts und Modell',
+                'description' => 'Die Anweisungen an die KI (sieben Prompts) und das Modell je KI-Aufruf.',
+                'route' => 'settings.prompts',
+            ],
+        ];
+    }
+
+    /**
+     * The prompts of the app: name of the file, title, when it is used.
+     *
+     * @return array<string, array{title: string, hint: string}>
+     */
+    public static function prompts(): array
+    {
+        return [
+            'analysis' => ['title' => 'Analyse (Kern)', 'hint' => 'Bei jedem Vorschlag, zu einem Ticket und zu einer Frage. Die Zusätze unten werden bei Bedarf angehängt.'],
+            'analysis-retrieval' => ['title' => 'Zusatz: gezielter Wissensabruf', 'hint' => 'Wird dem Kern angehängt, wenn der gezielte Wissensabruf aktiv ist.'],
+            'analysis-question' => ['title' => 'Zusatz: Frage ohne Ticket', 'hint' => 'Wird dem Kern angehängt, wenn ein Vorschlag zu einer Frage („Frage stellen“) entsteht.'],
+            'analysis-products' => ['title' => 'Zusatz: Produktinformationen', 'hint' => 'Wird dem Kern angehängt, wenn Produktinformationen aus dem Katalog vorliegen.'],
+            'router' => ['title' => 'Router', 'hint' => 'Beim zusätzlichen Wissensvorschlag nach dem gezielten Abruf.'],
+            'summary' => ['title' => 'Zusammenfassung', 'hint' => 'Bei der Zusammenfassung des bisherigen Verlaufs.'],
+            'translation' => ['title' => 'Übersetzung', 'hint' => 'Bei jeder Übersetzung einer Nachricht und bei der Rückübersetzung des Antwortentwurfs.'],
         ];
     }
 
@@ -34,7 +59,24 @@ final class SettingsRegistry
      */
     public static function all(): array
     {
+        $models = [
+            'model_analysis' => ['Analyse', 'Das Modell für den Vorschlag zu Ticket oder Frage.', fn (): string => (string) config('analysis.models.analysis')],
+            'model_summary' => ['Zusammenfassung', 'Das Modell für die Zusammenfassung des bisherigen Verlaufs.', fn (): string => (string) config('analysis.models.summary')],
+            'model_translation' => ['Übersetzung', 'Das Modell für Übersetzungen und die Rückübersetzung des Antwortentwurfs.', fn (): string => (string) config('analysis.models.translation')],
+            'model_router' => ['Router', 'Das Modell für den zusätzlichen Wissensvorschlag.', fn (): string => (string) config('knowledge.router.model')],
+        ];
+        $groups = [];
+
+        foreach ($models as $key => [$title, $hint, $default]) {
+            $groups[] = new SettingGroup($key, 'prompts', 'Modell: '.$title, $hint.' Vor dem Speichern wird das Modell mit einem winzigen Testaufruf geprüft.', SettingGroup::MODEL, $default);
+        }
+
+        foreach (self::prompts() as $name => $prompt) {
+            $groups[] = new SettingGroup(Prompt::settingKey($name), 'prompts', 'Prompt: '.$prompt['title'], $prompt['hint'], SettingGroup::PROMPT, fn (): array => ['text' => Prompt::fromFile($name)->text, 'base' => Prompt::fromFile($name)->version], base: fn (): string => Prompt::fromFile($name)->version);
+        }
+
         return self::$groups ??= collect([
+            ...$groups,
             new SettingGroup('mail_hosts', 'mail', 'Zugelassene Adressen', 'Links zu diesen Adressen (samt Unterseiten wie www.) bleiben als Text sichtbar oder klickbar. Jeder andere Link wird durch „[Link entfernt]“ ersetzt. „*“ steht am Ende für eine Länderendung (.de, .it, .co.uk); klickbar gilt nur für https.', SettingGroup::HOSTS, fn (): array => MailDefaults::hosts()),
             new SettingGroup('mail_signatures', 'mail', 'Unsere Signaturen', 'Unsere eigenen Signaturen ohne Zammad-Markierung (z. B. bei Amazon), die am Ende unserer Nachrichten ausgeblendet werden. Eine Variante je Feld, mehrere Zeilen erlaubt.', SettingGroup::LINES, fn (): array => MailDefaults::signatures(), maxLength: 600),
             new SettingGroup('mail_footers', 'mail', 'Fußtexte', 'Ab diesem Text wird der Rest einer Mail als Fußbereich ausgeblendet (Groß-/Kleinschreibung und Zeilenumbrüche egal), z. B. der Hinweistext von Amazon.', SettingGroup::TEXTS, fn (): array => MailDefaults::footers(), minLength: 15),

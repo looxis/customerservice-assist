@@ -1,6 +1,6 @@
 # PROJ-31: Einstellungen – Prompts und KI-Modell
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-17
 
@@ -129,3 +129,12 @@ Keine neuen Pakete.
 
 ## Open Questions
 - [ ] Soll die Seite die Länge des gesamten Prompts (Kern plus Zusätze) in Zeichen oder Tokens anzeigen, damit das Budget sichtbar bleibt? Vorschlag: nur Zeichen je Prompt.
+
+## Implementation Notes
+- **Neu:** `ModelCatalog` (Modellliste, eine Stunde zwischengespeichert, und Testaufruf), `PromptSettingsRequest`, Seite `settings/prompts`, zwei Gruppentypen `PROMPT` und `MODEL` in `SettingGroup`, elf Gruppen im `SettingsRegistry` (vier Modelle, sieben Prompts), Routen `settings.prompts` und `settings.prompts.update`.
+- **Geändert:** `Prompt::load()` fragt zuerst die Einstellung (Version `<Datei-Version>~E<n>`), `Prompt::fromFile()` liefert den Standard; `CaseAnalyzer`, `Summarizer`, `Translator`, `KnowledgeRouter` lesen das Modell aus den Einstellungen; `SettingsController` ist für mehrere Seiten verallgemeinert (Weiterleitung nach Seite).
+- **Standard:** Prompt-Dateien und die Modelle aus `config/analysis.php` bzw. `config/knowledge.php`; ein Wert gleich dem Standard entfernt die gespeicherte Abweichung.
+- **Geprüft gegen den echten Anbieter** (nur Lesen und ein Testaufruf): 68 Modelle gelistet, `gpt-5.4-mini` besteht den Testaufruf, `gpt-9-ultra` wird mit Begründung abgelehnt.
+- **Tests:** `PROJ-31-PromptSettingsTest` (24).
+- **Offen für `/qa`:** Bedienung im Browser (Zeichenzähler, Bestätigungsabfrage, Vorschlagsliste), 375/768/1440 px.
+- **Offene Frage** (Länge des gesamten Prompts): nicht umgesetzt, nur Zeichenzähler je Prompt.

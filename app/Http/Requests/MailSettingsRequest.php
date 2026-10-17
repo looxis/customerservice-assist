@@ -54,7 +54,7 @@ class MailSettingsRequest extends FormRequest
                 return;
             }
 
-            foreach (SettingsRegistry::forPage(self::PAGE) as $key => $group) {
+            foreach (SettingsRegistry::forPage(static::PAGE) as $key => $group) {
                 if (! array_key_exists($key, (array) $this->input('settings'))) {
                     continue;
                 }
@@ -98,7 +98,7 @@ class MailSettingsRequest extends FormRequest
 
     protected function getRedirectUrl(): string
     {
-        return route('settings.mail');
+        return route(SettingsRegistry::pages()[static::PAGE]['route']);
     }
 
     public function group(string $key): ?SettingGroup

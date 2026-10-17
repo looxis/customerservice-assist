@@ -1,11 +1,12 @@
-@props(['group', 'value', 'version', 'isDefault', 'last' => null, 'history', 'canEdit' => false])
+@props(['group', 'value', 'version', 'isDefault', 'last' => null, 'history', 'canEdit' => false, 'outdated' => false])
 
 @php
     $name = 'settings['.$group->key.']';
     $messages = isset($errors) ? $errors->get('settings.'.$group->key) : [];
-    $current = old('settings.'.$group->key, $value);
+    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL], true);
+    $current = old('settings.'.$group->key, $single ? '' : $value);
     if ($group->kind === \App\Settings\SettingGroup::HOSTS && ! is_array($current)) { $current = $value; }
-    $rows = $group->kind === \App\Settings\SettingGroup::NUMBER ? [] : array_values((array) $current);
+    $rows = $single ? [] : array_values((array) $current);
     $rows = $group->kind === \App\Settings\SettingGroup::HOSTS
         ? array_values(array_filter(array_map(fn ($row) => is_array($row) ? ['host' => (string) ($row['host'] ?? ''), 'mode' => ($row['mode'] ?? 'text') === 'clickable' ? 'clickable' : 'text'] : null, $rows), fn ($row) => $row !== null && $row['host'] !== ''))
         : array_values(array_filter(array_map(fn ($row) => is_string($row) ? $row : null, $rows), fn ($row) => $row !== null && $row !== ''));
@@ -29,7 +30,24 @@
         <p class="mt-2 text-sm font-medium text-danger-700" role="alert">{{ $message }}</p>
     @endforeach
 
-    @if ($group->kind === \App\Settings\SettingGroup::NUMBER)
+    @if ($group->kind === \App\Settings\SettingGroup::PROMPT)
+        @if ($outdated)
+            <p class="mt-2 text-sm font-medium text-warning-700">Der Standard der App wurde seit deiner Änderung erneuert. Deine Fassung gilt weiter; „Auf Standard der App zurücksetzen“ übernimmt den neuen Standard.</p>
+        @endif
+        @php($promptText = old('settings.'.$group->key, $value['text']))
+        <div class="mt-3" x-data="{ length: @js(mb_strlen((string) $promptText)) }">
+            <label class="sr-only" for="{{ $group->key }}-text">{{ $group->title }}</label>
+            <textarea id="{{ $group->key }}-text" name="{{ $name }}" rows="14" @disabled(! $canEdit) x-on:input="length = $event.target.value.length"
+                      class="block w-full rounded-md border-0 bg-white px-3 py-2 font-mono text-xs leading-relaxed text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand disabled:bg-slate-50">{{ $promptText }}</textarea>
+            <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length.toLocaleString('de-DE')"></span> / {{ number_format(\App\Settings\SettingGroup::PROMPT_MAX, 0, ',', '.') }} Zeichen</p>
+        </div>
+    @elseif ($group->kind === \App\Settings\SettingGroup::MODEL)
+        <div class="mt-3">
+            <label class="sr-only" for="{{ $group->key }}-modell">{{ $group->title }}</label>
+            <input type="text" id="{{ $group->key }}-modell" name="{{ $name }}" list="modelle" value="{{ old('settings.'.$group->key, $value) }}" maxlength="100" autocomplete="off" @disabled(! $canEdit)
+                   class="block w-full max-w-sm rounded-md border-0 bg-white px-3 py-1.5 font-mono text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand disabled:bg-slate-50">
+        </div>
+    @elseif ($group->kind === \App\Settings\SettingGroup::NUMBER)
         <div class="mt-3">
             <label class="sr-only" for="{{ $group->key }}-zahl">{{ $group->title }}</label>
             <input type="number" id="{{ $group->key }}-zahl" name="{{ $name }}" min="0" max="{{ $group->max }}" value="{{ old('settings.'.$group->key, $value) }}" @disabled(! $canEdit)
@@ -84,7 +102,7 @@
                     <span class="text-slate-600">{{ $kinds[$entry->kind] ?? $entry->kind }} von {{ $entry->changed_by }}, {{ $entry->created_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span>
                     <details class="basis-full">
                         <summary class="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900">Wert dieser Version</summary>
-                        <pre class="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-900">{{ is_array($entry->value) ? collect($entry->value)->map(fn ($item) => is_array($item) ? ($item['host'] ?? '').' ('.(($item['mode'] ?? '') === 'clickable' ? 'klickbar' : 'Text').')' : (string) $item)->implode("\n") : $entry->value }}</pre>
+                        <pre class="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-900">{{ is_array($entry->value) && isset($entry->value['text']) ? $entry->value['text'] : (is_array($entry->value) ? collect($entry->value)->map(fn ($item) => is_array($item) ? ($item['host'] ?? '').' ('.(($item['mode'] ?? '') === 'clickable' ? 'klickbar' : 'Text').')' : (string) $item)->implode("\n") : $entry->value) }}</pre>
                     </details>
                     @if ($canEdit)
                         <button type="submit" form="wiederherstellen-{{ $group->key }}-{{ $entry->version }}" class="text-xs font-semibold text-brand hover:text-brand-hover">Diese Version wiederherstellen</button>

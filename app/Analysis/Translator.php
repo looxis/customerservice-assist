@@ -5,6 +5,7 @@ namespace App\Analysis;
 use App\Analysis\Agents\TranslationAgent;
 use App\Models\Analysis;
 use App\Models\MessageTranslation;
+use App\Settings\SettingsStore;
 use App\Zammad\Ticket;
 use App\Zammad\TicketArticle;
 use Carbon\CarbonImmutable;
@@ -128,7 +129,7 @@ class Translator
         }
 
         $prompt = Prompt::load('translation');
-        $model = (string) config('analysis.models.translation');
+        $model = (string) app(SettingsStore::class)->value('model_translation');
         $pseudonymizer = app(Pseudonymizer::class);
         $answer = $this->model->ask(new TranslationAgent($prompt->text), "### Nachricht entwurf\n".$pseudonymizer->apply(trim($reply)), $model, 'back-translation', $ticketNumber);
         $entry = collect($answer['data']['messages'] ?? [])->first(fn (mixed $message): bool => is_array($message));
@@ -175,7 +176,7 @@ class Translator
     private function translateBatch(Ticket $ticket, array $batch, string $staff): array
     {
         $prompt = Prompt::load('translation');
-        $model = (string) config('analysis.models.translation');
+        $model = (string) app(SettingsStore::class)->value('model_translation');
         $pseudonymizer = app(Pseudonymizer::class);
         // Contact data is replaced in the message text only: the heading with
         // the ID is added afterwards, so it can never be taken for an address.

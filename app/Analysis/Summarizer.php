@@ -3,6 +3,7 @@
 namespace App\Analysis;
 
 use App\Analysis\Agents\SummaryAgent;
+use App\Settings\SettingsStore;
 use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
 
@@ -24,7 +25,7 @@ class Summarizer
     {
         $prompt = Prompt::load('summary');
         $pseudonymizer = app(Pseudonymizer::class);
-        $model = (string) config('analysis.models.summary');
+        $model = (string) app(SettingsStore::class)->value('model_summary');
 
         $answer = $this->model->ask(new SummaryAgent($prompt->text), $pseudonymizer->apply($this->limited($context->earlierText())), $model, 'summary', $ticket->number);
 

@@ -19,6 +19,7 @@ use App\Knowledge\Retrieval\Router\KnowledgeRouter;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
 use App\ProductForge\ProductPromptBuilder;
 use App\ProductForge\ProductPromptState;
+use App\Settings\SettingsStore;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 
@@ -60,7 +61,7 @@ class CaseAnalyzer
             }
         }
 
-        $model = (string) config('analysis.models.analysis');
+        $model = (string) app(SettingsStore::class)->value('model_analysis');
         $active = (bool) config('knowledge.retrieval.active');
 
         if ($active) {

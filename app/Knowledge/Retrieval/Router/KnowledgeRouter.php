@@ -12,6 +12,7 @@ use App\Analysis\TicketContext;
 use App\Knowledge\CaseContext;
 use App\Knowledge\Retrieval\CaseFacts;
 use App\Knowledge\Retrieval\RetrievalResult;
+use App\Settings\SettingsStore;
 use App\Zammad\ArticleKind;
 use App\Zammad\Ticket;
 use App\Zammad\TicketArticle;
@@ -39,6 +40,7 @@ class KnowledgeRouter
     public function run(CaseContext $context, CaseFacts $facts, RetrievalResult $first, array $manualIds, Ticket $ticket, Pseudonymizer $pseudonymizer, string $employeeContext = ''): RouterOutcome
     {
         $settings = (array) config('knowledge.router');
+        $settings['model'] = (string) app(SettingsStore::class)->value('model_router');
 
         if (! ($settings['active'] ?? false) || ! config('knowledge.retrieval.active')) {
             return RouterOutcome::disabled('Router ausgeschaltet');

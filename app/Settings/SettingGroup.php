@@ -18,11 +18,18 @@ final readonly class SettingGroup
 
     public const string NUMBER = 'number';
 
+    public const string PROMPT = 'prompt';
+
+    public const string MODEL = 'model';
+
+    public const int PROMPT_MAX = 30000;
+
     public const int MAX_ENTRIES = 100;
 
     /**
      * @param  Closure(): mixed  $default
-     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER  $kind  LINES are entries of several lines each (signatures).
+     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
+     * @param  Closure(): string|null  $base  For a PROMPT: the version of the default file.
      */
     public function __construct(
         public string $key,
@@ -37,7 +44,16 @@ final readonly class SettingGroup
         public bool $wildcard = false,
         public bool $marker = false,
         public int $max = 5,
+        private ?Closure $base = null,
     ) {}
+
+    /**
+     * The version of the default file a prompt is based on (empty for other kinds).
+     */
+    public function baseVersion(): string
+    {
+        return $this->base === null ? '' : ($this->base)();
+    }
 
     public function default(): mixed
     {
@@ -54,8 +70,26 @@ final readonly class SettingGroup
         return match ($this->kind) {
             self::NUMBER => [is_numeric($input) ? (int) $input : $input, []],
             self::HOSTS => $this->hosts($input),
+            self::PROMPT => $this->prompt($input),
+            self::MODEL => [is_string($input) ? trim($input) : $input, []],
             default => $this->texts($input),
         };
+    }
+
+    /**
+     * @return array{0: array{text: string, base: string}, 1: list<string>}
+     */
+    private function prompt(mixed $input): array
+    {
+        $text = is_array($input) ? (string) ($input['text'] ?? '') : (string) $input;
+        $text = trim(str_replace("\r\n", "\n", $text));
+        $default = $this->default();
+
+        if ($text === ($default['text'] ?? null)) {
+            return [$default, []];
+        }
+
+        return [['text' => $text, 'base' => is_array($input) && isset($input['base']) ? (string) $input['base'] : $this->baseVersion()], []];
     }
 
     /**
@@ -68,6 +102,8 @@ final readonly class SettingGroup
         return match ($this->kind) {
             self::NUMBER => is_int($value) && $value >= 0 && $value <= $this->max ? [] : ["Bitte eine Zahl von 0 bis {$this->max} eingeben."],
             self::HOSTS => $this->hostErrors($value),
+            self::PROMPT => $this->promptErrors($value),
+            self::MODEL => is_string($value) && preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/', $value) === 1 ? [] : ['Ein Modellname besteht aus Buchstaben, Ziffern und . - _ : (höchstens 100 Zeichen).'],
             default => $this->textErrors($value),
         };
     }
@@ -134,6 +170,20 @@ final readonly class SettingGroup
         }
 
         return [array_values($byHost), $notes];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function promptErrors(mixed $value): array
+    {
+        $text = is_array($value) ? (string) ($value['text'] ?? '') : '';
+
+        return match (true) {
+            trim($text) === '' => ['Der Prompt darf nicht leer sein.'],
+            mb_strlen($text) > self::PROMPT_MAX => ['Der Prompt ist zu lang: höchstens '.number_format(self::PROMPT_MAX, 0, ',', '.').' Zeichen (jetzt '.number_format(mb_strlen($text), 0, ',', '.').').'],
+            default => [],
+        };
     }
 
     /**
