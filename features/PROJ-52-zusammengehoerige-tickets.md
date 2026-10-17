@@ -1,6 +1,6 @@
 # PROJ-52: Zusammengehörige Tickets
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 
@@ -112,3 +112,12 @@ Keine neuen Pakete.
 - **Tests:** `tests/Feature/PROJ-52-RelatedTicketsTest.php` (18 Tests); `fakeZammad` in `tests/Pest.php` beantwortet `links` standardmäßig leer. Gesamtsuite: 1656 Tests, 1654 grün, 2 übersprungen.
 - **Geprüft am echten Ticket 2139944 (nur lesend):** verknüpft 2138745 (vorausgewählt), zur Bestellung 2138529 (vorausgewählt wegen Reklamationsnummer). Browser-Test und `/qa` stehen noch aus.
 - **Nachbesserung (2026-10-17): Verlauf der Tickets auf der Ticketseite.** Unter dem Verlauf zeigt der Abschnitt „Zusammengehörige Tickets“ (`components/ticket/related-threads.blade.php`) die Tickets, die der angezeigte Vorschlag verwendet hat: je Ticket eingeklappt mit Nummer, Titel, Status, Datum, Zahl der Nachrichten und Link „Ticket öffnen“, aufgeklappt alle Nachrichten wie im Verlauf. Die Tickets werden beim Öffnen der Seite frisch und nur lesend aus Zammad gelesen (`TicketController::relatedThreads`); nicht lesbare werden weggelassen. Ohne Auswahl in der Analyse erscheint der Abschnitt nicht.
+
+## QA Test Results (2026-10-17)
+**Ergebnis: bereit (keine Critical-/High-Fehler).**
+
+- **Akzeptanzkriterien und Randfälle:** Alle Akzeptanzkriterien durch Tests abgedeckt (20 Tests). Beim QA ergänzt: persönliche Daten (E-Mail, Telefon) in den früheren Tickets werden wie der übrige Text pseudonymisiert. Live gegen Ticket 2139944 geprüft: Seite 200, Block mit Haken vorhanden, Reklamation hervorgehoben, ungültige Nummern 404.
+- **Sicherheit:** Nur lesende Zammad-Zugriffe; Ticketnummern kommen validiert (nur Ziffern, höchstens 5), eine nicht angebotene Quelle kann nicht eingeschleust werden (Test); Titel und Nachrichten fremder Tickets werden escaped bzw. durch den Nachrichten-Sanitizer geführt.
+- **Regression:** Gesamtsuite 1659 Tests, 1657 grün, 2 übersprungen.
+- **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Es gab keinen Browser in der QA-Umgebung; ein schneller Sichttest der Oberfläche liegt vom Anwender vor (2026-10-17).
+- **Beobachtungen (Low):** Die Ticketseite braucht mit den neuen Zammad-Abfragen für zusammengehörige Tickets rund 4 Sekunden (Ticket 2139944, mehrere Zammad-Aufrufe nacheinander); bei Bedarf später parallelisieren oder Teile nachladen. Ohne gewählten Namen sind Ticketseiten und Einstellungen ansehbar; das entspricht dem bestehenden Verhalten (Auswahl erzwingt nur Aktionen).

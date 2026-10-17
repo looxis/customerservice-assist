@@ -1,6 +1,6 @@
 # PROJ-53: Reklamationsnummer erkennen (Rn-Präfix)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 
@@ -66,3 +66,12 @@ Reklamationsaufträge in EOCS tragen den Präfix `R1`, `R2`, … gefolgt von ein
 - **Geprüft** mit dem echten Ticket 2139944: Die Originalnummer 302-8780527-8594717 wird mit Reklamationsnummer R1 erkannt.
 - **Tests:** `PROJ-53-ClaimNumberTest` (19).
 - **Offen für `/qa`:** Bedienung im Browser, Prüfung mit weiteren echten Tickets.
+
+## QA Test Results (2026-10-17)
+**Ergebnis: bereit (keine Critical-/High-Fehler).**
+
+- **Akzeptanzkriterien und Randfälle:** Alle Akzeptanzkriterien durch Tests abgedeckt (20 Tests). Live geprüft am echten Ticket 2139944: die Reklamationsnummer wird erkannt und die Bestellung mit „Das Ticket nennt diese Reklamation“ hervorgehoben.
+- **Sicherheit:** Präfix nur 1 bis 3 Buchstaben (Eingabe geprüft, Test), Muster werden nur aus dem geprüften Präfix gebaut.
+- **Regression:** Gesamtsuite 1659 Tests, 1657 grün, 2 übersprungen.
+- **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Es gab keinen Browser in der QA-Umgebung; ein schneller Sichttest der Oberfläche liegt vom Anwender vor (2026-10-17).
+- **Beobachtungen (Low):** Die Ticketseite braucht mit den neuen Zammad-Abfragen für zusammengehörige Tickets rund 4 Sekunden (Ticket 2139944, mehrere Zammad-Aufrufe nacheinander); bei Bedarf später parallelisieren oder Teile nachladen. Ohne gewählten Namen sind Ticketseiten und Einstellungen ansehbar; das entspricht dem bestehenden Verhalten (Auswahl erzwingt nur Aktionen).

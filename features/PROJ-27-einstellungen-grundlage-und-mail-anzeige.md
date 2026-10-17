@@ -1,6 +1,6 @@
 # PROJ-27: Einstellungen – Grundlage und Mail-Anzeige
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-17
 
@@ -186,3 +186,12 @@ Keine neuen Pakete.
 - **Abweichung vom Entwurf:** „Mit Ticket ausprobieren“ ruft das Ticket zweimal ab (einmal je Regelsatz) statt einmal; der Aufwand ist gering und der Abruf bleibt rein lesend. Die Ergebnisse stehen in der Sitzung (nicht in der Datenbank).
 - **Tests:** `PROJ-27-SettingsTest` (31): Seiten und Rechte, Speichern, Version, Bereinigung, Prüfregeln, gleichzeitige Änderung, Datenbankausfall, Verlauf/Wiederherstellen/Zurücksetzen, Ausprobieren, Muster aus den Listen (Umlaute, Platzhalter, Text statt Muster), Amazon-Wörter, Wirkung in der Ticketansicht.
 - **Offen für `/qa`:** Bedienung im Browser (Zeilen hinzufügen/entfernen, Aufklappen, Ausprobieren-Ansicht), 375/768/1440 px, Prüfung mit echten Amazon-Tickets.
+
+## QA Test Results (2026-10-17)
+**Ergebnis: bereit (keine Critical-/High-Fehler).**
+
+- **Akzeptanzkriterien und Randfälle:** Alle Akzeptanzkriterien und dokumentierten Randfälle sind durch Tests abgedeckt (31 Tests: Seiten und Rechte, Speichern mit Version, Bereinigung, Prüfregeln, gleichzeitige Änderung, Datenbankausfall, Verlauf/Wiederherstellen/Zurücksetzen, Ausprobieren, Muster aus Listen, Amazon-Wörter). Live (Sail, Port 8081) geprüft: alle Einstellungsseiten liefern 200, Admin sieht das Formular, Nicht-Admin nicht, PUT ohne Token 419.
+- **Sicherheit:** Änderungen nur für Admins (Formular-Anfrage prüft zuerst, nicht Admin → 403, durch Test belegt); Anfragen ohne CSRF-Token werden mit 419 abgelehnt (live geprüft); Ausgaben der Einstellungsseiten sind mit `{{ }}` escaped, einzige HTML-Ausgabe ist der bereinigte Verlauf der Ausprobieren-Ansicht (derselbe Sanitizer wie die Ticketansicht); der Anbieterschlüssel erscheint nirgends (Test).
+- **Regression:** Gesamtsuite 1659 Tests, 1657 grün, 2 übersprungen.
+- **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Es gab keinen Browser in der QA-Umgebung; ein schneller Sichttest der Oberfläche liegt vom Anwender vor (2026-10-17).
+- **Beobachtungen (Low):** Die Ticketseite braucht mit den neuen Zammad-Abfragen für zusammengehörige Tickets rund 4 Sekunden (Ticket 2139944, mehrere Zammad-Aufrufe nacheinander); bei Bedarf später parallelisieren oder Teile nachladen. Ohne gewählten Namen sind Ticketseiten und Einstellungen ansehbar; das entspricht dem bestehenden Verhalten (Auswahl erzwingt nur Aktionen).

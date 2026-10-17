@@ -181,6 +181,18 @@ describe('the earlier course in the analysis', function () {
             ->and(preg_match('/<details class="group rounded-lg border[^>]*>/', $html, $details))->toBe(1)->and($details[0])->not->toContain(' open');
     });
 
+    test('personal data in the related tickets is pseudonymised like the rest of the message', function () {
+        $world = theCase();
+        $world['2138745']['articles'][0] = zammadArticle(['id' => 1, 'body' => '<p>Schreiben Sie an erika.mustermann@example.com oder rufen Sie 0151 2345678 an.</p>', 'created_at' => '2026-10-07T07:00:00.000Z']);
+        zammadWorld($world);
+        CaseAgent::fake([relatedAnswer()]);
+
+        analyzeCase(['related_set' => '1', 'related' => ['2138745'], 'related_source' => ['2138745' => 'linked']])->assertRedirect();
+
+        $sent = Analysis::query()->latest('id')->firstOrFail()->content['sent_input'];
+        expect($sent)->toContain('## Ticket 2138745')->not->toContain('erika.mustermann@example.com')->not->toContain('2345678');
+    });
+
     test('without a choice nothing is added and the version stays as before', function () {
         zammadWorld(theCase());
         CaseAgent::fake([relatedAnswer()]);

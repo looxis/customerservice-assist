@@ -1,5 +1,6 @@
 <?php
 
+use App\Analysis\Pseudonymizer;
 use App\Models\Setting;
 use App\Models\SettingVersion;
 use App\Orders\OrderFormats;
@@ -238,5 +239,17 @@ describe('trying out', function () {
         test()->withCookie('staff_name', 'Etienne')->from(route('settings.detection'))->post(route('settings.detection.try'), [...detectInput(), 'sample' => ''])->assertSessionHasErrors('sample');
         test()->withCookie('staff_name', 'Etienne')->from(route('settings.detection'))->post(route('settings.detection.try'), [...detectInput(), 'sample' => str_repeat('a', 10001)])->assertSessionHasErrors('sample');
         test()->withCookie('staff_name', 'Etienne')->from(route('settings.detection'))->post(route('settings.detection.try'), [...detectInput(['sku_digits' => 99]), 'sample' => 'x'])->assertSessionHasErrors('settings.sku_digits');
+    });
+});
+
+describe('the pseudonymisation', function () {
+    test('a number that fits a format counts as an order number, not as a phone number', function () {
+        $text = 'Meine Nummer 0441122334 bitte prüfen.';
+
+        expect(app(Pseudonymizer::class)->apply($text))->toContain('[TELEFON_1]');
+
+        saveDetection(['order_formats' => withFormat(['name' => 'Zehnstellig', 'layout' => '##########', 'examples' => '0441122334', 'counter_examples' => '044112233'])])->assertRedirect();
+
+        expect(app(Pseudonymizer::class)->apply($text))->toContain('0441122334')->not->toContain('[TELEFON_');
     });
 });

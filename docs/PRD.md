@@ -40,8 +40,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | P0 (MVP) | Produktvorschlag aus Kundenbegriffen (frühere Namen, Synonyme im Tickettext erkennen) | Approved |
 | P1 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
 | P1 | Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
-| P1 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Planned |
-| P1 | Einstellungsseite: Grundlage und Mail-Anzeige (PROJ-27), danach Prompts und Modell (PROJ-31), Erkennungsregeln (PROJ-49), Kundengruppen/Kategorien/Vorgänge (PROJ-50, Spec geschrieben); ansehen für alle, ändern nur Admins, mit Verlauf | Planned |
+| P1 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Approved |
+| P1 | Einstellungsseite: Grundlage und Mail-Anzeige (PROJ-27), danach Prompts und Modell (PROJ-31), Erkennungsregeln (PROJ-49), Kundengruppen/Kategorien/Vorgänge (PROJ-50, Spec geschrieben); ansehen für alle, ändern nur Admins, mit Verlauf | Approved |
 | P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | – | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
 | P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |

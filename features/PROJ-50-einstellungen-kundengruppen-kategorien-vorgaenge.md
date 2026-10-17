@@ -1,6 +1,6 @@
 # PROJ-50: Einstellungen – Kundengruppen, Kategorien, Vorgänge
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 
@@ -156,3 +156,12 @@ Keine neuen Pakete.
 - **Schutz:** Neue Gruppen und Gruppen mit geänderter Kundenart/geändertem Kanal sind „in Vorbereitung“ (auch beim Wiederherstellen); die Freigabe verlangt die einzelne Bestätigung jeder ausgeschlossenen verbindlichen Regel. Entfernen von Kundenarten, Kanälen, Kategorien und Vorgängen ist nur ohne Verwendung in Dokumenten (und Gruppen) möglich; Wiederherstellen und Zurücksetzen prüfen genauso.
 - **Tests:** `PROJ-50-ValuesSettingsTest` (28).
 - **Offen für `/qa`:** Bedienung im Browser (Zeilen, Pfeile, Status, Prüfliste, Freigabe mit Häkchen), 375/768/1440 px, Prüfung mit den echten Dokumenten und einer echten neuen Kundengruppe.
+
+## QA Test Results (2026-10-17)
+**Ergebnis: bereit (keine Critical-/High-Fehler).**
+
+- **Akzeptanzkriterien und Randfälle:** Alle Akzeptanzkriterien durch Tests abgedeckt (24 Tests: Vorbereitung, Prüfliste, Freigabe mit Bestätigung verbindlicher Regeln, Schutz vor Entfernen verwendeter Werte, Schlüssel fest, Rückfall auf Standard, Wiederherstellen gegen Schutzregeln).
+- **Sicherheit:** Änderungen nur für Admins (Formular-Anfrage prüft zuerst, nicht Admin → 403, durch Test belegt); Anfragen ohne CSRF-Token werden mit 419 abgelehnt (live geprüft); Ausgaben der Einstellungsseiten sind mit `{{ }}` escaped, einzige HTML-Ausgabe ist der bereinigte Verlauf der Ausprobieren-Ansicht (derselbe Sanitizer wie die Ticketansicht); der Anbieterschlüssel erscheint nirgends (Test).
+- **Regression:** Gesamtsuite 1659 Tests, 1657 grün, 2 übersprungen.
+- **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Es gab keinen Browser in der QA-Umgebung; ein schneller Sichttest der Oberfläche liegt vom Anwender vor (2026-10-17).
+- **Beobachtungen (Low):** Die Ticketseite braucht mit den neuen Zammad-Abfragen für zusammengehörige Tickets rund 4 Sekunden (Ticket 2139944, mehrere Zammad-Aufrufe nacheinander); bei Bedarf später parallelisieren oder Teile nachladen. Ohne gewählten Namen sind Ticketseiten und Einstellungen ansehbar; das entspricht dem bestehenden Verhalten (Auswahl erzwingt nur Aktionen).

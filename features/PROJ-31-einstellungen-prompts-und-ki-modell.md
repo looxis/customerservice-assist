@@ -1,6 +1,6 @@
 # PROJ-31: Einstellungen – Prompts und KI-Modell
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-06
 **Last Updated:** 2026-10-17
 
@@ -138,3 +138,12 @@ Keine neuen Pakete.
 - **Tests:** `PROJ-31-PromptSettingsTest` (24).
 - **Offen für `/qa`:** Bedienung im Browser (Zeichenzähler, Bestätigungsabfrage, Vorschlagsliste), 375/768/1440 px.
 - **Offene Frage** (Länge des gesamten Prompts): nicht umgesetzt, nur Zeichenzähler je Prompt.
+
+## QA Test Results (2026-10-17)
+**Ergebnis: bereit (keine Critical-/High-Fehler).**
+
+- **Akzeptanzkriterien und Randfälle:** Alle Akzeptanzkriterien durch Tests abgedeckt (19 Tests, inkl. Modell-Testaufruf, Standard erneuert, Datenbankausfall, Schlüssel nie auf der Seite). Die Analysen-Übersicht filtert die Prompt-Version aus den gespeicherten Werten, daher erscheinen `~E<n>`-Versionen ohne Änderung; Fortsetzungen laden den Prompt bei jedem Aufruf neu und nutzen so den aktuellen Stand.
+- **Sicherheit:** Änderungen nur für Admins (Formular-Anfrage prüft zuerst, nicht Admin → 403, durch Test belegt); Anfragen ohne CSRF-Token werden mit 419 abgelehnt (live geprüft); Ausgaben der Einstellungsseiten sind mit `{{ }}` escaped, einzige HTML-Ausgabe ist der bereinigte Verlauf der Ausprobieren-Ansicht (derselbe Sanitizer wie die Ticketansicht); der Anbieterschlüssel erscheint nirgends (Test).
+- **Regression:** Gesamtsuite 1659 Tests, 1657 grün, 2 übersprungen.
+- **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Es gab keinen Browser in der QA-Umgebung; ein schneller Sichttest der Oberfläche liegt vom Anwender vor (2026-10-17).
+- **Beobachtungen (Low):** Die Ticketseite braucht mit den neuen Zammad-Abfragen für zusammengehörige Tickets rund 4 Sekunden (Ticket 2139944, mehrere Zammad-Aufrufe nacheinander); bei Bedarf später parallelisieren oder Teile nachladen. Ohne gewählten Namen sind Ticketseiten und Einstellungen ansehbar; das entspricht dem bestehenden Verhalten (Auswahl erzwingt nur Aktionen).
