@@ -166,6 +166,21 @@ describe('the earlier course in the analysis', function () {
         expect(implode(' ', $content['notes']))->toContain('Früherer Verlauf aus 1 Ticket');
     });
 
+    test('the ticket page shows the history of the used tickets collapsed below the thread, and nothing without any', function () {
+        zammadWorld(theCase());
+        CaseAgent::fake([relatedAnswer(), relatedAnswer()]);
+
+        analyzeCase(['related_set' => '1'])->assertRedirect();
+        test()->get('/tickets/2139944')->assertOk()->assertDontSee('id="zusammengehoerige-tickets"', false);
+
+        analyzeCase(['related_set' => '1', 'related' => ['2138745'], 'related_source' => ['2138745' => 'linked']])->assertRedirect();
+        $html = test()->get('/tickets/2139944')->assertOk()->getContent();
+
+        expect($html)->toContain('id="zusammengehoerige-tickets"')->toContain('Damaged or defective item')->toContain('Kaputt, ich möchte Ersatz.')->toContain('Wir senden Ihnen kostenlos Ersatz zu.')
+            ->and(strpos($html, 'id="zusammengehoerige-tickets"'))->toBeGreaterThan(strpos($html, 'id="verlauf"'))
+            ->and(preg_match('/<details class="group rounded-lg border[^>]*>/', $html, $details))->toBe(1)->and($details[0])->not->toContain(' open');
+    });
+
     test('without a choice nothing is added and the version stays as before', function () {
         zammadWorld(theCase());
         CaseAgent::fake([relatedAnswer()]);

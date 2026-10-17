@@ -14,6 +14,7 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
 use Illuminate\Http\RedirectResponse;
@@ -78,6 +79,8 @@ class TicketController extends Controller
             $orderProblem = ['message' => $exception->problem->message(), 'retry' => $exception->problem->canRetry()];
         }
 
+        $analysis = $panel->build($ticket, $lookups, is_string($request->query('analyse')) ? $request->query('analyse') : null);
+
         return response()->view('tickets.show', [
             'number' => $number,
             'ticket' => $ticket,
@@ -92,8 +95,37 @@ class TicketController extends Controller
             'lookups' => $lookups,
             'claimReferences' => $this->claimReferences($suggestions),
             'orderProblem' => $orderProblem,
-            'analysis' => $panel->build($ticket, $lookups, is_string($request->query('analyse')) ? $request->query('analyse') : null),
+            'analysis' => $analysis,
+            'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
         ]);
+    }
+
+    /**
+     * The tickets the shown suggestion used as earlier history (PROJ-52), read fresh from Zammad for the
+     * collapsed display below the thread. A ticket that cannot be read is left out.
+     *
+     * @param  array<string, mixed>  $analysis
+     * @return list<Ticket>
+     */
+    private function relatedThreads(array $analysis, Ticket $current, ZammadClient $zammad): array
+    {
+        $threads = [];
+
+        foreach (array_slice((array) ($analysis['result']['related']['tickets'] ?? []), 0, (int) config('analysis.related_tickets.max')) as $related) {
+            $number = (string) ($related['number'] ?? '');
+
+            if ($number === '' || $number === $current->number) {
+                continue;
+            }
+
+            try {
+                $threads[] = $zammad->ticket($number);
+            } catch (ZammadException) {
+                continue;
+            }
+        }
+
+        return $threads;
     }
 
     /**

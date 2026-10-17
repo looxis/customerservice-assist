@@ -65,5 +65,7 @@
                 </x-slot:summary>
             @endisset
         </x-ticket.thread>
+
+        <x-ticket.related-threads :tickets="$relatedThreads ?? []" />
     @endif
 </x-layouts.app>
