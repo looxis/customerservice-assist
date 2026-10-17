@@ -11,6 +11,8 @@ use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\ProductForge\ProductForgeClient;
+use App\Settings\MailRules;
+use App\Settings\SettingsStore;
 use App\Staff\AdvancedMode;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
@@ -34,12 +36,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(KnowledgeLibrary::class, fn (): KnowledgeLibrary => new KnowledgeLibrary(config('knowledge')));
         $this->app->bind(KnowledgeMarkdown::class, fn (): KnowledgeMarkdown => new KnowledgeMarkdown(config('knowledge')));
         $this->app->bind(KnowledgeSelector::class, fn (Application $app): KnowledgeSelector => new KnowledgeSelector($app->make(KnowledgeLibrary::class), config('knowledge')));
-        $this->app->bind(MessageBody::class, fn (): MessageBody => new MessageBody(
-            config('services.zammad.signatures', []),
-            config('services.zammad.allowed_link_hosts', []),
-            config('services.zammad.clickable_link_hosts', []),
-            config('services.zammad.footers', []),
-        ));
+        $this->app->scoped(SettingsStore::class);
+        $this->app->bind(MessageBody::class, fn (Application $app): MessageBody => $app->make(MailRules::class)->messageBody());
         $this->app->bind(EocsClient::class, fn (): EocsClient => new EocsClient(config('services.eocs'), array_change_key_case(config('knowledge.order_channels', []), CASE_LOWER)));
         $this->app->bind(ProductForgeClient::class, fn (): ProductForgeClient => new ProductForgeClient(config('services.productforge')));
         $this->app->bind(ZammadClient::class, fn (Application $app): ZammadClient => new ZammadClient(config('services.zammad'), $app->make(MessageBody::class)));

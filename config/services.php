@@ -58,7 +58,8 @@ return [
         ],
 
         // Clickable links in mails are removed. Links to these hosts (and their
-        // subdomains) stay visible as plain text. Moves to a settings page later.
+        // subdomains) stay visible as plain text. These four lists are the defaults of the
+        // page "Einstellungen > Mail-Anzeige" (PROJ-27), where admins change them.
         'allowed_link_hosts' => ['looxis.de', 'looxis.com', 'dhl.de'],
 
         // Links to these hosts stay clickable (https only). "*" stands for a

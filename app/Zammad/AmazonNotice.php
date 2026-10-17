@@ -2,6 +2,7 @@
 
 namespace App\Zammad;
 
+use App\Settings\PatternBuilder;
 use Dom\Element;
 use Dom\HTMLDocument;
 use Dom\Node;
@@ -14,11 +15,23 @@ use Dom\Node;
  */
 class AmazonNotice
 {
-    private const string INTRO = '/^(?:Du hast eine Nachricht erhalten|You have received a message)\.?$/iu';
+    private readonly string $introPattern;
 
-    private const string ORDER = '/^(?:Bestellnummer|Order ID|Order number)\s*:?\s*(\d{3}-\d{7}-\d{7})\s*:?$/iu';
+    private readonly string $orderPattern;
 
-    private const string LABEL = '/^(?:Nachricht|Message)\s*:$/iu';
+    private readonly string $labelPattern;
+
+    /**
+     * @param  list<string>  $intros  Sentences that open the notice.
+     * @param  list<string>  $orderLabels  Words in front of the order number.
+     * @param  list<string>  $messageLabels  Words of the label in front of the buyer's text.
+     */
+    public function __construct(array $intros = ['Du hast eine Nachricht erhalten', 'You have received a message'], array $orderLabels = ['Bestellnummer', 'Order ID', 'Order number'], array $messageLabels = ['Nachricht', 'Message'])
+    {
+        $this->introPattern = PatternBuilder::wholeLine($intros);
+        $this->orderPattern = PatternBuilder::labelWithValue($orderLabels, '\d{3}-\d{7}-\d{7}');
+        $this->labelPattern = PatternBuilder::labelLine($messageLabels);
+    }
 
     /**
      * Remove the notice header from the document and return the order it names.
@@ -31,17 +44,17 @@ class AmazonNotice
             return null;
         }
 
-        $intro = $this->first($body, ['p', 'div', 'td', 'span'], self::INTRO);
-        $orderNode = $this->first($body, ['p', 'div', 'td', 'span'], self::ORDER);
+        $intro = $this->first($body, ['p', 'div', 'td', 'span'], $this->introPattern);
+        $orderNode = $this->first($body, ['p', 'div', 'td', 'span'], $this->orderPattern);
 
         if ($intro === null || $orderNode === null) {
             return null;
         }
 
-        preg_match(self::ORDER, $this->text($orderNode), $match);
+        preg_match($this->orderPattern, $this->text($orderNode), $match);
         [$table, $items] = $this->productTable($body);
 
-        foreach ([$intro, $orderNode, $table, $this->first($body, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div'], self::LABEL)] as $node) {
+        foreach ([$intro, $orderNode, $table, $this->first($body, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div'], $this->labelPattern)] as $node) {
             $node?->remove();
         }
 

@@ -123,4 +123,19 @@ Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
 
 Alpine.data('scopeFields', scopeFields);
 
+// A list of texts on the settings page (PROJ-27): rows can be added and removed; the server cleans and checks them.
+Alpine.data('settingsList', (config) => ({
+    rows: config.rows,
+    name: config.name,
+
+    add() {
+        this.rows.push(config.kind === 'hosts' ? { host: '', mode: 'text' } : '');
+        this.$nextTick(() => this.$root.querySelectorAll('li:last-child input, li:last-child textarea')[0]?.focus());
+    },
+
+    remove(index) {
+        this.rows.splice(index, 1);
+    },
+}));
+
 Alpine.start();

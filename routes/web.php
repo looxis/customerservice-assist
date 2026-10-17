@@ -11,6 +11,7 @@ use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\ProductSearchController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketController;
@@ -30,6 +31,15 @@ Route::get('/knowledge/dokument/{path}', [KnowledgeController::class, 'show'])
     ->name('knowledge.show');
 
 Route::get('/ueber-die-app', AboutController::class)->name('about');
+
+Route::get('/einstellungen', [SettingsController::class, 'index'])->name('settings.index');
+Route::get('/einstellungen/mail-anzeige', [SettingsController::class, 'mail'])->name('settings.mail');
+Route::middleware('staff.selected')->group(function (): void {
+    Route::put('/einstellungen/mail-anzeige', [SettingsController::class, 'updateMail'])->name('settings.mail.update');
+    Route::match(['put', 'post'], '/einstellungen/mail-anzeige/ausprobieren', [SettingsController::class, 'tryMail'])->middleware('throttle:20,1')->name('settings.mail.try');
+    Route::post('/einstellungen/{group}/standard', [SettingsController::class, 'reset'])->where('group', '[a-z_]+')->name('settings.reset');
+    Route::post('/einstellungen/{group}/version/{version}', [SettingsController::class, 'restore'])->where('group', '[a-z_]+')->whereNumber('version')->name('settings.restore');
+});
 
 Route::get('/produktsuche', ProductSearchController::class)->middleware(['staff.selected', 'throttle:60,1'])->name('products.search');
 

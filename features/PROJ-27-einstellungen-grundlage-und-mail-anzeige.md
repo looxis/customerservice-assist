@@ -1,6 +1,6 @@
 # PROJ-27: Einstellungen – Grundlage und Mail-Anzeige
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-17
 
@@ -178,3 +178,11 @@ Keine neuen Pakete.
 - [x] Die Standardwerte der Grußformeln werden beim Umstellen in einzelne lesbare Einträge aufgelöst und vollständig angezeigt (Entscheidung 2026-10-17).
 - [x] „Mit Ticket ausprobieren“ zeigt nur den ganzen Verlauf, keine zurückgespulten Testmodus-Stände (Entscheidung 2026-10-17).
 - [x] Keine Benachrichtigung bei Änderungen; der Verlauf genügt (Entscheidung 2026-10-17).
+
+## Implementation Notes
+- **Neu:** `app/Settings/` (`SettingGroup`, `SettingsRegistry`, `SettingsStore`, `MailRules`, `MailDefaults`, `PatternBuilder`), Modelle `Setting` und `SettingVersion` mit den Tabellen `settings` und `setting_versions`, `SettingsController`, Anfragen `MailSettingsRequest`/`TryMailSettingsRequest`/`ChangeSettingVersionRequest`, Seiten `settings/index` und `settings/mail`, Baustein `components/settings/group`, Alpine-Komponente `settingsList`.
+- **Geändert:** `MessageBody` und `AmazonNotice` nehmen ihre Regeln als Parameter (ohne Angabe gelten die bisherigen festen Muster, bestehende Tests blieben unverändert); `AppServiceProvider` baut `MessageBody` aus den Einstellungen; Seitenleiste (Eintrag „Einstellungen“ über „Über die App“); Routen `settings.*`.
+- **Standardwerte:** Adressen, Signaturen und Fußtexte kommen weiter aus `config/services.php` (jetzt als Standard der Seite), die übrigen Gruppen aus `MailDefaults`. Die heutigen Grußformeln und Zitat-Köpfe wurden in einzelne lesbare Einträge aufgelöst; die gesamte bestehende Testsuite (u. a. PROJ-6) läuft mit den aus den Listen erzeugten Mustern unverändert grün.
+- **Abweichung vom Entwurf:** „Mit Ticket ausprobieren“ ruft das Ticket zweimal ab (einmal je Regelsatz) statt einmal; der Aufwand ist gering und der Abruf bleibt rein lesend. Die Ergebnisse stehen in der Sitzung (nicht in der Datenbank).
+- **Tests:** `PROJ-27-SettingsTest` (31): Seiten und Rechte, Speichern, Version, Bereinigung, Prüfregeln, gleichzeitige Änderung, Datenbankausfall, Verlauf/Wiederherstellen/Zurücksetzen, Ausprobieren, Muster aus den Listen (Umlaute, Platzhalter, Text statt Muster), Amazon-Wörter, Wirkung in der Ticketansicht.
+- **Offen für `/qa`:** Bedienung im Browser (Zeilen hinzufügen/entfernen, Aufklappen, Ausprobieren-Ansicht), 375/768/1440 px, Prüfung mit echten Amazon-Tickets.

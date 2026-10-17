@@ -45,6 +45,7 @@
         </nav>
 
         <nav class="shrink-0 space-y-1 border-t border-slate-200 px-3 py-3" aria-label="Weitere Seiten">
+            <x-nav-item :href="route('settings.index')" icon="settings" :active="request()->routeIs('settings.*')">Einstellungen</x-nav-item>
             <x-nav-item :href="route('about')" icon="help" :active="request()->routeIs('about')">Über die App</x-nav-item>
         </nav>
 

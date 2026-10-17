@@ -58,18 +58,44 @@ class MessageBody
 
     private ?HtmlSanitizer $sanitizer = null;
 
+    private readonly string $quoteHeader;
+
+    /** @var list<string> */
+    private readonly array $closings;
+
+    /** @var list<string> */
+    private readonly array $markers;
+
+    private readonly int $signatureLines;
+
+    private readonly AmazonNotice $amazon;
+
     /**
      * @param  list<string>  $signatures  Our own text signatures (e.g. on Amazon), hidden at the end of our messages.
      * @param  list<string>  $allowedLinkHosts  Hosts (with their subdomains) whose links stay visible as plain text.
      * @param  list<string>  $clickableLinkHosts  Hosts whose links stay clickable; "*" stands for a country ending (e.g. "sellercentral.amazon.*").
      * @param  list<string>  $footers  Texts from which on the rest of a mail is boilerplate and hidden (e.g. Amazon's notice).
+     * @param  string|null  $quoteHeaderPattern  Pattern for the start of a quoted message (settings, PROJ-27); the built-in one when null.
+     * @param  list<string>|null  $closingPatterns  Pattern fragments for closing phrases; the built-in ones when null.
+     * @param  list<string>|null  $quoteMarkers  Technical class names of quoted blocks; the built-in ones when null.
      */
     public function __construct(
         private readonly array $signatures = [],
         private readonly array $allowedLinkHosts = [],
         private readonly array $clickableLinkHosts = [],
         private readonly array $footers = [],
-    ) {}
+        ?string $quoteHeaderPattern = null,
+        ?array $closingPatterns = null,
+        ?array $quoteMarkers = null,
+        ?int $signatureLinesShown = null,
+        ?AmazonNotice $amazon = null,
+    ) {
+        $this->quoteHeader = $quoteHeaderPattern ?? self::QUOTE_HEADER;
+        $this->closings = $closingPatterns ?? self::CLOSINGS;
+        $this->markers = $quoteMarkers ?? self::QUOTE_MARKERS;
+        $this->signatureLines = $signatureLinesShown ?? self::SIGNATURE_LINES_SHOWN;
+        $this->amazon = $amazon ?? new AmazonNotice;
+    }
 
     /**
      * @param  bool  $ours  Message written by us: our signature is hidden.
@@ -116,7 +142,7 @@ class MessageBody
             array_map(fn (array $part): array => [trim(html_entity_decode(strip_tags($part[0]), ENT_QUOTES | ENT_HTML5), " \t\n\r\0\x0B\u{00A0}"), $part[1]], $parts),
             fn (array $line): bool => $line[0] !== '',
         ));
-        $closing = '/^(?:'.implode('|', self::CLOSINGS).')[\s,.!]*(?:[\p{L}][\p{L} .\'-]{0,30})?$/iu';
+        $closing = '/^(?:'.implode('|', $this->closings).')[\s,.!]*(?:[\p{L}][\p{L} .\'-]{0,30})?$/iu';
         $cut = null;
 
         foreach ($lines as $index => [$text, $offset]) {
@@ -131,7 +157,7 @@ class MessageBody
             }
 
             if (mb_strlen($text) <= 60 && preg_match($closing, $text) === 1) {
-                $cut = $lines[$index + self::SIGNATURE_LINES_SHOWN + 1][1] ?? null;
+                $cut = $lines[$index + $this->signatureLines + 1][1] ?? null;
 
                 break;
             }
@@ -271,7 +297,7 @@ class MessageBody
             }
         }
 
-        $order = (new AmazonNotice)->extract($document);
+        $order = $this->amazon->extract($document);
         $footer = $this->findFooterStart($body);
 
         if ($footer !== null) {
@@ -499,7 +525,7 @@ class MessageBody
         $lines = preg_split('/\R/u', str_replace("\r\n", "\n", $text));
 
         foreach ($lines as $index => $line) {
-            if ($index > 0 && (str_starts_with(ltrim($line), '>') || preg_match(self::QUOTE_HEADER, $line))
+            if ($index > 0 && (str_starts_with(ltrim($line), '>') || preg_match($this->quoteHeader, $line))
                 && trim(implode("\n", array_slice($lines, 0, $index))) !== '') {
                 return [implode("\n", array_slice($lines, 0, $index)), implode("\n", array_slice($lines, $index))];
             }
@@ -527,14 +553,14 @@ class MessageBody
 
             $marker = $node->getAttribute('class').' '.$node->getAttribute('id');
 
-            foreach (self::QUOTE_MARKERS as $known) {
+            foreach ($this->markers as $known) {
                 if (str_contains($marker, $known)) {
                     return true;
                 }
             }
         }
 
-        return (bool) preg_match(self::QUOTE_HEADER, mb_substr(preg_replace('/^[\s\x{00A0}]+/u', '', (string) $node->textContent), 0, 400));
+        return (bool) preg_match($this->quoteHeader, mb_substr(preg_replace('/^[\s\x{00A0}]+/u', '', (string) $node->textContent), 0, 400));
     }
 
     private function sanitizer(): HtmlSanitizer
