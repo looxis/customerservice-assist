@@ -17,6 +17,7 @@ use App\ProductForge\ForgeProduct;
 use App\ProductForge\KnowledgeAreaSuggester;
 use App\ProductForge\ProductForgeClient;
 use App\ProductForge\ProductForgeException;
+use App\ProductForge\SkuDetector;
 use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
@@ -81,7 +82,7 @@ class AnalysisPanel
             'groupSource' => $groupSource,
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
             ...$this->productSuggestions($context, $orders, $inputs['produkte'] ?? $choice['products'] ?? null),
-            'forge' => $this->forgeChoice($orders, $inputs, $result),
+            'forge' => $this->forgeChoice($orders, $inputs, $result, $context->customerTexts()),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
             'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
@@ -279,9 +280,10 @@ class AnalysisPanel
      * @param  list<EocsOrder>  $orders
      * @param  array<string, mixed>  $inputs
      * @param  array<string, mixed>|null  $result
+     * @param  list<string>  $customerTexts  Title and customer messages, searched for named article numbers.
      * @return array{enabled: bool, candidates: list<array<string, mixed>>, selected: list<int>, notices: list<string>}
      */
-    private function forgeChoice(array $orders, array $inputs, ?array $result): array
+    private function forgeChoice(array $orders, array $inputs, ?array $result, array $customerTexts = []): array
     {
         if (! $this->forge->isConfigured()) {
             return ['enabled' => false, 'candidates' => [], 'selected' => [], 'notices' => []];
@@ -313,6 +315,25 @@ class AnalysisPanel
                     $candidates[$product->id] ??= $this->candidate($product->identity(), $product->hasServiceKnowledge(), "Position: {$item->quantity} × {$item->name}", $sku);
                 }
             }
+        }
+
+        // An article number the customer names in the text ("SKU: 12006") is offered like an order position.
+        foreach (app(SkuDetector::class)->in($customerTexts) as $sku) {
+            if (isset($tried[$sku])) {
+                continue;
+            }
+
+            $tried[$sku] = true;
+
+            try {
+                $product = $this->forge->bySku($sku);
+            } catch (ProductForgeException $exception) {
+                $notices[] = "Im Ticket genannte Art.-Nr. {$sku}: ".$exception->problem->message();
+
+                continue;
+            }
+
+            $candidates[$product->id] ??= $this->candidate($product->identity(), $product->hasServiceKnowledge(), "im Ticket genannt: Art.-Nr. {$sku}", $sku);
         }
 
         $saved = [];
