@@ -176,7 +176,11 @@ class CaseAnalyzer
             ],
         ]);
 
-        if ($request->unknownProduct !== null && ! $request->productPackage->hasServiceKnowledge()) {
+        foreach ($request->productPackage->affectedEocs() as $item) {
+            $this->gaps->reportNotInProductForge($id, $item->name, (string) $item->itemId, $request->staffName);
+        }
+
+        if ($request->unknownProduct !== null && ! $request->productPackage->hasServiceKnowledge() && $request->productPackage->affectedEocs() === []) {
             $text = $request->isQuestion() ? (string) $request->questionText : $request->employeeContext;
 
             if ($request->productPackage->affected() !== []) {
@@ -547,7 +551,7 @@ class CaseAnalyzer
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
                 .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
-                    .($request->productPackage->affected() === []
+                    .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
                         ? 'Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu'
                         : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')'),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),

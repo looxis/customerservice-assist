@@ -281,3 +281,58 @@ function forgeRequests(): int
 {
     return Http::recorded(fn (Request $request): bool => str_contains($request->url(), 'forge.test'))->count();
 }
+
+/**
+ * An item of the EOCS items API (docs/eocs-items-api.md) as far as the app reads it.
+ *
+ * @return array<string, mixed>
+ */
+function eocsItem(int $number, string $name = 'Demo Leuchtsockel', ?string $description = "Lange Beschreibung\nzweite Zeile", ?string $short = '💡 <b>Magische Beleuchtung</b> – 8 Farben'): array
+{
+    return ['id' => $number + 1000, 'item_id' => $number, 'name' => $name, 'description' => $description, 'short_description' => $short, 'deactivated_at' => null, 'product_type' => ['id' => 1, 'name' => 'Leuchtsockel']];
+}
+
+/**
+ * Fakes the EOCS items API: items keyed by number; "filter[item_id]" is exact, "filter[name]" a part of the name.
+ *
+ * @param  array<int, array<string, mixed>>  $items
+ */
+function fakeEocsItems(array $items = [], int $status = 200): void
+{
+    static $state = null;
+    static $registeredOn = null;
+
+    $state ??= new ArrayObject;
+    $state->exchangeArray(['items' => $items, 'status' => $status]);
+    $http = Http::getFacadeRoot();
+
+    if ($registeredOn === $http) {
+        return;
+    }
+
+    $registeredOn = $http;
+
+    Http::fake(['eocs.test/api/v1/items*' => function (Request $request) use ($state) {
+        if ($state['status'] !== 200) {
+            return Http::response(['message' => 'x'], $state['status']);
+        }
+
+        parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+        $filter = (array) ($query['filter'] ?? []);
+        $found = array_values(array_filter($state['items'], fn (array $item): bool => match (true) {
+            isset($filter['item_id']) => (string) $item['item_id'] === (string) $filter['item_id'],
+            isset($filter['name']) => str_contains(mb_strtolower($item['name']), mb_strtolower((string) $filter['name'])),
+            default => true,
+        }));
+
+        return Http::response(['data' => $found]);
+    }]);
+}
+
+/**
+ * The number of requests to the (faked) EOCS items API.
+ */
+function eocsItemRequests(): int
+{
+    return Http::recorded(fn (Request $request): bool => str_contains($request->url(), 'eocs.test/api/v1/items'))->count();
+}

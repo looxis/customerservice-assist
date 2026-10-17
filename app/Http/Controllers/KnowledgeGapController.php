@@ -47,6 +47,7 @@ class KnowledgeGapController extends Controller
             'status' => $status,
             'gaps' => $gaps->list($status),
             'unknownProducts' => $gaps->unknownProducts(),
+            'notInProductForge' => $gaps->notInProductForge(),
             'counts' => collect(KnowledgeGapLog::STATUSES)->map(fn (string $label, string $key): int => KnowledgeGap::query()->where('status', $key)->count())->all(),
             'success' => $store->successRate(),
             'groups' => $groups,

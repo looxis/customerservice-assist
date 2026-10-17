@@ -21,6 +21,7 @@ beforeEach(function () {
     ]);
 
     fakeZammad(extra: ['zammad.test/api/v1/ticket_articles/by_ticket/*' => fn () => Http::response([zammadArticle(['id' => 1, 'body' => '<p>Zu Bestellung 402-0000000-0000001: der Aufleger ist verblasst.</p>'])])]);
+    fakeEocsItems();
     pfOrderItems([]);
     Http::fake(['eocs.test/api/v1/orders*' => fn () => Http::response(['data' => pfOrderItems() === [] ? [] : [pfOrder(pfOrderItems())]])]);
     fakeForge(
@@ -154,11 +155,11 @@ describe('order positions and the SKU', function () {
         pfFakeOrder([['id' => 11281, 'name' => 'Tortenaufleger'], ['id' => 99999, 'name' => 'Etwas anderes']]);
 
         $page = $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))->assertOk();
-        $page->assertSeeText('Art.-Nr. 99999')->assertSeeText('keine Produktinformationen hinterlegt');
+        $page->assertSeeText('Art.-Nr. 99999')->assertSeeText('Die SKU 99999 wurde in EOCS nicht gefunden, bitte auf Richtigkeit prüfen');
         $config = scopeConfig($page->getContent());
 
         expect($config['forge']['candidates'])->toHaveCount(1)->and($config['forge']['candidates'][0])->toMatchArray(['id' => 2002, 'sku_used' => '11281', 'has_service_knowledge' => true])
-            ->and($config['forge']['selected'])->toBe([2002]);
+            ->and($config['forge']['selected'])->toBe(['forge:2002']);
         Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'forge.test/api/v1/products/by-sku') && str_contains($request->url(), 'sku=11281'));
     });
 

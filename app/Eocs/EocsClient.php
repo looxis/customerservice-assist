@@ -5,6 +5,7 @@ namespace App\Eocs;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberFormat;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -135,6 +136,83 @@ class EocsClient
         }
 
         return $claims;
+    }
+
+    /**
+     * The item with this number (the SKU), or null when EOCS does not know it. The number is the
+     * "item_id"; anything that is not a whole number cannot exist and is not asked for.
+     *
+     * @throws EocsException
+     */
+    public function item(string $sku): ?EocsItem
+    {
+        if (preg_match('/^\d{1,12}$/', $sku) !== 1) {
+            return null;
+        }
+
+        foreach ($this->items(['filter[item_id]' => $sku, 'paginate' => 5]) as $item) {
+            if ((string) $item->itemId === $sku) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Items whose name contains the term (and the one with this number when the term is a number).
+     *
+     * @return list<EocsItem>
+     *
+     * @throws EocsException
+     */
+    public function searchItems(string $term, int $limit = 20): array
+    {
+        $term = trim($term);
+        $found = [];
+
+        if (preg_match('/^\d{1,12}$/', $term) === 1 && ($exact = $this->item($term)) !== null) {
+            $found[$exact->itemId] = $exact;
+        }
+
+        foreach ($this->items(['filter[name]' => $term, 'paginate' => max(1, min(100, $limit)), 'sort' => 'name']) as $item) {
+            $found[$item->itemId] ??= $item;
+        }
+
+        return array_slice(array_values($found), 0, $limit);
+    }
+
+    /**
+     * @param  array<string, mixed>  $query
+     * @return list<EocsItem>
+     *
+     * @throws EocsException
+     */
+    private function items(array $query): array
+    {
+        $this->ensureConfigured();
+
+        try {
+            $response = $this->prepare(Http::asJson())->get('items', $query);
+        } catch (ConnectionException) {
+            Log::warning('EOCS request failed', ['items' => true, 'problem' => EocsProblem::Unavailable->value]);
+
+            throw new EocsException(EocsProblem::Unavailable);
+        }
+
+        if ($response->status() === 401 || $response->status() === 403) {
+            Log::warning('EOCS request failed', ['items' => true, 'problem' => EocsProblem::Misconfigured->value, 'status' => $response->status()]);
+
+            throw new EocsException(EocsProblem::Misconfigured, $response->status());
+        }
+
+        if (! $response->successful() || ! is_array($response->json('data'))) {
+            Log::warning('EOCS request failed', ['items' => true, 'problem' => EocsProblem::Unavailable->value, 'status' => $response->status()]);
+
+            throw new EocsException(EocsProblem::Unavailable, $response->status());
+        }
+
+        return array_values(array_filter(array_map(fn (mixed $row): ?EocsItem => is_array($row) ? EocsItem::fromApi($row) : null, $response->json('data'))));
     }
 
     /**

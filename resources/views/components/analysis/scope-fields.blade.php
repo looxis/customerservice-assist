@@ -12,7 +12,10 @@
     $mentioned = array_map(fn (string $slug): string => '„'.($titles[$slug] ?? $slug).'“', $analysis['mentionedProducts'] ?? []);
     $forge = $analysis['forge'] ?? ['enabled' => false, 'candidates' => [], 'selected' => [], 'notices' => []];
     $forgeEnabled = (bool) $forge['enabled'];
-    $forgeSelected = array_values(array_map('intval', (array) old('forge_produkte', $forge['selected'])));
+    $forgeSelected = array_values(array_merge(
+        array_map(fn ($id): string => 'forge:'.(int) $id, (array) old('forge_produkte', [])),
+        array_map(fn ($id): string => 'eocs:'.(int) $id, (array) old('eocs_produkte', [])),
+    )) ?: array_values((array) $forge['selected']);
     $config = [
         'forge' => [
             'enabled' => $forgeEnabled,
@@ -53,18 +56,18 @@
             @endforeach
 
             <ul class="mt-2 space-y-2" x-show="forgeList.length > 0" x-cloak>
-                <template x-for="product in forgeList" :key="product.id">
+                <template x-for="product in forgeList" :key="product.key">
                     <li class="flex items-start gap-2 rounded-md px-3 py-2 ring-1 ring-slate-200 ring-inset">
-                        <input type="checkbox" class="mt-1 size-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand" :checked="forgeIsSelected(product.id)" x-on:change="forgeToggle(product.id)" :aria-label="'Betrifft ' + product.name">
-                        <template x-if="forgeIsSelected(product.id)"><span>
-                            <input type="hidden" name="forge_produkte[]" :value="product.id">
-                            <template x-if="product.sku_used"><input type="hidden" :name="'forge_sku[' + product.id + ']'" :value="product.sku_used"></template>
+                        <input type="checkbox" class="mt-1 size-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand" :checked="forgeIsSelected(product.key)" x-on:change="forgeToggle(product.key)" :aria-label="'Betrifft ' + product.name">
+                        <template x-if="forgeIsSelected(product.key)"><span>
+                            <input type="hidden" :name="product.origin === 'eocs' ? 'eocs_produkte[]' : 'forge_produkte[]'" :value="product.id">
+                            <template x-if="product.sku_used && product.origin !== 'eocs'"><input type="hidden" :name="'forge_sku[' + product.id + ']'" :value="product.sku_used"></template>
                         </span></template>
                         <span class="min-w-0 text-sm">
                             <span class="font-medium text-slate-900" x-text="product.name"></span>
                             <span class="block text-xs text-slate-600" x-text="forgeLabel(product)"></span>
-                            <span class="block text-xs text-slate-600" x-text="product.source + (forgeIsSelected(product.id) ? ' · betrifft den Fall' : '')"></span>
-                            <span class="block text-xs" :class="product.has_service_knowledge ? 'text-brand-700' : 'text-slate-600'" x-show="product.has_service_knowledge !== null && product.has_service_knowledge !== undefined" x-text="product.has_service_knowledge ? 'Produktdaten und Kundenservice-Wissen vorhanden' : 'Produktdaten vorhanden, kein Kundenservice-Wissen'"></span>
+                            <span class="block text-xs text-slate-600" x-text="product.source + (forgeIsSelected(product.key) ? ' · betrifft den Fall' : '')"></span>
+                            <span class="block text-xs" :class="product.has_service_knowledge ? 'text-brand-700' : 'text-slate-600'" x-show="product.has_service_knowledge !== null && product.has_service_knowledge !== undefined" x-text="product.origin === 'eocs' ? 'Nur Beschreibung und Bullet Points aus EOCS, kein Kundenservice-Wissen' : (product.has_service_knowledge ? 'Produktdaten und Kundenservice-Wissen vorhanden' : 'Produktdaten vorhanden, kein Kundenservice-Wissen')"></span>
                         </span>
                     </li>
                 </template>
@@ -76,7 +79,7 @@
                        x-on:focus="forgeOpen = true" x-on:input="forgeOpen = true; forgeSearch()" x-on:keydown.enter.prevent="forgeSearch()" x-on:keydown.escape="forgeOpen = false"
                        class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">
                 <ul id="katalog-treffer" role="listbox" x-show="forgeOpen && forgeHits.length > 0" x-cloak class="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md bg-white py-1 text-sm shadow-3 ring-1 ring-slate-200">
-                    <template x-for="hit in forgeHits" :key="hit.id">
+                    <template x-for="hit in forgeHits" :key="hit.key">
                         <li role="option" class="cursor-pointer px-3 py-2 hover:bg-brand/10" x-on:mousedown.prevent="forgeAdd(hit)">
                             <span class="font-medium text-slate-900" x-text="hit.name"></span>
                             <span class="block truncate text-xs text-slate-600" x-text="forgeLabel(hit)"></span>

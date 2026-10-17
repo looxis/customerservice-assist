@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Eocs\EocsClient;
+use App\Eocs\EocsException;
+use App\Eocs\EocsItem;
 use App\Http\Requests\ProductSearchRequest;
 use App\ProductForge\ForgeProduct;
 use App\ProductForge\ForgeSearchHit;
@@ -16,7 +19,7 @@ use Illuminate\Http\JsonResponse;
  */
 class ProductSearchController extends Controller
 {
-    public function __invoke(ProductSearchRequest $request, ProductForgeClient $client, KnowledgeAreaSuggester $areas): JsonResponse
+    public function __invoke(ProductSearchRequest $request, ProductForgeClient $client, KnowledgeAreaSuggester $areas, EocsClient $eocs): JsonResponse
     {
         if (! $client->isConfigured()) {
             return response()->json(['enabled' => false, 'hits' => [], 'error' => null]);
@@ -34,9 +37,13 @@ class ProductSearchController extends Controller
             return response()->json(['enabled' => true, 'hits' => [], 'product' => null, 'error' => $exception->problem->message()], $exception->problem->value === 'not_found' ? 404 : 200);
         }
 
+        if ($page->hits === [] && $page->page === 1) {
+            return $this->fromEocs((string) $request->validated('q'), $eocs, $areas);
+        }
+
         return response()->json([
             'enabled' => true,
-            'hits' => array_map(fn (ForgeSearchHit $hit): array => [...$hit->toArray(), 'knowledge_slugs' => $areas->slugsFor($hit->toArray())], $page->hits),
+            'hits' => array_map(fn (ForgeSearchHit $hit): array => [...$hit->toArray(), 'origin' => 'forge', 'key' => 'forge:'.$hit->id, 'knowledge_slugs' => $areas->slugsFor($hit->toArray())], $page->hits),
             'total' => $page->total,
             'page' => $page->page,
             'last_page' => $page->lastPage,
@@ -54,5 +61,28 @@ class ProductSearchController extends Controller
             'has_service_knowledge' => $product->hasServiceKnowledge(),
             'knowledge_slugs' => $areas->slugsFor($product->identity()),
         ];
+    }
+
+    /**
+     * ProductForge found nothing: the items of EOCS with that name or number are offered instead, marked
+     * as "only in EOCS". Without a match the answer says so and nothing is guessed.
+     */
+    private function fromEocs(string $term, EocsClient $eocs, KnowledgeAreaSuggester $areas): JsonResponse
+    {
+        try {
+            $items = $eocs->searchItems($term);
+        } catch (EocsException $exception) {
+            return response()->json(['enabled' => true, 'hits' => [], 'total' => 0, 'page' => 1, 'last_page' => 1, 'error' => 'In ProductForge wurde nichts gefunden, und EOCS ist nicht erreichbar.']);
+        }
+
+        return response()->json([
+            'enabled' => true,
+            'hits' => array_map(fn (EocsItem $item): array => [...$item->identity(), 'origin' => 'eocs', 'key' => 'eocs:'.$item->itemId, 'knowledge_slugs' => $areas->slugsFor($item->identity())], $items),
+            'total' => count($items),
+            'page' => 1,
+            'last_page' => 1,
+            'from_eocs' => true,
+            'error' => null,
+        ]);
     }
 }

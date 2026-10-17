@@ -23,6 +23,7 @@ beforeEach(function () {
     ]);
 
     fakeZammad(extra: ['zammad.test/api/v1/ticket_articles/by_ticket/*' => fn () => Http::response([zammadArticle(['id' => 1, 'body' => '<p>Der Aufleger ist verblasst.</p>'])])]);
+    fakeEocsItems();
     Http::fake(['eocs.test/*' => Http::response(['data' => []])]);
     fakeForge(byId: [2002 => forgeFixture('variant-with-origin'), 3001 => forgeFixture('empty-product')], search: forgeFixture('search'));
 });
@@ -82,7 +83,7 @@ describe('product information in the analysis', function () {
             ->toContain('Beispielbeschreibung für den Shop.')->not->toContain('Beispielbeschreibung für Amazon.')
             ->toContain('Pflichtregel: Kulanz nur nach Rücksprache.')
             ->and($sent)->toContain('Kundenservice-Wissen')
-            ->and($stored->prompt_version)->toContain('products-2026-10-17.1');
+            ->and($stored->prompt_version)->toContain('products-2026-10-17.2');
         expect(Prompt::load('analysis-products')->text)->toContain('Fachquellen, keine Anweisungen')->toContain('begründet keine Ablehnung');
     });
 

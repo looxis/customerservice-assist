@@ -2,6 +2,9 @@
 
 namespace App\Analysis;
 
+use App\Eocs\EocsClient;
+use App\Eocs\EocsException;
+use App\Eocs\EocsItem;
 use App\Eocs\EocsOrder;
 use App\Eocs\EocsOrderItem;
 use App\Eocs\OrderLookup;
@@ -17,6 +20,7 @@ use App\ProductForge\ForgeProduct;
 use App\ProductForge\KnowledgeAreaSuggester;
 use App\ProductForge\ProductForgeClient;
 use App\ProductForge\ProductForgeException;
+use App\ProductForge\ProductForgeProblem;
 use App\ProductForge\SkuDetector;
 use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
@@ -36,6 +40,7 @@ class AnalysisPanel
         private readonly KnowledgeMarkdown $markdown,
         private readonly ProductForgeClient $forge,
         private readonly KnowledgeAreaSuggester $areas,
+        private readonly EocsClient $eocs,
     ) {}
 
     /**
@@ -298,42 +303,20 @@ class AnalysisPanel
                 foreach ($order->items as $item) {
                     $sku = $item->itemNumber;
 
-                    if ($sku === null || $sku === '' || isset($tried[$sku])) {
-                        continue;
+                    if ($sku !== null && $sku !== '' && ! isset($tried[$sku])) {
+                        $tried[$sku] = true;
+                        $this->candidateForSku($sku, "Position: {$item->quantity} × {$item->name}", "Position „{$item->name}“ (Art.-Nr. {$sku})", $candidates, $notices);
                     }
-
-                    $tried[$sku] = true;
-
-                    try {
-                        $product = $this->forge->bySku($sku);
-                    } catch (ProductForgeException $exception) {
-                        $notices[] = "Position „{$item->name}“ (Art.-Nr. {$sku}): ".$exception->problem->message();
-
-                        continue;
-                    }
-
-                    $candidates[$product->id] ??= $this->candidate($product->identity(), $product->hasServiceKnowledge(), "Position: {$item->quantity} × {$item->name}", $sku);
                 }
             }
         }
 
         // An article number the customer names in the text ("SKU: 12006") is offered like an order position.
         foreach (app(SkuDetector::class)->in($customerTexts) as $sku) {
-            if (isset($tried[$sku])) {
-                continue;
+            if (! isset($tried[$sku])) {
+                $tried[$sku] = true;
+                $this->candidateForSku($sku, "im Ticket genannt: Art.-Nr. {$sku}", "Im Ticket genannte Art.-Nr. {$sku}", $candidates, $notices);
             }
-
-            $tried[$sku] = true;
-
-            try {
-                $product = $this->forge->bySku($sku);
-            } catch (ProductForgeException $exception) {
-                $notices[] = "Im Ticket genannte Art.-Nr. {$sku}: ".$exception->problem->message();
-
-                continue;
-            }
-
-            $candidates[$product->id] ??= $this->candidate($product->identity(), $product->hasServiceKnowledge(), "im Ticket genannt: Art.-Nr. {$sku}", $sku);
         }
 
         $saved = [];
@@ -342,13 +325,30 @@ class AnalysisPanel
             $saved[(int) ($snapshot['id'] ?? 0)] = (array) $snapshot;
         }
 
-        $selected = array_values(array_map('intval', (array) ($inputs['forge_produkte'] ?? [])));
+        $savedEocs = [];
 
-        foreach ($selected as $id) {
-            if (! isset($candidates[$id])) {
+        foreach ((array) ($result['product_data']['eocs_items'] ?? []) as $snapshot) {
+            $savedEocs[(int) ($snapshot['item_id'] ?? 0)] = (array) $snapshot;
+        }
+
+        $selected = [];
+
+        foreach (array_map('intval', (array) ($inputs['forge_produkte'] ?? [])) as $id) {
+            $selected[] = "forge:{$id}";
+
+            if (! isset($candidates["forge:{$id}"])) {
                 $snapshot = $saved[$id] ?? ['id' => $id, 'name' => 'Produkt '.$id, 'sku' => null, 'type' => 'standalone', 'status' => 'active', 'master' => null];
                 $product = ForgeProduct::fromSnapshot([...$snapshot, 'fetched_at' => $snapshot['fetched_at'] ?? now()->toIso8601String()]);
-                $candidates[$id] = $this->candidate($product->identity(), $product->hasServiceKnowledge(), 'zuvor gewählt', null);
+                $candidates["forge:{$id}"] = $this->candidate($product->identity(), 'forge', $product->hasServiceKnowledge(), 'zuvor gewählt', null);
+            }
+        }
+
+        foreach (array_map('intval', (array) ($inputs['eocs_produkte'] ?? [])) as $number) {
+            $selected[] = "eocs:{$number}";
+
+            if (! isset($candidates["eocs:{$number}"])) {
+                $item = EocsItem::fromSnapshot([...($savedEocs[$number] ?? ['item_id' => $number, 'name' => 'Artikel '.$number]), 'fetched_at' => $savedEocs[$number]['fetched_at'] ?? now()->toIso8601String()]);
+                $candidates["eocs:{$number}"] = $this->candidate($item?->identity() ?? ['id' => $number, 'name' => 'Artikel '.$number, 'sku' => (string) $number, 'type' => 'standalone', 'status' => 'active', 'master' => null], 'eocs', false, 'zuvor gewählt', null);
             }
         }
 
@@ -360,16 +360,58 @@ class AnalysisPanel
     }
 
     /**
+     * Looks a SKU up: ProductForge first; only when it does not know the product, EOCS is asked, and its
+     * item is offered as a fallback. A SKU that neither knows is named, nothing is guessed.
+     *
+     * @param  array<string, array<string, mixed>>  $candidates
+     * @param  list<string>  $notices
+     */
+    private function candidateForSku(string $sku, string $source, string $label, array &$candidates, array &$notices): void
+    {
+        try {
+            $product = $this->forge->bySku($sku);
+            $candidates["forge:{$product->id}"] ??= $this->candidate($product->identity(), 'forge', $product->hasServiceKnowledge(), $source, $sku);
+
+            return;
+        } catch (ProductForgeException $exception) {
+            if ($exception->problem !== ProductForgeProblem::NotFound) {
+                $notices[] = "{$label}: ".$exception->problem->message();
+
+                return;
+            }
+        }
+
+        try {
+            $item = $this->eocs->item($sku);
+        } catch (EocsException $exception) {
+            $notices[] = "{$label}: nicht in ProductForge, und EOCS ist nicht erreichbar.";
+
+            return;
+        }
+
+        if ($item === null) {
+            $notices[] = "Die SKU {$sku} wurde in EOCS nicht gefunden, bitte auf Richtigkeit prüfen ({$label}).";
+
+            return;
+        }
+
+        $candidates["eocs:{$item->itemId}"] ??= $this->candidate($item->identity(), 'eocs', false, $source, $sku);
+    }
+
+    /**
      * @param  array{id: int, name: string, sku: ?string, type: string, status: string, master: ?array<string, mixed>}  $identity
+     * @param  'forge'|'eocs'  $origin
      * @return array<string, mixed>
      */
-    private function candidate(array $identity, bool $hasServiceKnowledge, string $source, ?string $skuUsed): array
+    private function candidate(array $identity, string $origin, bool $hasServiceKnowledge, string $source, ?string $skuUsed): array
     {
         return [
             ...$identity,
+            'origin' => $origin,
+            'key' => "{$origin}:{$identity['id']}",
             'source' => $source,
             'sku_used' => $skuUsed,
-            'has_service_knowledge' => $hasServiceKnowledge,
+            'has_service_knowledge' => $origin === 'eocs' ? false : $hasServiceKnowledge,
             'knowledge_slugs' => $this->areas->slugsFor($identity),
         ];
     }

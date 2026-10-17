@@ -20,6 +20,8 @@ trait ChecksProductChoice
             'produkt_ohne_wissen' => ['nullable', 'string', 'max:120'],
             'forge_produkte' => ['sometimes', 'array', 'max:'.(int) config('analysis.product_info.max_selected')],
             'forge_produkte.*' => ['integer', 'min:1'],
+            'eocs_produkte' => ['sometimes', 'array', 'max:'.(int) config('analysis.product_info.max_selected')],
+            'eocs_produkte.*' => ['integer', 'min:1'],
             'forge_sku' => ['sometimes', 'array', 'max:'.(int) config('analysis.product_info.max_selected')],
             'forge_sku.*' => ['nullable', 'string', 'max:100'],
         ];
@@ -29,7 +31,7 @@ trait ChecksProductChoice
     {
         $hasProduct = array_values(array_filter((array) $this->input('produkte', []), 'is_string')) !== [];
         $hasName = trim((string) $this->input('produkt_ohne_wissen', '')) !== '';
-        $hasCatalogProduct = $this->forgeSelection() !== [];
+        $hasCatalogProduct = $this->forgeSelection() !== [] || $this->eocsSelection() !== [];
         $none = $this->boolean('kein_produktbezug');
 
         if (! $hasProduct && ! $hasName && ! $hasCatalogProduct && ! $none) {
@@ -68,5 +70,15 @@ trait ChecksProductChoice
         }
 
         return array_values($selection);
+    }
+
+    /**
+     * Numbers (SKU) of EOCS items chosen because ProductForge does not have the product.
+     *
+     * @return list<int>
+     */
+    public function eocsSelection(): array
+    {
+        return array_values(array_unique(array_map('intval', array_filter((array) $this->input('eocs_produkte', []), fn (mixed $number): bool => is_numeric($number) && (int) $number > 0))));
     }
 }

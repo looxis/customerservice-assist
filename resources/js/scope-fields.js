@@ -29,8 +29,8 @@ export default (config) => ({
 
     init() {
         if (this.forge.enabled) {
-            this.forgeSelected.filter((id) => !this.forgeList.some((product) => product.id === id)).forEach((id) => this.forgeLoad(id));
-            this.forgeSelected.forEach((id) => this.forgeSuggestAreas(this.forgeProduct(id)));
+            this.forgeSelected.filter((key) => !this.forgeList.some((product) => product.key === key)).forEach((key) => this.forgeLoad(key));
+            this.forgeSelected.forEach((key) => this.forgeSuggestAreas(this.forgeProduct(key)));
         }
 
         const form = this.$el.closest('form');
@@ -100,21 +100,22 @@ export default (config) => ({
         }
     },
 
-    forgeProduct(id) {
-        return this.forgeList.find((product) => product.id === id);
+    // A product is told apart by its key: "forge:<id>" (ProductForge) or "eocs:<SKU>" (only in EOCS so far).
+    forgeProduct(key) {
+        return this.forgeList.find((product) => product.key === key);
     },
 
-    forgeIsSelected(id) {
-        return this.forgeSelected.includes(id);
+    forgeIsSelected(key) {
+        return this.forgeSelected.includes(key);
     },
 
-    forgeToggle(id) {
-        if (this.forgeIsSelected(id)) {
-            this.forgeSelected = this.forgeSelected.filter((other) => other !== id);
+    forgeToggle(key) {
+        if (this.forgeIsSelected(key)) {
+            this.forgeSelected = this.forgeSelected.filter((other) => other !== key);
         } else {
-            this.forgeSelected.push(id);
+            this.forgeSelected.push(key);
             this.none = false;
-            this.forgeSuggestAreas(this.forgeProduct(id));
+            this.forgeSuggestAreas(this.forgeProduct(key));
         }
     },
 
@@ -154,7 +155,7 @@ export default (config) => ({
             try {
                 const answer = await this.forgeRequest({ q: this.forgeQuery.trim() });
                 this.forgeHits = answer.hits ?? [];
-                this.forgeMessage = answer.error ?? (this.forgeHits.length === 0 ? 'Kein Produkt gefunden.' : (answer.total > this.forgeHits.length ? `${answer.total} Treffer, die ersten ${this.forgeHits.length} werden gezeigt. Bitte genauer suchen.` : ''));
+                this.forgeMessage = answer.error ?? (this.forgeHits.length === 0 ? 'Kein Produkt gefunden.' : answer.from_eocs ? 'In ProductForge nicht gefunden. Diese Treffer stammen aus EOCS (nur Beschreibung und Bullet Points, kein Servicewissen).' : (answer.total > this.forgeHits.length ? `${answer.total} Treffer, die ersten ${this.forgeHits.length} werden gezeigt. Bitte genauer suchen.` : ''));
             } catch {
                 this.forgeHits = [];
                 this.forgeMessage = 'Die Produktsuche ist gerade nicht erreichbar.';
@@ -171,30 +172,37 @@ export default (config) => ({
     },
 
     async forgeAdd(hit) {
-        if (!this.forgeProduct(hit.id)) {
-            this.forgeList.push({ ...hit, source: 'Suche', sku_used: null, has_service_knowledge: null });
+        if (!this.forgeProduct(hit.key)) {
+            this.forgeList.push({ ...hit, source: 'Suche', sku_used: null, has_service_knowledge: hit.origin === 'eocs' ? false : null });
         }
 
-        if (!this.forgeIsSelected(hit.id)) {
-            this.forgeSelected.push(hit.id);
+        if (!this.forgeIsSelected(hit.key)) {
+            this.forgeSelected.push(hit.key);
         }
 
         this.none = false;
         this.forgeQuery = '';
         this.forgeHits = [];
         this.forgeOpen = false;
-        await this.forgeLoad(hit.id);
-        this.forgeSuggestAreas(this.forgeProduct(hit.id));
+        await this.forgeLoad(hit.key);
+        this.forgeSuggestAreas(this.forgeProduct(hit.key));
     },
 
     // Details of one product (what exists, which area of rules fits); also restores a product chosen before.
-    async forgeLoad(id) {
+    async forgeLoad(key) {
+        const [origin, id] = key.split(':');
+
+        // Items only in EOCS carry everything the form knows already; only ProductForge has details to load.
+        if (origin !== 'forge') {
+            return;
+        }
+
         try {
             const answer = await this.forgeRequest({ id });
 
             if (answer.product) {
-                const index = this.forgeList.findIndex((product) => product.id === id);
-                const entry = { ...answer.product, source: index >= 0 ? this.forgeList[index].source : 'zuvor gewählt', sku_used: index >= 0 ? this.forgeList[index].sku_used : null };
+                const index = this.forgeList.findIndex((product) => product.key === key);
+                const entry = { ...answer.product, origin: 'forge', key, source: index >= 0 ? this.forgeList[index].source : 'zuvor gewählt', sku_used: index >= 0 ? this.forgeList[index].sku_used : null };
                 index >= 0 ? this.forgeList.splice(index, 1, entry) : this.forgeList.push(entry);
             }
         } catch {
@@ -204,7 +212,7 @@ export default (config) => ({
 
     forgeLabel(product) {
         const kind = { master: 'Master (alle Varianten)', variant: 'Variante', standalone: '' }[product.type] ?? '';
-        const parts = [product.sku ? `SKU ${product.sku}` : null, kind || null, product.master ? `Master: ${product.master.name}` : null, product.status === 'inactive' ? 'inaktiv' : null];
+        const parts = [product.sku ? `SKU ${product.sku}` : null, kind || null, product.master ? `Master: ${product.master.name}` : null, product.status === 'inactive' ? 'inaktiv' : null, product.origin === 'eocs' ? 'nur in EOCS, noch nicht in ProductForge' : null];
 
         return parts.filter(Boolean).join(' · ');
     },

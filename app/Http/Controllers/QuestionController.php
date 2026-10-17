@@ -58,7 +58,7 @@ class QuestionController extends Controller
         $text = trim((string) $request->validated('text'));
         $replyWanted = $request->boolean('antwortentwurf');
         $products = array_values($request->validated('produkte', []));
-        $package = $productResolver->resolve($request->forgeSelection(), null);
+        $package = $productResolver->resolve($request->forgeSelection(), null, null, $request->eocsSelection());
         $unknownProduct = $request->unknownProduct();
 
         if ($unknownProduct === null && $products === [] && ! $request->boolean('kein_produktbezug')) {
@@ -76,7 +76,7 @@ class QuestionController extends Controller
                 employeeContext: '',
                 variant: ContextVariant::FullThread,
                 summary: null,
-                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'forge_produkte' => array_column($request->forgeSelection(), 'id'), 'forge_sku' => array_filter(array_column($request->forgeSelection(), 'sku', 'id')), 'antwortentwurf' => $replyWanted],
+                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'forge_produkte' => array_column($request->forgeSelection(), 'id'), 'eocs_produkte' => $request->eocsSelection(), 'forge_sku' => array_filter(array_column($request->forgeSelection(), 'sku', 'id')), 'antwortentwurf' => $replyWanted],
                 questionText: $text,
                 replyWanted: $replyWanted,
                 unknownProduct: $unknownProduct,
@@ -119,7 +119,7 @@ class QuestionController extends Controller
         $replyWanted = $request->replyWanted();
         $products = array_values((array) ($inputs['produkte'] ?? []));
         $selection = array_map(fn (mixed $id): array => ['id' => (int) $id, 'sku' => is_string($inputs['forge_sku'][$id] ?? null) ? $inputs['forge_sku'][$id] : null], array_values((array) ($inputs['forge_produkte'] ?? [])));
-        $package = $productResolver->resolve($selection, (array) ($parent['product_data'] ?? []) ?: null);
+        $package = $productResolver->resolve($selection, (array) ($parent['product_data'] ?? []) ?: null, null, array_values((array) ($inputs['eocs_produkte'] ?? [])));
         $typed = is_string($inputs['produkt_ohne_wissen'] ?? null) && trim($inputs['produkt_ohne_wissen']) !== '' ? trim($inputs['produkt_ohne_wissen']) : null;
 
         try {

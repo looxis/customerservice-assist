@@ -44,6 +44,7 @@ describe('the form for a ticket that names an article number', function () {
         config(['services.zammad.url' => 'https://zammad.test', 'services.zammad.token' => 'z-token', 'services.eocs.url' => 'https://eocs.test', 'services.eocs.token' => 'e-token', 'cache.default' => 'array']);
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel'])]);
         fakeZammad(extra: ['zammad.test/api/v1/ticket_articles/by_ticket/*' => fn () => Http::response([zammadArticle(['id' => 1, 'body' => '<p>'.nl2br(e(PF_REAL_REQUEST)).'</p>'])])]);
+        fakeEocsItems();
         Http::fake(['eocs.test/*' => Http::response(['data' => []])]);
         fakeForge(bySku: ['12006' => forgeFixture('variant-with-origin')]);
     });
@@ -56,7 +57,7 @@ describe('the form for a ticket that names an article number', function () {
 
         expect($config['forge']['candidates'])->toHaveCount(1)
             ->and($config['forge']['candidates'][0])->toMatchArray(['id' => 2002, 'sku_used' => '12006', 'source' => 'im Ticket genannt: Art.-Nr. 12006'])
-            ->and($config['forge']['selected'])->toBe([2002]);
+            ->and($config['forge']['selected'])->toBe(['forge:2002']);
         Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'by-sku') && str_contains($request->url(), 'sku=12006'));
     });
 

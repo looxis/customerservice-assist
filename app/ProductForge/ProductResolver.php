@@ -2,6 +2,10 @@
 
 namespace App\ProductForge;
 
+use App\Eocs\EocsClient;
+use App\Eocs\EocsException;
+use App\Eocs\EocsItem;
+
 /**
  * Builds the data package for one analysis. Only the chosen products are fetched; whatever the earlier
  * step of the same case already holds is carried over unchanged (no silent update, one retrieval time
@@ -15,14 +19,15 @@ class ProductResolver
      */
     private array $retrieved = [];
 
-    public function __construct(private readonly ProductForgeClient $client) {}
+    public function __construct(private readonly ProductForgeClient $client, private readonly EocsClient $eocs) {}
 
     /**
      * @param  list<array{id: int, sku: string|null}>  $selection  The products that concern the case; "sku" is the SKU a position was found by.
      * @param  array<string, mixed>|null  $carried  Stored package of the earlier step; only used when the case is continued.
      * @param  array<string, mixed>|null  $previous  Stored package of the last analysis, only to point out changed data.
+     * @param  list<int>  $eocsSelection  Numbers (SKU) of EOCS items for products that ProductForge does not have.
      */
-    public function resolve(array $selection, ?array $carried, ?array $previous = null): ProductPackage
+    public function resolve(array $selection, ?array $carried, ?array $previous = null, array $eocsSelection = []): ProductPackage
     {
         $carriedPackage = ProductPackage::fromStored($carried);
         $products = $carriedPackage->products;
@@ -69,7 +74,37 @@ class ProductResolver
             }
         }
 
-        return new ProductPackage($products, $selected, $problems, $reused, $changed);
+        $items = $carriedPackage->eocsItems;
+        $eocsSelected = [];
+        $eocsReused = [];
+
+        foreach (array_values(array_unique(array_map('intval', $eocsSelection))) as $number) {
+            if ($carried !== null && $carriedPackage->findEocs($number) !== null) {
+                $eocsSelected[] = $number;
+                $eocsReused[] = $number;
+
+                continue;
+            }
+
+            try {
+                $item = $this->eocs->item((string) $number);
+            } catch (EocsException) {
+                $problems[] = ['id' => $number, 'sku' => (string) $number, 'name' => null, 'problem' => 'eocs_unavailable'];
+
+                continue;
+            }
+
+            if ($item === null) {
+                $problems[] = ['id' => $number, 'sku' => (string) $number, 'name' => null, 'problem' => 'eocs_not_found'];
+
+                continue;
+            }
+
+            $eocsSelected[] = $number;
+            $items = [...array_values(array_filter($items, fn (EocsItem $other): bool => $other->itemId !== $number)), $item];
+        }
+
+        return new ProductPackage($products, $selected, $problems, $reused, $changed, $items, $eocsSelected, $eocsReused);
     }
 
     /**

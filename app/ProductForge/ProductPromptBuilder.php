@@ -2,6 +2,7 @@
 
 namespace App\ProductForge;
 
+use App\Eocs\EocsItem;
 use App\Knowledge\CustomerGroup;
 
 /**
@@ -43,6 +44,7 @@ class ProductPromptBuilder
 
         $room = max(0, min($room, (int) config('analysis.product_info.max_total')));
         $affected = $package->affected();
+        $eocs = $package->affectedEocs();
         $notes = [];
         $omitted = [];
 
@@ -55,9 +57,21 @@ class ProductPromptBuilder
 
         foreach ($package->problems as $problem) {
             $what = $problem['name'] ?? ($problem['sku'] !== null ? 'SKU '.$problem['sku'] : 'Produkt '.($problem['id'] ?? '?'));
-            $reason = ProductForgeProblem::tryFrom($problem['problem'])?->message() ?? 'nicht abrufbar';
+
+            if ($problem['problem'] === 'eocs_not_found') {
+                $tail[] = "Zu {$what} liegen keine Produktinformationen vor: weder in ProductForge noch in EOCS gefunden. Erfinde keine Produkteigenschaften.";
+                $notes[] = "Die SKU {$problem['sku']} wurde in EOCS nicht gefunden, bitte auf Richtigkeit prüfen.";
+
+                continue;
+            }
+
+            $reason = $problem['problem'] === 'eocs_unavailable' ? 'EOCS ist gerade nicht erreichbar' : (ProductForgeProblem::tryFrom($problem['problem'])?->message() ?? 'nicht abrufbar');
             $tail[] = "Zu {$what} liegen keine Produktinformationen vor ({$reason}). Erfinde keine Produkteigenschaften.";
             $notes[] = "Produktinformationen zu {$what} nicht verfügbar: {$reason}";
+        }
+
+        foreach ($eocs as $item) {
+            $notes[] = "{$item->name} (SKU {$item->itemId}) ist noch nicht in ProductForge gepflegt: Beschreibung und Bullet Points kommen aus EOCS, Kundenservice-Wissen gibt es dazu nicht.";
         }
 
         if ($channel === null && $affected !== []) {
@@ -77,18 +91,19 @@ class ProductPromptBuilder
         }
 
         $shared = $this->sharedOrigins($affected);
-        $items = $this->items($affected, $shared, $channel, $omitted);
+        $items = [...$this->items($affected, $shared, $channel, $omitted), ...$this->eocsItems($eocs)];
 
         $used = mb_strlen($head) + 2 + array_sum(array_map(fn (string $line): int => mb_strlen($line) + 1, $tail));
         $chosen = [];
         $headerCosts = [];
 
         foreach ($items as $item) {
-            $header = $item['product'] === null ? 0 : (isset($headerCosts[$item['product']]) ? 0 : mb_strlen($this->productHeader($package->find($item['product']), $package)) + 2);
+            $key = $item['product'] === null ? null : ($item['source'] ?? 'forge').':'.$item['product'];
+            $header = $key === null ? 0 : (isset($headerCosts[$key]) ? 0 : mb_strlen(($item['source'] ?? 'forge') === 'eocs' ? $this->eocsHeader($package->findEocs($item['product'])) : $this->productHeader($package->find($item['product']), $package)) + 2);
             $cost = mb_strlen($item['block']) + 2 + $header;
 
             if ($used + $cost > $room) {
-                $omitted[] = ['product' => $item['product'], 'field' => $item['field'], 'reason' => 'budget'];
+                $omitted[] = ['product' => $item['product'], 'source' => $item['source'] ?? 'forge', 'field' => $item['field'], 'reason' => 'budget'];
 
                 continue;
             }
@@ -96,8 +111,8 @@ class ProductPromptBuilder
             $used += $cost;
             $chosen[] = $item;
 
-            if ($item['product'] !== null) {
-                $headerCosts[$item['product']] = true;
+            if ($key !== null) {
+                $headerCosts[$key] = true;
             }
         }
 
@@ -126,7 +141,7 @@ class ProductPromptBuilder
         }
 
         foreach ($affected as $product) {
-            $mine = array_values(array_filter($chosen, fn (array $item): bool => $item['product'] === $product->id));
+            $mine = array_values(array_filter($chosen, fn (array $item): bool => ($item['source'] ?? 'forge') === 'forge' && $item['product'] === $product->id));
             $text .= "\n\n".$this->productHeader($product, $package);
 
             if ($mine === []) {
@@ -136,6 +151,20 @@ class ProductPromptBuilder
             foreach ($mine as $item) {
                 $text .= "\n".$item['block'];
                 $sent['products'][$product->id][$item['field']] = $item['text'];
+            }
+        }
+
+        foreach ($eocs as $item) {
+            $mine = array_values(array_filter($chosen, fn (array $entry): bool => ($entry['source'] ?? null) === 'eocs' && $entry['product'] === $item->itemId));
+            $text .= "\n\n".$this->eocsHeader($item);
+
+            if ($mine === []) {
+                $text .= "\n(keine Felder mitgesendet)";
+            }
+
+            foreach ($mine as $entry) {
+                $text .= "\n".$entry['block'];
+                $sent['eocs'][$item->itemId][$entry['field']] = $entry['text'];
             }
         }
 
@@ -224,11 +253,44 @@ class ProductPromptBuilder
                 }
 
                 $label = self::LABELS[$field].(in_array($field, ['description', 'bullet_points'], true) ? ' ('.self::CHANNEL_LABELS[$channel].')' : '').(isset($sharedKeyOf[$product->id]) && $field === 'service' ? ' (Ergänzung zum gemeinsamen Wissensursprung)' : '');
-                $items[] = ['product' => $product->id, 'field' => $field, 'block' => "{$label}:\n{$text}", 'text' => $text];
+                $items[] = ['product' => $product->id, 'source' => 'forge', 'field' => $field, 'block' => "{$label}:\n{$text}", 'text' => $text];
             }
         }
 
         return $items;
+    }
+
+    /**
+     * The fields of items that are only in EOCS: bullet points first, then the description. Plain text, as
+     * EOCS delivers it (the markup is dropped); no channel split exists there.
+     *
+     * @param  list<EocsItem>  $eocs
+     * @return list<array{product: int, source: string, field: string, block: string, text: string}>
+     */
+    private function eocsItems(array $eocs): array
+    {
+        $items = [];
+
+        foreach (['eocs_bullet_points' => ['Bullet Points (EOCS)', fn (EocsItem $item): ?string => $item->bulletPoints()], 'eocs_description' => ['Beschreibung (EOCS)', fn (EocsItem $item): ?string => $item->plainDescription()]] as $field => [$label, $read]) {
+            foreach ($eocs as $item) {
+                $text = $read($item);
+
+                if ($text !== null) {
+                    $items[] = ['product' => $item->itemId, 'source' => 'eocs', 'field' => $field, 'block' => "{$label}:\n{$text}", 'text' => $text];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    private function eocsHeader(?EocsItem $item): string
+    {
+        if ($item === null) {
+            return '## Produkt (EOCS)';
+        }
+
+        return "## {$item->name} (SKU {$item->itemId}".($item->active ? '' : ', inaktiv').', Quelle: EOCS, noch nicht in ProductForge gepflegt; nur Beschreibung und Bullet Points, kein Kundenservice-Wissen; abgerufen '.$item->fetchedAt->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr)';
     }
 
     private function fieldText(ForgeProduct $product, string $field, ?string $channel, bool $sharedOrigin): ?string
@@ -243,7 +305,12 @@ class ProductPromptBuilder
 
     private function label(string $field): string
     {
-        return $field === 'shared' ? 'Gemeinsamer Wissensursprung' : (self::LABELS[$field] ?? $field);
+        return match ($field) {
+            'shared' => 'Gemeinsamer Wissensursprung',
+            'eocs_bullet_points' => 'Bullet Points (EOCS)',
+            'eocs_description' => 'Beschreibung (EOCS)',
+            default => self::LABELS[$field] ?? $field,
+        };
     }
 
     private function productHeader(?ForgeProduct $product, ProductPackage $package): string

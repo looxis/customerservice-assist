@@ -86,6 +86,72 @@ class KnowledgeGapLog
         ]);
     }
 
+    /**
+     * The partial gap of a product that ProductForge does not have (PROJ-38): created by the app when
+     * a proposal uses an EOCS item as fallback, once per ticket or question and SKU. Counted per SKU for the
+     * admin page so the team sees which products to maintain in ProductForge next.
+     */
+    public function reportNotInProductForge(string $analysisId, string $name, string $sku, string $staff): ?KnowledgeGap
+    {
+        $analysis = Analysis::query()->where('uuid', $analysisId)->whereNotNull('content')->first();
+
+        if ($analysis === null) {
+            return null;
+        }
+
+        $hash = self::topicHash(self::notInProductForgeTopic($sku));
+        $existing = KnowledgeGap::query()->where('ticket_number', $analysis->ticket_number)->where('gap_topic_hash', $hash)->where('test_run', $analysis->test_until !== null)->latest('id')->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return KnowledgeGap::query()->create([
+            'analysis_id' => $analysis->id,
+            'ticket_number' => $analysis->ticket_number,
+            'staff_name' => $staff,
+            'customer_group' => $analysis->customer_group,
+            'products' => $analysis->products ?? [],
+            'test_run' => $analysis->test_until !== null,
+            'gap_topic_hash' => $hash,
+            'content' => [
+                'missing' => "Produkt „{$name}“ (SKU {$sku}) ist nicht in ProductForge gepflegt",
+                'solution' => null,
+                'comment' => null,
+                'source' => 'auto',
+                'kind' => 'not-in-productforge',
+                'product' => $name,
+                'sku' => $sku,
+                'notes' => null,
+            ],
+        ]);
+    }
+
+    public static function notInProductForgeTopic(string $sku): string
+    {
+        return 'Nicht in ProductForge: SKU '.$sku;
+    }
+
+    /**
+     * The products that ProductForge did not have, most often first: one entry per SKU over the open automatic reports.
+     *
+     * @return Collection<int, array{product: string, sku: string, cases: int, last: Carbon}>
+     */
+    public function notInProductForge(): Collection
+    {
+        return KnowledgeGap::query()->where('status', 'open')->where('test_run', false)->whereNotNull('content')->whereNotNull('gap_topic_hash')->get()
+            ->filter(fn (KnowledgeGap $gap): bool => ($gap->content['kind'] ?? null) === 'not-in-productforge')
+            ->groupBy('gap_topic_hash')
+            ->map(fn (Collection $gaps): array => [
+                'product' => (string) ($gaps->first()->content['product'] ?? ''),
+                'sku' => (string) ($gaps->first()->content['sku'] ?? ''),
+                'cases' => $gaps->count(),
+                'last' => $gaps->max('created_at'),
+            ])
+            ->sortByDesc(fn (array $row): int => $row['cases'])
+            ->values();
+    }
+
     public static function unknownProductTopic(string $name): string
     {
         return 'Produktwissen: '.$name;
@@ -100,7 +166,7 @@ class KnowledgeGapLog
     public function unknownProducts(): Collection
     {
         return KnowledgeGap::query()->where('status', 'open')->where('test_run', false)->whereNotNull('content')->whereNotNull('gap_topic_hash')->get()
-            ->filter(fn (KnowledgeGap $gap): bool => ($gap->content['source'] ?? null) === 'auto')
+            ->filter(fn (KnowledgeGap $gap): bool => ($gap->content['source'] ?? null) === 'auto' && ($gap->content['kind'] ?? null) === null)
             ->groupBy('gap_topic_hash')
             ->map(fn (Collection $gaps): array => [
                 'product' => (string) ($gaps->first()->content['product'] ?? ''),

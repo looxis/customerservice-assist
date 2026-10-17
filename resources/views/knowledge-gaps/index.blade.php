@@ -41,6 +41,25 @@
         </x-card>
     @endif
 
+    @if ($status === 'open' && $notInProductForge->isNotEmpty())
+        <x-card>
+            <h2 class="text-base font-semibold text-slate-900">Nicht in ProductForge, nach Häufigkeit</h2>
+            <p class="mt-1 text-sm text-slate-600">Automatisch erfasst, wenn für ein Produkt nur Beschreibung und Bullet Points aus EOCS vorlagen, weil es in ProductForge noch nicht gepflegt ist. Gezählt werden Tickets und Fragen, ohne Testläufe.</p>
+            <ul class="mt-3 divide-y divide-slate-100">
+                @foreach ($notInProductForge as $row)
+                    <li class="py-3 text-sm">
+                        <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span class="font-semibold text-slate-900">{{ $row['product'] }}</span>
+                            <span class="font-mono text-xs text-slate-600">SKU {{ $row['sku'] }}</span>
+                            <x-badge compact tone="warning">{{ $row['cases'] }} {{ $row['cases'] === 1 ? 'Anfrage' : 'Anfragen' }}</x-badge>
+                            <span class="text-xs text-slate-600">zuletzt {{ $row['last']->setTimezone('Europe/Berlin')->format('d.m.Y') }}</span>
+                        </p>
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+    @endif
+
     @forelse ($gaps as $gap)
         @php($content = $gap->content ?? [])
         <x-card>

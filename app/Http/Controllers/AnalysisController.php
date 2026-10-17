@@ -115,6 +115,7 @@ class AnalysisController extends Controller
             $request->forgeSelection(),
             $parent === null ? null : ((array) ($parent['product_data'] ?? []) ?: null),
             $latestId === null ? null : ($store->result($latestId)['product_data'] ?? null),
+            $request->eocsSelection(),
         );
         $unknownProduct = $request->unknownProduct();
 
@@ -141,7 +142,7 @@ class AnalysisController extends Controller
                 employeeContext: (string) $request->validated('kontext', ''),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'forge_sku', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),

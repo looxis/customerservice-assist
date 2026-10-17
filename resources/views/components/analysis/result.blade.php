@@ -158,21 +158,26 @@
             @endif
 
             @php($catalogSelected = collect($result['product_data']['products'] ?? [])->whereIn('id', $result['product_data']['selected'] ?? []))
+            @php($eocsSelected = collect($result['product_data']['eocs_items'] ?? [])->whereIn('item_id', $result['product_data']['eocs_selected'] ?? []))
             @php($catalogHasService = $catalogSelected->contains(fn ($product) => filled($product['content']['customer_service_knowledge']['combined'] ?? null)))
             @if (($meta['unknown_product'] ?? null) && ! $catalogHasService)
                 @php($unknownReportedBy = $reported['topics'][\App\Analysis\KnowledgeGapLog::topicHash(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product']))] ?? null)
                 <x-alert type="warning">
-                    <p class="font-semibold">{{ $catalogSelected->isNotEmpty() ? 'Kein Kundenservice-Wissen im Produktkatalog zu' : 'Kein Produktwissen zu' }} „{{ $meta['unknown_product'] }}“</p>
-                    @if ($catalogSelected->isNotEmpty())
+                    <p class="font-semibold">{{ $eocsSelected->isNotEmpty() ? 'Noch nicht in ProductForge gepflegt:' : ($catalogSelected->isNotEmpty() ? 'Kein Kundenservice-Wissen im Produktkatalog zu' : 'Kein Produktwissen zu') }} „{{ $meta['unknown_product'] }}“</p>
+                    @if ($eocsSelected->isNotEmpty())
+                        <p class="mt-1 text-sm">Beschreibung und Bullet Points kommen aus EOCS; Kundenservice-Wissen gibt es dazu nicht. Das fehlende Produkt in ProductForge wurde automatisch gemeldet, du musst nichts tun.</p>
+                    @elseif ($catalogSelected->isNotEmpty())
                         <p class="mt-1 text-sm">Die Produktdaten aus dem Katalog liegen vor (siehe „Produktinformationen“), aber dort ist zu diesem Produkt kein Kundenservice-Wissen gepflegt, und in der Wissensdatenbank (Knowledge) gibt es keine Regeln dazu.</p>
                     @else
                         <p class="mt-1 text-sm">Weder im Produktkatalog noch in der Wissensdatenbank (Knowledge) ist zu diesem Produkt etwas hinterlegt.</p>
                     @endif
-                    @if ($unknownReportedBy)
-                        <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Die fehlende Information wurde automatisch gemeldet, zusammen mit deinen Angaben aus dem Formular. Du musst nichts weiter tun.</p>
-                    @else
-                        <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Bitte melde das fehlende Wissen, damit es ergänzt wird.</p>
-                        <button type="button" class="mt-1 text-xs font-semibold underline" x-data x-on:click="$dispatch('report-gap', { topic: @js(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product'])), missing: @js('Produktwissen zu „'.$meta['unknown_product'].'“') })">Wissenslücke melden</button>
+                    @if ($eocsSelected->isEmpty())
+                        @if ($unknownReportedBy)
+                            <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Die fehlende Information wurde automatisch gemeldet, zusammen mit deinen Angaben aus dem Formular. Du musst nichts weiter tun.</p>
+                        @else
+                            <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Bitte melde das fehlende Wissen, damit es ergänzt wird.</p>
+                            <button type="button" class="mt-1 text-xs font-semibold underline" x-data x-on:click="$dispatch('report-gap', { topic: @js(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product'])), missing: @js('Produktwissen zu „'.$meta['unknown_product'].'“') })">Wissenslücke melden</button>
+                        @endif
                     @endif
                 </x-alert>
             @endif
@@ -279,11 +284,11 @@
             </x-analysis.section>
 
             @if (($result['product_sent'] ?? null) !== null)
-                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'all' => 'alle Felder'])
+                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'eocs_bullet_points' => 'Bullet Points (EOCS)', 'eocs_description' => 'Beschreibung (EOCS)', 'all' => 'alle Felder'])
                 @php($reasonLabels = ['budget' => 'zu umfangreich für den Platz im Prompt', 'channel_unclear' => 'Kanal unklar', 'not_affected' => 'nicht als betroffen markiert'])
                 @php($forgeProducts = collect($result['product_data']['products'] ?? [])->keyBy('id'))
                 @php($sent = $result['product_sent'])
-                <x-analysis.section title="Produktinformationen" :count="count($sent['sent']['products'] ?? [])">
+                <x-analysis.section title="Produktinformationen" :count="count($sent['sent']['products'] ?? []) + count($sent['sent']['eocs'] ?? [])">
                     @foreach ($sent['sent']['products'] ?? [] as $productId => $fields)
                         @php($product = $forgeProducts->get($productId) ?? ['name' => 'Produkt '.$productId, 'sku' => null])
                         <details class="group/product border-b border-slate-100 last:border-b-0">
@@ -305,6 +310,23 @@
                             </div>
                         </details>
                     @endforeach
+                    @foreach ($sent['sent']['eocs'] ?? [] as $itemNumber => $fields)
+                        @php($eocsItem = collect($result['product_data']['eocs_items'] ?? [])->firstWhere('item_id', (int) $itemNumber) ?? ['name' => 'Artikel '.$itemNumber])
+                        <details class="group/eocs border-b border-slate-100 last:border-b-0">
+                            <summary class="flex cursor-pointer list-none flex-wrap items-center gap-2 py-2 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                                <x-icon name="chevron-right" size="14" class="text-slate-400 transition group-open/eocs:rotate-90" />
+                                <span class="font-medium">{{ $eocsItem['name'] }}</span>
+                                <span class="font-mono text-xs text-slate-600">{{ $itemNumber }}</span>
+                                <x-badge compact tone="warning">nur EOCS, noch nicht in ProductForge</x-badge>
+                            </summary>
+                            <div class="pb-4 pl-6 text-sm">
+                                @foreach ($fields as $field => $fieldText)
+                                    <p class="mt-2 font-semibold">{{ $fieldLabels[$field] ?? $field }}</p>
+                                    <p class="whitespace-pre-line">{{ $fieldText }}</p>
+                                @endforeach
+                            </div>
+                        </details>
+                    @endforeach
                     @foreach ($sent['sent']['shared'] ?? [] as $shared)
                         <p class="mt-2 text-sm"><span class="font-semibold">Gemeinsamer Wissensursprung: {{ $shared['title'] }}</span><br><span class="whitespace-pre-line">{{ $shared['text'] }}</span></p>
                     @endforeach
@@ -315,7 +337,7 @@
                     @if (($sent['problems'] ?? []) !== [])
                         <p class="mt-3 text-sm font-medium text-warning-700">Zu einem Produkt konnten keine Produktinformationen abgerufen werden. Der Vorschlag nutzt dazu nur die Wissensbasis.</p>
                     @endif
-                    @if (($sent['sent']['products'] ?? []) === [] && ($sent['problems'] ?? []) === [])
+                    @if (($sent['sent']['products'] ?? []) === [] && ($sent['sent']['eocs'] ?? []) === [] && ($sent['problems'] ?? []) === [])
                         <p class="text-slate-600">Es wurden keine Produktfelder mitgesendet.</p>
                     @endif
                 </x-analysis.section>
