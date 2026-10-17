@@ -61,6 +61,13 @@ class TicketController extends Controller
         $selected = $this->selection($request, $detector);
         $activity->recordVisit($ticket, $staff->current($request));
         $suggestions = $detector->detect($ticket);
+
+        // Order numbers the app recognises by their format are loaded at once, so the product can be
+        // proposed from the positions. Six-digit EOCS ids could be anything and take several seconds:
+        // those are only loaded when chosen. A selection in the address (even an empty one) wins.
+        if (! $request->has('bestellungen')) {
+            $selected = $this->normalized(array_map(fn (OrderNumber $order): string => $order->value, array_filter($suggestions, fn (OrderNumber $order): bool => ! $order->isEocsId())), $detector);
+        }
         $lookups = [];
         $orderProblem = null;
 

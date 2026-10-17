@@ -255,3 +255,28 @@ describe('prompt fields', function () {
         expect($prompt->text)->toContain('SKU 007')->toContain('Erfinde keine Produkteigenschaften');
     });
 });
+
+describe('orders on the ticket page', function () {
+    beforeEach(function () {
+        $this->withoutVite();
+        config(['services.zammad.url' => 'https://zammad.test', 'services.zammad.token' => 'z-token', 'services.eocs.url' => 'https://eocs.test', 'services.eocs.token' => 'e-token', 'cache.default' => 'array']);
+        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel'])]);
+        fakeZammad(extra: ['zammad.test/api/v1/ticket_articles/by_ticket/*' => fn () => Http::response([zammadArticle(['id' => 1, 'body' => '<p>Zu Bestellung 402-0000000-0000001 und 700123456 und 123456: etwas ist defekt.</p>'])])]);
+        Http::fake(['eocs.test/api/v1/orders*' => Http::response(['data' => []])]);
+    });
+
+    afterEach(fn () => cleanUpKnowledgeBases());
+
+    test('a number recognised by its format is looked up at once, an EOCS id is not', function () {
+        $this->get('/tickets/2137942')->assertOk();
+
+        Http::assertSent(fn (Request $request): bool => str_contains(urldecode($request->url()), 'external_order_id]=402-0000000-0000001'));
+        Http::assertNotSent(fn (Request $request): bool => str_contains(urldecode($request->url()), 'filter[id]=123456'));
+    });
+
+    test('an empty selection in the address keeps the automatic loading off', function () {
+        $this->get('/tickets/2137942?bestellungen[0]=')->assertOk()->assertSeeText('Bestelldetails aus EOCS abrufen');
+
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'eocs.test'));
+    });
+});

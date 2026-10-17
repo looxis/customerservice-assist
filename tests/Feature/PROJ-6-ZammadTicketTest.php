@@ -482,7 +482,7 @@ describe('amazon notice', function () {
             zammadArticle(['id' => 2, 'body' => amazonNotice('Zweite Frage'), 'created_at' => '2026-10-02T07:00:00.000Z']),
         ]);
 
-        $html = $this->get('/tickets/2137942')
+        $html = $this->get('/tickets/2137942?bestellungen[0]=')
             ->assertSeeTextInOrder([
                 'Bestellungen',
                 '402-0000000-0000001', 'aus Amazon-Nachricht', 'Bestelldetails aus EOCS abrufen',
@@ -508,7 +508,7 @@ describe('amazon notice', function () {
     test('a ticket without amazon notice shows the order number found in the text once, without product', function () {
         fakeZammad([zammadArticle(['body' => '<p>Meine Bestellnummer ist 402-0000000-0000001.</p>'])]);
 
-        $this->get('/tickets/2137942')
+        $this->get('/tickets/2137942?bestellungen[0]=')
             ->assertSee('aria-label="Bestellung 402-0000000-0000001"', false)
             ->assertSeeText('Amazon · im Ticket gefunden')
             ->assertDontSeeText('ASIN')

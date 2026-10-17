@@ -124,6 +124,7 @@
 | Formate der Bestellnummern später auf der Einstellungsseite pflegbar (PROJ-27) | Neue Kanäle oder Formatänderungen ohne Entwickler; bis dahin zentral in `OrderNumberFormat` | 2026-10-05 |
 | Reklamationsaufträge als Hinweis im Block der Original-Bestellung | Zeigt sofort, ob schon reklamiert oder nachproduziert wurde – wichtig für wiederholte Reklamationen und für die Analyse | 2026-10-05 |
 | Positionen werden mitgeladen, aber noch nicht angezeigt | Produktvorschlag (PROJ-4, über Artikelnummer) und Analyse (PROJ-9) brauchen sie; die Anzeige wird später festgelegt | 2026-10-05 |
+| Geänderte Entscheidung (2026-10-17, PROJ-38): Beim Öffnen des Tickets werden am Format erkannte Bestellnummern sofort aus EOCS geladen (nicht die sechsstelligen EOCS-IDs); eine Auswahl in der Adresse, auch eine leere, hat Vorrang | Aus den Positionen wird das Produkt samt SKU vorbelegt (ProductForge), ohne dass erst „Vorschlag erstellen“ nötig ist; Kosten: ein EOCS-Abruf je Ticketaufruf, Fehler blockieren die Ansicht nicht | 2026-10-17 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->

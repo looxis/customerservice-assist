@@ -1,7 +1,7 @@
 @props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null])
 
 @php
-    $url = fn (array $selection): string => route('tickets.show', ['number' => $number, 'bestellungen' => array_values($selection)]);
+    $url = fn (array $selection): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selection === [] ? [''] : array_values($selection)]);
     $loadedNumbers = collect($lookups)->flatMap(fn ($lookup) => collect($lookup->orders)->pluck('externalNumber'))->all();
     $mentions = collect($ticket->orders)->keyBy('number');
     $inputError = isset($errors) ? $errors->first('bestellnummer') : null;

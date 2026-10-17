@@ -104,7 +104,7 @@ describe('order number formats', function () {
             zammadArticle(['id' => 3, 'sender' => 'Agent', 'from' => 'Nele', 'body' => '<p>Danke.</p><p>Am 01.10.2026 schrieb X:</p><blockquote>Auftrag 700411247 und LmagQ9PV25</blockquote>', 'created_at' => '2026-10-03T07:00:00.000Z']),
         ]);
 
-        $this->get('/tickets/2137942')->assertSeeTextInOrder([
+        $this->get('/tickets/2137942?bestellungen[0]=')->assertSeeTextInOrder([
             '402-0000000-0000001', 'Amazon · aus Amazon-Nachricht', 'Bestelldetails aus EOCS abrufen',
             '7JI-0WC1-6M49', 'looxis.de / Fachhändler · im Ticket gefunden',
             '30019578', 'LOOXIS-Pro',
@@ -119,7 +119,7 @@ describe('order number formats', function () {
     test('a number in the ticket title is suggested too, before the thread', function () {
         fakeZammad([zammadArticle(['body' => '<p>Bestellnummer Tasse: 7JJ-0LQH-1RB6</p>'])], ['title' => 'Bestellung 7JJ-0LFR-2GU7']);
 
-        $this->get('/tickets/2137942')->assertSee('aria-label="Bestellung 7JJ-0LFR-2GU7"', false)
+        $this->get('/tickets/2137942?bestellungen[0]=')->assertSee('aria-label="Bestellung 7JJ-0LFR-2GU7"', false)
             ->assertSeeInOrder(['aria-label="Bestellung 7JJ-0LFR-2GU7"', 'aria-label="Bestellung 7JJ-0LQH-1RB6"'], false);
     });
 
@@ -137,7 +137,7 @@ describe('order number formats', function () {
         $numbers = implode(' ', array_map(fn (int $i): string => sprintf('402-0000000-%07d', $i), range(1, 12)));
         ticketWith("<p>{$numbers}</p>");
 
-        $html = $this->get('/tickets/2137942')->assertSeeText('Weitere Bestellnummern bitte von Hand eintragen.')->getContent();
+        $html = $this->get('/tickets/2137942?bestellungen[0]=')->assertSeeText('Weitere Bestellnummern bitte von Hand eintragen.')->getContent();
 
         expect($html)->toContain('aria-label="Bestellung 402-0000000-0000010"')->not->toContain('aria-label="Bestellung 402-0000000-0000011"');
     });

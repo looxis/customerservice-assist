@@ -745,11 +745,11 @@ describe('order numbers known from the ticket', function () {
     test('the form announces the automatic loading and offers the opt-out only when a found number is not loaded', function () {
         analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000001 ist defekt.</p>'])], [analysisOrder()]);
 
-        $this->get('/tickets/2137942')
+        $this->get('/tickets/2137942?bestellungen[0]=')
             ->assertSeeText('Bestellung: 402-0000000-0000001 – wird beim Erstellen aus EOCS geladen.')
             ->assertDontSee('name="ohne_bestelldetails"', false);
 
-        $this->withCookie('advanced_mode', '1')->get('/tickets/2137942')
+        $this->withCookie('advanced_mode', '1')->get('/tickets/2137942?bestellungen[0]=')
             ->assertSeeText('Erweitert: Die App ruft die Bestelldetails aus EOCS ab: 402-0000000-0000001')
             ->assertSee('name="ohne_bestelldetails"', false);
 
