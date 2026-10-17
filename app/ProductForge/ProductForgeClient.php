@@ -160,7 +160,7 @@ class ProductForgeClient
         return match (true) {
             $response->status() === 401, $response->status() === 403 => ProductForgeProblem::Misconfigured,
             $response->status() === 404 && $code === 'product_not_found' => ProductForgeProblem::NotFound,
-            $response->status() === 404 => ProductForgeProblem::UnexpectedResponse,
+            $response->status() === 404 => ProductForgeProblem::Misconfigured,
             $response->status() === 429 => ProductForgeProblem::RateLimited,
             $response->status() >= 500 => ProductForgeProblem::Unavailable,
             default => ProductForgeProblem::UnexpectedResponse,
