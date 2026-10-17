@@ -101,6 +101,6 @@ Jede Gruppe ist eine Liste von Texten (ein Eintrag je Zeile). Umlaut-Varianten (
 | Schutzgrenzen (Mindestlängen, keine leeren Amazon-Listen) | Verhindern, dass harmlose Mails ausgeblendet oder Amazon nicht mehr erkannt wird | 2026-10-17 |
 
 ## Open Questions
-- [ ] Sollen die Standardwerte der Grußformeln in der Liste vollständig sichtbar sein (sind heute fast 30 Einträge mit Mustern wie „(?:best|kind) regards“, die in einzelne Einträge aufzulösen sind)?
-- [ ] Muss „Mit Ticket ausprobieren“ auch Testmodus-Tickets (zurückgespult) unterstützen? Vorschlag: nein, nur der ganze Verlauf.
-- [ ] Wer wird bei einer Änderung benachrichtigt? Vorschlag: niemand, der Verlauf genügt.
+- [x] Die Standardwerte der Grußformeln werden beim Umstellen in einzelne lesbare Einträge aufgelöst und vollständig angezeigt (Entscheidung 2026-10-17).
+- [x] „Mit Ticket ausprobieren“ zeigt nur den ganzen Verlauf, keine zurückgespulten Testmodus-Stände (Entscheidung 2026-10-17).
+- [x] Keine Benachrichtigung bei Änderungen; der Verlauf genügt (Entscheidung 2026-10-17).
