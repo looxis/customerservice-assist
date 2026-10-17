@@ -51,6 +51,10 @@
             </x-alert>
         @endif
 
+        @if (($analysis['ignoredReplies'] ?? 0) > 0)
+            <p class="mt-3 text-sm text-slate-600">{{ $analysis['ignoredReplies'] === 1 ? 'Unsere Antwort nach der letzten Kundennachricht geht' : 'Unsere '.$analysis['ignoredReplies'].' Antworten nach der letzten Kundennachricht gehen' }} nicht in den Vorschlag ein: Er beantwortet die letzte Kundennachricht.</p>
+        @endif
+
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))) }"
               x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"

@@ -118,7 +118,7 @@ class CaseAnalyzer
         $checked = $pass['checked'];
         $input = $pass['input'];
         $cited = array_flip([...$checked['result']['knowledge_ids'], ...($checked['result']['decision']['knowledge_ids'] ?? [])]);
-        $last = $request->ticket->articles === [] ? null : $request->ticket->articles[array_key_last($request->ticket->articles)];
+        $last = (new TicketContext($request->ticket))->lastConsidered();
 
         $id = $this->store->putResult([
             'ticket' => $request->ticket->number,

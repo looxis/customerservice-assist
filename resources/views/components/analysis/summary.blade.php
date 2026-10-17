@@ -23,8 +23,11 @@
         @endif
 
         @if (! $summary)
-            <p class="mt-3 text-sm text-slate-600">Noch keine Zusammenfassung. Sie fasst alle Nachrichten vor der letzten Kundennachricht zusammen; der Originalverlauf bleibt erhalten.</p>
+            <p class="mt-3 text-sm text-slate-600">Mindestens {{ (int) config('analysis.summary_threshold.messages') }} Nachrichten im Verlauf ({{ $analysis['messageCount'] }} vorhanden). Die Zusammenfassung fasst alle Nachrichten vor der letzten Kundennachricht zusammen; der Originalverlauf bleibt erhalten.</p>
         @else
+            @if ($stale)
+                <p class="mt-3 text-sm font-medium text-warning-700">Weitere Nachrichten sind vorhanden, die Zusammenfassung ist veraltet.</p>
+            @endif
             <div class="knowledge-text mt-3" x-show="! editing">{{ app(\App\Knowledge\KnowledgeMarkdown::class)->render($summary->text) }}</div>
 
             <form method="POST" action="{{ route('tickets.summary.update', ['number' => $number]) }}" x-show="editing" x-cloak class="mt-3 space-y-2">
@@ -47,7 +50,7 @@
                 @csrf
                 @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
                 @foreach ($selected as $value)<input type="hidden" name="bestellungen[]" value="{{ $value }}">@endforeach
-                <x-button type="submit" :variant="$summary ? 'secondary' : 'primary'">{{ $summary ? 'Neu erstellen' : 'Zusammenfassung erstellen' }}</x-button>
+                <x-button type="submit" :variant="$summary && ! $stale ? 'secondary' : 'primary'">{{ $summary ? 'Zusammenfassung neu erstellen' : 'Zusammenfassung erstellen' }}</x-button>
             </form>
             @if ($summary)
                 <x-button type="button" variant="secondary" x-on:click="editing = true">Bearbeiten</x-button>

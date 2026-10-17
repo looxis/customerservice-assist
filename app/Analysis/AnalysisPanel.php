@@ -97,7 +97,9 @@ class AnalysisPanel
             'stand' => $ticket->rewoundTo,
             'summary' => $summary,
             'summaryStale' => $summary?->isStale($context->earlierFingerprint()) ?? false,
-            'summaryOffered' => $context->offersVariants(),
+            'summaryOffered' => $context->suggestsSummary() || ($summary !== null && $context->offersVariants()),
+            'ignoredReplies' => $context->ignoredAfterLastCustomerMessage(),
+            'messageCount' => $context->messageCount(),
             'result' => $result,
             'history' => $this->history($ticket),
             'deletion' => $result === null ? $this->store->deletion($ticket->number) : null,
@@ -235,7 +237,7 @@ class AnalysisPanel
             'has_reply' => is_array($stored['result']['reply'] ?? null),
             'steps' => array_values(array_filter((array) ($stored['result']['internal_steps'] ?? $stored['result']['internal_todos'] ?? []), 'is_string')),
             'sources' => $this->sources($stored),
-            'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen,
+            'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen && ((new TicketContext($ticket))->lastConsidered()?->id !== $lastSeen),
         ];
     }
 

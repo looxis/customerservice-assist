@@ -139,10 +139,10 @@ describe('analysis form', function () {
 
         expect($this->withCookie('advanced_mode', '1')->get('/tickets/2137942')->getContent())->toMatch('/'.preg_quote($expected, '/').'\s*<span class="text-xs text-slate-600">\(empfohlen\)/');
     })->with([
-        'four earlier short messages' => [5, 100, 'Ganzer Verlauf'],
-        'five earlier messages' => [6, 100, 'Letzte Kundennachricht + Zusammenfassung'],
-        'three long earlier messages' => [4, 2100, 'Letzte Kundennachricht + Zusammenfassung'],
-        'two long earlier messages' => [3, 4000, 'Ganzer Verlauf'],
+        'four messages' => [4, 100, 'Ganzer Verlauf'],
+        'five messages' => [5, 100, 'Letzte Kundennachricht + Zusammenfassung'],
+        'six messages' => [6, 100, 'Letzte Kundennachricht + Zusammenfassung'],
+        'long messages do not count more' => [4, 4000, 'Ganzer Verlauf'],
     ]);
 
     test('the preview shows the ticket part with contact data replaced', function () {
@@ -457,7 +457,7 @@ describe('summary', function () {
         $this->withCookie('staff_name', 'Nele')->post(route('tickets.summary.create', ['number' => '2137942']));
         $this->withCookie('staff_name', 'Nele')->put(route('tickets.summary.update', ['number' => '2137942']), ['zusammenfassung' => 'Meine Fassung']);
 
-        $thread = [...longThread(), zammadArticle(['id' => 7, 'sender' => 'Agent', 'from' => 'Nele', 'body' => '<p>Neue Nachricht</p>', 'created_at' => '2026-10-07T08:00:00.000Z'])];
+        $thread = [...longThread(), zammadArticle(['id' => 7, 'body' => '<p>Neue Nachricht</p>', 'created_at' => '2026-10-07T08:00:00.000Z'])];
 
         $this->get('/tickets/2137942')->assertSeeText('veraltet – neue Nachrichten')->assertSeeText('Meine Fassung weiter verwenden');
 

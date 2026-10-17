@@ -47,16 +47,14 @@ return [
     | Ticket Context
     |--------------------------------------------------------------------------
     |
-    | Above these limits the earlier thread is long enough that a summary is
-    | suggested first (5 messages, or 3 messages with more than 6,000
-    | characters of cleaned text).
+    | From this number of messages (customer and ours, up to the last customer
+    | message) a summary of the earlier thread is offered and suggested first.
+    | Our replies after the last customer message are not part of the thread.
     |
     */
 
     'summary_threshold' => [
         'messages' => 5,
-        'long_messages' => 3,
-        'characters' => 6000,
     ],
 
     'max_context_length' => 4000,

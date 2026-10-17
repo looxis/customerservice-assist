@@ -16,6 +16,11 @@ class TicketContext
     /** @var list<TicketArticle> */
     private array $earlier;
 
+    /** @var list<TicketArticle> What counts for the analysis: the thread up to and including the last customer message. */
+    private array $considered;
+
+    private int $ignored;
+
     private ?TicketArticle $lastCustomerMessage;
 
     public function __construct(private readonly Ticket $ticket)
@@ -28,8 +33,37 @@ class TicketContext
             }
         }
 
+        // Our replies after the last customer message are not part of the case: the concern is what the
+        // customer asked last. A new request of the customer brings the earlier replies back in. Internal
+        // notes stay: they may hold what a colleague found out.
+        $this->considered = array_values(array_filter($ticket->articles, fn (TicketArticle $article, int $index): bool => $last === null || $index <= $last || $article->kind !== ArticleKind::Agent, ARRAY_FILTER_USE_BOTH));
+        $this->ignored = count($ticket->articles) - count($this->considered);
         $this->lastCustomerMessage = $last === null ? null : $ticket->articles[$last];
-        $this->earlier = array_values(array_filter($ticket->articles, fn (TicketArticle $article, int $index): bool => $index !== $last, ARRAY_FILTER_USE_BOTH));
+        $this->earlier = array_values(array_filter($this->considered, fn (TicketArticle $article, int $index): bool => $index !== $last, ARRAY_FILTER_USE_BOTH));
+    }
+
+    /**
+     * How many of our replies after the last customer message are left out.
+     */
+    public function ignoredAfterLastCustomerMessage(): int
+    {
+        return $this->ignored;
+    }
+
+    /**
+     * The last message that counts (the last customer message), for the check for newer messages.
+     */
+    public function lastConsidered(): ?TicketArticle
+    {
+        return $this->considered === [] ? null : $this->considered[array_key_last($this->considered)];
+    }
+
+    /**
+     * Messages of customers and of us in the considered thread (internal notes do not count).
+     */
+    public function messageCount(): int
+    {
+        return count(array_filter($this->considered, fn (TicketArticle $article): bool => $article->kind !== ArticleKind::Internal));
     }
 
     public function hasLastCustomerMessage(): bool
@@ -54,19 +88,12 @@ class TicketContext
     }
 
     /**
-     * The earlier thread is long enough that a summary should come first.
+     * The thread is long enough that a summary is offered and comes first: at least
+     * `analysis.summary_threshold.messages` messages (customer and ours) up to the last customer message.
      */
     public function suggestsSummary(): bool
     {
-        if (! $this->offersVariants()) {
-            return false;
-        }
-
-        $threshold = config('analysis.summary_threshold');
-        $count = count($this->earlier);
-        $length = array_sum(array_map(fn (TicketArticle $article): int => mb_strlen(self::plainText($article)), $this->earlier));
-
-        return $count >= $threshold['messages'] || ($count >= $threshold['long_messages'] && $length > $threshold['characters']);
+        return $this->offersVariants() && $this->messageCount() >= (int) config('analysis.summary_threshold.messages');
     }
 
     public function defaultVariant(): ContextVariant
@@ -100,7 +127,7 @@ class TicketContext
      */
     public function text(ContextVariant $variant, ?string $summary = null): string
     {
-        $all = array_map(fn (TicketArticle $article): string => $this->message($article), $this->ticket->articles);
+        $all = array_map(fn (TicketArticle $article): string => $this->message($article), $this->considered);
         $last = $this->lastCustomerMessage === null ? null : $this->message($this->lastCustomerMessage, 'Letzte Kundennachricht');
 
         return match (true) {
@@ -120,7 +147,7 @@ class TicketContext
     {
         return [
             $this->ticket->title,
-            ...array_map(fn (TicketArticle $article): string => self::plainText($article), array_values(array_filter($this->ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer))),
+            ...array_map(fn (TicketArticle $article): string => self::plainText($article), array_values(array_filter($this->considered, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer))),
         ];
     }
 
