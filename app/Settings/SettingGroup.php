@@ -26,13 +26,15 @@ final readonly class SettingGroup
 
     public const string RECORDS = 'records';
 
+    public const string WORD = 'word';
+
     public const int PROMPT_MAX = 30000;
 
     public const int MAX_ENTRIES = 100;
 
     /**
      * @param  Closure(): mixed  $default
-     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
+     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS|self::WORD  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
      * @param  Closure(): string|null  $base  For a PROMPT: the version of the default file.
      */
     public function __construct(
@@ -77,7 +79,7 @@ final readonly class SettingGroup
             self::NUMBER => [is_numeric($input) ? (int) $input : $input, []],
             self::HOSTS => $this->hosts($input),
             self::PROMPT => $this->prompt($input),
-            self::MODEL => [is_string($input) ? trim($input) : $input, []],
+            self::MODEL, self::WORD => [is_string($input) ? trim($input) : $input, []],
             self::FORMATS => OrderFormatRules::normalize($input),
             self::RECORDS => KnowledgeValueRules::normalize($this->key, $input),
             default => $this->texts($input),
@@ -122,6 +124,7 @@ final readonly class SettingGroup
             self::NUMBER => is_int($value) && $value >= $this->min && $value <= $this->max ? [] : ["Bitte eine Zahl von {$this->min} bis {$this->max} eingeben."],
             self::FORMATS => OrderFormatRules::errors($value),
             self::RECORDS => KnowledgeValueRules::errors($this->key, $value),
+            self::WORD => is_string($value) && preg_match('/^[A-Za-z]{1,3}$/', $value) === 1 ? [] : ['Der Präfix besteht aus 1 bis 3 Buchstaben (ohne Ziffern und Sonderzeichen).'],
             self::HOSTS => $this->hostErrors($value),
             self::PROMPT => $this->promptErrors($value),
             self::MODEL => is_string($value) && preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/', $value) === 1 ? [] : ['Ein Modellname besteht aus Buchstaben, Ziffern und . - _ : (höchstens 100 Zeichen).'],

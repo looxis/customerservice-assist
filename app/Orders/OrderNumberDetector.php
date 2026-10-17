@@ -47,10 +47,10 @@ class OrderNumberDetector
     public function normalize(string $input): ?OrderNumber
     {
         foreach ($this->formats() as $format) {
-            $number = $format->matches($input);
+            $parsed = $format->parse($input);
 
-            if ($number !== null) {
-                return new OrderNumber($number, $format);
+            if ($parsed !== null) {
+                return new OrderNumber($parsed['number'], $format, $parsed['claim'] === null ? [] : [$parsed['claim']]);
             }
         }
 
@@ -93,9 +93,10 @@ class OrderNumberDetector
         foreach ($this->formats() as $format) {
             preg_match_all($format->pattern(), $text, $matches, PREG_OFFSET_CAPTURE);
 
-            foreach ($matches[1] as [$number, $offset]) {
+            foreach ($matches['number'] as $index => [$number, $offset]) {
                 if ($format->accepts($number)) {
-                    $hits[] = [$offset, new OrderNumber($number, $format)];
+                    $claim = ($matches['claim'][$index][0] ?? '') === '' ? null : (int) substr($matches['claim'][$index][0], strlen($format->claimPrefix));
+                    $hits[] = [$offset, new OrderNumber($number, $format, $claim === null ? [] : [$claim])];
                 }
             }
         }
@@ -105,7 +106,10 @@ class OrderNumberDetector
         $found = [];
 
         foreach ($hits as [, $number]) {
-            $found[$number->value] ??= $number;
+            $known = $found[$number->value] ?? null;
+            $claims = array_values(array_unique([...($known?->claims ?? []), ...$number->claims]));
+            sort($claims);
+            $found[$number->value] = new OrderNumber($number->value, $known?->format ?? $number->format, $claims);
         }
 
         return array_values($found);

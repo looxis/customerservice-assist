@@ -229,7 +229,7 @@ describe('trying out', function () {
         test()->withCookie('staff_name', 'Etienne')->post(route('settings.detection.try'), [...detectInput(['order_formats' => withFormat([]), 'sku_keywords' => [...app(SettingsStore::class)->value('sku_keywords'), 'Teilenummer'], 'sku_digits' => 5]), 'sample' => $sample])->assertRedirect(route('settings.detection'));
 
         $trial = session('trial');
-        expect($trial['saved']['orders'])->toBe([])->and($trial['draft']['orders'][0])->toBe(['value' => 'K12-345678', 'format' => 'Kaufland', 'automatic' => true])
+        expect($trial['saved']['orders'])->toBe([])->and($trial['draft']['orders'][0])->toBe(['value' => 'K12-345678', 'format' => 'Kaufland', 'automatic' => true, 'claims' => []])
             ->and($trial['saved']['skus'])->toBe(['12006'])->and($trial['draft']['skus'])->toBe(['12006', '65432']);
         expect(Setting::query()->count())->toBe(0)->and(SettingVersion::query()->count())->toBe(0);
     });

@@ -17,6 +17,7 @@ use App\Knowledge\Retrieval\RetrievalResult;
 use App\Knowledge\Retrieval\RetrievedDocument;
 use App\Knowledge\Retrieval\Router\KnowledgeRouter;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
+use App\Orders\OrderFormats;
 use App\ProductForge\ProductPromptBuilder;
 use App\ProductForge\ProductPromptState;
 use App\Settings\SettingsStore;
@@ -551,6 +552,7 @@ class CaseAnalyzer
             'case' => "# Fall\n"
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
+                .($request->claimReferences === [] ? '' : "\n".implode("\n", array_map(fn (array $claim): string => 'Das Ticket nennt den Reklamationsauftrag '.app(OrderFormats::class)->claimPrefix()."{$claim['claim']} zur Bestellung {$claim['order']} (Folgevorgang einer Reklamation).", $request->claimReferences)))
                 .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
                     .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
                         ? 'Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu'

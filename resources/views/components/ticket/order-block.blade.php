@@ -1,4 +1,4 @@
-@props(['order', 'mention' => null, 'removeUrl'])
+@props(['order', 'mention' => null, 'removeUrl', 'claimReferences' => []])
 
 {{-- One order loaded from EOCS (PROJ-7); products from an Amazon notice (PROJ-6) are merged in. --}}
 <article class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200" aria-label="Bestellung {{ $order->externalNumber }}">
@@ -50,9 +50,11 @@
         <div class="mt-3 border-t border-slate-200 pt-3">
             <p class="text-sm font-semibold text-slate-900">Reklamationsaufträge</p>
             <ul class="mt-1 space-y-1 text-sm">
-                @foreach ($order->claims as $claim)
+                @foreach (collect($order->claims)->sortByDesc(fn ($claim) => in_array(strtoupper($claim->externalNumber), array_map('strtoupper', $claimReferences), true)) as $claim)
+                    @php($named = in_array(strtoupper($claim->externalNumber), array_map('strtoupper', $claimReferences), true))
                     <li class="flex flex-wrap items-center gap-x-2">
-                        <span class="font-mono text-slate-900">{{ $claim->externalNumber }}</span>
+                        <span class="font-mono text-slate-900 {{ $named ? 'font-semibold' : '' }}">{{ $claim->externalNumber }}</span>
+                        @if ($named)<x-badge compact tone="warning">Das Ticket nennt diese Reklamation</x-badge>@endif
                         @if ($claim->orderedAt)<span class="text-slate-600">vom {{ $claim->orderedAt->format('d.m.Y') }}</span>@endif
                         @if ($claim->statusName)<x-badge compact :tone="\App\Eocs\EocsOrder::tone($claim->statusColor)">{{ $claim->statusName }}</x-badge>@endif
                         <a href="{{ $claim->url }}" target="_blank" rel="noopener noreferrer" class="font-medium text-brand hover:text-brand-hover">In EOCS öffnen</a>

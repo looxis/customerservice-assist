@@ -9,6 +9,7 @@ use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
+use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
@@ -89,6 +90,7 @@ class TicketController extends Controller
             'suggestions' => array_slice($suggestions, 0, OrderNumberDetector::MAX_SUGGESTIONS),
             'moreSuggestions' => count($suggestions) > OrderNumberDetector::MAX_SUGGESTIONS,
             'lookups' => $lookups,
+            'claimReferences' => $this->claimReferences($suggestions),
             'orderProblem' => $orderProblem,
             'analysis' => $panel->build($ticket, $lookups, is_string($request->query('analyse')) ? $request->query('analyse') : null),
         ]);
@@ -136,5 +138,18 @@ class TicketController extends Controller
         }
 
         return array_slice(array_values($orders), 0, OrderNumberDetector::MAX_SUGGESTIONS);
+    }
+
+    /**
+     * The claim numbers the ticket names, as written ("R1-302-…"), for the order block (PROJ-53).
+     *
+     * @param  list<OrderNumber>  $numbers
+     * @return list<string>
+     */
+    private function claimReferences(array $numbers): array
+    {
+        $prefix = app(OrderFormats::class)->claimPrefix();
+
+        return array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): string => $prefix.$claim.'-'.$number->value, $number->claims), $numbers) ?: [[]]));
     }
 }

@@ -74,8 +74,8 @@ class SettingsController extends Controller
     {
         $text = (string) $request->validated('sample');
         $drafts = $request->drafts();
-        $draftDetector = $detector->using(OrderFormats::from($drafts['order_formats'] ?? $settings->value('order_formats')));
-        $describe = fn (OrderNumber $number): array => ['value' => $number->value, 'format' => $number->format->name, 'automatic' => ! $number->isEocsId()];
+        $draftDetector = $detector->using(OrderFormats::from($drafts['order_formats'] ?? $settings->value('order_formats'), (string) ($drafts['claim_prefix'] ?? $settings->value('claim_prefix'))));
+        $describe = fn (OrderNumber $number): array => ['value' => $number->value, 'format' => $number->format->name, 'automatic' => ! $number->isEocsId(), 'claims' => $number->claims];
 
         return redirect()->route('settings.detection')->withInput()->with('trial', [
             'saved' => ['orders' => array_map($describe, $detector->inText($text)), 'skus' => $skus->in([$text])],

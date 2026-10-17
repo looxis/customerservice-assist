@@ -1,4 +1,4 @@
-@props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null])
+@props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null, 'claimReferences' => []])
 
 @php
     $url = fn (array $selection): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selection === [] ? [''] : array_values($selection)]);
@@ -15,7 +15,8 @@
     @php
         // One entry per order number that is known but not loaded: found in the
         // text and/or named in Amazon's notice (which also carries the product).
-        $known = collect($suggestions)->mapWithKeys(fn ($suggestion) => [$suggestion->value => ['number' => $suggestion->value, 'label' => $suggestion->format->label(), 'items' => []]]);
+        $claimPrefix = app(\App\Orders\OrderFormats::class)->claimPrefix();
+        $known = collect($suggestions)->mapWithKeys(fn ($suggestion) => [$suggestion->value => ['number' => $suggestion->value, 'label' => $suggestion->format->label().($suggestion->claims !== [] ? ' · das Ticket nennt '.implode(', ', array_map(fn ($claim) => $claimPrefix.$claim, $suggestion->claims)) : ''), 'items' => []]]);
         foreach ($mentions as $mention) {
             $known[$mention->number] = ['number' => $mention->number, 'label' => $known[$mention->number]['label'] ?? null, 'source' => $mention->source, 'items' => $mention->items];
         }
@@ -87,7 +88,7 @@
                     <p class="text-sm text-slate-600">Mehrere Bestellungen zu <span class="font-mono">{{ $lookup->number->value }}</span>:</p>
                 @endif
                 @foreach ($lookup->orders as $order)
-                    <x-ticket.order-block :order="$order" :mention="$mentions->get($order->externalNumber)" :remove-url="$url(array_diff($selected, [$lookup->number->value]))" />
+                    <x-ticket.order-block :order="$order" :mention="$mentions->get($order->externalNumber)" :remove-url="$url(array_diff($selected, [$lookup->number->value]))" :claim-references="$claimReferences" />
                 @endforeach
             @endif
         @endforeach

@@ -17,7 +17,17 @@ class OrderFormats
      */
     public function all(): array
     {
-        return self::from($this->settings->value('order_formats'));
+        return self::from($this->settings->value('order_formats'), $this->claimPrefix());
+    }
+
+    /**
+     * The letters in front of a claim number ("R" for "R1-302-…"), from the settings.
+     */
+    public function claimPrefix(): string
+    {
+        $prefix = $this->settings->value('claim_prefix');
+
+        return is_string($prefix) && $prefix !== '' ? $prefix : 'R';
     }
 
     /**
@@ -31,16 +41,16 @@ class OrderFormats
             }
         }
 
-        return self::from(self::defaults())[0];
+        return self::from(self::defaults(), $this->claimPrefix())[0];
     }
 
     /**
      * @param  mixed  $value  The value of the settings group.
      * @return list<OrderNumberFormat>
      */
-    public static function from(mixed $value): array
+    public static function from(mixed $value, string $claimPrefix = 'R'): array
     {
-        return array_values(array_map(fn (array $data): OrderNumberFormat => OrderNumberFormat::fromArray($data), array_filter(is_array($value) ? $value : [], 'is_array')));
+        return array_values(array_map(fn (array $data): OrderNumberFormat => OrderNumberFormat::fromArray($data, $claimPrefix), array_filter(is_array($value) ? $value : [], 'is_array')));
     }
 
     /**

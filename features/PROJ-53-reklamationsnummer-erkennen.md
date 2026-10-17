@@ -1,6 +1,6 @@
 # PROJ-53: Reklamationsnummer erkennen (Rn-Präfix)
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 
@@ -60,3 +60,9 @@ Reklamationsaufträge in EOCS tragen den Präfix `R1`, `R2`, … gefolgt von ein
 | Das Muster jedes Bestellnummern-Formats nimmt optional `R<n>-` vor der Nummer an (benannte Gruppen) | Eine Stelle, die jedes Format gleich behandelt | 2026-10-17 |
 | `OrderNumber` trägt die Reklamationsnummer, `OrderFormats` den Präfix aus den Einstellungen | Alle Verbraucher bekommen sie ohne eigene Suche | 2026-10-17 |
 | Neuer Gruppentyp „Wort“ im Einstellungsverzeichnis | Ein einzelner kurzer Text braucht weder Liste noch Zahl | 2026-10-17 |
+
+## Implementation Notes
+- **Geändert:** `OrderNumberFormat` (das Muster nimmt optional `R<n>-` vor der Nummer an, benannte Gruppen `number` und `claim`, `parse()` für getippte Nummern), `OrderNumber` (trägt `claims`), `OrderNumberDetector` (führt mehrere Nennungen derselben Bestellung zusammen und behält die Reklamationsnummern), `OrderFormats` (Präfix aus den Einstellungen), `SettingGroup` (Typ `WORD`), Gruppe `claim_prefix` auf der Seite „Erkennungsregeln“, `TicketController`/Ansicht (Hervorhebung „Das Ticket nennt diese Reklamation“, Hinweis am noch nicht geladenen Vorschlag), `AnalysisRequest`/`AnalysisController`/`CaseAnalyzer` (Zeile „Das Ticket nennt den Reklamationsauftrag R1 …“), Ausprobieren auf der Erkennungsseite zeigt die Reklamationsnummer.
+- **Geprüft** mit dem echten Ticket 2139944: Die Originalnummer 302-8780527-8594717 wird mit Reklamationsnummer R1 erkannt.
+- **Tests:** `PROJ-53-ClaimNumberTest` (19).
+- **Offen für `/qa`:** Bedienung im Browser, Prüfung mit weiteren echten Tickets.

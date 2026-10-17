@@ -1,6 +1,6 @@
 # PROJ-52: Zusammengehörige Tickets
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 

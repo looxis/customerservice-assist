@@ -37,7 +37,7 @@
                                 <p class="mt-2 text-sm font-medium text-slate-900">Bestellnummern</p>
                                 <ul class="text-sm text-slate-900">
                                     @forelse ($trial[$side]['orders'] as $order)
-                                        <li><span class="font-mono">{{ $order['value'] }}</span> – {{ $order['format'] }} <span class="text-xs text-slate-600">({{ $order['automatic'] ? 'wird automatisch geladen' : 'wird erst auf Klick geladen' }})</span></li>
+                                        <li><span class="font-mono">{{ $order['value'] }}</span> – {{ $order['format'] }}@if ($order['claims'] !== []) <span class="text-xs font-medium text-warning-700">(Reklamationsnummer {{ implode(', ', array_map(fn ($claim) => 'Nr. '.$claim, $order['claims'])) }})</span>@endif <span class="text-xs text-slate-600">({{ $order['automatic'] ? 'wird automatisch geladen' : 'wird erst auf Klick geladen' }})</span></li>
                                     @empty
                                         <li class="text-slate-600">keine erkannt</li>
                                     @endforelse

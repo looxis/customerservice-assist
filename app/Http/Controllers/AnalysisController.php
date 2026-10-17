@@ -149,6 +149,7 @@ class AnalysisController extends Controller
                 decisions: $request->decisions((string) $staff->current($request)) ?? [],
                 unknownProduct: $unknownProduct,
                 productPackage: $package,
+                claimReferences: array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): array => ['claim' => $claim, 'order' => $number->value], $number->claims), $found) ?: [[]])),
             ));
         } catch (AnalysisException $exception) {
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);

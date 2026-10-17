@@ -15,6 +15,7 @@ final readonly class OrderNumberFormat
      * @param  bool  $internal  The internal EOCS number: loaded only on a click and looked up by its id.
      * @param  list<string>  $examples  Numbers that must match.
      * @param  list<string>  $counterExamples  Numbers that must not match.
+     * @param  string  $claimPrefix  The letters in front of the claim number ("R" for "R1-302-…").
      */
     public function __construct(
         public string $key,
@@ -27,6 +28,7 @@ final readonly class OrderNumberFormat
         public bool $amazon = false,
         public array $examples = [],
         public array $counterExamples = [],
+        public string $claimPrefix = 'R',
     ) {}
 
     public function label(): string
@@ -42,8 +44,9 @@ final readonly class OrderNumberFormat
     {
         $edge = $this->internal ? '[\w.,-]' : '[\w-]';
         $prefix = $this->prefix === null ? '' : '(?i:'.preg_quote($this->prefix, '/').')?';
+        $claim = '(?:(?<claim>(?i:'.preg_quote($this->claimPrefix, '/').')\d{1,3})-)?';
 
-        return '/(?<!'.$edge.')'.$prefix.'('.$this->fragment().')(?!'.$edge.')/u';
+        return '/(?<!'.$edge.')'.$claim.$prefix.'(?<number>'.$this->fragment().')(?!'.$edge.')/u';
     }
 
     /**
@@ -92,7 +95,23 @@ final readonly class OrderNumberFormat
      */
     public function matches(string $input): ?string
     {
+        return $this->parse($input)['number'] ?? null;
+    }
+
+    /**
+     * Like matches(), and also tells the claim number ("R1-302-…" => 1) when one is written in front.
+     *
+     * @return array{number: string, claim: int|null}|null
+     */
+    public function parse(string $input): ?array
+    {
         $value = preg_replace('/[\s\x{00A0}#]+/u', '', $input) ?? '';
+        $claim = null;
+
+        if (preg_match('/^'.preg_quote($this->claimPrefix, '/').'(\d{1,3})-(.+)$/iu', $value, $parts) === 1) {
+            $claim = (int) $parts[1];
+            $value = $parts[2];
+        }
 
         if ($this->prefix !== null) {
             $value = preg_replace('/^'.preg_quote($this->prefix, '/').'/i', '', $value) ?? $value;
@@ -102,7 +121,7 @@ final readonly class OrderNumberFormat
             $value = strtoupper($value);
         }
 
-        return preg_match($this->pattern(), $value, $match) === 1 && $match[1] === $value && $this->accepts($value) ? $value : null;
+        return preg_match($this->pattern(), $value, $match) === 1 && $match['number'] === $value && $this->accepts($value) ? ['number' => $value, 'claim' => $claim] : null;
     }
 
     /**
@@ -127,7 +146,7 @@ final readonly class OrderNumberFormat
     /**
      * @param  array<string, mixed>  $data
      */
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, string $claimPrefix = 'R'): self
     {
         return new self(
             (string) $data['key'],
@@ -140,6 +159,7 @@ final readonly class OrderNumberFormat
             (bool) ($data['amazon'] ?? false),
             array_values((array) ($data['examples'] ?? [])),
             array_values((array) ($data['counter_examples'] ?? [])),
+            $claimPrefix,
         );
     }
 }
