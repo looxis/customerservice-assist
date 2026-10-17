@@ -100,6 +100,80 @@ Jede Gruppe ist eine Liste von Texten (ein Eintrag je Zeile). Umlaut-Varianten (
 | Standardwerte bleiben in der App, gespeichert wird die Abweichung | Neue Standards der App erreichen unveränderte Gruppen | 2026-10-17 |
 | Schutzgrenzen (Mindestlängen, keine leeren Amazon-Listen) | Verhindern, dass harmlose Mails ausgeblendet oder Amazon nicht mehr erkannt wird | 2026-10-17 |
 
+## Tech Design (Solution Architect)
+
+### Backend nötig?
+Ja, mit Datenbank. Die Werte müssen für alle gelten, Änderungen müssen sofort wirken und ihren Verlauf behalten. Browser-Speicher oder Konfigurationsdateien reichen dafür nicht. Neue Pakete sind nicht nötig.
+
+### A) Bausteine der Oberfläche
+```
+Seitenleiste
++-- Eintrag „Einstellungen“ (neu, über „Über die App“)
+
+Seite „Einstellungen“ (Übersicht)
++-- Karte „Mail-Anzeige“ (heute einzige Unterseite, spätere Specs ergänzen Karten)
+
+Seite „Einstellungen > Mail-Anzeige“
++-- Hinweis „Du kannst ansehen“ / „Du kannst ändern“ (je nach Admin)
++-- Ausprobieren: Feld Ticketnummer + Knopf, Ergebnis zwei Spalten (gespeichert | mit Änderung)
++-- Gruppe „Zugelassene Adressen“ (Liste, je Eintrag Wahl Text/klickbar)
++-- Gruppe „Unsere Signaturen“ (mehrzeilige Felder)
++-- Gruppe „Fußtexte“ (Liste)
++-- Gruppe „Grußformeln“ (Liste) + Zahl „Sichtbare Zeilen danach“
++-- Gruppe „Zitat-Köpfe“ (Liste mit …)
++-- Gruppe „Amazon-Nachricht“ (drei Listen)
++-- „Erweitert“ (eingeklappt): Technische Zitat-Markierungen
++-- je Gruppe: Verlauf (eingeklappt), „Auf Standard zurücksetzen“
++-- Speichern (nur Admins)
+```
+Wiederverwendet werden die vorhandenen Bausteine Karte, Hinweis, Knopf, Eingabefeld, Textbereich, Kennzeichen und Navigationseintrag. Neu ist ein Baustein „Liste von Texten“ (Zeilen hinzufügen, entfernen, Fehler an der Zeile), den die späteren Einstellungs-Specs ebenfalls nutzen.
+
+### B) Datenmodell (in Alltagssprache)
+```
+Einstellungsgruppe (eine Zeile je Gruppe, die von der Vorgabe abweicht)
+- Schlüssel der Gruppe (z. B. „Zugelassene Adressen“)
+- aktueller Wert (die Liste)
+- Versionsnummer
+- geändert von, geändert am
+
+Einstellungsversion (Verlauf, wird nur ergänzt, nie geändert)
+- Schlüssel der Gruppe, Versionsnummer
+- Wert dieser Version
+- Art: gespeichert / wiederhergestellt / auf Standard zurückgesetzt
+- geändert von, geändert am
+
+Die Vorgaben (Standardwerte) liegen nicht in der Datenbank, sondern in der App.
+Gespeichert in: MySQL (wie Analysen und Wissenslücken).
+```
+Es gibt keine personenbezogenen Kundendaten; gespeichert werden nur Regeltexte und der Name des Admins.
+
+### C) Technische Entscheidungen (begründet)
+- **Normale Webseiten mit Formular, keine eigene Schnittstelle:** Die Seite ist reine Pflege, kein Fremdsystem braucht die Werte. Ein Formular, ein Speichern-Knopf; Alpine nur für „Zeile hinzufügen/entfernen“ und das Aufklappen.
+- **Ein Verzeichnis aller Einstellungsgruppen in der App:** Jede Gruppe beschreibt sich selbst (Name, Vorgabe, Prüfregeln, wie aus der Liste ein Muster wird). Die Seite, die Speicherung, der Verlauf und das Zurücksetzen arbeiten für jede Gruppe gleich. Spätere Specs (Prompts, Erkennungsregeln, Kundengruppen) tragen nur neue Gruppen ein und bekommen die Funktionen geschenkt.
+- **Vorgaben bleiben im Code, Abweichungen in der Datenbank:** So erreichen neue App-Standards unveränderte Gruppen, und „Auf Standard“ ist immer möglich. Die heutigen Werte aus `config/services.php` und `MessageBody`/`AmazonNotice` werden zu den Vorgaben; das Verhalten ohne Änderung bleibt identisch.
+- **Die Mail-Bereinigung bekommt ihre Regeln als ein Regelsatz:** Statt fester Muster im Code liest `MessageBody` und die Amazon-Erkennung einen Regelsatz, den ein eigener Baustein aus den Listen baut (Umlaut-Varianten, Groß-/Kleinschreibung, `…` als Platzhalter, Texte werden immer als Text behandelt und nie als Muster eingeschleust). Der Baustein ist einzeln testbar; ein ungültiger Eintrag kann dadurch nicht die ganze Ansicht zerstören.
+- **Wert lesen:** Pro Seitenaufruf einmal aus der Datenbank. Ist die Datenbank nicht erreichbar oder ein Wert unbrauchbar, gelten die Vorgaben, nie leere Regeln.
+- **Berechtigung über die vorhandene Admin-Prüfung** (wie beim Testmodus und bei den Admin-Seiten), in der Prüfung des Formulars und serverseitig; Ansehen für jeden mit gewähltem Namen. Keine neue Policy.
+- **Verlauf nur anhängend, Gleichzeitigkeit über die Versionsnummer:** Das Formular merkt sich die geöffnete Version je Gruppe; stimmt sie beim Speichern nicht mehr, wird abgelehnt statt überschrieben.
+- **Ausprobieren:** Ein Aufruf holt das Ticket einmal lesend aus Zammad und bereinigt den Verlauf zweimal (mit gespeicherten und mit eingegebenen Werten), höchstens 10 Nachrichten, ohne etwas zu speichern. Dafür muss die Ticketabfrage die rohen Nachrichten getrennt von der Bereinigung liefern können.
+- **Wirkung ohne Neustart:** Kein Zwischenspeicher über Seitenaufrufe hinaus; die Werte sind klein.
+- **Navigation:** „Einstellungen“ steht über „Über die App“; die Übersicht listet nur vorhandene Unterseiten.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+## Technical Decisions
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Datenbank statt Konfiguration oder Browser-Speicher | Werte gelten für alle, wirken sofort, brauchen Verlauf | 2026-10-17 |
+| Verzeichnis der Einstellungsgruppen in der App mit Vorgabe, Prüfregeln und Mustererzeugung je Gruppe | Seite, Speicherung, Verlauf und Zurücksetzen sind für alle späteren Gruppen gleich (PROJ-31, 49, 50) | 2026-10-17 |
+| Vorgaben im Code, Abweichungen in der Datenbank | Neue App-Standards erreichen unveränderte Gruppen; Zurücksetzen jederzeit möglich | 2026-10-17 |
+| Regelsatz aus Textlisten statt fester Muster in `MessageBody` und der Amazon-Erkennung | Kein freies Muster von Anwendern, einzeln testbar, Texte können nie als Muster wirken | 2026-10-17 |
+| Verlauf nur anhängend; Versionsnummer gegen gleichzeitiges Überschreiben | Nachvollziehbar und sicher bei zwei Admins | 2026-10-17 |
+| Rückfall auf Vorgaben bei Datenbank- oder Wertfehler | Die Ticketansicht darf nie mit leeren Regeln arbeiten | 2026-10-17 |
+| Admin-Prüfung der bestehenden Admin-Liste, keine neue Policy | Gleiche Mechanik wie Testmodus und Admin-Seiten; Policy-Änderungen brauchen Freigabe | 2026-10-17 |
+| Ausprobieren holt das Ticket einmal und bereinigt zweimal; höchstens 10 Nachrichten | Ein Zammad-Abruf, kein Speichern, begrenzte Dauer | 2026-10-17 |
+
 ## Open Questions
 - [x] Die Standardwerte der Grußformeln werden beim Umstellen in einzelne lesbare Einträge aufgelöst und vollständig angezeigt (Entscheidung 2026-10-17).
 - [x] „Mit Ticket ausprobieren“ zeigt nur den ganzen Verlauf, keine zurückgespulten Testmodus-Stände (Entscheidung 2026-10-17).
