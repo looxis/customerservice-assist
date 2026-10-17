@@ -12,8 +12,11 @@ final readonly class OrderNumber
         public OrderNumberFormat $format,
     ) {}
 
+    /**
+     * The internal EOCS number: looked up by its id and loaded only on a click.
+     */
     public function isEocsId(): bool
     {
-        return $this->format === OrderNumberFormat::EocsId;
+        return $this->format->internal;
     }
 }

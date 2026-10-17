@@ -3,9 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangeSettingVersionRequest;
+use App\Http\Requests\DetectionSettingsRequest;
 use App\Http\Requests\MailSettingsRequest;
 use App\Http\Requests\PromptSettingsRequest;
+use App\Http\Requests\TryDetectionRequest;
 use App\Http\Requests\TryMailSettingsRequest;
+use App\Orders\OrderFormats;
+use App\Orders\OrderNumber;
+use App\Orders\OrderNumberDetector;
+use App\ProductForge\SkuDetector;
 use App\Settings\MailRules;
 use App\Settings\ModelCatalog;
 use App\Settings\SettingGroup;
@@ -43,6 +49,36 @@ class SettingsController extends Controller
         $outdated = collect($data['groups'])->filter(fn (SettingGroup $group): bool => $group->kind === SettingGroup::PROMPT && ! $data['defaults'][$group->key] && ($data['values'][$group->key]['base'] ?? null) !== $group->baseVersion())->keys()->all();
 
         return view('settings.prompts', [...$data, 'outdated' => $outdated, 'models' => $catalog->available()]);
+    }
+
+    public function detection(Request $request, SettingsStore $settings, TestMode $testMode): View
+    {
+        return view('settings.detection', [...$this->pageData(DetectionSettingsRequest::PAGE, $request, $settings, $testMode), 'trial' => session('trial')]);
+    }
+
+    public function updateDetection(DetectionSettingsRequest $request, SettingsStore $settings, StaffDirectory $staff): RedirectResponse
+    {
+        return $this->saveDrafts($request, DetectionSettingsRequest::PAGE, $settings, $staff);
+    }
+
+    /**
+     * Show what the saved rules and the rules as typed in (not saved) recognise in a text. Saves nothing.
+     */
+    public function tryDetection(TryDetectionRequest $request, SettingsStore $settings, OrderNumberDetector $detector, SkuDetector $skus): RedirectResponse
+    {
+        $text = (string) $request->validated('sample');
+        $drafts = $request->drafts();
+        $draftDetector = $detector->using(OrderFormats::from($drafts['order_formats'] ?? $settings->value('order_formats')));
+        $describe = fn (OrderNumber $number): array => ['value' => $number->value, 'format' => $number->format->name, 'automatic' => ! $number->isEocsId()];
+
+        return redirect()->route('settings.detection')->withInput()->with('trial', [
+            'saved' => ['orders' => array_map($describe, $detector->inText($text)), 'skus' => $skus->in([$text])],
+            'draft' => [
+                'orders' => array_map($describe, $draftDetector->inText($text)),
+                'skus' => $skus->with([$text], (array) ($drafts['sku_keywords'] ?? $settings->value('sku_keywords')), (int) ($drafts['sku_digits'] ?? $settings->value('sku_digits')), (int) ($drafts['sku_max'] ?? $settings->value('sku_max'))),
+            ],
+            'notes' => $request->notes(),
+        ]);
     }
 
     /**

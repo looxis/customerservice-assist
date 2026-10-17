@@ -22,13 +22,15 @@ final readonly class SettingGroup
 
     public const string MODEL = 'model';
 
+    public const string FORMATS = 'formats';
+
     public const int PROMPT_MAX = 30000;
 
     public const int MAX_ENTRIES = 100;
 
     /**
      * @param  Closure(): mixed  $default
-     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
+     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
      * @param  Closure(): string|null  $base  For a PROMPT: the version of the default file.
      */
     public function __construct(
@@ -44,6 +46,7 @@ final readonly class SettingGroup
         public bool $wildcard = false,
         public bool $marker = false,
         public int $max = 5,
+        public int $min = 0,
         private ?Closure $base = null,
     ) {}
 
@@ -72,6 +75,7 @@ final readonly class SettingGroup
             self::HOSTS => $this->hosts($input),
             self::PROMPT => $this->prompt($input),
             self::MODEL => [is_string($input) ? trim($input) : $input, []],
+            self::FORMATS => OrderFormatRules::normalize($input),
             default => $this->texts($input),
         };
     }
@@ -100,7 +104,8 @@ final readonly class SettingGroup
     public function errors(mixed $value): array
     {
         return match ($this->kind) {
-            self::NUMBER => is_int($value) && $value >= 0 && $value <= $this->max ? [] : ["Bitte eine Zahl von 0 bis {$this->max} eingeben."],
+            self::NUMBER => is_int($value) && $value >= $this->min && $value <= $this->max ? [] : ["Bitte eine Zahl von {$this->min} bis {$this->max} eingeben."],
+            self::FORMATS => OrderFormatRules::errors($value),
             self::HOSTS => $this->hostErrors($value),
             self::PROMPT => $this->promptErrors($value),
             self::MODEL => is_string($value) && preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/', $value) === 1 ? [] : ['Ein Modellname besteht aus Buchstaben, Ziffern und . - _ : (höchstens 100 Zeichen).'],

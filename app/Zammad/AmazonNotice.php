@@ -15,6 +15,8 @@ use Dom\Node;
  */
 class AmazonNotice
 {
+    private readonly string $orderNumberPattern;
+
     private readonly string $introPattern;
 
     private readonly string $orderPattern;
@@ -25,11 +27,13 @@ class AmazonNotice
      * @param  list<string>  $intros  Sentences that open the notice.
      * @param  list<string>  $orderLabels  Words in front of the order number.
      * @param  list<string>  $messageLabels  Words of the label in front of the buyer's text.
+     * @param  string  $orderNumberPattern  Pattern of the order number (from the format "Amazon" of the settings, PROJ-49).
      */
-    public function __construct(array $intros = ['Du hast eine Nachricht erhalten', 'You have received a message'], array $orderLabels = ['Bestellnummer', 'Order ID', 'Order number'], array $messageLabels = ['Nachricht', 'Message'])
+    public function __construct(array $intros = ['Du hast eine Nachricht erhalten', 'You have received a message'], array $orderLabels = ['Bestellnummer', 'Order ID', 'Order number'], array $messageLabels = ['Nachricht', 'Message'], string $orderNumberPattern = '\d{3}-\d{7}-\d{7}')
     {
+        $this->orderNumberPattern = $orderNumberPattern;
         $this->introPattern = PatternBuilder::wholeLine($intros);
-        $this->orderPattern = PatternBuilder::labelWithValue($orderLabels, '\d{3}-\d{7}-\d{7}');
+        $this->orderPattern = PatternBuilder::labelWithValue($orderLabels, $orderNumberPattern);
         $this->labelPattern = PatternBuilder::labelLine($messageLabels);
     }
 
@@ -40,7 +44,7 @@ class AmazonNotice
     {
         $body = $document->body;
 
-        if ($body === null || ! preg_match('/\d{3}-\d{7}-\d{7}/', (string) $body->textContent)) {
+        if ($body === null || ! preg_match('/'.$this->orderNumberPattern.'/', (string) $body->textContent)) {
             return null;
         }
 

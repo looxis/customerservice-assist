@@ -2,8 +2,8 @@
 
 namespace App\Eocs;
 
+use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
-use App\Orders\OrderNumberFormat;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
@@ -110,7 +110,7 @@ class EocsClient
                 $foundLast = false;
 
                 foreach ($range as $n) {
-                    foreach ($this->data($responses["{$order->id}-R{$n}"], new OrderNumber("R{$n}-{$order->externalNumber}", OrderNumberFormat::Amazon)) as $candidate) {
+                    foreach ($this->data($responses["{$order->id}-R{$n}"], new OrderNumber("R{$n}-{$order->externalNumber}", app(OrderFormats::class)->amazon())) as $candidate) {
                         if ((int) ($candidate['origin_order_id'] ?? 0) !== $order->id) {
                             continue;
                         }

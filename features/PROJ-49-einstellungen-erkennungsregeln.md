@@ -1,6 +1,6 @@
 # PROJ-49: Einstellungen – Erkennungsregeln
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
 
@@ -141,3 +141,11 @@ Keine neuen Pakete.
 ## Open Questions
 - [ ] Soll der Verlauf eines Formats auch festhalten, wer es angelegt hat (nicht nur wer die Gruppe zuletzt gespeichert hat)? Vorschlag: nein, der Verlauf der Gruppe genügt.
 - [ ] Sollen Aufbau-Beispiele schon beim Tippen geprüft werden (ohne Speichern)? Vorschlag: nein, geprüft wird beim Speichern und im „Ausprobieren“.
+
+## Implementation Notes
+- **Neu:** `OrderNumberFormat` (jetzt ein Objekt statt einer Aufzählung: Muster, Haken, Aufbau → Muster), `OrderFormats` (Formate aus den Einstellungen, Standardformate), `OrderFormatRules` (Bereinigen und Prüfen der Formatliste samt Beispiel- und Überschneidungsprüfung), `DetectionSettingsRequest`/`TryDetectionRequest`, Seite `settings/detection`, Baustein `components/settings/formats`, Alpine-Komponente `formatList`, vier Gruppen (`order_formats`, `sku_keywords`, `sku_digits`, `sku_max`), Routen `settings.detection*`.
+- **Geändert:** `OrderNumberDetector` (nimmt die Formate aus den Einstellungen, `using()` für ungespeicherte Werte), `OrderNumber`, `SkuDetector` (Stichwörter, Ziffernanzahl und Höchstzahl aus den Einstellungen, `with()` zum Ausprobieren), `AmazonNotice`/`MailRules` (Aufbau der Bestellnummer aus dem Format „Amazon“), `EocsClient` (Format für Reklamationsaufträge), `SettingGroup` (Typ `FORMATS`, Mindestwert bei Zahlen).
+- **Abweichung vom Gespräch:** Die Kurzschreibweise nutzt `#` (Ziffer), `?` (Buchstabe), `*` (Buchstabe oder Ziffer) statt `9`/`A`/`X`, damit feste Ziffern wie „300“ eindeutig bleiben.
+- **Verhalten wie bisher:** Die Haken („muss enthalten“) werden nach dem Muster geprüft (nicht im Muster), die interne EOCS-Nummer darf nicht an „.“ oder „,“ grenzen (Beträge, Daten), alle anderen Formate wie bisher nur nicht an Buchstaben, Ziffern oder „-“. Die bestehenden Tests (PROJ-6, 7, 36, 37, 38) laufen mit den Standardformaten unverändert grün, nur der Test der getippten Nummern in PROJ-7 vergleicht jetzt den Schlüssel des Formats statt der Aufzählung.
+- **Tests:** `PROJ-49-DetectionSettingsTest` (31).
+- **Offen für `/qa`:** Bedienung im Browser (Format hinzufügen, verschieben, entfernen, Haken, Ausprobieren), 375/768/1440 px.

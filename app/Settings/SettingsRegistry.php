@@ -3,6 +3,8 @@
 namespace App\Settings;
 
 use App\Analysis\Prompt;
+use App\Orders\OrderFormats;
+use App\ProductForge\SkuDetector;
 
 /**
  * All settings groups and pages of the app (PROJ-27). A later spec adds its groups here; the settings
@@ -27,6 +29,11 @@ final class SettingsRegistry
                 'title' => 'Mail-Anzeige',
                 'description' => 'Wie Nachrichten im Ticketverlauf bereinigt werden: Links, Signaturen, Fußtexte, Zitate und die Amazon-Nachricht.',
                 'route' => 'settings.mail',
+            ],
+            'detection' => [
+                'title' => 'Erkennungsregeln',
+                'description' => 'Woran die App Bestellnummern und Artikelnummern in einem Ticket erkennt.',
+                'route' => 'settings.detection',
             ],
             'prompts' => [
                 'title' => 'Prompts und Modell',
@@ -74,6 +81,11 @@ final class SettingsRegistry
         foreach (self::prompts() as $name => $prompt) {
             $groups[] = new SettingGroup(Prompt::settingKey($name), 'prompts', 'Prompt: '.$prompt['title'], $prompt['hint'], SettingGroup::PROMPT, fn (): array => ['text' => Prompt::fromFile($name)->text, 'base' => Prompt::fromFile($name)->version], base: fn (): string => Prompt::fromFile($name)->version);
         }
+
+        $groups[] = new SettingGroup('order_formats', 'detection', 'Bestellnummern-Formate', 'Von oben nach unten angewendet; das erste passende Format zählt. Aufbau: „#“ Ziffer, „?“ Buchstabe, „*“ Buchstabe oder Ziffer, alles andere fester Text. Die Beispiele werden vor dem Speichern geprüft.', SettingGroup::FORMATS, fn (): array => OrderFormats::defaults());
+        $groups[] = new SettingGroup('sku_keywords', 'detection', 'Artikelnummern: Stichwörter', 'Eine Zahl im Kundentext gilt nur dann als Artikelnummer (SKU), wenn direkt davor eines dieser Stichwörter steht. Groß-/Kleinschreibung egal.', SettingGroup::TEXTS, fn (): array => SkuDetector::defaultKeywords(), minLength: 2, maxLength: 40, allowEmpty: false);
+        $groups[] = new SettingGroup('sku_digits', 'detection', 'Artikelnummern: Anzahl Ziffern', 'So viele Ziffern hat eine Artikelnummer bei LOOXIS.', SettingGroup::NUMBER, fn (): int => 5, max: 10, min: 3);
+        $groups[] = new SettingGroup('sku_max', 'detection', 'Artikelnummern: Höchstzahl je Ticket', 'So viele verschiedene Artikelnummern aus dem Kundentext schlägt die App höchstens vor.', SettingGroup::NUMBER, fn (): int => 3, max: 10, min: 1);
 
         return self::$groups ??= collect([
             ...$groups,

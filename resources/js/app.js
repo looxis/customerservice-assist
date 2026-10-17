@@ -123,6 +123,29 @@ Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
 
 Alpine.data('scopeFields', scopeFields);
 
+// The order number formats on the settings page (PROJ-49): cards that can be added, moved and removed.
+Alpine.data('formatList', (config) => ({
+    rows: config.rows,
+
+    add() {
+        this.rows.push({ key: '', name: '', layout: '', prefix: '', letters: 'both', needs: [], internal: false, amazon: false, examples: '', counter_examples: '' });
+    },
+
+    remove(index) {
+        this.rows.splice(index, 1);
+    },
+
+    move(index, step) {
+        const target = index + step;
+
+        if (target < 0 || target >= this.rows.length) {
+            return;
+        }
+
+        [this.rows[index], this.rows[target]] = [this.rows[target], this.rows[index]];
+    },
+}));
+
 // A list of texts on the settings page (PROJ-27): rows can be added and removed; the server cleans and checks them.
 Alpine.data('settingsList', (config) => ({
     rows: config.rows,

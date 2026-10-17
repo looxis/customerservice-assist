@@ -35,9 +35,12 @@ Route::get('/ueber-die-app', AboutController::class)->name('about');
 Route::get('/einstellungen', [SettingsController::class, 'index'])->name('settings.index');
 Route::get('/einstellungen/mail-anzeige', [SettingsController::class, 'mail'])->name('settings.mail');
 Route::get('/einstellungen/prompts-und-modell', [SettingsController::class, 'prompts'])->name('settings.prompts');
+Route::get('/einstellungen/erkennungsregeln', [SettingsController::class, 'detection'])->name('settings.detection');
 Route::middleware('staff.selected')->group(function (): void {
     Route::put('/einstellungen/mail-anzeige', [SettingsController::class, 'updateMail'])->name('settings.mail.update');
     Route::put('/einstellungen/prompts-und-modell', [SettingsController::class, 'updatePrompts'])->name('settings.prompts.update');
+    Route::put('/einstellungen/erkennungsregeln', [SettingsController::class, 'updateDetection'])->name('settings.detection.update');
+    Route::match(['put', 'post'], '/einstellungen/erkennungsregeln/ausprobieren', [SettingsController::class, 'tryDetection'])->middleware('throttle:30,1')->name('settings.detection.try');
     Route::match(['put', 'post'], '/einstellungen/mail-anzeige/ausprobieren', [SettingsController::class, 'tryMail'])->middleware('throttle:20,1')->name('settings.mail.try');
     Route::post('/einstellungen/{group}/standard', [SettingsController::class, 'reset'])->where('group', '[a-z_]+')->name('settings.reset');
     Route::post('/einstellungen/{group}/version/{version}', [SettingsController::class, 'restore'])->where('group', '[a-z_]+')->whereNumber('version')->name('settings.restore');

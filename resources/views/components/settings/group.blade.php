@@ -3,7 +3,7 @@
 @php
     $name = 'settings['.$group->key.']';
     $messages = isset($errors) ? $errors->get('settings.'.$group->key) : [];
-    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL], true);
+    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS], true);
     $current = old('settings.'.$group->key, $single ? '' : $value);
     if ($group->kind === \App\Settings\SettingGroup::HOSTS && ! is_array($current)) { $current = $value; }
     $rows = $single ? [] : array_values((array) $current);
@@ -30,7 +30,9 @@
         <p class="mt-2 text-sm font-medium text-danger-700" role="alert">{{ $message }}</p>
     @endforeach
 
-    @if ($group->kind === \App\Settings\SettingGroup::PROMPT)
+    @if ($group->kind === \App\Settings\SettingGroup::FORMATS)
+        <x-settings.formats :group="$group" :value="$value" :can-edit="$canEdit" />
+    @elseif ($group->kind === \App\Settings\SettingGroup::PROMPT)
         @if ($outdated)
             <p class="mt-2 text-sm font-medium text-warning-700">Der Standard der App wurde seit deiner Änderung erneuert. Deine Fassung gilt weiter; „Auf Standard der App zurücksetzen“ übernimmt den neuen Standard.</p>
         @endif
@@ -102,7 +104,7 @@
                     <span class="text-slate-600">{{ $kinds[$entry->kind] ?? $entry->kind }} von {{ $entry->changed_by }}, {{ $entry->created_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr</span>
                     <details class="basis-full">
                         <summary class="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900">Wert dieser Version</summary>
-                        <pre class="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-900">{{ is_array($entry->value) && isset($entry->value['text']) ? $entry->value['text'] : (is_array($entry->value) ? collect($entry->value)->map(fn ($item) => is_array($item) ? ($item['host'] ?? '').' ('.(($item['mode'] ?? '') === 'clickable' ? 'klickbar' : 'Text').')' : (string) $item)->implode("\n") : $entry->value) }}</pre>
+                        <pre class="mt-1 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 font-mono text-xs text-slate-900">{{ is_array($entry->value) && isset($entry->value['text']) ? $entry->value['text'] : (is_array($entry->value) && isset($entry->value[0]['layout']) ? collect($entry->value)->map(fn ($format) => $format['name'].': '.$format['layout'].(! empty($format['prefix']) ? ' (Vorsilbe '.$format['prefix'].')' : ''))->implode("\n") : (is_array($entry->value) ? collect($entry->value)->map(fn ($item) => is_array($item) ? ($item['host'] ?? '').' ('.(($item['mode'] ?? '') === 'clickable' ? 'klickbar' : 'Text').')' : (string) $item)->implode("\n") : $entry->value)) }}</pre>
                     </details>
                     @if ($canEdit)
                         <button type="submit" form="wiederherstellen-{{ $group->key }}-{{ $entry->version }}" class="text-xs font-semibold text-brand hover:text-brand-hover">Diese Version wiederherstellen</button>

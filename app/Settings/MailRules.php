@@ -2,6 +2,7 @@
 
 namespace App\Settings;
 
+use App\Orders\OrderFormats;
 use App\Zammad\AmazonNotice;
 use App\Zammad\MessageBody;
 
@@ -30,7 +31,7 @@ class MailRules
             closingPatterns: PatternBuilder::phrases((array) $value('mail_closings')),
             quoteMarkers: (array) $value('mail_quote_markers'),
             signatureLinesShown: (int) $value('mail_signature_lines'),
-            amazon: new AmazonNotice((array) $value('mail_amazon_intros'), (array) $value('mail_amazon_order_labels'), (array) $value('mail_amazon_message_labels')),
+            amazon: new AmazonNotice((array) $value('mail_amazon_intros'), (array) $value('mail_amazon_order_labels'), (array) $value('mail_amazon_message_labels'), app(OrderFormats::class)->amazon()->fragment()),
         );
     }
 

@@ -13,19 +13,44 @@ class OrderNumberDetector
 {
     public const int MAX_SUGGESTIONS = 10;
 
+    public function __construct(private readonly OrderFormats $formats) {}
+
+    /**
+     * The same detection with other formats (to try out unsaved settings).
+     *
+     * @param  list<OrderNumberFormat>  $formats
+     */
+    public function using(array $formats): self
+    {
+        $other = clone $this;
+        $other->override = $formats;
+
+        return $other;
+    }
+
+    /**
+     * @var list<OrderNumberFormat>|null
+     */
+    private ?array $override = null;
+
+    /**
+     * @return list<OrderNumberFormat>
+     */
+    private function formats(): array
+    {
+        return $this->override ?? $this->formats->all();
+    }
+
     /**
      * Clean a typed or pasted order number; null when no known format fits.
      */
     public function normalize(string $input): ?OrderNumber
     {
-        $value = preg_replace('/[\s\x{00A0}#]+/u', '', $input) ?? '';
-        $value = preg_replace('/^BEST-PRO/i', '', $value) ?? $value;
+        foreach ($this->formats() as $format) {
+            $number = $format->matches($input);
 
-        foreach (OrderNumberFormat::cases() as $format) {
-            $candidate = $format === OrderNumberFormat::Vanilo ? strtoupper($value) : $value;
-
-            if (preg_match($format->pattern(), $candidate, $match) && $match[1] === $candidate) {
-                return new OrderNumber($candidate, $format);
+            if ($number !== null) {
+                return new OrderNumber($number, $format);
             }
         }
 
@@ -44,7 +69,7 @@ class OrderNumberDetector
         $found = [];
 
         foreach ($ticket->orders as $order) {
-            $found[$order->number] = new OrderNumber($order->number, OrderNumberFormat::Amazon);
+            $found[$order->number] = new OrderNumber($order->number, $this->formats->amazon());
         }
 
         $text = $ticket->title."\n".implode("\n", array_map(fn (TicketArticle $article): string => $this->text($article), $ticket->articles));
@@ -65,11 +90,13 @@ class OrderNumberDetector
     {
         $hits = [];
 
-        foreach (OrderNumberFormat::cases() as $format) {
+        foreach ($this->formats() as $format) {
             preg_match_all($format->pattern(), $text, $matches, PREG_OFFSET_CAPTURE);
 
             foreach ($matches[1] as [$number, $offset]) {
-                $hits[] = [$offset, new OrderNumber($number, $format)];
+                if ($format->accepts($number)) {
+                    $hits[] = [$offset, new OrderNumber($number, $format)];
+                }
             }
         }
 

@@ -2,7 +2,6 @@
 
 use App\Http\Requests\AddOrderRequest;
 use App\Orders\OrderNumberDetector;
-use App\Orders\OrderNumberFormat;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -76,21 +75,21 @@ function ticketWith(string $body): void
 }
 
 describe('order number formats', function () {
-    test('typed numbers are cleaned up and recognised', function (string $input, ?string $expected, ?OrderNumberFormat $format) {
+    test('typed numbers are cleaned up and recognised', function (string $input, ?string $expected, ?string $format) {
         $number = app(OrderNumberDetector::class)->normalize($input);
 
         expect($number?->value)->toBe($expected)
-            ->and($number?->format)->toBe($format);
+            ->and($number?->format->key)->toBe($format);
     })->with([
-        'amazon' => ['402-4907715-1581912', '402-4907715-1581912', OrderNumberFormat::Amazon],
-        'amazon with spaces and hash' => ["  #402-4907715-1581912\n", '402-4907715-1581912', OrderNumberFormat::Amazon],
-        'looxis.de' => ['7JI-0WC1-6M49', '7JI-0WC1-6M49', OrderNumberFormat::Vanilo],
-        'looxis.de lower case' => ['7ji-0wc1-6m49', '7JI-0WC1-6M49', OrderNumberFormat::Vanilo],
-        'looxis-pro' => ['30019578', '30019578', OrderNumberFormat::LooxisPro],
-        'looxis-pro with prefix' => ['BEST-PRO30019578', '30019578', OrderNumberFormat::LooxisPro],
-        'looxis.fr' => ['700411247', '700411247', OrderNumberFormat::LooxisFr],
-        'masterpics keeps case' => ['LmagQ9PV25', 'LmagQ9PV25', OrderNumberFormat::Masterpics],
-        'eocs id' => ['753194', '753194', OrderNumberFormat::EocsId],
+        'amazon' => ['402-4907715-1581912', '402-4907715-1581912', 'amazon'],
+        'amazon with spaces and hash' => ["  #402-4907715-1581912\n", '402-4907715-1581912', 'amazon'],
+        'looxis.de' => ['7JI-0WC1-6M49', '7JI-0WC1-6M49', 'vanilo'],
+        'looxis.de lower case' => ['7ji-0wc1-6m49', '7JI-0WC1-6M49', 'vanilo'],
+        'looxis-pro' => ['30019578', '30019578', 'looxis-pro'],
+        'looxis-pro with prefix' => ['BEST-PRO30019578', '30019578', 'looxis-pro'],
+        'looxis.fr' => ['700411247', '700411247', 'looxis-fr'],
+        'masterpics keeps case' => ['LmagQ9PV25', 'LmagQ9PV25', 'masterpics'],
+        'eocs id' => ['753194', '753194', 'eocs-id'],
         'unknown' => ['12345', null, null],
         'looxis.fr too short' => ['70041124', null, null],
         'words only' => ['Bestellung', null, null],
