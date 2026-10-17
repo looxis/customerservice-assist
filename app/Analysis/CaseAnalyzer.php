@@ -20,6 +20,7 @@ use App\Knowledge\Retrieval\Router\RouterOutcome;
 use App\ProductForge\ProductPromptBuilder;
 use App\ProductForge\ProductPromptState;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Stage 2: puts together ticket context, order data, employee context and
@@ -213,6 +214,10 @@ class CaseAnalyzer
                 $answer = $this->model->ask($agent, $input, $model, 'analysis', $request->ticket->number);
                 $checked = $this->validator->check($answer['data'], $knowledgeIds, $request->replyWanted);
             } catch (AnalysisException $exception) {
+                if ($exception->problem === AnalysisProblem::InvalidResult) {
+                    Log::warning('Analysis result unusable', ['ticket' => $request->ticket->number, 'attempt' => $attempts, 'reason' => $exception->getMessage()]);
+                }
+
                 if ($exception->problem !== AnalysisProblem::InvalidResult || $attempts >= 2) {
                     if ($logFailure) {
                         $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, $exception->problem->name, intdiv(hrtime(true) - $started, 1_000_000));
