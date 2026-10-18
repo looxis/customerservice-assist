@@ -42,6 +42,7 @@ triggers:
 related_knowledge:
   - POLICY-041
   - POLICY-042
+  - POLICY-044
   - PLAYBOOK-028
 ---
 
@@ -63,7 +64,7 @@ Bei Fachhändlern wird keine Zahlungserinnerung verschickt. Meldet sich ein Fach
 
 Dem Kunden bleibt, die Bestellung neu auszulösen. Dafür steht weiterhin die bisherige Zahlungsart Mollie mit ihren verschiedenen Optionen zur Verfügung, darunter die klassische SEPA-Überweisung. Lastschrift steht erst für Bestellungen zur Verfügung, die nach der Umstellung eingehen, also nachdem ein neues Mandat vorliegt, hinterlegt, umgestellt und mit dem Shop synchronisiert ist (POLICY-041, POLICY-042).
 
-Fehlt dem Kunden die Zahlungsanweisung oder der Zugang dazu, muss sie ihm bereitgestellt werden. Der konkrete Weg dafür ist noch nicht beschrieben; keinen Weg erfinden und nicht behaupten, die Anweisung sei gesendet worden, wenn das nicht belegt ist.
+Bei Rechnung und Lastschrift ist die Zahlungsanweisung eindeutig festgelegt (POLICY-044). Fehlt dem Kunden bei einer Mollie-Bestellung die Zahlungsanweisung oder der Zugang dazu, muss sie ihm bereitgestellt werden. Der konkrete Weg dafür ist noch nicht beschrieben; keinen Weg erfinden und nicht behaupten, die Anweisung sei gesendet worden, wenn das nicht belegt ist.
 
 # Getrennte Anliegen
 
@@ -81,7 +82,7 @@ Läuft die Zahlungsfrist einer Bestellung nachweislich noch:
 
 # Grenzen
 
-- Keine Bankdaten, Beträge oder Zahlungsreferenzen nennen, die nicht aus der Mollie-Zahlungsanweisung der Bestellung stammen. Nicht auf das Geschäftskonto von LOOXIS verweisen.
+- Keine Bankdaten, Beträge oder Zahlungsreferenzen nennen, die nicht aus der Mollie-Zahlungsanweisung der Bestellung stammen. Bei einer Mollie-Bestellung nicht auf das Geschäftskonto von LOOXIS verweisen (die Geschäftskonten gelten für die Zahlung auf Rechnung, POLICY-044).
 - Nicht pauschal sagen, der Kunde müsse PayPal verwenden.
 - Keine manuelle Freigabe einer wegen ausgebliebener Zahlung nicht freigegebenen Bestellung zusagen und keine nachträgliche Änderung der Zahlungsart für diese Bestellung.
 - Nicht behaupten, eine Zahlungserinnerung sei verschickt worden oder werde verschickt.
@@ -89,6 +90,6 @@ Läuft die Zahlungsfrist einer Bestellung nachweislich noch:
 
 # Noch zu klären
 
-- Der Weg, auf dem einem Kunden die Mollie-Zahlungsanweisung oder der Zugang dazu bereitgestellt wird.
+- Der Weg, auf dem einem Kunden bei einer Mollie-Bestellung die Zahlungsanweisung oder der Zugang dazu bereitgestellt wird (bei Rechnung und Lastschrift ist er festgelegt, POLICY-044).
 - Die Länge der Zahlungsfrist.
 - Ob die fehlende Zahlungserinnerung auch für andere Kundengruppen als Fachhändler gilt.

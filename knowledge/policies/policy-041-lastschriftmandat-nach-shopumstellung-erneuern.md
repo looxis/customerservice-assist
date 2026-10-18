@@ -48,7 +48,9 @@ Die Umstellung wegen eines bei der Shopumstellung als ungültig festgestellten a
 
 Der bloße Hinweis eines Kunden, früher ein Mandat erteilt zu haben, klärt den Grund der Umstellung noch nicht. Auch dass eine frühere Mail Rücklastschriften als möglichen Grund nennt, belegt diesen Grund beim konkreten Kunden nicht.
 
-Für eine Rückkehr zur Lastschrift nach Zahlungsproblemen gibt es noch keine abschließenden Freigabekriterien; weder zusagen noch ablehnen.
+Hat LOOXIS dem Kunden die Lastschrift bereits ausdrücklich angeboten oder zugesagt und ist das im Verlauf dokumentiert (zum Beispiel in der Mail mit der Mandatsvorlage), gilt die Freigabe für diesen Kunden als erteilt. Es fehlt dann nur das ausgefüllte und unterschriebene Mandat; der Grund der Umstellung muss nicht erneut geprüft werden. Eine im Verlauf nicht belegte Zusage nicht annehmen.
+
+Für andere Kunden, die nach Zahlungsproblemen (Rücklastschriften, Mahnungen) Lastschrift verlangen, wird eine Rückkehr in der Regel abgelehnt. Ob es Zahlungsprobleme gab, lässt sich manchmal an früheren Tickets von und an den Kunden nachvollziehen, sonst nicht. Besteht der Kunde auf Lastschrift, wird im Zweifel die Freigabe durch die Geschäftsführung eingeholt; bis dahin keine Zusage. Zahlungsprobleme nicht unterstellen, wenn sie nicht belegt sind.
 
 Die Entscheidung zur Lastschrift ist von der Zahlung einer bestehenden Bestellung getrennt. Die bestehende Bestellung kann unabhängig davon bezahlt werden (siehe POLICY-043); eine offene Lastschriftentscheidung blockiert die Antwort dazu nicht.
 
