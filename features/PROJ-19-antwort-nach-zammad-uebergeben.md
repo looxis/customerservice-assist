@@ -2,11 +2,11 @@
 
 ## Status: Planned
 **Created:** 2026-10-02
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-18 (Statistik ergänzt)
 
 ## Dependencies
 - Requires: PROJ-5 (Nutzerauswahl), PROJ-6 (Ticket und Verlauf aus Zammad), PROJ-9/10/11 (Vorschlag, Ergebnisansicht, Protokoll), PROJ-27 (Einstellungsseite für die Signatur-Vorlage).
-- Berührt: PROJ-32 (Testmodus: dort kein Versand), PROJ-35 (Ticket-Übersicht: Stand „gesendet“), PROJ-39 (Fortsetzung nach Klärung), PROJ-29 (Ticketbearbeitung; PROJ-19 ist der erste, kleine Schritt dorthin).
+- Berührt: PROJ-12 (Bewertung), PROJ-14 (Analysen-Übersicht) und PROJ-35 (Ticket-Übersicht): Senden wird wie Kopieren erfasst; PROJ-32 (Testmodus: dort kein Versand), PROJ-39 (Fortsetzung nach Klärung), PROJ-29 (Ticketbearbeitung; PROJ-19 ist der erste, kleine Schritt dorthin).
 - Nicht mehr abhängig von PROJ-15 (Benutzerverwaltung). Entscheidung 2026-10-18: Die App bekommt kein eigenes Login-/Passwortsystem; kommt eine Anmeldung, dann per SSO (Details später). Der Versand läuft bis dahin über Zugriffstokens in der Konfiguration.
 
 ## Ausgangslage
@@ -68,8 +68,16 @@ Heute klickt der Mitarbeiter unter dem Antwortentwurf auf „Kopieren“, wechse
 - Schlägt nur das Setzen des Status fehl, obwohl die Antwort gesendet ist, meldet die App das ausdrücklich („Antwort gesendet, Status konnte nicht gesetzt werden“) und sendet nicht noch einmal.
 
 ## Protokoll und Übersichten
-- Je Vorschlag: wer, wann, Betreff, Status danach, Artikel-ID aus Zammad. Der gesendete Text wird nicht ein zweites Mal gespeichert; die Ticket-Aktivität (PROJ-35) kennt den Stand „über die App gesendet“.
+- Je Vorschlag: wer, wann, Betreff, Status danach, Artikel-ID aus Zammad. Der gesendete Text wird nicht ein zweites Mal gespeichert.
 - Die bestehende Kopieren-Erfassung (PROJ-12/35) bleibt unverändert.
+
+### Statistik: Senden zählt wie Kopieren
+Das Senden wird für die Statistik genauso erfasst wie bisher der Klick auf „Kopieren“:
+- **Unverändert oder angepasst:** Beim Senden vergleicht die App den gesendeten Text (ohne die Signatur) serverseitig mit dem Original der KI, wie beim Kopieren: „unverändert“ oder „angepasst“. Eine geänderte Signatur oder ein geänderter Betreff macht den Text nicht zu „angepasst“.
+- **Bewertung durch den Mitarbeiter:** Nach dem Senden erscheint dieselbe Frage „Wie brauchbar war der Vorschlag?“ mit den vier Stufen und der Vorbelegung aus der Änderung am Entwurf (PROJ-12). Sie ist auch hier jederzeit nachträglich änderbar.
+- **Zählung:** Ein Versand zählt in der Analysen-Übersicht (PROJ-14, Kennzahlen „unverändert“/„angepasst“, Filter) und in der Ticket-Übersicht (PROJ-35) wie ein Kopieren mit demselben Zustand. Dort wird zusätzlich kenntlich, dass die Antwort **gesendet** und nicht nur kopiert wurde (z. B. „Gesendet, unverändert“ / „Gesendet, angepasst“); die Kennzahlen zum Kopier-Stand enthalten gesendete Antworten, damit die Reihe vergleichbar bleibt.
+- **Mehrfach:** Hat der Mitarbeiter erst kopiert und dann gesendet, zählt der Versand (der spätere Vorgang überschreibt, wie beim mehrfachen Kopieren). Nur die neueste Analyse eines Tickets zählt.
+- Schlägt der Versand fehl, wird nichts erfasst.
 
 ## Acceptance Criteria
 - [ ] Angenommen ein Vorschlag mit Antwortentwurf zu einem echten Ticket und der gewählte Mitarbeiter hat ein Token, wenn die Ergebnisansicht erscheint, dann steht unter dem Entwurf der Block „Antwort versenden“ mit Empfänger (schreibgeschützt), Betreff, Text mit Signatur, Auswahl „Danach“ und dem Hinweis auf Zammad und den Ticketverlauf.
@@ -86,6 +94,10 @@ Heute klickt der Mitarbeiter unter dem Antwortentwurf auf „Kopieren“, wechse
 - [ ] Angenommen das Ticket hat keine eindeutige Antwortadresse, dann ist der Knopf gesperrt, und der Grund steht da.
 - [ ] Angenommen die Signatur-Vorlage wird als Admin geändert, dann gilt sie ab dem nächsten Öffnen des Blocks für alle; Verlauf, Wiederherstellen und Zurücksetzen funktionieren wie bei PROJ-27.
 - [ ] Angenommen ein Token steht in der Konfiguration, dann erscheint sein Wert nirgends (Seite, Protokoll, Log, Fehlermeldung).
+- [ ] Angenommen ich sende den Antwortentwurf, wenn der Text (ohne Signatur) vom Original der KI abweicht, dann wird der Versand mit Zeit, Name und „angepasst“ festgehalten, sonst mit „unverändert“; eine geänderte Signatur oder ein geänderter Betreff macht den Text nicht zu „angepasst“.
+- [ ] Angenommen gesendet wurde, dann erscheint die Frage „Wie brauchbar war der Vorschlag?“ mit den vier Stufen und der Vorbelegung aus der Änderung am Entwurf, und die Antwort wird wie bisher beim Kopieren gespeichert (nachträglich änderbar).
+- [ ] Angenommen es wurde gesendet, wenn ich die Analysen-Übersicht und die Ticket-Übersicht öffne, dann zählt der Versand in den Kennzahlen und Filtern wie ein Kopieren mit demselben Zustand und ist zusätzlich als „gesendet“ kenntlich.
+- [ ] Angenommen nur die neueste Analyse eines Tickets zählt, wenn bei einer älteren Analyse gesendet wird, dann wird sie nicht erfasst, und es wird auch nichts erfasst, wenn der Versand scheitert.
 - [ ] Angenommen die Namensliste hat jetzt Vor- und Nachnamen, dann zeigt das Dropdown weiter die Vornamen, und bestehende Cookies mit einem Vornamen funktionieren weiter.
 
 ## Edge Cases
@@ -126,6 +138,7 @@ Heute klickt der Mitarbeiter unter dem Antwortentwurf auf „Kopieren“, wechse
 | Status danach: „Ticket schließen“ (Standard) oder „Erinnerung in 1/3/7 Tagen“; kein „unverändert“ | Üblicher Ablauf des Teams: Antwort und Schließen in einem Schritt, selten offen lassen | 2026-10-18 |
 | Sperre bei neuerer Nachricht im Ticket mit „Trotzdem senden“ | Verhindert veraltete Antworten, lässt dem Mitarbeiter die Entscheidung | 2026-10-18 |
 | Einmal-Versand je Vorschlag und Sperre des Knopfes | Schutz vor Doppelklick und Kollegenüberschneidung | 2026-10-18 |
+| Senden wird für die Statistik wie Kopieren erfasst (unverändert/angepasst, Bewertung durch den Mitarbeiter) und zusätzlich als „gesendet“ gekennzeichnet | Die Auswertung der Vorschlagsqualität soll weitergehen; Vergleich auf den Text ohne Signatur und Betreff, damit Standardänderungen nicht zählen | 2026-10-18 |
 | Kein Versand im Testmodus, bei Fragen ohne Ticket und ohne Antwortentwurf | Verhindert Versand an echte Kunden aus Testläufen und ohne Ticket | 2026-10-18 |
 | Antwort in der Sprache des Kunden, nie die Übersetzung | Wie der Entwurf angezeigt wird | 2026-10-18 |
 
