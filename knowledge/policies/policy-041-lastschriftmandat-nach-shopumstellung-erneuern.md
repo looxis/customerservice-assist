@@ -27,6 +27,7 @@ triggers:
   - neuer Shop
 related_knowledge:
   - PROCESS-015
+  - POLICY-042
 ---
 
 Gilt für Foto-Fachhändler / Reseller im Vertriebskanal fachhaendler, produktübergreifend.
@@ -39,7 +40,7 @@ Ein beschriebener Fall sind Kunden mit weiter bestehendem Kundenkonto, die etwa 
 
 # Neues Mandat
 
-Der Kundenservice sendet dem Kunden die vorhandene Mandatsvorlage als PDF. Der Kunde muss sie ausfüllen und unterschreiben und anschließend als Scan oder gut lesbares Foto an LOOXIS zurücksenden. Der interne Ablauf bis zum Eingang steht in PROCESS-015.
+Der Kundenservice sendet dem Kunden die vorhandene Mandatsvorlage als PDF. Der Kunde muss sie ausfüllen und unterschreiben und anschließend als Scan oder gut lesbares Foto an LOOXIS zurücksenden. Der interne Ablauf einschließlich Hinterlegung und anschließender Umstellung steht in PROCESS-015.
 
 # Abgrenzung
 
@@ -57,6 +58,6 @@ Nur beim tatsächlichen Versand der PDF auf einen beigefügten Anhang verweisen.
 
 Kerstin hinterlegt das zurückgesandte Lastschriftmandat in EOCS am Kunden. Erst nachdem diese Hinterlegung erfolgt ist, stellt Etienne oder Christian das Kundenkonto auf Lastschrift um. Aus dem Versand der Vorlage oder dem bloßen Eingang des Mandats folgt noch keine erfolgte Umstellung.
 
-# Noch zu klären
+# Wirksamkeit und bestehende Bestellungen
 
-Die Behandlung bereits offener Bestellungen nach der Umstellung ist noch nicht beschrieben. Aus der Mandatserneuerung darf deshalb keine automatische Freigabe einer bereits offenen Bestellung abgeleitet werden.
+Für den Beginn der Wirksamkeit und die Abgrenzung zu bereits aufgegebenen Bestellungen gilt POLICY-042. Ein neues Mandat oder eine Änderung am Kundenkonto ändert die Zahlungsart früherer Bestellungen nicht.
