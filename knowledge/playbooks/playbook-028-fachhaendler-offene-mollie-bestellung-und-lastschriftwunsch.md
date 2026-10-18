@@ -70,7 +70,9 @@ Nur der Teil 2 (Lastschrift) ist offen, wenn der Kunde auf Lastschrift besteht, 
 
 Teil 1 siehe POLICY-043. Teil 2, Zusage und Vorlage bereits erfolgt:
 
-„Für Ihren Wunsch, wieder per Lastschrift zu zahlen, haben wir Ihnen bereits das Lastschriftmandat zugesendet. Falls Sie uns das ausgefüllte und unterschriebene Mandat noch nicht zurückgesandt haben, holen Sie dies bitte nach (Scan oder gut lesbares Foto). Sobald wir es hinterlegt und Ihr Konto umgestellt und mit dem Shop synchronisiert haben, steht Ihnen für neue Bestellungen wieder Lastschrift zur Verfügung. Für die jetzige Bestellung gilt das noch nicht.“
+Das Datum der früheren Mail mit der Mandatsvorlage aus dem Verlauf nennen (zum Beispiel „am 26.08.“), damit der Kunde die Mail wiederfindet; nur wenn das Datum im Verlauf belegt ist.
+
+„Für Ihren Wunsch, wieder per Lastschrift zu zahlen, haben wir Ihnen bereits am 26.08. das Lastschriftmandat zugesendet. Falls Sie uns das ausgefüllte und unterschriebene Mandat noch nicht zurückgesandt haben, holen Sie dies bitte nach (Scan oder gut lesbares Foto). Sobald wir es hinterlegt und Ihr Konto umgestellt und mit dem Shop synchronisiert haben, steht Ihnen für neue Bestellungen wieder Lastschrift zur Verfügung. Für die jetzige Bestellung gilt das noch nicht.“
 
 Teil 2, Rückkehr zur Lastschrift in der Regel abgelehnt (Zahlungsprobleme belegt):
 

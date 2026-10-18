@@ -60,7 +60,7 @@ Die Entscheidung zur Lastschrift ist von der Zahlung einer bestehenden Bestellun
 
 Nur beim tatsächlichen Versand der PDF auf einen beigefügten Anhang verweisen.
 
-Wurde die Vorlage schon gesendet und ist im vorliegenden Verlauf keine Rücksendung dokumentiert, folgt daraus nur, dass keine Rücksendung dokumentiert ist, nicht dass keine erfolgt ist. Erinnerung: „Falls Sie uns das ausgefüllte und unterschriebene Mandat noch nicht zurückgesandt haben, holen Sie dies bitte nach.“
+Wurde die Vorlage schon gesendet und ist im vorliegenden Verlauf keine Rücksendung dokumentiert, folgt daraus nur, dass keine Rücksendung dokumentiert ist, nicht dass keine erfolgt ist. Erinnerung: „Falls Sie uns das ausgefüllte und unterschriebene Mandat noch nicht zurückgesandt haben, holen Sie dies bitte nach.“ Wurde die Vorlage bereits gesendet, das Datum dieser Mail aus dem Verlauf nennen, damit der Kunde sie wiederfindet.
 
 # Zuständigkeit und Reihenfolge
 
