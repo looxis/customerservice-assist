@@ -1,8 +1,8 @@
 # PROJ-19: Antwort nach Zammad übergeben
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-02
-**Last Updated:** 2026-10-18 (gebaut)
+**Last Updated:** 2026-10-18 (QA)
 
 ## Dependencies
 - Requires: PROJ-5 (Nutzerauswahl), PROJ-6 (Ticket und Verlauf aus Zammad), PROJ-9/10/11 (Vorschlag, Ergebnisansicht, Protokoll), PROJ-27 (Einstellungsseite für die Signatur-Vorlage).
@@ -237,8 +237,35 @@ Keine neuen Pakete.
 - **Tests:** `PROJ-19-SendReplyTest` (27 Tests: Angebot, Empfänger und Betreff, Senden mit Token, Status, Erinnerung, Prüfung der Eingaben, Markup, neuere Nachricht, Doppelversand, laufender Versand, Token abgelehnt, fehlende Rechte, unklarer Ausgang mit und ohne Antwort in Zammad, Token nirgends sichtbar, Statistik, Feedback-Frage, Signatur und Namensliste). Gesamtsuite grün.
 - **Offen für `/qa`:** Der echte Test gegen Zammad steht noch aus: ein Ein-Aufruf-Versand (`PUT tickets/{id}` mit angehängter Nachricht und Status) an einem Testticket mit einem echten Token, einmal mit „Ticket schließen“ und einmal mit „Erinnerung“, sowie ein Amazon-Ticket (Relay-Adresse). Erst danach ist bestätigt, dass Zammad die Nachricht als E-Mail im Verlauf zeigt und dass `ticket.agent` als Tokenrecht genügt. Browser-Sichttest des Blocks (Phone-Breite 375 px).
 
-## QA Test Results
-_To be added by /qa_
+## QA Test Results (2026-10-18)
+**Ergebnis: bereit (keine Critical-/High-Fehler), zwei offene Fehler mit niedriger bis mittlerer Schwere.**
+
+**Akzeptanzkriterien: 19 von 19 bestanden** (Tests `PROJ-19-SendReplyTest`, 32 Tests, dazu der echte Versand an einem Zammad-Ticket durch den Anwender).
+- Versandblock mit Empfänger, Betreff, Signatur mit vollem Namen, Auswahl „Danach“ und Hinweis auf Zammad: bestanden.
+- Senden im Namen des Mitarbeiters mit dessen Token, Status „geschlossen“ und „Erinnerung in 1/3/7 Tagen“ (Test, Variante „Erinnerung“ noch nicht am echten Ticket): bestanden.
+- Ohne Token nur „Kopieren“ mit Hinweis; kein Block bei Testlauf, Frage ohne Ticket, ohne Entwurf, älterem Vorschlag, fehlender Antwortadresse und unbestätigter Regelprüfung: bestanden.
+- Sperre bei neuerer Nachricht mit „Trotzdem senden“, Einmal-Versand, laufender Versand, unklarer Ausgang mit und ohne Antwort in Zammad, Token abgelehnt, fehlende Rechte, Zammad nicht erreichbar: bestanden.
+- Statistik wie Kopieren (unverändert/angepasst ohne Signatur und Betreff), Bewertungsfrage nach dem Senden, Stände „Gesendet (…)“ und Filter in Analysen- und Ticket-Übersicht: bestanden.
+- Signatur-Vorlage mit nur `{Name}`, Namensliste mit vollen Namen, Cookies mit Vornamen bleiben gültig: bestanden.
+- Der Tokenwert erscheint nirgends (Seite, Antworten, Fehlermeldungen): bestanden.
+
+**Echter Versand (Anwender, 2026-10-18):** Ein Ticket wurde aus der App über Zammad gesendet, Antwort und Signatur stimmen. Noch nicht am echten System geprüft: Variante „Erinnerung“, ein Amazon-Ticket (Relay-Adresse), Tokens von Cara, Johannes, Nele, Thomas (noch nicht hinterlegt).
+
+**Sicherheit (Red Team)**
+- Anfrage ohne CSRF-Token wird mit 419 abgelehnt (live geprüft). Die Route liegt unter der Namensauswahl, mit Drosselung (11. Versuch in einer Minute: 429, Test).
+- Der Empfänger kommt nie aus dem Formular (Test mit untergeschobenem Empfänger), Markup im Text wird als reiner Text gesendet, Ticketnummer und Vorschlag müssen zusammenpassen (404), ein fremdes Ticket kann nicht über einen Vorschlag angesprochen werden.
+- Ohne gewählten Namen wird nichts gesendet (409). Bekannte, bewusst akzeptierte Grenze: Wer einen anderen Namen wählt, kann in dessen Namen senden, bis die Benutzerverwaltung kommt.
+- Tokens liegen nur in der `.env`, erscheinen nicht in Ausgaben und Logs (Log nur Statuscode).
+
+**Regression:** Gesamtsuite 1691 Tests, 1688 grün, 3 übersprungen (2 bekannte, 1 vorgemerkter Fehler-Test).
+
+**Fehler**
+| ID | Schwere | Beschreibung | Schritte |
+|----|---------|--------------|----------|
+| PROJ-19-B1 | Low–Medium | Zeilenumbrüche im Betreff werden unverändert an Zammad gegeben (mögliche Kopfzeilen-Einschleusung; ob Zammad sie bereinigt, ist nicht geprüft). Der Betreff sollte einzeilig sein. | Im Versandblock einen Betreff mit Zeilenumbruch senden (Test `a line break in the subject …`, als „todo“ vorgemerkt) |
+| PROJ-19-B2 | Medium | Die Seite „Über die App“ (`docs/ABOUT.md`) sagt weiter „Sie schickt keine Antwort an Kunden. Das machst immer du, in Zammad.“, im Ablauf „kopierst ihn mit einem Klick nach Zammad“ und im Beispiel „schickst sie in Zammad ab“. Das stimmt mit dem Direktversand nicht mehr. | Seite „Über die App“ öffnen, Abschnitte „Prüfen und anpassen“, „Ein Beispiel“, „Was die App bewusst nicht tut“ |
+
+**Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Die Oberfläche hat der Anwender am echten Ticket benutzt.
 
 ## Deployment
 _To be added by /deploy_

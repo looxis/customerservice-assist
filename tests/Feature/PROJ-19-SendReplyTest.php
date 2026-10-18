@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
 beforeEach(function () {
@@ -356,4 +357,54 @@ describe('the signature and the staff list', function () {
         test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk();
         expect(app(StaffDirectory::class)->isListed('Nele'))->toBeTrue()->and(app(StaffDirectory::class)->isListed('Nele Gorka'))->toBeFalse();
     });
+});
+
+describe('QA: edges and attacks', function () {
+    test('without a chosen name nothing is sent', function () {
+        $id = sendAnalysis();
+        $this->defaultCookies = [];
+
+        test()->withCredentials()->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => $id]), ['subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(409);
+
+        expect($this->putCalls)->toBe(0);
+    });
+
+    test('a suggestion cannot be sent through the address of another ticket or an unknown id', function () {
+        $id = sendAnalysis();
+
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.send', ['number' => '2199999', 'analysis' => $id]), ['subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(404);
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => (string) Str::uuid()]), ['subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(404);
+
+        expect($this->putCalls)->toBe(0);
+    });
+
+    test('an incomplete and unconfirmed rule check blocks the sending like the copying', function () {
+        $id = sendAnalysis();
+        Analysis::query()->where('uuid', $id)->update(['rule_check' => 'incomplete', 'rule_check_at' => null]);
+
+        sendReply($id)->assertStatus(409);
+        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertSeeText('Regelprüfung bestätigt');
+
+        expect($this->putCalls)->toBe(0);
+    });
+
+    test('too many send attempts in a minute are slowed down', function () {
+        $id = sendAnalysis();
+
+        foreach (range(1, 10) as $ignored) {
+            sendReply($id, ['after' => 'open'])->assertStatus(422);
+        }
+
+        sendReply($id, ['after' => 'open'])->assertStatus(429);
+        expect($this->putCalls)->toBe(0);
+    });
+
+    test('a line break in the subject cannot add mail headers', function () {
+        $id = sendAnalysis();
+
+        sendReply($id, ['subject' => "Hallo\r\nBcc: fremd@example.org"]);
+
+        $sentSubject = putRequests()[0]['article']['subject'] ?? '';
+        expect(str_contains($sentSubject, "\n") || str_contains($sentSubject, "\r"))->toBeFalse();
+    })->todo('QA-Fehler PROJ-19-B1: Zeilenumbrüche im Betreff werden unverändert an Zammad gegeben.');
 });
