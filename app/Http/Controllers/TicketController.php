@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisPanel;
+use App\Analysis\ReplyDelivery;
 use App\Analysis\TicketActivityLog;
 use App\Analysis\Translator;
 use App\Eocs\EocsClient;
@@ -47,7 +48,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -80,6 +81,10 @@ class TicketController extends Controller
         }
 
         $analysis = $panel->build($ticket, $lookups, is_string($request->query('analyse')) ? $request->query('analyse') : null);
+
+        if (is_array($analysis['result'] ?? null)) {
+            $analysis['result']['send'] = $delivery->offer($analysis['result'], $ticket, $staff->current($request));
+        }
 
         return response()->view('tickets.show', [
             'number' => $number,

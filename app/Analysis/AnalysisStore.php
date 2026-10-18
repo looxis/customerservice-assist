@@ -225,6 +225,50 @@ class AnalysisStore
     }
 
     /**
+     * Take the right to send the reply of this analysis (PROJ-19): true for exactly one caller, atomically, so a
+     * double click, a reload or a colleague cannot send it twice.
+     */
+    public function claimReplySend(string $id): bool
+    {
+        return Analysis::query()->where('uuid', $id)->whereNull('reply_send_started_at')->whereNull('reply_sent_at')->update(['reply_send_started_at' => now()]) === 1;
+    }
+
+    /**
+     * Give the right back after it is certain that nothing was sent.
+     */
+    public function releaseReplySend(string $id): void
+    {
+        Analysis::query()->where('uuid', $id)->whereNull('reply_sent_at')->update(['reply_send_started_at' => null]);
+    }
+
+    /**
+     * The reply was handed to Zammad. Counts for the statistics like a copy (PROJ-35) and is marked as sent.
+     */
+    public function markReplySent(string $id, string $staff, string $zammadUser, string $subject, string $state, ?int $articleId, bool $changed): void
+    {
+        Analysis::query()->where('uuid', $id)->update([
+            'reply_sent_at' => now(), 'reply_sent_by' => $staff, 'reply_sent_zammad_user' => $zammadUser, 'reply_sent_subject' => mb_substr($subject, 0, 300),
+            'reply_sent_state' => $state, 'reply_sent_article_id' => $articleId,
+            'reply_copied_at' => now(), 'reply_copied_by' => $staff, 'reply_copied_changed' => $changed,
+        ]);
+    }
+
+    /**
+     * @return array{started: ?CarbonImmutable, sent_at: ?CarbonImmutable, sent_by: ?string, test: bool}|null
+     */
+    public function replySending(string $id): ?array
+    {
+        $analysis = Analysis::query()->where('uuid', $id)->first(['reply_send_started_at', 'reply_sent_at', 'reply_sent_by', 'test_until']);
+
+        return $analysis === null ? null : [
+            'started' => $analysis->reply_send_started_at === null ? null : CarbonImmutable::instance($analysis->reply_send_started_at),
+            'sent_at' => $analysis->reply_sent_at === null ? null : CarbonImmutable::instance($analysis->reply_sent_at),
+            'sent_by' => $analysis->reply_sent_by,
+            'test' => $analysis->test_until !== null,
+        ];
+    }
+
+    /**
      * The latest finished analysis with content of a ticket (or of a test-run
      * cut point, see Ticket::summaryKey()).
      */

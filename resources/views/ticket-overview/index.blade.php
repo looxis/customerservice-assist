@@ -37,7 +37,7 @@
                                 <td class="px-4 py-3 align-top text-slate-900">{{ $visit->title ?? '–' }}</td>
                                 <td class="px-4 py-3 align-top">
                                     <div class="flex flex-wrap items-center gap-1">
-                                        <x-badge compact :tone="match ($row['stage']) { 'copied-unchanged' => 'success', 'copied-changed' => 'info', 'edited' => 'warning', default => 'neutral' }">{{ \App\Analysis\TicketOverview::STAGES[$row['stage']] }}</x-badge>
+                                        <x-badge compact :tone="match ($row['stage']) { 'copied-unchanged', 'sent-unchanged' => 'success', 'copied-changed', 'sent-changed' => 'info', 'edited' => 'warning', default => 'neutral' }">{{ \App\Analysis\TicketOverview::STAGES[$row['stage']] }}</x-badge>
                                         @if ($row['translated'] && $row['stage'] !== 'translated')<x-badge compact>Übersetzt</x-badge>@endif
                                     </div>
                                     @if ($row['analyses'] > 0)

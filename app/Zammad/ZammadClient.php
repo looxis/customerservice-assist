@@ -301,6 +301,11 @@ class ZammadClient
                 attachments: $this->attachments($article['attachments'] ?? []),
                 channel: $type === '' ? null : (self::CHANNEL_LABELS[$type] ?? ucfirst($type)),
                 automatic: $sender === 'system',
+                type: $type === '' ? null : $type,
+                from: filled($article['from'] ?? null) ? (string) $article['from'] : null,
+                replyTo: filled($article['reply_to'] ?? null) ? (string) $article['reply_to'] : null,
+                subject: filled($article['subject'] ?? null) ? (string) $article['subject'] : null,
+                messageId: filled($article['message_id'] ?? null) ? (string) $article['message_id'] : null,
             );
         }, array_values(array_filter($articles, 'is_array')));
     }

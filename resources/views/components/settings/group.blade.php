@@ -3,7 +3,7 @@
 @php
     $name = 'settings['.$group->key.']';
     $messages = isset($errors) ? $errors->get('settings.'.$group->key) : [];
-    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS, \App\Settings\SettingGroup::RECORDS, \App\Settings\SettingGroup::WORD], true);
+    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS, \App\Settings\SettingGroup::RECORDS, \App\Settings\SettingGroup::WORD, \App\Settings\SettingGroup::SIGNATURE], true);
     $current = old('settings.'.$group->key, $single ? '' : $value);
     if ($group->kind === \App\Settings\SettingGroup::HOSTS && ! is_array($current)) { $current = $value; }
     $rows = $single ? [] : array_values((array) $current);
@@ -53,7 +53,13 @@
         <p class="mt-2 text-sm font-medium text-danger-700" role="alert">{{ $message }}</p>
     @endforeach
 
-    @if ($group->kind === \App\Settings\SettingGroup::WORD)
+    @if ($group->kind === \App\Settings\SettingGroup::SIGNATURE)
+        <div class="mt-3">
+            <label class="sr-only" for="{{ $group->key }}-signatur">{{ $group->title }}</label>
+            <textarea id="{{ $group->key }}-signatur" name="{{ $name }}" rows="5" maxlength="{{ $group->maxLength }}" @disabled(! $canEdit)
+                      class="block w-full max-w-xl rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand disabled:bg-slate-50">{{ old('settings.'.$group->key, $value) }}</textarea>
+        </div>
+    @elseif ($group->kind === \App\Settings\SettingGroup::WORD)
         <div class="mt-3">
             <label class="sr-only" for="{{ $group->key }}-wort">{{ $group->title }}</label>
             <input type="text" id="{{ $group->key }}-wort" name="{{ $name }}" value="{{ old('settings.'.$group->key, $value) }}" maxlength="3" autocomplete="off" @disabled(! $canEdit)

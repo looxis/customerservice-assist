@@ -21,6 +21,7 @@ use App\Orders\OrderFormats;
 use App\ProductForge\ProductPromptBuilder;
 use App\ProductForge\ProductPromptState;
 use App\Settings\SettingsStore;
+use App\Zammad\ArticleKind;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 
@@ -139,7 +140,7 @@ class CaseAnalyzer
                 'body' => $entry->document->body,
                 'fingerprint' => $entry->document->fingerprint,
             ], array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => isset($cited[$entry->document->id])))),
-            'thread' => ['last_article_id' => $last?->id, 'last_article_at' => $last?->createdAt->toIso8601String(), 'count' => count($request->ticket->articles)],
+            'thread' => ['newest_article_id' => collect($request->ticket->articles)->reject(fn ($article): bool => $article->kind === ArticleKind::Internal)->last()?->id, 'last_article_id' => $last?->id, 'last_article_at' => $last?->createdAt->toIso8601String(), 'count' => count($request->ticket->articles)],
             'inputs' => $request->formInput,
             ...($request->isQuestion() ? ['question' => ['text' => $request->questionText, 'reply_wanted' => $request->replyWanted]] : []),
             'decisions' => $request->decisions,

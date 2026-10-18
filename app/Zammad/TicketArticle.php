@@ -27,6 +27,11 @@ final readonly class TicketArticle
         public ?HtmlString $signature = null,
         public ?int $id = null,
         public ?OrderMention $order = null,
+        public ?string $type = null,
+        public ?string $from = null,
+        public ?string $replyTo = null,
+        public ?string $subject = null,
+        public ?string $messageId = null,
     ) {}
 
     public function hasText(): bool

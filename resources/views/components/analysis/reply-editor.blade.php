@@ -2,6 +2,7 @@
 
 @php
     $language = $result['result']['reply']['language'] ?? null;
+    $send = $result['send'] ?? ['state' => 'hidden'];
 @endphp
 
 {{-- Editable reply draft (PROJ-10): saved in the background while typing,
@@ -36,6 +37,47 @@
             } catch (error) {
                 this.backStatus = 'error';
             }
+        },
+        send: {
+            subject: @js($send['subject'] ?? ''),
+            signature: @js($send['signature'] ?? ''),
+            after: 'close',
+            days: 3,
+            busy: false,
+            error: '',
+            newer: '',
+            sent: @js($send['state'] === 'sent' ? $send['sent'] : null),
+            ticketUrl: @js($send['ticket_url'] ?? null),
+        },
+        get message() { return this.text.trim() + (this.send.signature.trim() !== '' ? '\n\n' + this.send.signature.trim() : '') },
+        async sendReply(confirmNewer) {
+            if (this.send.busy || this.locked || this.text.trim() === '') { return }
+            if (this.open > 0 && ! confirm(`Noch ${this.open} offene ${this.open === 1 ? 'Stelle' : 'Stellen'} – trotzdem senden?`)) { return }
+            this.send.busy = true;
+            this.send.error = '';
+            if (! confirmNewer) { this.send.newer = '' }
+            try {
+                const response = await fetch(@js(route('tickets.analysis.send', ['number' => $number, 'analysis' => $result['id']])), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({ subject: this.send.subject, text: this.text, signature: this.send.signature, after: this.send.after, days: this.send.after === 'reminder' ? this.send.days : null, confirm_newer: confirmNewer === true }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.sent) {
+                    this.send.sent = { by: data.by, at: data.at };
+                    this.send.ticketUrl = data.ticket_url || this.send.ticketUrl;
+                    this.$dispatch('reply-copied');
+                } else if (data.code === 'newer') {
+                    this.send.newer = data.message;
+                } else if (data.code === 'sent') {
+                    this.send.error = data.message + ' Bitte die Seite neu laden.';
+                } else {
+                    this.send.error = data.message || (response.status === 422 ? 'Bitte Betreff und Text prüfen.' : 'Das Senden ist fehlgeschlagen.');
+                }
+            } catch (error) {
+                this.send.error = 'Keine Verbindung zur App. Die Antwort wurde nicht gesendet; bitte erneut versuchen.';
+            }
+            this.send.busy = false;
         },
         get open() { return (this.text.match(/\[[A-ZÄÖÜ][A-ZÄÖÜ\-]*(?:_\d+)?\]/gu) || []).length },
         changed() {
@@ -138,6 +180,58 @@
         <span x-show="copied" x-cloak role="status" class="text-sm font-medium text-success-700">Kopiert</span>
         <span x-show="fallback" x-cloak role="status" class="text-sm text-slate-600">Der Browser erlaubt das Kopieren hier nicht. Der Text ist markiert – bitte mit Strg+C kopieren.</span>
     </div>
+
+    @if ($send['state'] === 'no_token')
+        <p class="mt-3 rounded-md bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200 ring-inset">Bitte Token hinterlegen, dann ist ein Direktversand möglich. Bis dahin: „Kopieren“ und in Zammad senden.</p>
+    @elseif ($send['state'] === 'blocked')
+        <p class="mt-3 rounded-md bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200 ring-inset">{{ $send['reason'] }}</p>
+    @elseif (in_array($send['state'], ['ready', 'sent'], true))
+        {{-- Send the reply from the app (PROJ-19): recipient from the ticket, subject and signature changeable, only on click. --}}
+        <section class="mt-5 rounded-lg border border-slate-200 bg-slate-50/60 p-4" aria-label="Antwort versenden" id="antwort-versenden">
+            <div x-show="send.sent" @if ($send['state'] !== 'sent') x-cloak @endif role="status" class="text-sm text-success-700">
+                <p class="font-semibold">Gesendet von <span x-text="send.sent ? send.sent.by : ''">{{ $send['sent']['by'] ?? '' }}</span> am <span x-text="send.sent ? send.sent.at : ''">{{ $send['sent']['at'] ?? '' }}</span> Uhr</p>
+                <p class="mt-1" x-show="send.ticketUrl"><a x-bind:href="send.ticketUrl" target="_blank" rel="noopener" class="font-medium underline">Ticket in Zammad öffnen</a></p>
+            </div>
+            @if ($send['state'] === 'ready')
+                <div x-show="! send.sent" class="space-y-3">
+                    <h3 class="text-sm font-semibold text-slate-900">Antwort versenden</h3>
+                    <p class="text-sm text-slate-700"><span class="font-medium">An:</span> {{ $send['to'] }}</p>
+                    <div>
+                        <label for="send-subject" class="block text-sm font-medium text-slate-900">Betreff</label>
+                        <input id="send-subject" type="text" x-model="send.subject" maxlength="300" autocomplete="off" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                    </div>
+                    <div>
+                        <label for="send-signature" class="block text-sm font-medium text-slate-900">Signatur <span class="font-normal text-slate-600">(wird unter den Antworttext gesetzt)</span></label>
+                        <textarea id="send-signature" x-model="send.signature" rows="4" maxlength="600" class="mt-1 field-sizing-content block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+                    </div>
+                    <details class="text-sm">
+                        <summary class="cursor-pointer font-medium text-slate-700">Vorschau der Nachricht</summary>
+                        <p class="mt-2 whitespace-pre-line rounded-md bg-white p-3 text-slate-900 ring-1 ring-slate-200 ring-inset" x-text="message"></p>
+                    </details>
+                    <fieldset>
+                        <legend class="text-sm font-medium text-slate-900">Danach</legend>
+                        <div class="mt-1 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-900">
+                            <label class="inline-flex items-center gap-2"><input type="radio" value="close" x-model="send.after" class="text-brand focus:ring-brand"> Ticket schließen</label>
+                            <label class="inline-flex items-center gap-2"><input type="radio" value="reminder" x-model="send.after" class="text-brand focus:ring-brand"> Erinnerung in
+                                <select x-model.number="send.days" x-bind:disabled="send.after !== 'reminder'" aria-label="Tage bis zur Erinnerung" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand"><option value="1">1</option><option value="3">3</option><option value="7">7</option></select> Tagen</label>
+                        </div>
+                    </fieldset>
+                    <div x-show="send.newer !== ''" x-cloak role="alert" class="rounded-md bg-warning-500/10 p-3 text-sm text-slate-900 ring-1 ring-warning-500/30 ring-inset">
+                        <p class="font-semibold text-warning-700" x-text="send.newer"></p>
+                        <div class="mt-2 flex flex-wrap gap-3">
+                            @if ($send['ticket_url'] ?? null)<a href="{{ $send['ticket_url'] }}" target="_blank" rel="noopener" class="text-sm font-medium underline">Ticket in Zammad öffnen</a>@endif
+                            <x-button variant="secondary" x-on:click="sendReply(true)" x-bind:disabled="send.busy">Trotzdem senden</x-button>
+                        </div>
+                    </div>
+                    <p x-show="send.error !== ''" x-cloak role="alert" class="text-sm font-medium text-danger-700" x-text="send.error"></p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <x-button x-on:click="sendReply(false)" x-bind:disabled="send.busy || text.trim() === '' || send.subject.trim() === ''"><x-icon name="chat" size="16" /> <span x-text="send.busy ? 'Wird gesendet …' : 'Antwort versenden'">Antwort versenden</span></x-button>
+                    </div>
+                    <p class="text-xs text-slate-600">Die Antwort wird über Zammad versendet und erscheint dort im Ticketverlauf. Gesendet wird der Antwortentwurf oben (änderbar) mit der Signatur.</p>
+                </div>
+            @endif
+        </section>
+    @endif
 
     @if ($result['reply_foreign'] ?? false)
         {{-- German back translation for checking (PROJ-28); the original is what gets sent. --}}

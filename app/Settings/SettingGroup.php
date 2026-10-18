@@ -28,13 +28,16 @@ final readonly class SettingGroup
 
     public const string WORD = 'word';
 
+    /** A reply signature (PROJ-19): several lines of text with the placeholder {Name}. */
+    public const string SIGNATURE = 'signature';
+
     public const int PROMPT_MAX = 30000;
 
     public const int MAX_ENTRIES = 100;
 
     /**
      * @param  Closure(): mixed  $default
-     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS|self::WORD  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
+     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS|self::WORD|self::SIGNATURE  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
      * @param  Closure(): string|null  $base  For a PROMPT: the version of the default file.
      */
     public function __construct(
@@ -80,6 +83,7 @@ final readonly class SettingGroup
             self::HOSTS => $this->hosts($input),
             self::PROMPT => $this->prompt($input),
             self::MODEL, self::WORD => [is_string($input) ? trim($input) : $input, []],
+            self::SIGNATURE => [is_string($input) ? trim(str_replace(["\r\n", "\r"], "\n", $input)) : $input, []],
             self::FORMATS => OrderFormatRules::normalize($input),
             self::RECORDS => KnowledgeValueRules::normalize($this->key, $input),
             default => $this->texts($input),
@@ -125,6 +129,7 @@ final readonly class SettingGroup
             self::FORMATS => OrderFormatRules::errors($value),
             self::RECORDS => KnowledgeValueRules::errors($this->key, $value),
             self::WORD => is_string($value) && preg_match('/^[A-Za-z]{1,3}$/', $value) === 1 ? [] : ['Der Präfix besteht aus 1 bis 3 Buchstaben (ohne Ziffern und Sonderzeichen).'],
+            self::SIGNATURE => $this->signatureErrors($value),
             self::HOSTS => $this->hostErrors($value),
             self::PROMPT => $this->promptErrors($value),
             self::MODEL => is_string($value) && preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/', $value) === 1 ? [] : ['Ein Modellname besteht aus Buchstaben, Ziffern und . - _ : (höchstens 100 Zeichen).'],
@@ -194,6 +199,28 @@ final readonly class SettingGroup
         }
 
         return [array_values($byHost), $notes];
+    }
+
+    /**
+     * @return list<string>
+     */
+    /**
+     * @return list<string>
+     */
+    private function signatureErrors(mixed $value): array
+    {
+        if (! is_string($value) || mb_strlen($value) < 5 || mb_strlen($value) > $this->maxLength) {
+            return ["Die Signatur besteht aus 5 bis {$this->maxLength} Zeichen."];
+        }
+
+        preg_match_all('/\{([^{}]*)\}/u', $value, $found);
+        $unknown = array_values(array_unique(array_filter($found[1], fn (string $placeholder): bool => $placeholder !== 'Name')));
+
+        if ($unknown !== [] || preg_match('/[{}]/', (string) preg_replace('/\{Name\}/u', '', $value)) === 1) {
+            return ['Erlaubt ist nur der Platzhalter {Name}'.($unknown === [] ? '' : '; unbekannt: {'.implode('}, {', $unknown).'}').'.'];
+        }
+
+        return [];
     }
 
     /**

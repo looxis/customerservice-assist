@@ -186,7 +186,7 @@
                                     @if ($copy === null)
                                         <span class="text-slate-600" title="Nicht erfasst">–</span>
                                     @else
-                                        <x-badge compact :tone="match ($copy) { 'copied-unchanged' => 'success', 'copied-changed' => 'info', 'edited' => 'warning', default => 'neutral' }">{{ $overview::COPY_STATES[$copy] }}</x-badge>
+                                        <x-badge compact :tone="match ($copy) { 'copied-unchanged', 'sent-unchanged' => 'success', 'copied-changed', 'sent-changed' => 'info', 'edited' => 'warning', default => 'neutral' }">{{ $overview::COPY_STATES[$copy] }}</x-badge>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right align-top">

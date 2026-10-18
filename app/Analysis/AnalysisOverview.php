@@ -34,6 +34,8 @@ class AnalysisOverview
     public const array COPY_STATES = [
         'copied-unchanged' => 'Kopiert (unverändert)',
         'copied-changed' => 'Kopiert (angepasst)',
+        'sent-unchanged' => 'Gesendet (unverändert)',
+        'sent-changed' => 'Gesendet (angepasst)',
         'edited' => 'Bearbeitet, nicht kopiert',
         'not-copied' => 'Nicht kopiert',
     ];
@@ -110,7 +112,7 @@ class AnalysisOverview
     public function page(AnalysisFilter $filter, int $page = 1): LengthAwarePaginator
     {
         $rows = $this->query($filter)
-            ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'content_purged_at', 'content_deleted_at', 'rule_check', 'rule_check_at', 'router_status', 'router_additions', 'created_at'])
+            ->select(['id', 'uuid', 'ticket_number', 'scope_key', 'status', 'error', 'staff_name', 'test_until', 'customer_group', 'products', 'category', 'model', 'prompt_version', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'reply_sent_at', 'content_purged_at', 'content_deleted_at', 'rule_check', 'rule_check_at', 'router_status', 'router_additions', 'created_at'])
             ->withCount('gaps')
             ->orderByDesc('created_at')->orderByDesc('id')
             ->paginate(self::PER_PAGE, page: max(1, $page));
@@ -188,6 +190,7 @@ class AnalysisOverview
     {
         return match (true) {
             $analysis->status !== 'completed' => null,
+            $analysis->reply_sent_at !== null => $analysis->reply_copied_changed ? 'sent-changed' : 'sent-unchanged',
             $analysis->reply_copied_at !== null => $analysis->reply_copied_changed ? 'copied-changed' : 'copied-unchanged',
             $analysis->reply_edited_at !== null => 'edited',
             $analysis->created_at < CarbonImmutable::parse(config('analysis.reply_tracking_since')) => null,
@@ -249,8 +252,10 @@ class AnalysisOverview
         }
 
         match ($filter->copy) {
-            'copied-unchanged' => $query->whereNotNull('reply_copied_at')->where('reply_copied_changed', false),
-            'copied-changed' => $query->whereNotNull('reply_copied_at')->where('reply_copied_changed', true),
+            'copied-unchanged' => $query->whereNotNull('reply_copied_at')->whereNull('reply_sent_at')->where('reply_copied_changed', false),
+            'copied-changed' => $query->whereNotNull('reply_copied_at')->whereNull('reply_sent_at')->where('reply_copied_changed', true),
+            'sent-unchanged' => $query->whereNotNull('reply_sent_at')->where('reply_copied_changed', false),
+            'sent-changed' => $query->whereNotNull('reply_sent_at')->where('reply_copied_changed', true),
             'edited' => $query->whereNull('reply_copied_at')->whereNotNull('reply_edited_at'),
             'not-copied' => $query->where('status', 'completed')->whereNull('reply_copied_at')->whereNull('reply_edited_at')->where('created_at', '>=', config('analysis.reply_tracking_since')),
             default => null,

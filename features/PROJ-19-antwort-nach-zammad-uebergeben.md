@@ -1,8 +1,8 @@
 # PROJ-19: Antwort nach Zammad übergeben
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-02
-**Last Updated:** 2026-10-18 (Statistik ergänzt)
+**Last Updated:** 2026-10-18 (gebaut)
 
 ## Dependencies
 - Requires: PROJ-5 (Nutzerauswahl), PROJ-6 (Ticket und Verlauf aus Zammad), PROJ-9/10/11 (Vorschlag, Ergebnisansicht, Protokoll), PROJ-27 (Einstellungsseite für die Signatur-Vorlage).
@@ -226,6 +226,16 @@ Der gesendete Text wird nicht erneut gespeichert. Das Token wird nie gespeichert
 
 ### D) Abhängigkeiten
 Keine neuen Pakete.
+
+## Implementation Notes (2026-10-18)
+- **Neu:** `ZammadReplySender` (einziger Schreibzugriff: `users/me` zur Tokenprüfung, dann ein `PUT tickets/{id}` mit Status und angehängter E-Mail-Nachricht, danach Lesen der neuen Nachricht für die Artikel-ID), `ReplyProblem`/`ReplyException`/`OutgoingReply`/`SentReply`, `ReplyTarget` (Antwortadresse, Betreff, Bezugsnachricht und „neuere Nachrichten“ aus dem Ticket), `ReplyDelivery` (Angebot für die Oberfläche, Signatur mit vollem Namen, Erinnerungsdatum 8 Uhr), `SendReplyRequest`, `AnalysisController::sendReply` mit Route `tickets.analysis.send` (POST, Drosselung 10 je Minute), Migration mit `reply_send_started_at`, `reply_sent_at`, `reply_sent_by`, `reply_sent_zammad_user`, `reply_sent_subject`, `reply_sent_state`, `reply_sent_article_id`, Einstellungsart `SIGNATURE` und Gruppe `reply_signature` auf „Mail-Anzeige“ (nur der Platzhalter `{Name}`).
+- **Namensliste:** `config/staff.php` hat `full_names` und `zammad_tokens` (Umgebungsvariablen `ZAMMAD_TOKEN_CARA`, `_ETIENNE`, `_JOHANNES`, `_KERSTIN`, `_NELE`, `_THOMAS`; Werte trägst du selbst in der `.env` ein). Das Dropdown zeigt weiter die Vornamen, Cookies bleiben gültig.
+- **Oberfläche:** Der Block „Antwort versenden“ steht im Antwort-Editor (`reply-editor.blade.php`) unter den Knöpfen: An (schreibgeschützt), Betreff, Signatur (änderbar), Vorschau, Danach (Ticket schließen / Erinnerung in 1, 3 oder 7 Tagen), Warnung bei neuerer Nachricht mit „Trotzdem senden“, Fehlerhinweis, Hinweis auf Zammad. **Abweichung von der Spec:** Der Text wird nicht in einem zweiten Feld bearbeitet, sondern im Antwortentwurf darüber; der Block zeigt ihn mit der Signatur in der Vorschau. So gibt es genau eine Stelle für den Text, und die Signatur bleibt vom Textvergleich getrennt. Ohne Token steht nur der Hinweis „Bitte Token hinterlegen, dann ist ein Direktversand möglich“.
+- **Prüfung auf neuere Nachrichten:** Beim Analysieren wird jetzt `thread.newest_article_id` (neueste öffentliche Nachricht) gespeichert; ältere Vorschläge fallen auf `last_article_id` zurück. So löst eine Antwort, die ein Kollege nach der letzten Kundennachricht gegeben hat, die Warnung nur aus, wenn sie nach dem Vorschlag kam.
+- **Doppelversand:** `claimReplySend` setzt `reply_send_started_at` atomar. Läuft der Merker länger als 90 Sekunden ohne Ergebnis (unklarer Ausgang), prüft die App vor einem neuen Versuch, ob der Zammad-Benutzer seitdem eine öffentliche Antwort angelegt hat (`sentSince`): ja → als gesendet vermerkt, nein → Merker gelöst und Versand erlaubt.
+- **Statistik:** Das Senden setzt dieselben Felder wie das Kopieren (`reply_copied_*`, Vergleich ohne Signatur mit dem KI-Original) plus `reply_sent_*`. Die Analysen-Übersicht zeigt den Stand „Gesendet (unverändert/angepasst)“ mit eigenem Filter; die Filter „Kopiert …“ zeigen nur nicht gesendete Antworten; die Kennzahlen zählen beide. Die Ticket-Übersicht zeigt dieselben Stände.
+- **Tests:** `PROJ-19-SendReplyTest` (27 Tests: Angebot, Empfänger und Betreff, Senden mit Token, Status, Erinnerung, Prüfung der Eingaben, Markup, neuere Nachricht, Doppelversand, laufender Versand, Token abgelehnt, fehlende Rechte, unklarer Ausgang mit und ohne Antwort in Zammad, Token nirgends sichtbar, Statistik, Feedback-Frage, Signatur und Namensliste). Gesamtsuite grün.
+- **Offen für `/qa`:** Der echte Test gegen Zammad steht noch aus: ein Ein-Aufruf-Versand (`PUT tickets/{id}` mit angehängter Nachricht und Status) an einem Testticket mit einem echten Token, einmal mit „Ticket schließen“ und einmal mit „Erinnerung“, sowie ein Amazon-Ticket (Relay-Adresse). Erst danach ist bestätigt, dass Zammad die Nachricht als E-Mail im Verlauf zeigt und dass `ticket.agent` als Tokenrecht genügt. Browser-Sichttest des Blocks (Phone-Breite 375 px).
 
 ## QA Test Results
 _To be added by /qa_

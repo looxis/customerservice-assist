@@ -25,6 +25,8 @@ class TicketOverview
         'edited' => 'Bearbeitet, nicht kopiert',
         'copied-unchanged' => 'Kopiert (unverändert)',
         'copied-changed' => 'Kopiert (angepasst)',
+        'sent-unchanged' => 'Gesendet (unverändert)',
+        'sent-changed' => 'Gesendet (angepasst)',
     ];
 
     /**
@@ -57,7 +59,7 @@ class TicketOverview
             ->whereNull('test_until')
             ->where('status', 'completed')
             ->orderBy('id')
-            ->get(['id', 'ticket_number', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed'])
+            ->get(['id', 'ticket_number', 'feedback_level', 'reply_edited_at', 'reply_copied_at', 'reply_copied_changed', 'reply_sent_at'])
             ->groupBy('ticket_number');
         $translated = MessageTranslation::query()->where('status', '!=', 'german')->distinct()->pluck('ticket_number')->flip();
 
@@ -78,6 +80,7 @@ class TicketOverview
     private function stage(?Analysis $newest, bool $translated): string
     {
         return match (true) {
+            $newest?->reply_sent_at !== null => $newest->reply_copied_changed ? 'sent-changed' : 'sent-unchanged',
             $newest?->reply_copied_at !== null => $newest->reply_copied_changed ? 'copied-changed' : 'copied-unchanged',
             $newest?->reply_edited_at !== null => 'edited',
             $newest !== null => 'analyzed',

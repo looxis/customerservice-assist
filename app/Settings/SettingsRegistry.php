@@ -113,6 +113,7 @@ final class SettingsRegistry
 
         return self::$groups ??= collect([
             ...$groups,
+            new SettingGroup('reply_signature', 'mail', 'Signatur für Antworten', 'Wird beim Versenden einer Antwort aus der App unter den Antworttext gesetzt (PROJ-19). {Name} steht für den vollen Namen des Mitarbeiters. Der Mitarbeiter kann die Signatur vor dem Senden ändern. Zunächst nur auf Deutsch.', SettingGroup::SIGNATURE, fn (): string => "Mit freundlichen Grüßen\n{Name}\nLOOXIS GmbH", maxLength: 600),
             new SettingGroup('mail_hosts', 'mail', 'Zugelassene Adressen', 'Links zu diesen Adressen (samt Unterseiten wie www.) bleiben als Text sichtbar oder klickbar. Jeder andere Link wird durch „[Link entfernt]“ ersetzt. „*“ steht am Ende für eine Länderendung (.de, .it, .co.uk); klickbar gilt nur für https.', SettingGroup::HOSTS, fn (): array => MailDefaults::hosts()),
             new SettingGroup('mail_signatures', 'mail', 'Unsere Signaturen', 'Unsere eigenen Signaturen ohne Zammad-Markierung (z. B. bei Amazon), die am Ende unserer Nachrichten ausgeblendet werden. Eine Variante je Feld, mehrere Zeilen erlaubt.', SettingGroup::LINES, fn (): array => MailDefaults::signatures(), maxLength: 600),
             new SettingGroup('mail_footers', 'mail', 'Fußtexte', 'Ab diesem Text wird der Rest einer Mail als Fußbereich ausgeblendet (Groß-/Kleinschreibung und Zeilenumbrüche egal), z. B. der Hinweistext von Amazon.', SettingGroup::TEXTS, fn (): array => MailDefaults::footers(), minLength: 15),

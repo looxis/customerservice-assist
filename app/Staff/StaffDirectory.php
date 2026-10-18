@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class StaffDirectory
 {
     /**
-     * @param  array{names: list<string>, cookie: string, cookie_minutes: int, admins?: list<string>, test_mode_cookie?: string}  $config
+     * @param  array{names: list<string>, cookie: string, cookie_minutes: int, admins?: list<string>, test_mode_cookie?: string, full_names?: array<string, string>, zammad_tokens?: array<string, string|null>}  $config
      */
     public function __construct(private readonly array $config) {}
 
@@ -53,6 +53,24 @@ class StaffDirectory
     public function isAdmin(?string $name): bool
     {
         return $this->isListed($name) && in_array($name, $this->config['admins'] ?? [], true);
+    }
+
+    /**
+     * The full name for the signature of a reply (PROJ-19); the listed name when no full name is set.
+     */
+    public function fullName(string $name): string
+    {
+        return trim((string) ($this->config['full_names'][$name] ?? '')) ?: $name;
+    }
+
+    /**
+     * The personal Zammad token of a listed name (PROJ-19), or null. Never shown anywhere.
+     */
+    public function zammadToken(?string $name): ?string
+    {
+        $token = $name !== null && $this->isListed($name) ? ($this->config['zammad_tokens'][$name] ?? null) : null;
+
+        return is_string($token) && trim($token) !== '' ? trim($token) : null;
     }
 
     public function testModeCookieName(): string

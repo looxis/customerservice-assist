@@ -12,6 +12,7 @@ use App\Analysis\ContextVariant;
 use App\Analysis\QuestionNumber;
 use App\Analysis\RelatedContextBuilder;
 use App\Analysis\RelatedSection;
+use App\Analysis\ReplyDelivery;
 use App\Analysis\Summarizer;
 use App\Analysis\Summary;
 use App\Analysis\TicketContext;
@@ -21,6 +22,7 @@ use App\Eocs\EocsOrder;
 use App\Http\Requests\AnalyzeTicketRequest;
 use App\Http\Requests\DeleteAnalysesRequest;
 use App\Http\Requests\MarkReplyCopiedRequest;
+use App\Http\Requests\SendReplyRequest;
 use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
@@ -30,8 +32,13 @@ use App\ProductForge\ProductResolver;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\OrderMentionItem;
+use App\Zammad\OutgoingReply;
+use App\Zammad\ReplyException;
+use App\Zammad\ReplyProblem;
+use App\Zammad\ReplyTarget;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
+use App\Zammad\ZammadReplySender;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -267,6 +274,123 @@ class AnalysisController extends Controller
             'saved' => true,
             'edited' => $stored['reply_edit'] === null ? null : 'bearbeitet von '.$stored['reply_edit']['staff'].' am '.$now->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',
         ]);
+    }
+
+    /**
+     * Hand the reply to Zammad in the name of the chosen employee (PROJ-19). Counts for the statistics like a copy.
+     */
+    public function sendReply(string $number, string $analysis, SendReplyRequest $request, AnalysisStore $store, AnalysisPanel $panel, StaffDirectory $staff, ZammadClient $zammad, ZammadReplySender $sender, ReplyDelivery $delivery): JsonResponse
+    {
+        $stored = $store->result($analysis);
+        $name = $staff->current($request);
+
+        if ($stored === null || ($stored['ticket'] ?? null) !== $number) {
+            return response()->json(['message' => 'Dieser Vorschlag ist nicht mehr verfügbar.'], 404);
+        }
+
+        $sending = $store->replySending($analysis);
+
+        if ($sending === null || $sending['test'] || $store->latest((string) $stored['scope']) !== $analysis || ! is_array($stored['result']['reply'] ?? null)) {
+            return response()->json(['message' => 'Dieser Vorschlag kann nicht gesendet werden (Testlauf, älterer Vorschlag oder ohne Antwortentwurf).'], 409);
+        }
+
+        if ($sending['sent_at'] !== null) {
+            return response()->json(['message' => 'Diese Antwort wurde bereits gesendet.', 'code' => 'sent'], 409);
+        }
+
+        if ($name === null) {
+            return response()->json(['message' => 'Bitte zuerst deinen Namen wählen.'], 409);
+        }
+
+        $token = $staff->zammadToken($name);
+
+        if ($token === null) {
+            return response()->json(['message' => ReplyProblem::NoToken->message($name), 'code' => 'no_token'], 409);
+        }
+
+        if ($store->ruleCheckBlocksCopy($analysis)) {
+            return response()->json(['message' => 'Die Regelprüfung ist unvollständig und noch nicht bestätigt.'], 409);
+        }
+
+        try {
+            $ticket = $zammad->ticket($number);
+        } catch (ZammadException $exception) {
+            return response()->json(['message' => $exception->problem->message($number).' Die Antwort wurde nicht gesendet.'], 502);
+        }
+
+        try {
+            if ($sending['started'] !== null) {
+                if ($sending['started']->diffInSeconds(now()) < 90) {
+                    return response()->json(['message' => 'Der Versand läuft gerade. Bitte kurz warten.', 'code' => 'busy'], 409);
+                }
+
+                $earlier = $sender->sentSince($token, $ticket->id, $sending['started']);
+
+                if ($earlier !== null) {
+                    $store->markReplySent($analysis, $name, $earlier->zammadUser, (string) $request->validated('subject'), 'unbekannt', $earlier->articleId, $this->replyChanged($request, $panel, $stored));
+
+                    return response()->json(['message' => 'Die Antwort war bereits in Zammad angekommen.', 'code' => 'sent'], 409);
+                }
+
+                $store->releaseReplySend($analysis);
+            }
+        } catch (ReplyException $exception) {
+            return response()->json(['message' => $exception->problem->message($name)], 502);
+        }
+
+        // What the suggestion knew: the newest public message of the ticket at the time (older suggestions: the last one considered).
+        $lastSeen = $stored['thread']['newest_article_id'] ?? $stored['thread']['last_article_id'] ?? null;
+        $newer = ReplyTarget::newerThan($ticket, is_numeric($lastSeen) ? (int) $lastSeen : null);
+
+        if ($newer !== [] && ! $request->boolean('confirm_newer')) {
+            $latest = $newer[array_key_last($newer)];
+
+            return response()->json([
+                'message' => 'Seit dem Vorschlag gibt es eine neue Nachricht von '.$latest->senderName.' ('.$latest->createdAt->format('d.m.Y, H:i').' Uhr). Bitte lesen und entscheiden, ob die Antwort noch passt.',
+                'code' => 'newer',
+            ], 409);
+        }
+
+        $target = ReplyTarget::for($ticket);
+
+        if ($target === null) {
+            return response()->json(['message' => 'Zu diesem Ticket gibt es keine eindeutige Antwortadresse. Bitte in Zammad antworten.'], 409);
+        }
+
+        if (! $store->claimReplySend($analysis)) {
+            return response()->json(['message' => 'Diese Antwort wird gerade gesendet oder wurde bereits gesendet.', 'code' => 'busy'], 409);
+        }
+
+        $after = $request->validated('after');
+        $days = (int) $request->validated('days', 0);
+        $state = $after === 'close' ? 'closed' : 'pending reminder';
+        $subject = trim((string) $request->validated('subject'));
+        $body = trim((string) $request->validated('text'));
+        $signature = trim((string) $request->validated('signature', ''));
+
+        try {
+            $sent = $sender->send($token, new OutgoingReply($ticket->id, $target->to, $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'close' ? null : ReplyDelivery::reminderDate($days)));
+        } catch (ReplyException $exception) {
+            if ($exception->problem->notSent()) {
+                $store->releaseReplySend($analysis);
+            }
+
+            return response()->json(['message' => $exception->problem->message($name), 'code' => $exception->problem->value], 502);
+        }
+
+        $store->markReplySent($analysis, $name, $sent->zammadUser, $subject, $after === 'close' ? 'closed' : "pending reminder +{$days}d", $sent->articleId, $this->replyChanged($request, $panel, $stored));
+
+        return response()->json(['sent' => true, 'by' => $name, 'at' => now('Europe/Berlin')->format('d.m.Y \\u\\m H:i'), 'ticket_url' => $ticket->zammadUrl]);
+    }
+
+    /**
+     * Whether the text to send (without the signature) differs from the AI's original.
+     *
+     * @param  array<string, mixed>  $stored
+     */
+    private function replyChanged(SendReplyRequest $request, AnalysisPanel $panel, array $stored): bool
+    {
+        return trim((string) $request->validated('text')) !== trim($panel->originalReply($stored));
     }
 
     /**

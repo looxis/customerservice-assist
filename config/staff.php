@@ -16,6 +16,46 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Full Names (PROJ-19)
+    |--------------------------------------------------------------------------
+    |
+    | The dropdown shows the first name; the signature of a sent reply uses the
+    | full name.
+    |
+    */
+
+    'full_names' => [
+        'Cara' => 'Cara Barkhausen',
+        'Etienne' => 'Etienne Renaud',
+        'Johannes' => 'Johannes Renaud',
+        'Kerstin' => 'Kerstin Schmeckpeper',
+        'Nele' => 'Nele Gorka',
+        'Thomas' => 'Thomas Junski',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Zammad Tokens (PROJ-19)
+    |--------------------------------------------------------------------------
+    |
+    | Each employee's personal Zammad access token (profile > token access, right
+    | "ticket.agent"), so that a reply is sent in their own name. Without a token
+    | there is no "Antwort versenden", only "Kopieren". Replaced by the user
+    | administration (SSO) later.
+    |
+    */
+
+    'zammad_tokens' => [
+        'Cara' => env('ZAMMAD_TOKEN_CARA'),
+        'Etienne' => env('ZAMMAD_TOKEN_ETIENNE'),
+        'Johannes' => env('ZAMMAD_TOKEN_JOHANNES'),
+        'Kerstin' => env('ZAMMAD_TOKEN_KERSTIN'),
+        'Nele' => env('ZAMMAD_TOKEN_NELE'),
+        'Thomas' => env('ZAMMAD_TOKEN_THOMAS'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Remembered Choice
     |--------------------------------------------------------------------------
     |
