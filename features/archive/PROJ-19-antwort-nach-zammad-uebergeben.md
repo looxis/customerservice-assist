@@ -238,7 +238,7 @@ Keine neuen Pakete.
 - **Offen für `/qa`:** Der echte Test gegen Zammad steht noch aus: ein Ein-Aufruf-Versand (`PUT tickets/{id}` mit angehängter Nachricht und Status) an einem Testticket mit einem echten Token, einmal mit „Ticket schließen“ und einmal mit „Erinnerung“, sowie ein Amazon-Ticket (Relay-Adresse). Erst danach ist bestätigt, dass Zammad die Nachricht als E-Mail im Verlauf zeigt und dass `ticket.agent` als Tokenrecht genügt. Browser-Sichttest des Blocks (Phone-Breite 375 px).
 
 ## QA Test Results (2026-10-18)
-**Ergebnis: bereit (keine Critical-/High-Fehler), zwei offene Fehler mit niedriger bis mittlerer Schwere.**
+**Ergebnis: bereit (keine Critical-/High-Fehler). Die zwei gefundenen Fehler (B1, B2) sind behoben.**
 
 **Akzeptanzkriterien: 19 von 19 bestanden** (Tests `PROJ-19-SendReplyTest`, 32 Tests, dazu der echte Versand an einem Zammad-Ticket durch den Anwender).
 - Versandblock mit Empfänger, Betreff, Signatur mit vollem Namen, Auswahl „Danach“ und Hinweis auf Zammad: bestanden.
@@ -262,8 +262,10 @@ Keine neuen Pakete.
 **Fehler**
 | ID | Schwere | Beschreibung | Schritte |
 |----|---------|--------------|----------|
-| PROJ-19-B1 | Low–Medium | Zeilenumbrüche im Betreff werden unverändert an Zammad gegeben (mögliche Kopfzeilen-Einschleusung; ob Zammad sie bereinigt, ist nicht geprüft). Der Betreff sollte einzeilig sein. | Im Versandblock einen Betreff mit Zeilenumbruch senden (Test `a line break in the subject …`, als „todo“ vorgemerkt) |
-| PROJ-19-B2 | Medium | Die Seite „Über die App“ (`docs/ABOUT.md`) sagt weiter „Sie schickt keine Antwort an Kunden. Das machst immer du, in Zammad.“, im Ablauf „kopierst ihn mit einem Klick nach Zammad“ und im Beispiel „schickst sie in Zammad ab“. Das stimmt mit dem Direktversand nicht mehr. | Seite „Über die App“ öffnen, Abschnitte „Prüfen und anpassen“, „Ein Beispiel“, „Was die App bewusst nicht tut“ |
+| PROJ-19-B1 (behoben 2026-10-18) | Low–Medium | Zeilenumbrüche im Betreff werden unverändert an Zammad gegeben (mögliche Kopfzeilen-Einschleusung; ob Zammad sie bereinigt, ist nicht geprüft). Der Betreff sollte einzeilig sein. | Im Versandblock einen Betreff mit Zeilenumbruch senden (Test `a line break in the subject …`, als „todo“ vorgemerkt) |
+| PROJ-19-B2 (behoben 2026-10-18) | Medium | Die Seite „Über die App“ (`docs/ABOUT.md`) sagt weiter „Sie schickt keine Antwort an Kunden. Das machst immer du, in Zammad.“, im Ablauf „kopierst ihn mit einem Klick nach Zammad“ und im Beispiel „schickst sie in Zammad ab“. Das stimmt mit dem Direktversand nicht mehr. | Seite „Über die App“ öffnen, Abschnitte „Prüfen und anpassen“, „Ein Beispiel“, „Was die App bewusst nicht tut“ |
+
+**Behebung:** B1: Der Betreff darf keine Zeilenumbrüche oder Steuerzeichen enthalten (Prüfung in `SendReplyRequest`, Fehlermeldung an der Stelle, Test mit vier Fällen und einem gültigen Betreff mit Umlauten). B2: `docs/ABOUT.md` beschreibt den Versand aus der App (Ablauf Schritt 7 und 8, Beispiel, „Was die App bewusst nicht tut“: sie sendet nie von selbst, nur nach Klick); der Test der Seite (PROJ-25) erwartet den neuen Satz.
 
 **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Die Oberfläche hat der Anwender am echten Ticket benutzt.
 

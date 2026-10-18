@@ -82,7 +82,7 @@ describe('content of the real text', function () {
 
     test('the limits name sending, deciding and changing orders, refunds or credit notes', function () {
         $this->get(route('about'))
-            ->assertSeeText('schickt keine Antwort')
+            ->assertSeeText('schickt nie von selbst eine Antwort')
             ->assertSeeText('entscheidet nichts')
             ->assertSeeText('ändert keine Bestellungen')
             ->assertSeeText('Erstattungen, Gutschriften');

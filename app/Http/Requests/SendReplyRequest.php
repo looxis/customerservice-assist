@@ -22,7 +22,7 @@ class SendReplyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subject' => ['required', 'string', 'max:300'],
+            'subject' => ['required', 'string', 'max:300', 'regex:/^[^\x00-\x1F\x7F]*$/u'],
             'text' => ['required', 'string', 'max:'.config('analysis.max_reply_length')],
             'signature' => ['nullable', 'string', 'max:600'],
             'after' => ['required', Rule::in(['close', 'reminder'])],
@@ -35,6 +35,7 @@ class SendReplyRequest extends FormRequest
     {
         return [
             'subject.required' => 'Bitte einen Betreff eingeben.',
+            'subject.regex' => 'Der Betreff darf keine Zeilenumbrüche oder Steuerzeichen enthalten.',
             'text.required' => 'Der Antworttext ist leer.',
             'days.required_if' => 'Bitte 1, 3 oder 7 Tage wählen.',
         ];

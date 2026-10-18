@@ -256,7 +256,7 @@ describe('retention', function () {
 
 describe('about page', function () {
     test('step 8 is no longer marked as in progress', function () {
-        $this->get(route('about'))->assertSeeText('Nach dem Kopieren fragt die App kurz, wie brauchbar der Vorschlag war')->assertDontSee('about-wip', false);
+        $this->get(route('about'))->assertSeeText('Nach dem Kopieren oder Senden fragt die App kurz, wie brauchbar der Vorschlag war')->assertDontSee('about-wip', false);
     });
 });
 

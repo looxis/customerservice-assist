@@ -399,12 +399,14 @@ describe('QA: edges and attacks', function () {
         expect($this->putCalls)->toBe(0);
     });
 
-    test('a line break in the subject cannot add mail headers', function () {
+    test('a line break or control character in the subject is refused and nothing is sent', function () {
         $id = sendAnalysis();
 
-        sendReply($id, ['subject' => "Hallo\r\nBcc: fremd@example.org"]);
+        foreach (["Hallo\r\nBcc: fremd@example.org", "Hallo\nWelt", "Hallo\tWelt", "Hallo\0Welt"] as $subject) {
+            sendReply($id, ['subject' => $subject])->assertStatus(422)->assertJsonValidationErrors('subject');
+        }
 
-        $sentSubject = putRequests()[0]['article']['subject'] ?? '';
-        expect(str_contains($sentSubject, "\n") || str_contains($sentSubject, "\r"))->toBeFalse();
-    })->todo('QA-Fehler PROJ-19-B1: Zeilenumbrüche im Betreff werden unverändert an Zammad gegeben.');
+        sendReply($id, ['subject' => 'Re: Ärger mit „Umlauten“ – ok'])->assertOk();
+        expect(putRequests())->toHaveCount(1)->and(putRequests()[0]['article']['subject'])->toBe('Re: Ärger mit „Umlauten“ – ok');
+    });
 });
