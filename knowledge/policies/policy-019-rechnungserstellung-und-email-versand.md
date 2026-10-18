@@ -64,7 +64,7 @@ Gilt für alle Produkte und Kundenarten in den Kanälen looxis-de, fachhaendler,
 
 # Regel
 
-Mit Versand der Bestellung wird die Rechnung automatisch erzeugt und per E-Mail verschickt. Vor Versand wird für die Vorauszahlung keine gesonderte Rechnung erstellt.
+Nach Versand der Bestellung wird die Rechnung automatisch erzeugt und per E-Mail verschickt. Die vorherige Zahlungsbestätigung oder Freigabe löst noch keine Rechnungserstellung aus. Vor Versand wird für die Vorauszahlung keine gesonderte Rechnung erstellt.
 
 Bei Endverbrauchern, die einmalig oder erstmals bestellen, wird die E-Mail-Adresse aus der Bestellung verwendet. Bei Kunden mit Kundennummer wird eine hinterlegte „alternative Rechnungs Email“ verwendet; fehlt diese, gilt die hinterlegte Kunden- beziehungsweise Bestell-E-Mail-Adresse.
 
