@@ -47,6 +47,7 @@ After completing work on any feature, you MUST update tracking files. Follow thi
 - Bug fixes or design changes discovered during implementation
 
 **What to update in `features/INDEX.md`:**
+- The column "Last edited" holds the date of the last change to the feature's row or spec (set it to today whenever you edit either)
 - Feature status column must match the feature spec header
 - Valid statuses: Roadmap → Planned → Architected → In Progress → In Review → Approved → Deployed
   - **Roadmap**: after `/init` — feature identified, no spec file yet

@@ -52,7 +52,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Antwort direkt aus der App nach Zammad übergeben (Versand nur nach Klick, im Namen des Mitarbeiters) | Approved |
 | Automatische Analyse bei Ticket-Eingang | Roadmap |
 | Bildanalyse von Reklamationsfotos | Roadmap |
-| Semantisches Retrieval | Roadmap |
+| Semantisches Retrieval (RAG / Vektordatenbank), erst ab mehreren Hundert Wissensdokumenten sinnvoll | Zurückgestellt |
 | Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
 | Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
 | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
