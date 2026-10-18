@@ -44,12 +44,12 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Einstellungsseite: Grundlage und Mail-Anzeige (PROJ-27), danach Prompts und Modell (PROJ-31), Erkennungsregeln (PROJ-49), Kundengruppen/Kategorien/Vorgänge (PROJ-50, Spec geschrieben); ansehen für alle, ändern nur Admins, mit Verlauf | Approved |
 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
-| Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
+| Benutzerverwaltung und Anmeldung (kein eigenes Passwortsystem, später SSO) | Roadmap |
 | Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Approved |
 | Zweiter LLM-Anbieter zum Vergleich | Roadmap |
 | Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Approved |
 | Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Zurückgestellt |
-| Antwort direkt aus der App nach Zammad übergeben | Roadmap |
+| Antwort direkt aus der App nach Zammad übergeben (Versand nur nach Klick, im Namen des Mitarbeiters) | Planned |
 | Automatische Analyse bei Ticket-Eingang | Roadmap |
 | Bildanalyse von Reklamationsfotos | Roadmap |
 | Semantisches Retrieval | Roadmap |
@@ -82,7 +82,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **Knowledge-Aufbau:** parallel zur Entwicklung und entlang echter Fälle, nicht flächendeckend: zuerst wenige allgemeine Regeln, dann Produkt- und Reklamationsregeln zu ausgewählten echten Fällen, die direkt in der App gegengeprüft werden. Das Verfassen muss auch außerhalb dieses Repos mit einem KI-Chat möglich sein; Grundlage ist `docs/KNOWLEDGE_AUTHORING_GUIDE.md`.
 - **Tech-Stack:** unverändert aus dem Starter Kit (Laravel 13, Blade, Tailwind v4, Alpine.js, MySQL über Eloquent, Pest).
 - **Dev: Laravel Sail (Docker).** Alle Befehle über `./vendor/bin/sail ...`.
-- **No authentication im MVP.** Die App ist nur im internen Netz/VPN erreichbar, zusätzlich schützt ein gemeinsames Passwort vor der App (Webserver-Konfiguration, Umsetzung in `/deploy`). Eine vom Admin gesteuerte Benutzerverwaltung mit Benutzername und Passwort folgt als P1.
+- **No authentication im MVP.** Die App ist nur im internen Netz/VPN erreichbar, zusätzlich schützt ein gemeinsames Passwort vor der App (Webserver-Konfiguration, Umsetzung in `/deploy`). Eine Benutzerverwaltung folgt; ein eigenes Passwortsystem gibt es nicht, die Anmeldung soll später per SSO erfolgen (Details offen).
 - **Nutzererfassung im MVP:** fest hinterlegte Namensliste (Cara, Etienne, Johannes, Kerstin, Nele, Thomas), Auswahl einmal pro Browser per Dropdown, gewählter Nutzer dauerhaft in der UI sichtbar. Die Liste wandert mit der Benutzerverwaltung in die Datenbank.
 - **LLM:** Start mit OpenAI per API. Die App bleibt anbieterneutral, Modell und Anbieter müssen austauschbar und vergleichbar sein. Ticketinhalte mit Kundendaten gehen an den Anbieter; ein Auftragsverarbeitungsvertrag ist Voraussetzung.
 - **Knowledge Base:** Struktur fest nach `docs/KNOWLEDGE_BASE_DESIGN.md`, Ablage in `knowledge/` als Markdown mit YAML-Frontmatter, Git als Versionshistorie. Gold-Testfälle liegen getrennt in `evaluation/` und dienen nie als Retrieval-Wissen. Fachliche Regeln stehen nicht im Prompt.
@@ -94,7 +94,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **Qualitätsprinzipien:** kein Erfinden fehlender Fakten, „unklar / noch nicht entscheidbar" ist ein gewünschtes Ergebnis, jede Empfehlung verweist auf Knowledge-IDs, jede Analyse ist reproduzierbar protokolliert (Knowledge-Commit, Prompt-Version, Modell).
 
 ## Non-Goals
-- automatisches Versenden von Kundenantworten
+- automatisches Versenden von Kundenantworten (Versand nur durch ausdrücklichen Klick des Mitarbeiters, PROJ-19)
 - Ersatz von Zammad oder eine eigene gemeinsame Inbox
 - automatische Bearbeitung beim E-Mail-Eingang
 - automatische Änderungen an Bestellungen, Gutschriften, Erstattungen oder Ersatzaufträge
