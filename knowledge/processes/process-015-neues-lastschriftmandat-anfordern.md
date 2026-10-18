@@ -71,7 +71,7 @@ Das ausgefüllte und unterschriebene Mandat ist durch Kerstin in EOCS am Kunden 
 
 # Noch nicht entscheidbar wenn
 
-Der Grund der Umstellung ist nicht bekannt oder weist auf Zahlungsprobleme hin. Den Grund intern anhand der verfügbaren Kundenhistorie klären; dem Kunden keinen ungeprüften Zahlungsverzug oder eine Rücklastschrift unterstellen.
+Die Lastschriftentscheidung selbst ist offen, solange der Grund der Umstellung nicht bekannt ist oder auf Zahlungsprobleme hinweist. Das betrifft nur die Lastschrift: Die Antwort zur Zahlung einer bestehenden Bestellung (POLICY-043) wird davon nicht aufgeschoben. Ist die Vorlage bereits gesendet und im Verlauf keine Rücksendung dokumentiert, genügt die Erinnerung aus POLICY-041. Den Grund intern anhand der verfügbaren Kundenhistorie klären; dem Kunden keinen ungeprüften Zahlungsverzug oder eine Rücklastschrift unterstellen.
 
 # Noch zu klären
 

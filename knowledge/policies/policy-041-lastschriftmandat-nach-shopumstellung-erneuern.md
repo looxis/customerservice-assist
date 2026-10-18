@@ -46,13 +46,19 @@ Der Kundenservice sendet dem Kunden die vorhandene Mandatsvorlage als PDF. Der K
 
 Die Umstellung wegen eines bei der Shopumstellung als ungültig festgestellten alten Mandats ist von einer Umstellung nach Zahlungsproblemen, Mahnungen oder Rücklastschriften zu unterscheiden. Für den zweiten Fall ergibt sich aus dieser Policy keine automatische Rückkehr zur Lastschrift.
 
-Der bloße Hinweis eines Kunden, früher ein Mandat erteilt zu haben, klärt den Grund der Umstellung noch nicht.
+Der bloße Hinweis eines Kunden, früher ein Mandat erteilt zu haben, klärt den Grund der Umstellung noch nicht. Auch dass eine frühere Mail Rücklastschriften als möglichen Grund nennt, belegt diesen Grund beim konkreten Kunden nicht.
+
+Für eine Rückkehr zur Lastschrift nach Zahlungsproblemen gibt es noch keine abschließenden Freigabekriterien; weder zusagen noch ablehnen.
+
+Die Entscheidung zur Lastschrift ist von der Zahlung einer bestehenden Bestellung getrennt. Die bestehende Bestellung kann unabhängig davon bezahlt werden (siehe POLICY-043); eine offene Lastschriftentscheidung blockiert die Antwort dazu nicht.
 
 # Kommunikation
 
 „Wenn Ihr bisheriges Mandat bei der Shopumstellung als nicht mehr gültig festgestellt wurde, können Sie uns ein neues Lastschriftmandat erteilen. Wir senden Ihnen dazu die Vorlage als PDF. Bitte füllen Sie diese aus, unterschreiben Sie sie und senden Sie uns anschließend einen Scan oder ein gut lesbares Foto zurück.“
 
 Nur beim tatsächlichen Versand der PDF auf einen beigefügten Anhang verweisen.
+
+Wurde die Vorlage schon gesendet und ist im vorliegenden Verlauf keine Rücksendung dokumentiert, folgt daraus nur, dass keine Rücksendung dokumentiert ist, nicht dass keine erfolgt ist. Erinnerung: „Falls Sie uns das ausgefüllte und unterschriebene Mandat noch nicht zurückgesandt haben, holen Sie dies bitte nach.“
 
 # Zuständigkeit und Reihenfolge
 

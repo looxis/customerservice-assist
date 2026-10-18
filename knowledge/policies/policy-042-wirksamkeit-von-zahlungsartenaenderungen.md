@@ -34,6 +34,8 @@ triggers:
   - bereits bestellt
   - offene Bestellung
 related_knowledge:
+  - POLICY-041
+  - POLICY-043
 ---
 
 Gilt produktübergreifend für die Vertriebskanäle looxis-de, fachhaendler und looxis-pro.
@@ -48,7 +50,7 @@ Die Änderung gilt ausschließlich für Bestellungen, die ab diesem wirksamen Ä
 
 Frühere Bestellungen werden über die Zahlungsart abgewickelt, die zum Zeitpunkt der jeweiligen Bestellung im Shop am Kundenkonto eingestellt war. Dies ist die für die betriebliche Abwicklung maßgebliche vereinbarte Zahlungsart, auch wenn der Kunde mit ihr nicht einverstanden war.
 
-Eine spätere Umstellung auf Lastschrift, Rechnung oder Mollie ändert die Zahlungsart einer früheren Bestellung nicht. Daraus folgt auch keine automatische Freigabe einer bereits offenen Bestellung.
+Eine spätere Umstellung auf Lastschrift, Rechnung oder Mollie ändert die Zahlungsart einer früheren Bestellung nicht. Daraus folgt auch keine automatische Freigabe einer bereits offenen Bestellung. Eine offene Mollie-Bestellung kann unabhängig davon bezahlt werden, auch per klassischer SEPA-Überweisung über Mollie; das ist kein Wechsel der Zahlungsabwicklung (siehe POLICY-043).
 
 # Vorgehen
 
