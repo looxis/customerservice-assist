@@ -34,7 +34,7 @@
 - Bestelldaten von Hand ergänzen, wenn EOCS nichts liefert – PROJ-8.
 - Übergabe der Bestelldaten an die Analyse – PROJ-9.
 - Speichern der gewählten Bestellungen zum Ticket – PROJ-11 (bis dahin steht die Auswahl in der Adresse der Ticketseite).
-- Item-API (Produktdetails) – für PROJ-7 nicht nötig (siehe `docs/eocs-items-api.md`); API-Beschreibung der Bestellungen in `docs/orders-api.md`.
+- Item-API (Produktdetails) – für PROJ-7 nicht nötig (siehe `docs/items-api.md`); API-Beschreibung der Bestellungen in `docs/orders-api.md`.
 - Änderungen an Bestellungen in EOCS (Non-Goal).
 
 ## Acceptance Criteria
@@ -105,7 +105,7 @@
 - [x] Felder von `GET /api/v1/orders?filter[external_order_id]=…&include=shipments`: `data[]` mit `id`, `external_order_id`, `order_date`, `production_release`, `status`, `status_name`, `state{name,color}`, `client{name, sales_platform{name}}`, `invoice{document_number}`, `shipping{…Adresse}`, `billing{…}`, `shipments.data[]{carrier{name}, tracking_no, shipping_method{name}, created_at, delivered}` (Beispiel vom Product Owner, 2026-10-05).
 - [x] Adresse in EOCS: `https://eocs.loox.is/orders/{ID}`, die ID ist die interne Bestellnummer (z. B. looxis.fr-Bestellung `700411247` → `https://eocs.loox.is/orders/756743`) (Klärung 2026-10-05).
 - [x] masterpics: neue Kundengruppe „White-Label-Kunde, masterpics" mit Kundenart `b2b-whitelabel` und Kanal `masterpics`; in PROJ-4 und im Authoring Guide ergänzt (2026-10-05).
-- [x] Item-API (`docs/eocs-items-api.md`) geprüft: liefert Produkt-Stammdaten (Name, Artikelnummer, GTIN, Produktgruppe/-art, individualisiert), keine Bestellpositionen. Für PROJ-7 nicht nötig; später nützlich, um das Knowledge-Produkt aus Produktgruppe/-art vorzuschlagen (PROJ-4). Auth: Sanctum-Bearer-Token.
+- [x] Item-API (`docs/items-api.md`) geprüft: liefert Produkt-Stammdaten (Name, Artikelnummer, GTIN, Produktgruppe/-art, individualisiert), keine Bestellpositionen. Für PROJ-7 nicht nötig; später nützlich, um das Knowledge-Produkt aus Produktgruppe/-art vorzuschlagen (PROJ-4). Auth: Sanctum-Bearer-Token.
 - [ ] Was soll später kompakt im Ticketkopf stehen (Produkte, Personalisierung, Versand, Adressen)? Festlegen, wenn die echten EOCS-Daten bekannt sind.
 
 ## Decision Log

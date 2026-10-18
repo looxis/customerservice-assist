@@ -108,6 +108,8 @@ Fuer sensible oder groessere Relationen sind zusaetzliche Abilities erforderlich
 | `parts` | `items:relations` |
 | `parents` | `items:relations` |
 | `master_products` | `items:relations` |
+| `variants` | `items:relations` |
+| `master_products.variants` | `items:relations` |
 | `salesChannels` | `items:relations` |
 | `orderItems` | `items:relations` |
 
@@ -116,6 +118,39 @@ Mehrere Includes werden kommasepariert angegeben:
 ```http
 GET /api/v1/items?include=tags,depots,master_products
 ```
+
+### Master-Produkte und Varianten
+
+Jedes Item enthaelt das boolesche Kennzeichen `is_master`, auch ohne Include.
+Es bezeichnet die Master-Rolle des Items, nicht seine fachliche Produktart:
+Ein Master kann weiterhin beispielsweise `product_type.name = "Aufleger"` haben.
+`parts` und `parents` sind Stuecklisten-Beziehungen und keine Varianten-Beziehungen.
+
+Die Richtung Variante → Master liefert `master_products`. Die Rueckrichtung
+Master → Varianten liefert `variants`, jeweils als Array von Item-Ressourcen
+mit interner `id`, SKU (`item_id`), Namen und Beschreibungen:
+
+```http
+GET /api/v1/items/1625?include=variants
+```
+
+Fuer „Essbares Foto, Rund“ sind darin die zugeordneten Varianten 496 (SKU 11235),
+1528 (SKU 11747) und 1529 (SKU 11748) enthalten, sofern sie aktiv und veroeffentlicht sind.
+Wie in der API-Liste werden deaktivierte und unveroeffentlichte Varianten nicht ausgegeben.
+Ohne Include fehlt das Feld `variants`; ohne sichtbare Varianten ist es ein leeres Array.
+Das Include funktioniert auch auf der paginierten Liste.
+
+Ein Import, der bereits eine einzelne Variante gefunden hat, kann deren Master
+und alle sichtbaren Geschwister in einem Request laden:
+
+```http
+GET /api/v1/items/1528?include=master_products.variants
+```
+
+Die Geschwister stehen unter `data.master_products[*].variants`; die angefragte
+Variante selbst ist dort ebenfalls enthalten. Alle genannten Includes erfordern
+`items:relations` zusaetzlich zu `items:read`. Ein Listen-Filter
+`filter[master_products]` ist nicht implementiert; fuer diesen Ablauf sind die Includes vorgesehen.
 
 ## Item aktualisieren
 
@@ -158,6 +193,6 @@ Ein leerer Request-Body wird mit `422 Unprocessable Entity` abgelehnt.
 | `items:inventory` | `depots` und `inventoryItems` laden |
 | `items:prices` | `priceListItems` laden |
 | `items:suppliers` | `suppliers` laden |
-| `items:relations` | Teile, Eltern, Sales Channels und Order Items laden |
+| `items:relations` | Teile, Eltern, Master-Produkte, Varianten, Sales Channels und Order Items laden |
 
 Ohne Authentifizierung antwortet die API mit `401 Unauthorized`. Fehlt eine erforderliche Ability, antwortet sie mit `403 Forbidden`.

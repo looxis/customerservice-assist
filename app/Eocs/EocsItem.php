@@ -6,7 +6,7 @@ use Carbon\CarbonImmutable;
 use Throwable;
 
 /**
- * An item (product master data) of EOCS (docs/eocs-items-api.md). Its number "item_id" is the SKU that
+ * An item (product master data) of EOCS (docs/items-api.md). Its number "item_id" is the SKU that
  * ProductForge takes over. Only used when a product is not yet maintained in ProductForge: description
  * and bullet points ("short_description") are all the app takes from here.
  */

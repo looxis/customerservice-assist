@@ -1,6 +1,6 @@
 # Orders API (EOCS)
 
-Lesender Zugriff auf Bestellungen in EOCS, wie ihn Customer Service Assist nutzt (PROJ-7). Stand: Tests gegen `https://eocs.loox.is` am 2026-10-05. Ergänzt die [Items API](eocs-items-api.md).
+Lesender Zugriff auf Bestellungen in EOCS, wie ihn Customer Service Assist nutzt (PROJ-7). Stand: Tests gegen `https://eocs.loox.is` am 2026-10-05. Ergänzt die [Items API](items-api.md).
 
 Die API ist nur aus dem internen Netz erreichbar.
 

@@ -284,7 +284,7 @@ function forgeRequests(): int
 }
 
 /**
- * An item of the EOCS items API (docs/eocs-items-api.md) as far as the app reads it.
+ * An item of the EOCS items API (docs/items-api.md) as far as the app reads it.
  *
  * @return array<string, mixed>
  */
