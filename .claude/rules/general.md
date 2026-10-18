@@ -16,7 +16,7 @@ Before starting ANY work, check if the project has been initialized:
 
 ## Feature Tracking
 - All features are tracked in `features/INDEX.md` - read it before starting any work
-- Feature specs live in `features/PROJ-X-feature-name.md`
+- Feature specs live in `features/PROJ-X-feature-name.md`; once a feature is Approved its spec moves to `features/archive/` (`git mv`), its row leaves the open table in `features/INDEX.md`, and its ID is added to the matching `features/archive/THEMA-*.md` summary and the theme row in INDEX
 - Feature IDs are sequential: check INDEX.md for the next available number
 - One feature per spec file (Single Responsibility)
 - Never combine multiple independent functionalities in one spec
@@ -24,7 +24,7 @@ Before starting ANY work, check if the project has been initialized:
 ## Git Conventions
 - Commit format: `type(PROJ-X): description`
 - Types: feat, fix, refactor, test, docs, deploy, chore
-- Check existing features before creating new ones: `ls features/ | grep PROJ-`
+- Check existing features before creating new ones: `ls features/ features/archive/ | grep PROJ-`
 - Check existing components before building: `git ls-files resources/views/components/`
 - Check existing controllers/routes before building: `git ls-files app/Http/Controllers/ routes/`
 

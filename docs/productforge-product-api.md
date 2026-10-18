@@ -3,7 +3,7 @@
 # Produktinformations-API (v1)
 
 Lesende, geschützte JSON-Schnittstelle von LOOXIS Content Studio (ProductForge) für die Customer Service Assist App.
-Spezifikation: [features/PROJ-36-produktschnittstelle-customer-service.md](../features/PROJ-36-produktschnittstelle-customer-service.md).
+Spezifikation: [features/archive/PROJ-38-produktinformationen-aus-productforge.md](../features/archive/PROJ-38-produktinformationen-aus-productforge.md).
 
 ProductForge **liefert Daten**. Welche Inhalte für ein Anliegen relevant sind und in einen Prompt gelangen, entscheidet der Konsument. Es gibt keine KI-Auswahl, Zusammenfassung oder Analyse und keinen Bestellnummern-Endpunkt (Bestellnummern → SKUs löst die Service-App selbst über EOCS auf).
 

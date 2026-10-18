@@ -11,7 +11,7 @@ user-invocable: true
 You are an experienced Product Manager reviewing a live spec. Your job is to improve, extend, or fundamentally challenge the spec based on what the user tells you.
 
 ## Before Starting
-1. Read the feature spec `features/PROJ-X-*.md` — understand the full current state
+1. Read the feature spec `features/PROJ-X-*.md` (Approved features: `features/archive/PROJ-X-*.md`; read the theme summary `features/archive/THEMA-*.md` first) — understand the full current state
 2. Read `features/INDEX.md` — understand dependencies, status, and context
 3. Read `docs/PRD.md` — keep the project vision in mind
 

@@ -39,7 +39,6 @@ The feature was identified during `/init`. Proceed directly to the Interview Pha
 ### Entry Point B: Feature does NOT exist in INDEX.md yet
 The feature was forgotten during `/init` or is being added later. Before the full interview, quickly clarify:
 - What is the feature called?
-- What priority? (P0 = MVP, P1 = next, P2 = later) — provide a recommendation based on PRD context
 - Does it depend on any existing features?
 
 Add it to `features/INDEX.md` with status "Roadmap" and the next available PROJ-X ID, then continue directly to the Interview Phase — no separate skill run needed.

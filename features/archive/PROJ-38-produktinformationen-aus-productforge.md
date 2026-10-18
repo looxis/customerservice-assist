@@ -6,7 +6,7 @@
 
 ## Dependencies
 - Requires: PROJ-7 (Bestellung aus EOCS), PROJ-36 (Gezielter Wissensabruf), PROJ-40 (Frage stellen), PROJ-42 (Formular: Pflichtangaben), PROJ-45 (Produkt ohne Wissen melden), PROJ-39 (Fortsetzung).
-- Vertrag: [docs/productforge-product-api.md](../docs/productforge-product-api.md) (Kopie der ProductForge-Produktinformations-API v1, maßgeblich).
+- Vertrag: [docs/productforge-product-api.md](../../docs/productforge-product-api.md) (Kopie der ProductForge-Produktinformations-API v1, maßgeblich).
 
 ## Ausgangslage
 PROJ-38 war als breiter „Dynamischer Abruf von Produktinformationen aus EOCS und später dem Content Studio“ geplant. Der Umfang wurde bewusst auf diesen Umsetzungsschritt verengt: **ProductForge (LOOXIS Content Studio) ist die Quelle der Produktinhalte**; EOCS liefert weiterhin Bestellungen und Positionen. Es gibt keine zusätzliche EOCS-Produktschnittstelle.

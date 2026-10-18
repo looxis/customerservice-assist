@@ -55,7 +55,7 @@ Ask:
 > My recommendation: Yes if users need private data. We'll use Laravel Fortify for the auth backend (login, registration, password reset, optional 2FA) with our own Blade + Alpine views — the same foundation Laravel's official starter kits use.
 
 **If authentication is needed:**
-- Add **"Laravel Authentication Setup"** as **PROJ-1, P0** in the feature map
+- Add **"Laravel Authentication Setup"** as **PROJ-1** in the feature map
 - All features that require a logged-in user must list PROJ-1 as a dependency
 - This feature covers: `./vendor/bin/sail composer require laravel/fortify`, `./vendor/bin/sail artisan fortify:install`, running migrations, Blade views for the Fortify routes (login, register, password reset), and auth middleware
 - Do NOT use Laravel Breeze — it is no longer part of the current Laravel documentation
@@ -87,7 +87,7 @@ Ask:
 Once you have a complete understanding, write `docs/PRD.md` with:
 - **Vision:** 2-3 sentences — what it is and why it matters
 - **Target Users:** Who they are, their specific needs and pain points
-- **Core Features (Roadmap):** Prioritized table (P0 = MVP, P1 = next, P2 = later)
+- **Core Features (Roadmap):** table of features with status
 - **Success Metrics:** Measurable outcomes
 - **Constraints:** Timeline, team, budget, technical limitations (including local dev choice)
 - **Non-Goals:** What will NOT be built in this version
@@ -100,13 +100,11 @@ Apply Single Responsibility to break the roadmap into individual features:
 - Each feature = ONE testable, deployable unit
 - Identify dependencies between features
 - Assign recommended build order (respecting dependencies)
-- Assign priority: P0 = MVP, P1 = next, P2 = later
 
 **What each feature entry in `features/INDEX.md` contains:**
 - Feature ID (PROJ-1, PROJ-2, ...)
 - Feature name
 - One-line description
-- Priority (P0/P1/P2)
 - Dependencies (which other features it needs, or "None")
 - Status: Roadmap
 
@@ -125,7 +123,7 @@ Apply feedback, then update `features/INDEX.md` and the "Next Available ID" line
 - [ ] PRD fully filled out (Vision, Target Users, Roadmap, Metrics, Constraints, Non-Goals)
 - [ ] Backend decision resolved (MySQL + Laravel Eloquent confirmed)
 - [ ] Authentication decision resolved
-- [ ] If auth needed: "Laravel Authentication Setup" added as PROJ-1, P0
+- [ ] If auth needed: "Laravel Authentication Setup" added as PROJ-1
 - [ ] If auth needed: all features requiring logged-in users list PROJ-1 as dependency
 - [ ] If no auth: noted "No authentication — public app" in PRD Constraints
 - [ ] "Dev: Laravel Sail (Docker)" noted in PRD Constraints

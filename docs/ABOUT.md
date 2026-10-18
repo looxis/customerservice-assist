@@ -115,7 +115,7 @@ Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für 
 
 ## Arbeitsweise
 
-- Jedes Feature hat eine Spec in `features/PROJ-X-*.md`; Übersicht und Status in `features/INDEX.md`.
+- Jedes Feature hat eine Spec in `features/PROJ-X-*.md` (abgeschlossene in `features/archive/`, dort je Thema eine Zusammenfassung); Übersicht und Status in `features/INDEX.md`.
 - Ablauf mit Skills: `/write-spec` → `/architecture` → `/frontend` → `/backend` → `/qa` → `/deploy`. Jeder Schritt hat eine Freigabe durch einen Menschen.
 - Commits direkt auf `main` im Format `feat(PROJ-X): …`, `fix(PROJ-X): …`.
 - Wird ein Schritt im Abschnitt „So funktioniert es" nutzbar, entfernt die Abnahme (`/qa`) dort die Kennung `[in Arbeit]` in `docs/ABOUT.md`.

@@ -18,54 +18,54 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 
 ## Core Features (Roadmap)
 
-| Priority | Feature | Status |
-|----------|---------|--------|
-| P0 (MVP) | App-Grundgerüst mit LOOXIS-Design (Layout, Basis-Komponenten) | Approved |
-| P0 (MVP) | Knowledge-Authoring-Kit (Ordnerstruktur, Vorlagen, Anleitung, KI-Skill) | Approved |
-| P0 (MVP) | Knowledge Base einlesen und prüfen (Frontmatter validieren, Prüfbefehl, ID-Übersicht) | Approved |
-| P0 (MVP) | Knowledge-Übersicht (Seite mit Dokumenten, Prüfergebnis, ID-Übersicht zum Kopieren) | Approved |
-| P0 (MVP) | Deterministische Knowledge-Auswahl | Approved |
-| P0 (MVP) | Seite „Über die App“ (Ziel, Ablauf, Grenzen, Stand, Entwicklerteil) | Approved |
-| P0 (MVP) | Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Approved |
-| P0 (MVP) | Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Approved |
-| P0 (MVP) | Bestellung aus EOCS laden (automatische Erkennung, manuelle Bestellnummer) | Approved |
-| P0 (MVP) | Bestelldaten manuell ergänzen (Fallback) – aufgegangen in der Fallanalyse | Approved |
-| P0 (MVP) | Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | Approved |
-| P0 (MVP) | Ergebnisansicht mit bearbeitbarem Antwortentwurf, Kopieren und einsehbaren Quellen | Approved |
-| P0 (MVP) | Analyse-Protokoll und Verlauf je Ticket | Approved |
-| P0 (MVP) | Feedback und Wissenslücke melden | Approved |
-| P0 (MVP) | Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Approved |
-| P0 (MVP) | Interne Arbeitsabläufe zum Fall (Dokumenttyp `procedure`, Vorschläge nach der Analyse) | Approved |
-| P0 (MVP) | Testmodus für Admins: beantwortete Tickets auf einen früheren Stand zurückspulen | Approved |
-| P0 (MVP) | Produktvorschlag aus Kundenbegriffen (frühere Namen, Synonyme im Tickettext erkennen) | Approved |
-| P1 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
-| P1 | Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
-| P1 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Approved |
-| P1 | Einstellungsseite: Grundlage und Mail-Anzeige (PROJ-27), danach Prompts und Modell (PROJ-31), Erkennungsregeln (PROJ-49), Kundengruppen/Kategorien/Vorgänge (PROJ-50, Spec geschrieben); ansehen für alle, ändern nur Admins, mit Verlauf | Approved |
-| P2 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
-| – | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
-| P1 | Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
-| P1 | Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Approved |
-| P1 | Zweiter LLM-Anbieter zum Vergleich | Roadmap |
-| P1 | Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Approved |
-| P2 | Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Zurückgestellt |
-| P2 | Antwort direkt aus der App nach Zammad übergeben | Roadmap |
-| P2 | Automatische Analyse bei Ticket-Eingang | Roadmap |
-| P2 | Bildanalyse von Reklamationsfotos | Roadmap |
-| P2 | Semantisches Retrieval | Roadmap |
-| P2 | Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
-| – | Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
-| – | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
-| – | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | Approved |
-| – | Produktinformationen aus ProductForge (LOOXIS Content Studio) abrufen: Datenblattfelder und Kundenservice-Wissen je Produkt, Produktsuche, Zuordnung zur Bestellposition (statt Markdown-Dateien für alle Produktdetails) | Approved |
-| – | Aufgabenteilung Produktfakten (ProductForge) und Regeln (`/knowledge`) im Formular, bei Hinweisen und Wissenslücken | Roadmap |
-| – | Produktwissen aus `knowledge/products/` nach ProductForge migrieren (Produktfakten raus, Regeln bleiben) | Roadmap |
-| – | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
-| P1 | Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | Approved |
-| – | Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | Approved |
-| – | Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | Approved |
-| – | Sichtbar machen, welches Wissen wegen Produkt oder Kundengruppe nicht geprüft wurde | Approved |
-| – | Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | Approved |
+| Feature | Status |
+|---------|--------|
+| App-Grundgerüst mit LOOXIS-Design (Layout, Basis-Komponenten) | Approved |
+| Knowledge-Authoring-Kit (Ordnerstruktur, Vorlagen, Anleitung, KI-Skill) | Approved |
+| Knowledge Base einlesen und prüfen (Frontmatter validieren, Prüfbefehl, ID-Übersicht) | Approved |
+| Knowledge-Übersicht (Seite mit Dokumenten, Prüfergebnis, ID-Übersicht zum Kopieren) | Approved |
+| Deterministische Knowledge-Auswahl | Approved |
+| Seite „Über die App“ (Ziel, Ablauf, Grenzen, Stand, Entwicklerteil) | Approved |
+| Nutzerauswahl (Dropdown, feste Namensliste, einmal pro Browser, dauerhaft sichtbar) | Approved |
+| Zammad-Ticket per Ticketnummer laden und Verlauf anzeigen | Approved |
+| Bestellung aus EOCS laden (automatische Erkennung, manuelle Bestellnummer) | Approved |
+| Bestelldaten manuell ergänzen (Fallback) – aufgegangen in der Fallanalyse | Approved |
+| Fallanalyse per LLM mit Mitarbeiterkontext und fester Ergebnisstruktur | Approved |
+| Ergebnisansicht mit bearbeitbarem Antwortentwurf, Kopieren und einsehbaren Quellen | Approved |
+| Analyse-Protokoll und Verlauf je Ticket | Approved |
+| Feedback und Wissenslücke melden | Approved |
+| Übersetzung fremdsprachiger Nachrichten ins Deutsche, einmal erstellt und gespeichert | Approved |
+| Interne Arbeitsabläufe zum Fall (Dokumenttyp `procedure`, Vorschläge nach der Analyse) | Approved |
+| Testmodus für Admins: beantwortete Tickets auf einen früheren Stand zurückspulen | Approved |
+| Produktvorschlag aus Kundenbegriffen (frühere Namen, Synonyme im Tickettext erkennen) | Approved |
+| Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
+| Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
+| Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Approved |
+| Einstellungsseite: Grundlage und Mail-Anzeige (PROJ-27), danach Prompts und Modell (PROJ-31), Erkennungsregeln (PROJ-49), Kundengruppen/Kategorien/Vorgänge (PROJ-50, Spec geschrieben); ansehen für alle, ändern nur Admins, mit Verlauf | Approved |
+| Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
+| Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
+| Benutzerverwaltung mit Login (vom Admin gesteuert) | Roadmap |
+| Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Approved |
+| Zweiter LLM-Anbieter zum Vergleich | Roadmap |
+| Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Approved |
+| Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Zurückgestellt |
+| Antwort direkt aus der App nach Zammad übergeben | Roadmap |
+| Automatische Analyse bei Ticket-Eingang | Roadmap |
+| Bildanalyse von Reklamationsfotos | Roadmap |
+| Semantisches Retrieval | Roadmap |
+| Angebotskalkulation (Preislisten, Staffeln, Berechnung durch die App) | Roadmap |
+| Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
+| Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
+| Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | Approved |
+| Produktinformationen aus ProductForge (LOOXIS Content Studio) abrufen: Datenblattfelder und Kundenservice-Wissen je Produkt, Produktsuche, Zuordnung zur Bestellposition (statt Markdown-Dateien für alle Produktdetails) | Approved |
+| Aufgabenteilung Produktfakten (ProductForge) und Regeln (`/knowledge`) im Formular, bei Hinweisen und Wissenslücken | Roadmap |
+| Produktwissen aus `knowledge/products/` nach ProductForge migrieren (Produktfakten raus, Regeln bleiben) | Roadmap |
+| Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
+| Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | Approved |
+| Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | Approved |
+| Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | Approved |
+| Sichtbar machen, welches Wissen wegen Produkt oder Kundengruppe nicht geprüft wurde | Approved |
+| Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
