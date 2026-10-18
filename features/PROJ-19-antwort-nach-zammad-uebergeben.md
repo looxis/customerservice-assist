@@ -1,6 +1,6 @@
 # PROJ-19: Antwort nach Zammad übergeben
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-02
 **Last Updated:** 2026-10-18 (Statistik ergänzt)
 
@@ -118,9 +118,9 @@ Das Senden wird für die Statistik genauso erfasst wie bisher der Klick auf „K
 
 ## Open Questions
 - [ ] Soll die Signatur bei fremdsprachigen Antworten (Italienisch, Französisch usw.) eine Fassung in der Sprache des Kunden haben? Vorschlag: zunächst nur Deutsch, später je Sprache.
-- [ ] Wo steht die Signatur-Vorlage auf der Einstellungsseite? Vorschlag: neue Gruppe „Signatur für Antworten“ auf der Unterseite „Mail-Anzeige“ (oder eigene Unterseite „Antworten“); im Architekturschritt festlegen.
-- [ ] Wie wird die Antwort in Zammad technisch angelegt (Artikeltyp E-Mail, Kopfzeilen für die Zuordnung zum Verlauf, Text als Plain-Text)? Das klärt `/architecture` an der Zammad-Schnittstelle, ohne zu senden; ein echter Test erst nach Freigabe in einem Testticket.
-- [ ] Welche Rechte braucht das Token mindestens? Vorschlag: nur Tickets ändern; im Architekturschritt gegen Zammad prüfen.
+- [x] Wo steht die Signatur-Vorlage auf der Einstellungsseite? Entschieden im Architekturschritt: neue Gruppe „Signatur für Antworten“ auf der Unterseite „Mail-Anzeige“.
+- [x] Wie wird die Antwort in Zammad technisch angelegt? Entschieden im Architekturschritt (siehe Tech Design): ein einziger Aufruf, der das Ticket ändert und die Antwort als E-Mail-Nachricht anlegt. Die Bestätigung an einem Testticket steht als Aufgabe am Beginn der Umsetzung.
+- [ ] Welche Rechte braucht das Token mindestens? Erwartung: das Recht „Tickets ändern“ (`ticket.agent`) plus Zugriff auf die Gruppe des Tickets; wird beim ersten Test mit einem echten Token bestätigt und hier eingetragen.
 
 ## Decision Log
 
@@ -143,12 +143,89 @@ Das Senden wird für die Statistik genauso erfasst wie bisher der Klick auf „K
 | Antwort in der Sprache des Kunden, nie die Übersetzung | Wie der Entwurf angezeigt wird | 2026-10-18 |
 
 ### Technical Decisions
-<!-- Added by /architecture -->
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Antwort und Status in einem Zammad-Aufruf (Ticket ändern mit angehängter Nachricht) | Kein Zwischenzustand „gesendet, Status fehlt“; ein Fehlerfall weniger | 2026-10-18 |
+| Nachricht als E-Mail, reiner Text, auf die letzte Kundennachricht bezogen | Zammad sendet über den Kanal des Tickets (auch Amazon); Markup wird nie gedeutet | 2026-10-18 |
+| Empfänger und Bezug nur serverseitig aus dem Ticket | Das Formular kann den Empfänger nicht manipulieren | 2026-10-18 |
+| Eigener Versandbaustein mit dem Token des Mitarbeiters; lesender Zugang bleibt ohne Schreibrechte | Schreibzugriff klar abgegrenzt, Token nur beim Versand verwendet | 2026-10-18 |
+| Namensliste mit vollem Namen und Tokenschlüssel in der Konfiguration, Token nur in der `.env` | Entscheidung des Auftraggebers; Übergang bis zur Benutzerverwaltung | 2026-10-18 |
+| Neueste bekannte Nachricht am Vorschlag festhalten und beim Senden vergleichen | Erkennt veraltete Vorschläge ohne zusätzliche Nutzereingabe | 2026-10-18 |
+| Atomarer „Versand gestartet“-Merker; unklarer Ausgang wird vor neuem Versuch am Ticket geprüft | Schutz vor Doppelversand bei Doppelklick, Neuladen, zwei Mitarbeitern und Zeitüberschreitung | 2026-10-18 |
+| Versand folgt denselben Sperren wie Kopieren (neueste Analyse, Regelprüfung) und serverseitig dem Testmodus | Keine Umgehung über die Oberfläche | 2026-10-18 |
+| Statistik über dieselben Felder wie Kopieren plus „gesendet am“ | Kennzahlen bleiben vergleichbar, Versand ist trotzdem erkennbar | 2026-10-18 |
+| Signatur als Einstellungswert auf „Mail-Anzeige“, nur Platzhalter {Name} | Wiederverwendung von Verlauf, Zurücksetzen und Berechtigung aus PROJ-27 | 2026-10-18 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Backend nötig?
+Ja. Die App schreibt erstmals nach Zammad, und der Versand wird gespeichert (Protokoll, Statistik, Schutz vor Doppelversand). Neue Pakete sind nicht nötig. Es gibt zwei Zammad-Zugänge: den lesenden technischen Benutzer wie bisher und, nur beim Versand, das Token des jeweiligen Mitarbeiters.
+
+### A) Bausteine der Oberfläche
+```
+Ergebnisansicht (Vorschlag mit Antwortentwurf)
++-- Antwortentwurf (wie bisher) mit „Kopieren“
++-- Block „Antwort versenden“ (neu, nur wenn alle Bedingungen erfüllt sind)
+|   +-- An (schreibgeschützt)
+|   +-- Betreff (änderbar)
+|   +-- Text mit angehängter Signatur (änderbar, ein Feld)
+|   +-- Danach: (•) Ticket schließen  ( ) Erinnerung in [1|3|7] Tagen
+|   +-- Knopf „Antwort versenden“ (sperrt sich nach dem Klick)
+|   +-- Hinweis: wird über Zammad versendet und erscheint im Ticketverlauf
+|   +-- Warnung (gelb, nur bei neuerer Nachricht): Absender, Zeit, „Trotzdem senden“ / „Vorschlag neu erstellen“
+|   +-- Fehlerhinweis (rot, mit Grund; Text bleibt erhalten)
++-- Alternativ ohne Token: Hinweis „Bitte Token hinterlegen, dann ist ein Direktversand möglich“
++-- Nach dem Senden: „Gesendet von Nele am 18.10. um 14:32 Uhr“ mit Link zum Ticket in Zammad
++-- Frage „Wie brauchbar war der Vorschlag?“ (wie nach dem Kopieren)
+
+Einstellungen > Mail-Anzeige
++-- Gruppe „Signatur für Antworten“ (mehrzeiliger Text mit {Name}, Verlauf, Zurücksetzen)
+
+Analysen-Übersicht und Ticket-Übersicht
++-- Stand „Gesendet, unverändert“ / „Gesendet, angepasst“ neben den Kopier-Ständen
+```
+Wiederverwendet werden die Feedback-Frage und der Entwurfseditor (PROJ-10/12), die Hinweis- und Knopf-Bausteine sowie die Einstellungsgruppen (PROJ-27). Neu ist nur der Versandblock.
+
+### B) Datenmodell (in Alltagssprache)
+```
+Am Vorschlag (Analyse) kommen dazu:
+- gesendet am, gesendet von (Name in der App)
+- Zammad-Benutzer, dessen Token verwendet wurde
+- verwendeter Betreff, gewählter Status danach (schließen / Erinnerung + Tage)
+- Nummer der in Zammad angelegten Nachricht (Artikel-ID)
+- „Versand gestartet am“ (Merker gegen Doppelversand und für unklare Ausgänge)
+- ID der neuesten Nachricht, die der Vorschlag kannte (für die Prüfung auf neuere Nachrichten)
+
+Die vorhandenen Felder „kopiert am / von / unverändert“ werden beim Senden ebenfalls gesetzt,
+damit Kennzahlen und Filter weiterlaufen. „Gesendet am“ unterscheidet Versand von Kopieren.
+
+Namensliste (Konfiguration): je Mitarbeiter Vorname (Auswahl), vollständiger Name (Signatur)
+und das Zammad-Token (aus der .env, nur dort).
+
+Einstellung „Signatur für Antworten“: ein Textwert in den bestehenden Einstellungen
+(Version, Verlauf, Standard in der App).
+```
+Der gesendete Text wird nicht erneut gespeichert. Das Token wird nie gespeichert, nur in der `.env` gehalten und beim Senden gelesen.
+
+### C) Technische Entscheidungen (begründet)
+- **Ein Zammad-Aufruf für Antwort und Status:** Statt erst die Nachricht anzulegen und dann den Status zu setzen, wird das Ticket mit angehängter Nachricht in einem einzigen Aufruf geändert (Zammad unterstützt eine Nachricht im Ticket-Update). Dadurch gibt es kaum den Fall „Antwort gesendet, Status fehlt“. Bestätigung an einem Testticket als erster Schritt der Umsetzung.
+- **Nachricht als E-Mail, reiner Text, nicht intern:** Die Art „E-Mail“ lässt Zammad über den Kanal des Tickets senden (auch Amazon-Relay). Der Text geht als Plain-Text; Markup im Text wird nie gedeutet. Um die Antwort dem Verlauf zuzuordnen, wird die Nachricht auf die letzte Kundennachricht bezogen.
+- **Empfänger nur serverseitig:** Die Antwortadresse (Antwort-an, sonst Absender) und die Bezugsnachricht liest die App beim Senden frisch aus dem Ticket. Sie kommen nie aus dem Formular, ein Manipulationsversuch kann den Empfänger nicht ändern. Die Ticket-Abfrage der App liefert dazu zwei neue Felder an der Kundennachricht.
+- **Eigener Versandbaustein mit dem Token des Mitarbeiters:** Ein neuer, kleiner Baustein führt die einzigen Schreibzugriffe aus. Der lesende Zammad-Zugang bleibt unverändert und hat weiterhin keine Schreibrechte. Fehlerarten (kein Token, Token abgelehnt, keine Rechte, nicht erreichbar, Zeitüberschreitung, Ticket nicht gefunden) werden unterschieden und mit Klartext gemeldet, nie mit dem Tokenwert.
+- **Token je Mitarbeiter in der Konfiguration:** Die Namensliste wird um vollständigen Namen und Tokenschlüssel erweitert (Umgebungsvariable je Mitarbeiter, nur als Platzhalter dokumentiert). Das Cookie mit dem Vornamen bleibt gültig. Bei fehlendem Token gibt es keinen Versandblock.
+- **Prüfung auf neuere Nachrichten:** Beim Analysieren wird die ID der neuesten Nachricht am Vorschlag festgehalten. Beim Senden wird das Ticket neu gelesen und verglichen. Bei Abweichung kommt die Warnung; „Trotzdem senden“ wiederholt die Anfrage mit einer ausdrücklichen Bestätigung.
+- **Schutz vor Doppelversand:** Zuerst wird „Versand gestartet“ in einem einzigen atomaren Schritt gesetzt (nur wenn noch nicht gestartet). Wer das nicht schafft, sieht „bereits gesendet bzw. in Arbeit“. Bleibt der Ausgang unklar (Zeitüberschreitung), erlaubt die App einen neuen Versuch erst, nachdem das Ticket auf eine neue Nachricht des Zammad-Benutzers seit dem Start geprüft wurde.
+- **Gleiche Sperren wie beim Kopieren:** Der Versand ist nur für die neueste Analyse eines Tickets möglich, nicht bei unvollständiger und unbestätigter Regelprüfung (PROJ-36) und nicht bei zurückgespulten Testlauf-Tickets; Letzteres prüft der Server, nicht nur die Oberfläche.
+- **Statistik wiederverwendet:** Beim erfolgreichen Senden werden dieselben Felder wie beim Kopieren gesetzt (Vergleich des Textes ohne Signatur mit dem KI-Original, serverseitig) plus „gesendet am“. Übersicht und Ticket-Übersicht leiten daraus die Stände „Gesendet, unverändert/angepasst“ ab; die Kennzahlen zählen beide Arten.
+- **Signatur als Einstellungswert:** Neue Gruppe auf der Unterseite „Mail-Anzeige“ mit Standard „Mit freundlichen Grüßen / {Name} / LOOXIS GmbH“. Erlaubt ist nur der Platzhalter {Name}; andere Platzhalter in geschweiften Klammern werden beim Speichern abgelehnt. Die Signatur wird im Browser beim Öffnen an den Text gehängt; dort ist sie änderbar.
+- **Anfrage über Form Request, Endpunkt mit Drosselung:** Der Versand ist ein POST mit CSRF-Schutz und Begrenzung der Anfragen je Minute. Betreff (nicht leer, begrenzte Länge), Text (nicht leer, begrenzte Länge), Status danach (zwei erlaubte Werte, Tage 1/3/7) und die Bestätigung „Trotzdem senden“ werden serverseitig geprüft. Die Antwort kommt als JSON, die Oberfläche (Alpine) zeigt Erfolg, Warnung oder Fehler im Block.
+- **Keine Tokens in Logs und Ausgaben:** Im Log stehen nur Statuscodes und Fehlerarten.
+- **Tests:** Zammad wird in den Tests vollständig simuliert (keine Strays). Die Tests decken Empfänger aus dem Ticket, Betreff und Text, beide Statusarten, Token fehlt/abgelehnt/keine Rechte/Zeitüberschreitung, neuere Nachricht, Doppelversand und Parallelversand, Testmodus, Frage ohne Ticket, ältere Analyse, Statistik und Übersichten, Signatur-Einstellung mit Platzhalterprüfung und die Namensliste ab. Ein Test an einem echten Testticket in Zammad kommt erst nach deiner Freigabe.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
 
 ## QA Test Results
 _To be added by /qa_

@@ -49,7 +49,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Zweiter LLM-Anbieter zum Vergleich | Roadmap |
 | Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Approved |
 | Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Zurückgestellt |
-| Antwort direkt aus der App nach Zammad übergeben (Versand nur nach Klick, im Namen des Mitarbeiters) | Planned |
+| Antwort direkt aus der App nach Zammad übergeben (Versand nur nach Klick, im Namen des Mitarbeiters) | Architected |
 | Automatische Analyse bei Ticket-Eingang | Roadmap |
 | Bildanalyse von Reklamationsfotos | Roadmap |
 | Semantisches Retrieval | Roadmap |
