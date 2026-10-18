@@ -14,18 +14,20 @@ categories:
 topics:
   - payment-processing
   - order-release
-summary: "Ein Amazon-Kunde wird wiederholt zur Erneuerung seiner Zahlungsmethode aufgefordert, fragt nach Lieferung trotz Zahlungsproblem oder wartet nach einer Erstattung auf sein Geld. Ordnet die Anfrage Amazon oder den eigenen Bearbeitungsschritten von LOOXIS zu und liefert passende Formulierungen."
+summary: "Ein Amazon-Kunde fragt zu Zahlung, Zahlungsart oder Zahlungsmethode (z. B. wiederholte Aufforderung von Amazon, sie zu erneuern), fragt nach Lieferung trotz Zahlungsproblem oder wartet nach einer Erstattung auf sein Geld. Ordnet die Anfrage Amazon oder den eigenen Bearbeitungsschritten von LOOXIS zu und liefert passende Formulierungen. Wird die Amazon-Bestellnummer in EOCS nicht gefunden, gilt die Bestellung als noch nicht freigegeben: ohne interne Klärung direkt antworten."
 retrieval: triggered
 triggers:
-  - Zahlungsmethode erneuern
-  - Zahlungsmethode ändern
-  - Zahlungsart aktualisieren
+  - Zahlung
+  - Zahlungsmethode
+  - Zahlungsart
+  - Bezahlung
+  - bezahlt
+  - bezahlen
   - Zahlungsaufforderung
   - Zahlungsproblem
   - Zahlung fehlgeschlagen
   - Zahlung abgelehnt
   - Zahlung ausstehend
-  - bereits bezahlt
   - Geld abgebucht
   - Erstattung nicht angekommen
   - Rückerstattung nicht erhalten
@@ -34,6 +36,9 @@ triggers:
   - wann wird geliefert
   - payment revision
   - update payment
+  - payment
+  - paiement
+  - pagamento
   - refund not received
 related_knowledge:
   - POLICY-039
@@ -49,12 +54,20 @@ Der Kunde erhält wiederholt eine Aufforderung von Amazon, die Zahlungsmethode z
 # Zu prüfen
 
 1. Welches Anliegen liegt vor: Zahlungsabwicklung, Bestelleingang, Produktion/Versand oder Erstattungseingang?
-2. Ist die Bestellung bereits bei LOOXIS eingegangen? Welcher eigene Bearbeitungs- oder Versandstand ist belegt?
+2. Ist die Bestellung bereits bei LOOXIS eingegangen? Welcher eigene Bearbeitungs- oder Versandstand ist belegt? Die App fragt die Bestellung in EOCS selbst ab; eine manuelle Prüfung ist nur nötig, wenn sich der Eingang daraus nicht ableiten lässt.
 3. Bei einer Erstattung: Ist nur die Genehmigung oder bereits die Veranlassung durch LOOXIS belegt?
+
+# Bestellung in EOCS nicht gefunden
+
+Wird die Amazon-Bestellnummer des Kunden (gültiges Amazon-Format wie 306-8770924-4339565) in EOCS nicht gefunden, hat Amazon die Bestellung noch nicht freigegeben und nicht an LOOXIS übermittelt (siehe POLICY-040). Das ist bei Zahlungsproblemen der Normalfall und kein offener Punkt.
+
+Dann ist **keine interne Klärung nötig**: Direkt antworten, mit der Vorlage „Nach Prüfung: Bestellung noch nicht bei LOOXIS eingegangen“ und dem Verweis auf Amazon für die Zahlungsaufforderung. Auch eine automatische Notiz im Ticket wie „WISMO erkannt. Bestellnummer … wurde in EOCS nicht gefunden. Bitte manuell prüfen.“ ist in diesem Fall kein Grund für eine Klärung. Die Bestellung dabei nicht als storniert oder unbezahlt bezeichnen (siehe POLICY-040).
+
+Ist die Bestellnummer nicht erkennbar oder kein gültiges Amazon-Format (möglicher Tippfehler), nach der Amazon-Bestellnummer fragen.
 
 # Noch nicht entscheidbar wenn
 
-Der eigene Bestelleingang oder Erstattungsvorgang noch nicht geprüft ist. Diese Information wird intern anhand der vorhandenen Bestell- und Vorgangsdaten geprüft. Fehlt für die Zuordnung die Amazon-Bestellnummer, kommt sie vom Kunden; gezielt fragen: „Bitte teilen Sie uns Ihre Amazon-Bestellnummer mit.“
+Ein Erstattungsvorgang noch nicht geprüft ist, oder eine in EOCS gefundene Bestellung ohne belegten Bearbeitungsstand vorliegt. Diese Information wird intern anhand der vorhandenen Bestell- und Vorgangsdaten geprüft. Fehlt für die Zuordnung die Amazon-Bestellnummer, kommt sie vom Kunden; gezielt fragen: „Bitte teilen Sie uns Ihre Amazon-Bestellnummer mit.“
 
 Die konkrete Ursache einer Amazon-Zahlungsaufforderung kann LOOXIS auch nach Zuordnung der Bestellung nicht feststellen. Für diese Klärung ist Amazon zuständig; siehe POLICY-039.
 

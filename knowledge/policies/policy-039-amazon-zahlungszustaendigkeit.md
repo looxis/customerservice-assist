@@ -19,6 +19,7 @@ retrieval: binding
 triggers:
   - Zahlungsmethode
   - Zahlungsart
+  - Bezahlung
   - Zahlungsproblem
   - Zahlungsaufforderung
   - Zahlungsstatus
