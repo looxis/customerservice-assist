@@ -54,7 +54,7 @@ Gilt für Privatkunden im Vertriebskanal Amazon und für die von LOOXIS selbst p
 
 Amazon hält grundsätzlich jede Kundenbestellung mindestens 30 Minuten zurück, bevor sie an LOOXIS übermittelt wird. Während der Rückhaltephase kann der Kunde die Bestellung bei Amazon sofort und ohne Einschränkungen oder Mitwirkung von LOOXIS stornieren.
 
-**Folgerung für Anfragen:** Wird eine Amazon-Bestellnummer mit gültigem Format in EOCS nicht gefunden, ist die Bestellung noch nicht freigegeben und nicht an LOOXIS übermittelt. Das ist bei Zahlungsfragen der Normalfall; es braucht dann keine interne Klärung, die Antwort lautet „liegt uns noch nicht zur Bearbeitung vor“ (Vorlage siehe PLAYBOOK-027). Die Bestellung wird dabei nicht als storniert oder unbezahlt bezeichnet.
+**Folgerung für Anfragen:** Wird eine Amazon-Bestellnummer mit gültigem Format in EOCS nicht gefunden, liegt die Bestellung LOOXIS nicht vor: möglicherweise ist sie noch nicht freigegeben, möglicherweise hat sie der Kunde innerhalb der 30 Minuten storniert oder Amazon hat sie nach einer Frist (z. B. 14 Tage) wegen einer ungeklärten Zahlung storniert. Mitarbeiter mit Amazon-Zugang können das nachsehen, andere nicht. Es braucht deshalb keine interne Klärung vor der Antwort; sie lautet „liegt uns derzeit nicht zur Bearbeitung vor“ (Vorlage siehe PLAYBOOK-027), ohne einen Grund als Tatsache zu nennen.
 
 LOOXIS kann währenddessen im Amazon-Backend erkennen, dass eine Bestellung existiert, sie aber nicht abrufen und keine Bestelldetails einsehen. Erst nach Freigabe und Eingang bei LOOXIS kann die Bestellung bearbeitet werden.
 

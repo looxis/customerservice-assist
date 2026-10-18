@@ -14,7 +14,7 @@ categories:
 topics:
   - payment-processing
   - order-release
-summary: "Ein Amazon-Kunde fragt zu Zahlung, Zahlungsart oder Zahlungsmethode (z. B. wiederholte Aufforderung von Amazon, sie zu erneuern), fragt nach Lieferung trotz Zahlungsproblem oder wartet nach einer Erstattung auf sein Geld. Ordnet die Anfrage Amazon oder den eigenen Bearbeitungsschritten von LOOXIS zu und liefert passende Formulierungen. Wird die Amazon-Bestellnummer in EOCS nicht gefunden, gilt die Bestellung als noch nicht freigegeben: ohne interne Klärung direkt antworten."
+summary: "Ein Amazon-Kunde fragt zu Zahlung, Zahlungsart oder Zahlungsmethode (z. B. wiederholte Aufforderung von Amazon, sie zu erneuern), fragt nach Lieferung trotz Zahlungsproblem oder wartet nach einer Erstattung auf sein Geld. Ordnet die Anfrage Amazon oder den eigenen Bearbeitungsschritten von LOOXIS zu und liefert passende Formulierungen. Wird die Amazon-Bestellnummer in EOCS nicht gefunden, liegt die Bestellung LOOXIS nicht vor (möglicherweise noch nicht freigegeben oder storniert): ohne interne Klärung direkt antworten, den Grund nicht behaupten."
 retrieval: triggered
 triggers:
   - Zahlung
@@ -59,9 +59,15 @@ Der Kunde erhält wiederholt eine Aufforderung von Amazon, die Zahlungsmethode z
 
 # Bestellung in EOCS nicht gefunden
 
-Wird die Amazon-Bestellnummer des Kunden (gültiges Amazon-Format wie 306-8770924-4339565) in EOCS nicht gefunden, hat Amazon die Bestellung noch nicht freigegeben und nicht an LOOXIS übermittelt (siehe POLICY-040). Das ist bei Zahlungsproblemen der Normalfall und kein offener Punkt.
+Wird die Amazon-Bestellnummer des Kunden (gültiges Amazon-Format wie 306-8770924-4339565) in EOCS nicht gefunden, liegt die Bestellung LOOXIS nicht zur Bearbeitung vor. Der häufigste Grund ist, dass Amazon sie noch nicht freigegeben und nicht übermittelt hat (siehe POLICY-040), meist wegen eines ungeklärten Zahlungsproblems. Es kommen aber auch andere Gründe in Frage, die LOOXIS ohne Amazon-Zugang nicht unterscheiden kann:
 
-Dann ist **keine interne Klärung nötig**: Direkt antworten, mit der Vorlage „Nach Prüfung: Bestellung noch nicht bei LOOXIS eingegangen“ und dem Verweis auf Amazon für die Zahlungsaufforderung. Auch eine automatische Notiz im Ticket wie „WISMO erkannt. Bestellnummer … wurde in EOCS nicht gefunden. Bitte manuell prüfen.“ ist in diesem Fall kein Grund für eine Klärung. Die Bestellung dabei nicht als storniert oder unbezahlt bezeichnen (siehe POLICY-040).
+- Der Kunde hat die Bestellung innerhalb der 30-Minuten-Rückhaltephase selbst storniert.
+- Amazon hat die Bestellung storniert, weil das Zahlungsproblem nach einer Frist (z. B. 14 Tage) nicht geklärt wurde.
+- Die Bestellung ist noch nicht freigegeben und wird später übermittelt.
+
+Deshalb gilt: Es braucht **keine interne Klärung vor der Antwort**. Direkt mit der Vorlage „Nach Prüfung: Bestellung liegt LOOXIS nicht vor“ antworten, ohne einen dieser Gründe als Tatsache zu behaupten (nicht „storniert“, nicht „noch nicht freigegeben“, nicht „unbezahlt“). Auch eine automatische Notiz im Ticket wie „WISMO erkannt. Bestellnummer … wurde in EOCS nicht gefunden. Bitte manuell prüfen.“ ist kein Grund, die Antwort aufzuschieben.
+
+Optional und nicht blockierend: Wer Zugang zum Amazon-Backend hat, kann dort den Status der Bestellung ansehen (zurückgehalten, storniert durch Kunden oder Amazon, freigegeben). Dann die Antwort entsprechend präzisieren; die Zahlungsklärung bleibt bei Amazon. Nicht alle Mitarbeiter haben diesen Zugang; ohne ihn wird nach der Vorlage geantwortet. Der Vorschlag soll diese Prüfung als freiwilligen Hinweis nennen, nicht als Voraussetzung.
 
 Ist die Bestellnummer nicht erkennbar oder kein gültiges Amazon-Format (möglicher Tippfehler), nach der Amazon-Bestellnummer fragen.
 
@@ -73,7 +79,7 @@ Die konkrete Ursache einer Amazon-Zahlungsaufforderung kann LOOXIS auch nach Zuo
 
 # Empfohlene Maßnahme
 
-Die Zahlungsfrage nach POLICY-039 an Amazon verweisen und den belegten eigenen Bearbeitungsstand ergänzen. Bei einer noch nicht eingegangenen Bestellung den Freigabeablauf nach POLICY-040 erklären. Eine bereits eingegangene Bestellung anhand ihres tatsächlichen Bearbeitungsstands beantworten.
+Die Zahlungsfrage nach POLICY-039 an Amazon verweisen und den belegten eigenen Bearbeitungsstand ergänzen. Liegt die Bestellung LOOXIS nicht vor, den Freigabeablauf nach POLICY-040 erklären, ohne den Grund zu behaupten. Eine bereits eingegangene Bestellung anhand ihres tatsächlichen Bearbeitungsstands beantworten.
 
 Bei Erstattungen nur den nachgewiesenen eigenen Stand nennen. Der Eingang auf dem Kundenkonto bleibt eine Frage der Zahlungsabwicklung nach POLICY-039.
 
@@ -83,9 +89,9 @@ Wiederholte Zahlungsaufforderung:
 
 „Bitte wenden Sie sich zur wiederholten Aufforderung, Ihre Zahlungsmethode zu erneuern, direkt an den Amazon-Kundenservice. Amazon wickelt die Zahlung Ihrer Amazon-Bestellung ab. Wir können Ihre Zahlungsmethode und Ihren Zahlungsstatus nicht einsehen oder ändern. Amazon kann mit Ihnen klären, welche Schritte erforderlich sind.“
 
-Nach Prüfung: Bestellung noch nicht bei LOOXIS eingegangen:
+Nach Prüfung: Bestellung liegt LOOXIS nicht vor (in EOCS nicht gefunden):
 
-„Ihre Bestellung liegt uns derzeit noch nicht zur Bearbeitung vor. Amazon hält Bestellungen zunächst mindestens 30 Minuten zurück; einzelne Bestellungen werden erst später freigegeben. Den konkreten Grund können wir nicht einsehen. Bitte klären Sie eine Zahlungsaufforderung direkt mit Amazon. Sobald die Bestellung freigegeben und bei uns eingegangen ist, können wir sie bearbeiten. Die Reihenfolge richtet sich nach dem Eingang bei uns.“
+„Ihre Bestellung liegt uns derzeit nicht zur Bearbeitung vor. Amazon hält Bestellungen zunächst mindestens 30 Minuten zurück und übermittelt sie erst nach der Freigabe an uns; einzelne Bestellungen werden erst später freigegeben, und eine Bestellung kann in dieser Zeit auch storniert worden sein. Den konkreten Grund können wir nicht einsehen. Bitte prüfen Sie den Status Ihrer Bestellung und die Zahlungsaufforderung direkt bei Amazon. Sobald die Bestellung freigegeben und bei uns eingegangen ist, können wir sie bearbeiten. Die Reihenfolge richtet sich nach dem Eingang bei uns.“
 
 Nach Prüfung: Bestellung bei LOOXIS eingegangen:
 
