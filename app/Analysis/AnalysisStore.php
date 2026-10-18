@@ -38,7 +38,7 @@ class AnalysisStore
     /**
      * The customer group and products chosen for a ticket, with who chose them.
      *
-     * @return array{group: string, products: list<string>, staff: string, at: string}|null
+     * @return array{group: string, products: list<string>, related: list<string>|null, staff: string, at: string}|null
      */
     public function caseChoice(string $ticketNumber): ?array
     {
@@ -47,6 +47,7 @@ class AnalysisStore
         return $choice === null ? null : [
             'group' => $choice->customer_group,
             'products' => array_values($choice->products ?? []),
+            'related' => $choice->related === null ? null : array_values(array_map('strval', $choice->related)),
             'staff' => $choice->staff_name,
             'at' => $choice->updated_at->toIso8601String(),
         ];
@@ -54,12 +55,13 @@ class AnalysisStore
 
     /**
      * @param  list<string>  $products
+     * @param  list<string>  $related  Numbers of the related tickets chosen (PROJ-52).
      */
-    public function putCaseChoice(string $ticketNumber, string $group, array $products, string $staff): void
+    public function putCaseChoice(string $ticketNumber, string $group, array $products, string $staff, array $related = []): void
     {
         TicketCaseChoice::query()->updateOrCreate(
             ['ticket_number' => $ticketNumber],
-            ['customer_group' => $group, 'products' => $products, 'staff_name' => $staff],
+            ['customer_group' => $group, 'products' => $products, 'related' => array_values($related), 'staff_name' => $staff],
         )->touch();
     }
 

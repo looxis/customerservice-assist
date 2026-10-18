@@ -3,6 +3,7 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Analysis\Prompt;
 use App\Models\Analysis;
+use App\Models\TicketCaseChoice;
 use App\Orders\OrderNumberDetector;
 use App\Zammad\RelatedTicketFinder;
 use App\Zammad\ZammadClient;
@@ -191,6 +192,21 @@ describe('the earlier course in the analysis', function () {
 
         $sent = Analysis::query()->latest('id')->firstOrFail()->content['sent_input'];
         expect($sent)->toContain('## Ticket 2138745')->not->toContain('erika.mustermann@example.com')->not->toContain('2345678');
+    });
+
+    test('the tickets chosen once are ticked again when the ticket is opened later, offered ones only', function () {
+        zammadWorld(theCase());
+        CaseAgent::fake([relatedAnswer()]);
+
+        $html = test()->get('/tickets/2139944')->getContent();
+        expect(preg_match('/name="related\[\]" value="2139900"[^>]*checked/', $html))->toBe(0);
+
+        analyzeCase(['related_set' => '1', 'related' => ['2138745', '2139900'], 'related_source' => ['2138745' => 'linked', '2139900' => 'customer']])->assertRedirect();
+
+        $html = test()->get('/tickets/2139944')->assertOk()->getContent();
+        expect(preg_match('/value="2139900"[^>]*checked|checked[^>]*value="2139900"/', $html))->toBe(1)
+            ->and(preg_match('/value="2138745"[^>]*checked|checked[^>]*value="2138745"/', $html))->toBe(1)
+            ->and(TicketCaseChoice::query()->where('ticket_number', '2139944')->firstOrFail()->related)->toBe(['2138745', '2139900']);
     });
 
     test('without a choice nothing is added and the version stays as before', function () {

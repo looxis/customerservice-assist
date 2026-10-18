@@ -92,7 +92,7 @@ class AnalysisPanel
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
             ...$this->productSuggestions($context, $orders, $inputs['produkte'] ?? $choice['products'] ?? null),
             'forge' => $this->forgeChoice($orders, $inputs, $result, $context->customerTexts()),
-            'related' => $this->relatedChoice($ticket, $inputs),
+            'related' => $this->relatedChoice($ticket, $inputs, $choice['related'] ?? null),
             'hasOrders' => $orders !== [],
             'variants' => $context->variants(),
             'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
@@ -286,12 +286,14 @@ class AnalysisPanel
 
     /**
      * The tickets that may belong to this case, for the form (PROJ-52). Not offered for a rewound test ticket.
-     * What was ticked before is kept; at first the linked ones (and, with a claim number, those of the order) are ticked.
+     * What was ticked before is kept (in the form, and for the ticket when it is opened again); at first the linked ones
+     * (and, with a claim number, those of the order) are ticked.
      *
      * @param  array<string, mixed>  $inputs
+     * @param  list<string>|null  $remembered  The numbers chosen the last time an analysis was started for this ticket.
      * @return array{enabled: bool, groups: array<string, list<array<string, mixed>>>, selected: list<string>, problems: list<string>}
      */
-    private function relatedChoice(Ticket $ticket, array $inputs): array
+    private function relatedChoice(Ticket $ticket, array $inputs, ?array $remembered = null): array
     {
         if ($ticket->rewoundTo !== null || $ticket->id === 0) {
             return ['enabled' => false, 'groups' => [], 'selected' => [], 'problems' => []];
@@ -304,7 +306,12 @@ class AnalysisPanel
             $groups[$related->source][] = $related->toArray();
         }
 
-        $selected = array_key_exists('related_set', $inputs) ? array_values(array_map('strval', (array) ($inputs['related'] ?? []))) : $found['preselected'];
+        $offered = array_map(fn (array $related): string => (string) $related['number'], array_merge(...array_values($groups)) ?: []);
+        $selected = match (true) {
+            array_key_exists('related_set', $inputs) => array_values(array_map('strval', (array) ($inputs['related'] ?? []))),
+            $remembered !== null => array_values(array_intersect($remembered, $offered)),
+            default => $found['preselected'],
+        };
 
         return ['enabled' => true, 'groups' => $groups, 'selected' => $selected, 'problems' => $found['problems']];
     }

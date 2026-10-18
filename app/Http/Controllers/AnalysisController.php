@@ -103,7 +103,7 @@ class AnalysisController extends Controller
             ])->values()->all();
         $shown = array_values(array_unique([...array_map(fn (OrderNumber $order): string => $order->value, $requested), ...array_map(fn (OrderNumber $order): string => $order->value, array_filter($toLoad, fn (OrderNumber $order): bool => in_array($order->value, $loaded, true)))]));
 
-        $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request));
+        $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request), $request->relatedNumbers());
 
         if ($request->validated('kundengruppe') !== 'unclear' && $ticket->rewoundTo === null) {
             $store->putCustomerGroup($ticket->customerKey(), $request->validated('kundengruppe'));
