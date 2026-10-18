@@ -7,6 +7,7 @@ use App\Models\CustomerGroupMemory;
 use App\Models\KnowledgeGap;
 use App\Models\MessageTranslation;
 use App\Models\TicketCaseChoice;
+use App\Models\TicketOrderMemory;
 use App\Models\TicketSummary;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -63,6 +64,34 @@ class AnalysisStore
             ['ticket_number' => $ticketNumber],
             ['customer_group' => $group, 'products' => $products, 'related' => array_values($related), 'staff_name' => $staff],
         )->touch();
+    }
+
+    /**
+     * Order numbers typed in by hand for a ticket and found in EOCS (PROJ-7).
+     *
+     * @return list<string>
+     */
+    public function rememberedOrders(string $ticketNumber): array
+    {
+        return array_values(array_map('strval', TicketOrderMemory::query()->where('ticket_number', $ticketNumber)->value('orders') ?? []));
+    }
+
+    /**
+     * Remember exactly these hand-typed order numbers for the ticket; none removes the memory.
+     *
+     * @param  list<string>  $orders
+     */
+    public function rememberOrders(string $ticketNumber, array $orders, ?string $staff): void
+    {
+        $orders = array_values(array_unique($orders));
+
+        if ($orders === []) {
+            TicketOrderMemory::query()->where('ticket_number', $ticketNumber)->delete();
+
+            return;
+        }
+
+        TicketOrderMemory::query()->updateOrCreate(['ticket_number' => $ticketNumber], ['orders' => $orders, 'staff_name' => $staff])->touch();
     }
 
     /**
@@ -458,6 +487,8 @@ class AnalysisStore
     public function purge(): array
     {
         $before = now()->subMonths((int) config('analysis.content_retention_months'));
+
+        TicketOrderMemory::query()->where('updated_at', '<', $before)->delete();
 
         return [
             'analyses' => Analysis::query()->whereNotNull('content')->where('created_at', '<', $before)

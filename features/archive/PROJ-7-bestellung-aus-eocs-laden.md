@@ -324,3 +324,7 @@ Geprüft mit Pest (EOCS und Zammad nachgestellt, nur erfundene Daten), gegen das
 
 ## Deployment
 _To be added by /deploy_
+
+## Nachbesserungen (2026-10-18)
+- **Zahl direkt vor einem Wort:** Eine Bestellnummer, die keine Kleinbuchstaben enthalten kann (Format nur mit Großbuchstaben und Ziffern, z. B. `7JQ-18SU-DVA4`, oder nur Ziffern), wird auch erkannt, wenn ein Kleinbuchstaben-Wort direkt dahinter steht („…DVA4bitte“). Formate mit Kleinbuchstaben bleiben unverändert streng, ebenso Buchstaben davor und weitere Großbuchstaben dahinter.
+- **Von Hand eingegebene Bestellnummern werden gemerkt:** Eine vom Mitarbeiter ergänzte Nummer, die EOCS findet, wird am Ticket gespeichert (Tabelle `ticket_order_memories`, getrennt von den Analysen) und beim nächsten Öffnen des Tickets wieder geladen, auch nachdem Analysen gelöscht wurden. Nicht gemerkt werden Nummern, die die App selbst erkennt, und Nummern, die EOCS nicht kennt. Wird eine Nummer aus der Auswahl entfernt, vergisst die App sie. Aufbewahrung wie die übrigen Ticketdaten (12 Monate, `analysis:purge`).

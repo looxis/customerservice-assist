@@ -43,10 +43,20 @@ final readonly class OrderNumberFormat
     public function pattern(): string
     {
         $edge = $this->internal ? '[\w.,-]' : '[\w-]';
+        // A number that cannot contain lowercase letters may be followed by a word written directly behind it ("DVA4bitte").
+        $after = ! $this->internal && ! $this->allowsLowercase() ? '[0-9A-Z_-]' : $edge;
         $prefix = $this->prefix === null ? '' : '(?i:'.preg_quote($this->prefix, '/').')?';
         $claim = '(?:(?<claim>(?i:'.preg_quote($this->claimPrefix, '/').')\d{1,3})-)?';
 
-        return '/(?<!'.$edge.')'.$claim.$prefix.'(?<number>'.$this->fragment().')(?!'.$edge.')/u';
+        return '/(?<!'.$edge.')'.$claim.$prefix.'(?<number>'.$this->fragment().')(?!'.$after.')/u';
+    }
+
+    /**
+     * Whether a number of this format can contain lowercase letters (case-insensitive letters in the layout).
+     */
+    private function allowsLowercase(): bool
+    {
+        return ! $this->upper && (str_contains($this->layout, '?') || str_contains($this->layout, '*'));
     }
 
     /**

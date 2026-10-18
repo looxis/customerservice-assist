@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisPanel;
+use App\Analysis\AnalysisStore;
 use App\Analysis\ReplyDelivery;
 use App\Analysis\TicketActivityLog;
 use App\Analysis\Translator;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
+use App\Eocs\OrderLookup;
 use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
 use App\Orders\OrderFormats;
@@ -48,7 +50,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery, AnalysisStore $store): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -68,8 +70,9 @@ class TicketController extends Controller
         // Order numbers the app recognises by their format are loaded at once, so the product can be
         // proposed from the positions. Six-digit EOCS ids could be anything and take several seconds:
         // those are only loaded when chosen. A selection in the address (even an empty one) wins.
+        // Numbers typed in by hand earlier and found in EOCS come back with the ticket (also after the analyses were deleted).
         if (! $request->has('bestellungen')) {
-            $selected = $this->normalized(array_map(fn (OrderNumber $order): string => $order->value, array_filter($suggestions, fn (OrderNumber $order): bool => ! $order->isEocsId())), $detector);
+            $selected = $this->normalized([...array_map(fn (OrderNumber $order): string => $order->value, array_filter($suggestions, fn (OrderNumber $order): bool => ! $order->isEocsId())), ...$store->rememberedOrders($number)], $detector);
         }
         $lookups = [];
         $orderProblem = null;
@@ -78,6 +81,11 @@ class TicketController extends Controller
             $lookups = $eocs->lookup($selected);
         } catch (EocsException $exception) {
             $orderProblem = ['message' => $exception->problem->message(), 'retry' => $exception->problem->canRetry()];
+        }
+
+        if ($orderProblem === null) {
+            $recognised = array_map(fn (OrderNumber $order): string => $order->value, $suggestions);
+            $store->rememberOrders($number, array_values(array_map(fn (OrderLookup $lookup): string => $lookup->number->value, array_filter($lookups, fn (OrderLookup $lookup): bool => $lookup->found() && ! in_array($lookup->number->value, $recognised, true)))), $staff->current($request));
         }
 
         $analysis = $panel->build($ticket, $lookups, is_string($request->query('analyse')) ? $request->query('analyse') : null);
