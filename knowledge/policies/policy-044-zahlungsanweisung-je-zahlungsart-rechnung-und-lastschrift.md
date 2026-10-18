@@ -43,7 +43,7 @@ Wie ein Kunde zahlt, ist je Zahlungsart eindeutig festgelegt:
 
 - **Rechnung:** Alle Angaben stehen auf der Rechnung, auch das Zahlungsziel und die beiden Geschäftskonten von LOOXIS bei der Commerzbank und der HypoVereinsbank. Den Kunden auf die Rechnung verweisen.
 - **Lastschrift:** Das voraussichtliche Einzugsdatum steht auf der Rechnung. Alle weiteren Einzelheiten ergeben sich aus dem vom Kunden unterschriebenen Lastschriftmandat. Ohne erteiltes, ausgefülltes, unterschriebenes und damit gültiges Lastschriftmandat gibt es keine Zahlung per Lastschrift.
-- **Mollie:** Kontodaten, Betrag und Zahlungsreferenz stammen aus der Mollie-Zahlungsanweisung der Bestellung; siehe POLICY-043.
+- **Mollie:** Mollie hält alle Zahlungsdetails und Informationen unmissverständlich und detailliert bereit. Kontodaten, Betrag und Zahlungsreferenz stammen aus der Mollie-Zahlungsanweisung der Bestellung, nicht vom Kundenservice; siehe POLICY-043.
 
 # Kommunikation
 

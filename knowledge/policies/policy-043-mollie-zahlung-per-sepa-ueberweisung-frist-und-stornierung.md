@@ -64,7 +64,7 @@ Bei Fachhändlern wird keine Zahlungserinnerung verschickt. Meldet sich ein Fach
 
 Dem Kunden bleibt, die Bestellung neu auszulösen. Dafür steht weiterhin die bisherige Zahlungsart Mollie mit ihren verschiedenen Optionen zur Verfügung, darunter die klassische SEPA-Überweisung. Lastschrift steht erst für Bestellungen zur Verfügung, die nach der Umstellung eingehen, also nachdem ein neues Mandat vorliegt, hinterlegt, umgestellt und mit dem Shop synchronisiert ist (POLICY-041, POLICY-042).
 
-Bei Rechnung und Lastschrift ist die Zahlungsanweisung eindeutig festgelegt (POLICY-044). Fehlt dem Kunden bei einer Mollie-Bestellung die Zahlungsanweisung oder der Zugang dazu, muss sie ihm bereitgestellt werden. Der konkrete Weg dafür ist noch nicht beschrieben; keinen Weg erfinden und nicht behaupten, die Anweisung sei gesendet worden, wenn das nicht belegt ist.
+Bei Rechnung und Lastschrift ist die Zahlungsanweisung eindeutig festgelegt (POLICY-044). Bei Mollie hält die Zahlungsart selbst alle Zahlungsdetails und Informationen bereit, unmissverständlich und detailliert; Mollie ist ein renommierter, auf Online-Zahlungen spezialisierter Abwickler. Der Kunde bekommt sie von Mollie, auch für die SEPA-Überweisung. Der Kundenservice stellt dafür keine eigenen Zahlungsdetails bereit, nennt keine und verweist auf die Zahlungsanweisung von Mollie zur Bestellung.
 
 # Getrennte Anliegen
 
@@ -90,6 +90,5 @@ Läuft die Zahlungsfrist einer Bestellung nachweislich noch:
 
 # Noch zu klären
 
-- Der Weg, auf dem einem Kunden bei einer Mollie-Bestellung die Zahlungsanweisung oder der Zugang dazu bereitgestellt wird (bei Rechnung und Lastschrift ist er festgelegt, POLICY-044).
 - Die Länge der Zahlungsfrist.
 - Ob die fehlende Zahlungserinnerung auch für andere Kundengruppen als Fachhändler gilt.
