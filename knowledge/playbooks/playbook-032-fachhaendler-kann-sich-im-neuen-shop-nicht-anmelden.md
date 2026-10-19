@@ -29,6 +29,8 @@ triggers:
 related_knowledge:
   - POLICY-052
   - POLICY-051
+  - POLICY-041
+  - PROCESS-015
 ---
 
 Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler. Für Endverbraucher gilt PLAYBOOK-031.
@@ -43,6 +45,7 @@ Ein Fachhändler kommt nicht in den neuen Fachhändler-Shop, findet das alte Kun
 - Konto noch nicht aktiviert (E-Mail-Verifizierung beim ersten Login fehlt).
 - Passwort vergessen.
 - Konto war inaktiv (keine Bestellung in den letzten 12 Monaten) und wurde nicht übernommen.
+- Ab dem 3. November 2026: Das Konto wurde nicht übernommen (letzte Bestellung vor Mai 2025, keine Reaktion auf Rückfragen zum Status) oder gesperrt (übernommenes Konto trotz zweifacher Bitte per E-Mail nicht aktiviert).
 - Der Händler war bisher nicht Kunde.
 
 # Zu prüfen
@@ -55,8 +58,9 @@ Ein Fachhändler kommt nicht in den neuen Fachhändler-Shop, findet das alte Kun
 
 1. **Den richtigen Shop nennen:** fachhaendler.looxis.de, die Adresse direkt eintippen, nicht über Google suchen, als Lesezeichen speichern.
 2. **Aktives, übernommenes Konto:** Login mit der bisherigen E-Mail-Adresse und dem bisherigen Passwort, beim ersten Login die E-Mail-Adresse per Link bestätigen (Aktivierung). Bei vergessenem Passwort die Funktion „Passwort vergessen“ auf der Login-Seite.
-3. **Konto nicht übernommen, Händler war früher Kunde:** Sofern ein Datensatz mit Kundennummer im Warenwirtschaftssystem vorhanden ist, kann das Konto nachträglich übernommen werden. Das übernimmt LOOXIS. Firmenname, E-Mail-Adresse und, falls bekannt, die Kundennummer erfragen.
+3. **Konto nicht übernommen oder gesperrt, ab dem 3. November 2026:** Dem Kunden sagen, dass sein Konto entweder nicht übernommen oder gesperrt wurde, und die Neuanlage anbieten. Dafür die Kundennummer oder die zuvor verwendete E-Mail-Adresse erfragen. Als Zahlungsart steht danach ausschließlich Mollie zur Verfügung; eine Rückkehr zur Lastschrift braucht ein neues Mandat (POLICY-041, PROCESS-015). Den Grund nur als Tatsache nennen, wenn er feststeht (letzte Bestellung, Rückfragen); sonst beide Möglichkeiten nennen.
 4. **Neuer Fachhändler:** Ein Konto kann er nicht selbst anlegen, LOOXIS legt es an. Firmenname und E-Mail-Adresse erfragen. Keine Dauer zusagen.
+5. **Fachhändler ist nicht mehr aktiv:** Auf Rückmeldung kann sein nicht mehr benötigtes Konto aus Sicherheitsgründen gelöscht werden.
 
 # Kommunikation
 
@@ -64,7 +68,11 @@ Falscher Shop: „Für Fachhändler gibt es einen eigenen Shop: fachhaendler.loo
 
 Aktivierung: „Beim ersten Login im neuen Shop bestätigen Sie bitte Ihre E-Mail-Adresse. Sie erhalten eine E-Mail mit einem Link, den Sie anklicken müssen; der Shop leitet Sie Schritt für Schritt durch den Vorgang. Sollten Sie Ihr Passwort nicht mehr wissen, nutzen Sie auf der Login-Seite „Passwort vergessen“.“
 
-Konto nicht übernommen: „Ihr Konto wurde bei der Umstellung nicht übernommen, weil in den letzten 12 Monaten keine Bestellung vorlag. Wir übernehmen es gerne für Sie in den neuen Shop. Bitte nennen Sie uns dazu Ihren Firmennamen, die E-Mail-Adresse für den Login und, falls bekannt, Ihre Kundennummer.“
+Ab dem 3. November 2026, Grund offen: „Ihr Kundenkonto wurde entweder bei der Umstellung auf den neuen Shop nicht übernommen oder inzwischen gesperrt, weil es nicht aktiviert wurde. Wir legen es gerne neu für Sie an. Bitte nennen Sie uns dazu Ihre Kundennummer oder die zuvor verwendete E-Mail-Adresse. Als Zahlungsart steht Ihnen danach ausschließlich Mollie zur Verfügung.“
+
+Nicht übernommen (Grund bekannt): „Ihr Kundenkonto wurde bei der Umstellung nicht übernommen, weil Ihre letzte Bestellung vor Mai 2025 lag und wir auf unsere Rückfragen zum Status keine Rückmeldung erhalten haben. Wir legen es gerne neu für Sie an. Bitte nennen Sie uns dazu Ihre Kundennummer oder die zuvor verwendete E-Mail-Adresse. Als Zahlungsart steht Ihnen danach ausschließlich Mollie zur Verfügung.“
+
+Gesperrt (Grund bekannt): „Ihr übernommenes Kundenkonto wurde gesperrt, weil es trotz unserer zwei E-Mails nicht aktiviert wurde. Eine Freischaltung ist über den Kundenservice möglich: Wir legen Ihr Konto neu an. Bitte nennen Sie uns dazu Ihre Kundennummer oder die zuvor verwendete E-Mail-Adresse. Als Zahlungsart steht Ihnen danach ausschließlich Mollie zur Verfügung.“
 
 Neuer Händler: „Ein Kundenkonto im Fachhändler-Shop legen wir für Sie an. Bitte nennen Sie uns dazu Ihren Firmennamen und die E-Mail-Adresse, mit der Sie sich anmelden möchten.“
 
@@ -74,4 +82,4 @@ Keine Passwörter nennen oder zurücksetzen. Keine Dauer für die Anlage oder Ü
 
 # Noch zu klären
 
-- Die Schritte für Anlage und nachträgliche Übernahme eines Fachhändler-Kontos (siehe POLICY-052).
+- Die internen Systemschritte für Anlage, Freischaltung und Löschung eines Fachhändler-Kontos (siehe POLICY-052).
