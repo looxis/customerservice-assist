@@ -26,6 +26,9 @@ triggers:
   - Konto aktivieren
   - Konto übernommen
   - Konto freischalten
+  - Konto gesperrt
+  - Kontosperrung
+  - Konto gelöscht
   - Zugangsdaten
 related_knowledge:
   - PLAYBOOK-032

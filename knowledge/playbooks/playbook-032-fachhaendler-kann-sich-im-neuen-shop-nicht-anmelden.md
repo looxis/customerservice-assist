@@ -17,6 +17,10 @@ retrieval: triggered
 triggers:
   - kann mich nicht einloggen
   - nicht einloggen
+  - nicht mehr einloggen
+  - nicht mehr anmelden
+  - Konto gesperrt
+  - kein Zugang mehr
   - Login funktioniert nicht
   - Anmeldung funktioniert nicht
   - Passwort vergessen
