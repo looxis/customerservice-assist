@@ -44,7 +44,8 @@ class KnowledgeLibrary
     {
         return $this->all()
             ->filter(fn (KnowledgeDocument $document): bool => ! $this->hasErrors($document)
-                && in_array($document->status, $this->config['usable_statuses'], true))
+                && in_array($document->status, $this->config['usable_statuses'], true)
+                && ! $document->trialLapsed())
             ->values();
     }
 

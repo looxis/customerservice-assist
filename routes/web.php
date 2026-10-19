@@ -27,6 +27,9 @@ Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge
 Route::post('/knowledge/dokument/{path}/status', [KnowledgeController::class, 'changeStatus'])
     ->where('path', '.*')
     ->name('knowledge.status');
+Route::post('/knowledge/dokument/{path}/testphase', [KnowledgeController::class, 'changeTrial'])
+    ->where('path', '.*')
+    ->name('knowledge.trial');
 Route::get('/knowledge/dokument/{path}', [KnowledgeController::class, 'show'])
     ->where('path', '.*')
     ->name('knowledge.show');

@@ -209,7 +209,7 @@
                     <x-icon name="warning" size="16" class="mt-0.5 shrink-0" />
                     <span>Beruht teilweise auf vorläufigem Wissen (in Erprobung):
                         @foreach ($usedTrials as $trial)
-                            <span class="font-mono text-xs">{{ $trial['id'] }}</span> bis {{ \Carbon\CarbonImmutable::parse($trial['trial_until'])->format('d.m.Y') }}@if (\Carbon\CarbonImmutable::parse($trial['trial_until'], 'Europe/Berlin')->endOfDay()->isPast()) <span class="font-semibold">(Testphase abgelaufen, Überprüfung überfällig)</span>@endif @if ($trial['trial_goal'])<span class="text-slate-600">– Ziel: {{ $trial['trial_goal'] }}</span>@endif @unless ($loop->last)·@endunless
+                            <span class="font-mono text-xs">{{ $trial['id'] }}</span> bis {{ \Carbon\CarbonImmutable::parse($trial['trial_until'])->format('d.m.Y') }}@if (\Carbon\CarbonImmutable::parse($trial['trial_until'], 'Europe/Berlin')->endOfDay()->isPast()) <span class="font-semibold">(Testphase abgelaufen, Überprüfung überfällig seit {{ max(1, (int) \Carbon\CarbonImmutable::parse($trial['trial_until'], 'Europe/Berlin')->startOfDay()->diffInDays(now('Europe/Berlin')->startOfDay())) }} Tagen)</span>@endif @if ($trial['trial_goal'])<span class="text-slate-600">– Ziel: {{ $trial['trial_goal'] }}</span>@endif @unless ($loop->last)·@endunless
                         @endforeach
                     </span>
                 </p>

@@ -126,7 +126,7 @@
                                     @endif
 
                                     @if ($document->parsed && $document->isTrial())
-                                        <x-badge :tone="$document->trialExpired() ? 'danger' : 'info'">{{ 'Vorläufig bis '.$document->trialUntil()->format('d.m.Y').($document->trialExpired() ? ' – abgelaufen' : '') }}</x-badge>
+                                        <x-badge :tone="$document->trialExpired() ? 'danger' : 'info'">{{ 'Vorläufig bis '.$document->trialUntil()->format('d.m.Y').($document->trialLapsed() ? ' – abgelaufen, wird nicht mehr verwendet' : ($document->trialExpired() ? ' – abgelaufen, Überprüfung überfällig seit '.$document->trialOverdueDays().' Tg.' : '')) }}</x-badge>
                                     @endif
 
                                     @if ($document->parsed)

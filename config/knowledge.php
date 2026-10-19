@@ -400,4 +400,17 @@ return [
 
     'review' => ['many_flags' => 3, 'many_staff' => 2],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Trial period (PROJ-56)
+    |--------------------------------------------------------------------------
+    |
+    | After the last day of a trial a document stays in use with a warning for
+    | this many days. Without a decision by then it is no longer retrieved
+    | until an admin decides. An extension may reach at most this far ahead.
+    |
+    */
+
+    'trial' => ['grace_days' => 30, 'max_extension_days' => 366],
+
 ];

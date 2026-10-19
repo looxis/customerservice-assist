@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangeDocumentStatusRequest;
+use App\Http\Requests\ChangeDocumentTrialRequest;
 use App\Http\Requests\KnowledgeIndexRequest;
 use App\Knowledge\DocumentEvidence;
 use App\Knowledge\DocumentStatusChanger;
@@ -11,7 +12,9 @@ use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeReviewLog;
 use App\Knowledge\StatusChangeException;
+use App\Knowledge\TrialChanger;
 use App\Staff\TestMode;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +54,7 @@ class KnowledgeController extends Controller
         ]);
     }
 
-    public function show(string $path, Request $request, KnowledgeLibrary $library, KnowledgeMarkdown $markdown, DocumentStatusChanger $changer, DocumentEvidence $evidence, TestMode $testMode): View
+    public function show(string $path, Request $request, KnowledgeLibrary $library, KnowledgeMarkdown $markdown, DocumentStatusChanger $changer, DocumentEvidence $evidence, TestMode $testMode, TrialChanger $trial): View
     {
         // The path is only ever compared with documents the library has read;
         // it is never used to open a file.
@@ -82,8 +85,29 @@ class KnowledgeController extends Controller
             'typeLabel' => config("knowledge.types.{$document->type}.label"),
             'reportedMany' => $document->id !== null && app(KnowledgeReviewLog::class)->isReportedMany($document->id),
             'statusPanel' => $testMode->isAvailable($request) ? $this->statusPanel($document, $changer, $evidence) : null,
+            'trialPanel' => $testMode->isAvailable($request) && $trial->targets($document) !== [] ? [
+                'targets' => $trial->targets($document),
+                'writable' => $changer->writable($document),
+                'suggested' => CarbonImmutable::now('Europe/Berlin')->addMonths(3)->format('Y-m-d'),
+            ] : null,
             'backUrl' => $previous === $index || str_starts_with($previous, $index.'?') ? $previous : $index,
         ]);
+    }
+
+    /**
+     * Decide about a document in its trial period (PROJ-56): keep it for good, extend or end it. Admins only.
+     */
+    public function changeTrial(string $path, ChangeDocumentTrialRequest $request, TrialChanger $trial): RedirectResponse
+    {
+        $back = redirect()->route('knowledge.show', ['path' => $path]);
+
+        try {
+            $trial->change($path, $request->validated('decision'), $request->validated('fingerprint'), $request->validated('until'));
+        } catch (StatusChangeException $exception) {
+            return $back->with('status_error', $exception->getMessage());
+        }
+
+        return $back->with('trial_changed', $request->validated('decision'));
     }
 
     /**

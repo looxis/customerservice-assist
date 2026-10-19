@@ -8,6 +8,9 @@
         <div class="flex justify-between gap-2"><dt>Wissen</dt><dd class="text-right text-slate-900">{{ $stats['documents'] }} Dateien · {{ \App\Analysis\AppStats::size($stats['bytes']) }}</dd></div>
         <div class="flex justify-between gap-2"><dt>Bearbeitete Tickets</dt><dd class="font-semibold text-slate-900">{{ $stats['tickets'] }}</dd></div>
         <div class="flex justify-between gap-2"><dt>Gemeldete Wissenslücken</dt><dd class="font-semibold text-slate-900">{{ $stats['gaps'] }}</dd></div>
+        @if (($stats['review'] ?? 0) > 0)
+            <div class="flex justify-between gap-2"><dt title="Wissen mit abgelaufener Testphase oder gemeldet als möglicherweise veraltet">Wissen zur Überprüfung</dt><dd class="font-semibold text-warning-700">{{ $stats['review'] }}</dd></div>
+        @endif
         <div class="flex justify-between gap-2"><dt>Davon noch offen</dt><dd class="font-semibold text-slate-900">{{ $stats['openGaps'] }}</dd></div>
     </dl>
     @if ($stats['gaps'] > 0)

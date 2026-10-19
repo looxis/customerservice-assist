@@ -627,7 +627,8 @@ class CaseAnalyzer
         }
 
         $goal = $document->trialGoal();
-        $over = $document->trialExpired() ? ' Die Testphase ist abgelaufen und wurde noch nicht entschieden: darauf hinweisen, dass die Überprüfung überfällig ist.' : '';
+        $days = $document->trialOverdueDays();
+        $over = $days === null ? '' : " Die Testphase ist seit {$days} ".($days === 1 ? 'Tag' : 'Tagen').' abgelaufen und wurde noch nicht entschieden: darauf hinweisen, dass die Überprüfung überfällig ist.';
 
         return 'Hinweis: Dieses Vorgehen ist vorläufig und wird nur bis '.$until->format('d.m.Y').' getestet'.($goal === null ? '' : ' (Ziel: '.$goal.')').'. In Begründung oder Hinweisen kurz erwähnen, dass das Vorgehen in Erprobung ist.'.$over."\n";
     }

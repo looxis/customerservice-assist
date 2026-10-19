@@ -13,7 +13,7 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 ## Umfang in vier Schritten
 1. **Befristung im Dokument** (`trial_until`, `trial_goal`), Kennzeichnung, Prompt-Hinweis, Prüfung. **Gebaut am 2026-10-19.**
 2. **Meldung „bitte prüfen“ für alle Wissensdokumente** (gebaut 2026-10-19) durch Mitarbeiter, Reiter „Zur Prüfung“ in der Admin-Seite der Wissenslücken, Zähler je Dokument, Hinweis „mehrfach gemeldet“ ab 3 Meldungen von 2 Mitarbeitern, nie automatische Abschaltung; Admin-Aktionen „Geprüft, bleibt“, „Für den KI-Chat kopieren“, „Als veraltet markieren“.
-3. **Ablauf der Testphase:** Das Dokument bleibt im Einsatz mit der Warnung „Prüfung überfällig seit X Tagen“ (Ergebnis, Wissensübersicht, Seitenleiste, Admins); nach 30 Tagen ohne Entscheidung wird es nicht mehr abgerufen; Entscheidung per Klick (bewährt und dauerhaft gültig, Testphase verlängern, beenden), Zahl „zur Überprüfung“ in der Seitenleiste.
+3. **Ablauf der Testphase** (gebaut 2026-10-19): Das Dokument bleibt im Einsatz mit der Warnung „Prüfung überfällig seit X Tagen“ (Ergebnis, Wissensübersicht, Seitenleiste, Admins); nach 30 Tagen ohne Entscheidung wird es nicht mehr abgerufen; Entscheidung per Klick (bewährt und dauerhaft gültig, Testphase verlängern, beenden), Zahl „zur Überprüfung“ in der Seitenleiste.
 4. **Belege je Dokument** aus vorhandenen Daten: wie oft abgerufen, Entwürfe unverändert/angepasst/gesendet, Bewertungen, Meldungen; für befristete hervorgehoben.
 
 ## Out of Scope
@@ -39,6 +39,14 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - [x] Angenommen ich bin kein Admin, dann ist der Reiter und das Schließen verboten (403); eine unbekannte oder ungültige Dokument-ID, ein ungültiger Grund oder ein zu langer Kommentar wird abgelehnt; mehr als 20 Meldungen pro Minute werden gebremst.
 - [x] Angenommen der Kommentar enthält Fallangaben, dann ist er verschlüsselt gespeichert und wird mit den übrigen Inhalten nach der Aufbewahrungsfrist gelöscht.
 
+## Acceptance Criteria – Schritt 3
+- [x] Angenommen die Testphase ist vorbei, dann bleibt das Dokument 30 Tage weiter in Verwendung und trägt überall „Testphase abgelaufen, Überprüfung überfällig seit X Tagen“ (Ergebnis, Wissensübersicht, Dokumentseite mit Restlaufzeit, Hinweis an die KI, `knowledge:check`).
+- [x] Angenommen seit dem Ende sind mehr als 30 Tage vergangen und niemand hat entschieden, dann wird das Dokument nicht mehr abgerufen (Auswahl und Abruf), Wissensübersicht und Dokumentseite sagen es, `knowledge:check` warnt.
+- [x] Angenommen ich bin Admin, wenn ich ein befristetes Dokument öffne, dann sehe ich „Entscheidung zur Testphase“ mit „Bewährt, dauerhaft gültig“ (entfernt `trial_until` und `trial_goal`), „Testphase verlängern“ mit neuem Enddatum (heute bis höchstens ein Jahr; ein abgelaufenes Dokument wird wieder verwendet) und „Beenden (veraltet)“ (setzt den Status auf `deprecated`).
+- [x] Angenommen die Datei hat sich seit dem Öffnen der Seite geändert, ist nicht schreibbar oder das Datum ist ungültig, dann wird nichts geändert und der Grund genannt; sonst bleiben alle anderen Zeilen der Datei unverändert (auch mit Windows-Zeilenenden und mehrzeiligem Ziel). Committet wird von Hand.
+- [x] Angenommen ein Nicht-Admin versucht zu entscheiden, dann 403; bei einem Dokument ohne Testphase gibt es kein Feld und keine Entscheidung.
+- [x] Angenommen Wissen hat eine abgelaufene Testphase oder offene Meldungen, dann zeigt die Seitenleiste für alle „Wissen zur Überprüfung: n“ (je Dokument einmal); ohne solche Dokumente fehlt die Zeile.
+
 ## Decision Log
 
 ### Product Decisions
@@ -62,13 +70,17 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - **Anzeige:** Quellen im Ergebnis (Badge und Hinweiszeile), Wissensübersicht (Badge), Dokumentseite (Hinweis), `AnalysisPanel::sources()` liest die Felder aus dem Protokoll.
 - **Autoren:** Authoring Guide, Skill `knowledge` und die Vorlagen Policy und Playbook kennen die Felder.
 - **Tests:** `PROJ-56-TrialKnowledgeTest` (12 Tests).
-- **Schritte 3 und 4:** noch offen.
 
 ## Implementation Notes (Schritt 2, 2026-10-19)
 - **Neu:** Tabelle `knowledge_review_flags` (Modell `KnowledgeReviewFlag`, Kommentar verschlüsselt, Stand des Dokuments als Fingerabdruck), `KnowledgeReviewLog` (melden, zählen, Liste, „Geprüft, bleibt“, Text für den KI-Chat, Aufbewahrung), `KnowledgeReviewController` mit Routen `knowledge.review.store` (POST, Drosselung 20 je Minute) und `knowledge.review.resolve` (nur Admins), Anfragen `StoreKnowledgeReviewRequest` und `ResolveKnowledgeReviewRequest`, Baustein `components/knowledge/review-form`, Konfiguration `knowledge.review` (3 Meldungen, 2 Personen).
 - **Anzeige:** Formular unter jeder Quelle im Ergebnis, auf der Dokumentseite und Hinweis „Mehrfach zur Prüfung gemeldet“ in Ergebnis, Liste und Dokumentseite; Reiter „Zur Prüfung (n)“ bei den Wissenslücken.
 - **Tests:** `PROJ-56-ReviewFlagsTest` (20 Tests).
 - **Abweichung vom Plan:** Eigene Tabelle statt Erweiterung der Wissenslücken, weil Meldungen zu einem Dokument und Lücken (fehlendes Wissen) unterschiedlich ausgewertet werden; sichtbar liegen sie in derselben Admin-Seite.
+
+## Implementation Notes (Schritt 3, 2026-10-19)
+- **Neu:** `KnowledgeDocument::trialOverdueDays()/trialLapsed()`, `KnowledgeLibrary::usable()` ohne abgelaufene Dokumente (Auswahl, Abruf und alle Stellen, die `usable()` nutzen), `TrialChanger` (ändert nur die betroffenen Zeilen des Dateikopfs, prüft den Fingerabdruck, schreibt atomar), `ChangeDocumentTrialRequest`, Route `knowledge.trial` (POST, Admins), Panel „Entscheidung zur Testphase“ auf der Dokumentseite, `AppStats::review()` und die Zeile in der Seitenleiste; Konfiguration `knowledge.trial` (Nachfrist 30 Tage, Verlängerung höchstens 366 Tage).
+- **Tests:** `PROJ-56-TrialLapseTest` (17 Tests).
+- **Schritt 4** (Belege je Dokument) ist noch offen.
 
 ## QA Test Results
 _To be added by /qa_

@@ -19,8 +19,10 @@
 
     @if ($document->parsed && $document->isTrial())
         <x-alert :type="$document->trialExpired() ? 'danger' : 'info'">
-            @if ($document->trialExpired())
-                Testphase abgelaufen: Dieses Vorgehen wurde nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet. Bitte prüfen, ob es bleibt, verlängert wird oder entfällt.
+            @if ($document->trialLapsed())
+                Testphase abgelaufen und nicht entschieden: Dieses Vorgehen wurde nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet und wird seit {{ $document->trialOverdueDays() - (int) config('knowledge.trial.grace_days') }} {{ $document->trialOverdueDays() - (int) config('knowledge.trial.grace_days') === 1 ? 'Tag' : 'Tagen' }} nicht mehr verwendet. Ein Admin entscheidet, ob es bleibt, verlängert wird oder entfällt.
+            @elseif ($document->trialExpired())
+                Testphase abgelaufen, Überprüfung überfällig seit {{ $document->trialOverdueDays() }} {{ $document->trialOverdueDays() === 1 ? 'Tag' : 'Tagen' }}: Dieses Vorgehen wurde nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet. Es gilt noch {{ (int) config('knowledge.trial.grace_days') - $document->trialOverdueDays() + 1 }} Tage weiter und wird dann nicht mehr verwendet, wenn niemand entscheidet.
             @else
                 Vorläufig: Dieses Vorgehen wird nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet.
             @endif
@@ -130,6 +132,44 @@
     @endif
     @if (session('status_error'))
         <x-alert type="error">{{ session('status_error') }}</x-alert>
+    @endif
+
+    @if (session('trial_changed'))
+        <x-alert type="success">Entscheidung umgesetzt: {{ \App\Knowledge\TrialChanger::LABELS[session('trial_changed')] ?? session('trial_changed') }}. Die Datei ist geändert, aber noch nicht committet.</x-alert>
+    @endif
+
+    @if (($trialPanel ?? null) !== null && $document->parsed)
+        <x-card>
+            <h2 class="text-base font-semibold text-slate-900">Entscheidung zur Testphase</h2>
+            <p class="mt-1 text-sm text-slate-600">Nur für Admins. Die App ändert die Datei, committet wird von Hand.</p>
+            @unless ($trialPanel['writable'])
+                <p class="mt-2 text-sm font-medium text-danger-700">Die Datei kann in dieser Umgebung nicht geschrieben werden.</p>
+            @endunless
+            <div class="mt-4 flex flex-wrap items-end gap-4" @if (! $trialPanel['writable']) inert @endif>
+                <form method="POST" action="{{ route('knowledge.trial', ['path' => $document->path]) }}" onsubmit="return confirm('Das Dokument dauerhaft gültig machen? Die Befristung wird aus der Datei entfernt.')">
+                    @csrf
+                    <input type="hidden" name="fingerprint" value="{{ $document->fingerprint }}">
+                    <input type="hidden" name="decision" value="permanent">
+                    <x-button type="submit">Bewährt, dauerhaft gültig</x-button>
+                </form>
+                <form method="POST" action="{{ route('knowledge.trial', ['path' => $document->path]) }}" class="flex items-end gap-2">
+                    @csrf
+                    <input type="hidden" name="fingerprint" value="{{ $document->fingerprint }}">
+                    <input type="hidden" name="decision" value="extend">
+                    <div>
+                        <label for="trial-until" class="block text-sm font-medium text-slate-900">Neues Enddatum</label>
+                        <input id="trial-until" type="date" name="until" value="{{ old('until', $trialPanel['suggested']) }}" required class="mt-1 block rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                    </div>
+                    <x-button type="submit" variant="secondary">Testphase verlängern</x-button>
+                </form>
+                <form method="POST" action="{{ route('knowledge.trial', ['path' => $document->path]) }}" onsubmit="return confirm('Das Dokument beenden und auf veraltet setzen? Die App verwendet es dann nicht mehr.')">
+                    @csrf
+                    <input type="hidden" name="fingerprint" value="{{ $document->fingerprint }}">
+                    <input type="hidden" name="decision" value="end">
+                    <x-button type="submit" variant="secondary">Beenden (veraltet)</x-button>
+                </form>
+            </div>
+        </x-card>
     @endif
 
     @if ($document->parsed && $document->id)

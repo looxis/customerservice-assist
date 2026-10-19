@@ -84,8 +84,8 @@ describe('the pages', function () {
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'active', 'trial_until' => '2027-01-31', 'trial_goal' => 'x'])]);
         $this->travelTo(CarbonImmutable::parse('2027-02-10 09:00', 'Europe/Berlin'));
 
-        test()->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->assertOk()->assertSeeText('Testphase abgelaufen: Dieses Vorgehen wurde nur bis 31.01.2027 getestet');
-        test()->get('/knowledge')->assertOk()->assertSeeText('Vorläufig bis 31.01.2027 – abgelaufen');
+        test()->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->assertOk()->assertSeeText('Testphase abgelaufen, Überprüfung überfällig seit 10 Tagen: Dieses Vorgehen wurde nur bis 31.01.2027 getestet');
+        test()->get('/knowledge')->assertOk()->assertSeeText('Vorläufig bis 31.01.2027 – abgelaufen, Überprüfung überfällig seit 10 Tg.');
     });
 });
 

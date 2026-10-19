@@ -259,6 +259,31 @@ final readonly class KnowledgeDocument
         return $until !== null && ($now ?? CarbonImmutable::now('Europe/Berlin'))->greaterThan($until->endOfDay());
     }
 
+    /**
+     * How many days the trial has been over (1 on the day after its last day), null while it runs or without a trial.
+     */
+    public function trialOverdueDays(?CarbonImmutable $now = null): ?int
+    {
+        $until = $this->trialUntil();
+        $now ??= CarbonImmutable::now('Europe/Berlin');
+
+        if ($until === null || ! $now->greaterThan($until->endOfDay())) {
+            return null;
+        }
+
+        return max(1, (int) $until->startOfDay()->diffInDays($now->startOfDay()));
+    }
+
+    /**
+     * Over for longer than the grace period without a decision: the document is no longer retrieved.
+     */
+    public function trialLapsed(?CarbonImmutable $now = null): bool
+    {
+        $days = $this->trialOverdueDays($now);
+
+        return $days !== null && $days > (int) config('knowledge.trial.grace_days');
+    }
+
     public function isDraft(): bool
     {
         return $this->status === 'draft';

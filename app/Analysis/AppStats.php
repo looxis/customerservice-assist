@@ -6,6 +6,7 @@ use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeLibrary;
 use App\Models\Analysis;
 use App\Models\KnowledgeGap;
+use App\Models\KnowledgeReviewFlag;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -20,7 +21,7 @@ class AppStats
     public function __construct(private readonly KnowledgeLibrary $library) {}
 
     /**
-     * @return array{version: string, state: string, documents: int, drafts: int, bytes: int, tickets: int, gaps: int, openGaps: int}
+     * @return array{version: string, state: string, documents: int, drafts: int, bytes: int, tickets: int, gaps: int, openGaps: int, review: int}
      */
     public function all(): array
     {
@@ -29,6 +30,7 @@ class AppStats
             ...$this->knowledge(),
             'tickets' => $this->processedTickets(),
             ...$this->gaps(),
+            'review' => $this->review(),
         ];
     }
 
@@ -38,6 +40,17 @@ class AppStats
     public function processedTickets(): int
     {
         return Analysis::query()->where('status', 'completed')->whereNull('test_until')->where('ticket_number', 'not like', 'F%')->distinct()->count('ticket_number');
+    }
+
+    /**
+     * Knowledge documents to look at (PROJ-56): a trial that is over, or open reports "please check".
+     */
+    public function review(): int
+    {
+        $overdue = $this->library->all()->filter(fn (KnowledgeDocument $document): bool => $document->parsed && $document->id !== null && $document->trialExpired())->pluck('id');
+        $reported = KnowledgeReviewFlag::query()->where('status', 'open')->distinct()->pluck('document_id');
+
+        return $overdue->merge($reported)->unique()->count();
     }
 
     /**

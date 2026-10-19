@@ -142,8 +142,10 @@ class KnowledgeValidator
 
         $until = $document->trialUntil();
 
-        if ($document->trialExpired()) {
-            $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase ist am '.$until->format('d.m.Y').' abgelaufen: Bitte prüfen, ob das Vorgehen bleibt, verlängert wird (`trial_until`) oder entfällt.');
+        if ($document->trialLapsed()) {
+            $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase ist am '.$until->format('d.m.Y').' abgelaufen und die Nachfrist von '.(int) config('knowledge.trial.grace_days').' Tagen vorbei: Das Dokument wird nicht mehr verwendet, bis entschieden ist, ob es bleibt, verlängert wird (`trial_until`) oder entfällt.');
+        } elseif ($document->trialExpired()) {
+            $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase ist am '.$until->format('d.m.Y').' abgelaufen: Bitte prüfen, ob das Vorgehen bleibt, verlängert wird (`trial_until`) oder entfällt. Nach '.(int) config('knowledge.trial.grace_days').' Tagen ohne Entscheidung wird das Dokument nicht mehr verwendet.');
         } elseif (CarbonImmutable::now('Europe/Berlin')->addDays(14)->greaterThan($until->endOfDay())) {
             $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase endet am '.$until->format('d.m.Y').': Bitte rechtzeitig prüfen, ob das Vorgehen bleibt.');
         }
