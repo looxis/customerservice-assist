@@ -7,6 +7,17 @@
         <x-icon name="chevron-left" size="16" /> Zur Übersicht
     </a>
 
+    @if ($document->parsed && $document->isTrial())
+        <x-alert :type="$document->trialExpired() ? 'danger' : 'info'">
+            @if ($document->trialExpired())
+                Testphase abgelaufen: Dieses Vorgehen wurde nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet. Bitte prüfen, ob es bleibt, verlängert wird oder entfällt.
+            @else
+                Vorläufig: Dieses Vorgehen wird nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet.
+            @endif
+            @if ($document->trialGoal()) Ziel: {{ $document->trialGoal() }} @endif
+        </x-alert>
+    @endif
+
     @if ($document->parsed && ! $hasErrors && $document->status === 'draft')
         <x-alert type="warning">
             Entwurfs-Wissen: Dieses Dokument ist noch nicht fachlich bestätigt. Die App verwendet es bereits und kennzeichnet es im Ergebnis. Wenn dir etwas unstimmig vorkommt, gib bitte Bescheid.

@@ -121,6 +121,10 @@
                                         <x-badge tone="warning">{{ $warningCount }} {{ $warningCount === 1 ? 'Warnung' : 'Warnungen' }}</x-badge>
                                     @endif
 
+                                    @if ($document->parsed && $document->isTrial())
+                                        <x-badge :tone="$document->trialExpired() ? 'danger' : 'info'">{{ 'Vorläufig bis '.$document->trialUntil()->format('d.m.Y').($document->trialExpired() ? ' – abgelaufen' : '') }}</x-badge>
+                                    @endif
+
                                     @if ($document->parsed)
                                         <x-knowledge.status-badge :status="$document->status" />
                                     @endif

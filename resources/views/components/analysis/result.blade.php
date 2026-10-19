@@ -8,6 +8,7 @@
     $confidence = ['HOCH' => 'success', 'MITTEL' => 'warning', 'NIEDRIG' => 'danger'];
     $time = fn (string $value): string => \Carbon\CarbonImmutable::parse($value)->setTimezone('Europe/Berlin')->format('d.m.Y, H:i');
     $usedDrafts = collect($result['sources'])->where('draft', true)->pluck('id')->all();
+    $usedTrials = collect($result['sources'])->filter(fn ($source) => ($source['trial_until'] ?? null) !== null);
     $gaps = $r['knowledge_gaps'] ?? [];
     $legacyMissing = $r['missing_information'] ?? [];
     $hasReply = $result['has_reply'] ?? true;
@@ -203,6 +204,16 @@
                 </x-alert>
             @endif
 
+            @if ($usedTrials->isNotEmpty())
+                <p class="flex items-start gap-2 text-warning-700">
+                    <x-icon name="warning" size="16" class="mt-0.5 shrink-0" />
+                    <span>Beruht teilweise auf vorläufigem Wissen (in Erprobung):
+                        @foreach ($usedTrials as $trial)
+                            <span class="font-mono text-xs">{{ $trial['id'] }}</span> bis {{ \Carbon\CarbonImmutable::parse($trial['trial_until'])->format('d.m.Y') }}@if (\Carbon\CarbonImmutable::parse($trial['trial_until'], 'Europe/Berlin')->endOfDay()->isPast()) <span class="font-semibold">(Testphase abgelaufen, Überprüfung überfällig)</span>@endif @if ($trial['trial_goal'])<span class="text-slate-600">– Ziel: {{ $trial['trial_goal'] }}</span>@endif @unless ($loop->last)·@endunless
+                        @endforeach
+                    </span>
+                </p>
+            @endif
             @if ($usedDrafts !== [])
                 <p class="flex items-start gap-2 text-warning-700">
                     <x-icon name="warning" size="16" class="mt-0.5 shrink-0" />
@@ -264,6 +275,7 @@
                             <span class="font-medium">{{ $source['title'] ?? '–' }}</span>
                             @if ($source['type'])<x-badge compact>{{ $source['type'] }}</x-badge>@endif
                             @if ($source['draft'])<x-badge compact tone="warning">Entwurf</x-badge>@endif
+                            @if ($source['trial_until'] ?? null)<x-badge compact :tone="\Carbon\CarbonImmutable::parse($source['trial_until'], 'Europe/Berlin')->endOfDay()->isPast() ? 'danger' : 'info'">Vorläufig bis {{ \Carbon\CarbonImmutable::parse($source['trial_until'])->format('d.m.Y') }}</x-badge>@endif
                             @if ($source['state'] === 'changed')<x-badge compact tone="info">Seit dem Vorschlag geändert</x-badge>@endif
                             @if ($source['state'] === 'removed')<x-badge compact tone="danger">nicht mehr vorhanden</x-badge>@endif
                         </summary>

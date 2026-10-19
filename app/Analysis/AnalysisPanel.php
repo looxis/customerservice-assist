@@ -563,6 +563,8 @@ class AnalysisPanel
                 'title' => $snapshot['title'] ?? $current?->title,
                 'type' => $snapshot['type'] ?? $current?->type,
                 'draft' => $snapshot['draft'] ?? in_array($id, $drafts, true),
+                'trial_until' => $snapshot['trial_until'] ?? null,
+                'trial_goal' => $snapshot['trial_goal'] ?? null,
                 'html' => $snapshot !== null ? $this->markdown->render((string) $snapshot['body']) : null,
                 'state' => match (true) {
                     $current === null => 'removed',

@@ -2,6 +2,9 @@
 
 namespace App\Knowledge;
 
+use Carbon\CarbonImmutable;
+use DateTimeInterface;
+
 final readonly class KnowledgeDocument
 {
     public ?string $id;
@@ -211,6 +214,49 @@ final readonly class KnowledgeDocument
         $slug = $this->productSlug();
 
         return array_values(array_unique($slug === null ? $this->products() : [$slug, ...$this->products()]));
+    }
+
+    /**
+     * The end of the trial period (PROJ-56): the last day, as written in `trial_until` (YYYY-MM-DD), or null.
+     */
+    public function trialUntil(): ?CarbonImmutable
+    {
+        $value = $this->frontmatter['trial_until'] ?? null;
+
+        if ($value instanceof DateTimeInterface) {
+            $value = $value->format('Y-m-d');
+        }
+
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($value)) !== 1) {
+            return null;
+        }
+
+        $date = CarbonImmutable::createFromFormat('!Y-m-d', trim($value), 'Europe/Berlin');
+
+        return $date === false || $date->format('Y-m-d') !== trim($value) ? null : $date;
+    }
+
+    /**
+     * What the test is meant to show (`trial_goal`).
+     */
+    public function trialGoal(): ?string
+    {
+        return $this->string('trial_goal');
+    }
+
+    public function isTrial(): bool
+    {
+        return $this->trialUntil() !== null;
+    }
+
+    /**
+     * Whether the trial period is over: after its last day.
+     */
+    public function trialExpired(?CarbonImmutable $now = null): bool
+    {
+        $until = $this->trialUntil();
+
+        return $until !== null && ($now ?? CarbonImmutable::now('Europe/Berlin'))->greaterThan($until->endOfDay());
     }
 
     public function isDraft(): bool

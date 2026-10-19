@@ -136,6 +136,8 @@ class CaseAnalyzer
                 'title' => $entry->document->title,
                 'type' => $entry->document->type,
                 'draft' => $entry->isDraft(),
+                'trial_until' => $entry->document->trialUntil()?->format('Y-m-d'),
+                'trial_goal' => $entry->document->trialGoal(),
                 'path' => $entry->document->path,
                 'body' => $entry->document->body,
                 'fingerprint' => $entry->document->fingerprint,
@@ -608,8 +610,26 @@ class CaseAnalyzer
                 $hint = isset($hints[(string) $entry->document->id]) ? $this->hint($hints[(string) $entry->document->id]) : '';
 
                 return '## '.$entry->document->id.' – '.$entry->document->title
-                    .' ('.config("knowledge.types.{$entry->document->type}.label").($entry->isDraft() ? ', Entwurf' : '').")\n".$hint.$entry->document->body;
+                    .' ('.config("knowledge.types.{$entry->document->type}.label").($entry->isDraft() ? ', Entwurf' : '').($entry->document->isTrial() ? ', in Erprobung' : '').")\n".$hint.$this->trialNote($entry->document).$entry->document->body;
             }, $selection->selected)));
+    }
+
+    /**
+     * The note in front of a document that is only tested for a while (PROJ-56): the reply names it, so the
+     * employee knows the procedure is provisional.
+     */
+    private function trialNote(KnowledgeDocument $document): string
+    {
+        $until = $document->trialUntil();
+
+        if ($until === null) {
+            return '';
+        }
+
+        $goal = $document->trialGoal();
+        $over = $document->trialExpired() ? ' Die Testphase ist abgelaufen und wurde noch nicht entschieden: darauf hinweisen, dass die Überprüfung überfällig ist.' : '';
+
+        return 'Hinweis: Dieses Vorgehen ist vorläufig und wird nur bis '.$until->format('d.m.Y').' getestet'.($goal === null ? '' : ' (Ziel: '.$goal.')').'. In Begründung oder Hinweisen kurz erwähnen, dass das Vorgehen in Erprobung ist.'.$over."\n";
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Knowledge;
 
+use Carbon\CarbonImmutable;
+
 class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
@@ -11,7 +13,7 @@ class KnowledgeValidator
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
         'products', 'exclude_products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge',
-        'priority', 'risk_level', 'owner', 'reviewed_by', 'last_reviewed',
+        'priority', 'risk_level', 'owner', 'reviewed_by', 'last_reviewed', 'trial_until', 'trial_goal',
         'summary', 'retrieval', 'triggers', 'exclude_triggers', 'when', 'actions',
     ];
 
@@ -65,6 +67,7 @@ class KnowledgeValidator
                 ...$this->filename($document),
                 ...$this->slugs($document),
                 ...$this->excludedProducts($document),
+                ...$this->trialFields($document),
                 ...$this->unknownFields($document),
                 ...$this->personalData($document),
             );
@@ -105,6 +108,48 @@ class KnowledgeValidator
             } elseif ($document->string($field) === null) {
                 $issues[] = KnowledgeIssue::error($document->path, "Pflichtfeld `{$field}` fehlt oder ist leer.");
             }
+        }
+
+        return $issues;
+    }
+
+    /**
+     * The trial period (PROJ-56): a valid last day, a goal only together with it, and a note when it is over or about to end.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function trialFields(KnowledgeDocument $document): array
+    {
+        $raw = $document->frontmatter['trial_until'] ?? null;
+        $goal = $document->frontmatter['trial_goal'] ?? null;
+        $issues = [];
+
+        if ($raw === null && $goal === null) {
+            return [];
+        }
+
+        if ($raw !== null && $document->trialUntil() === null) {
+            return [KnowledgeIssue::error($document->path, 'Feld `trial_until` muss ein Datum im Format JJJJ-MM-TT sein (letzter Tag der Testphase).')];
+        }
+
+        if ($goal !== null && (! is_string($goal) || trim($goal) === '')) {
+            $issues[] = KnowledgeIssue::error($document->path, 'Feld `trial_goal` muss ein kurzer Text sein: woran erkennen wir, ob der Test geholfen hat?');
+        }
+
+        if ($raw === null) {
+            return [...$issues, KnowledgeIssue::warning($document->path, '`trial_goal` ohne `trial_until`: Ohne Enddatum ist das Dokument nicht befristet.')];
+        }
+
+        $until = $document->trialUntil();
+
+        if ($document->trialExpired()) {
+            $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase ist am '.$until->format('d.m.Y').' abgelaufen: Bitte prüfen, ob das Vorgehen bleibt, verlängert wird (`trial_until`) oder entfällt.');
+        } elseif (CarbonImmutable::now('Europe/Berlin')->addDays(14)->greaterThan($until->endOfDay())) {
+            $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase endet am '.$until->format('d.m.Y').': Bitte rechtzeitig prüfen, ob das Vorgehen bleibt.');
+        }
+
+        if ($document->trialGoal() === null) {
+            $issues[] = KnowledgeIssue::warning($document->path, 'Zur Testphase fehlt `trial_goal`: Ein Satz, woran wir erkennen, ob das Vorgehen hilft.');
         }
 
         return $issues;
