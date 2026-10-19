@@ -276,6 +276,7 @@
                             @if ($source['type'])<x-badge compact>{{ $source['type'] }}</x-badge>@endif
                             @if ($source['draft'])<x-badge compact tone="warning">Entwurf</x-badge>@endif
                             @if ($source['trial_until'] ?? null)<x-badge compact :tone="\Carbon\CarbonImmutable::parse($source['trial_until'], 'Europe/Berlin')->endOfDay()->isPast() ? 'danger' : 'info'">Vorläufig bis {{ \Carbon\CarbonImmutable::parse($source['trial_until'])->format('d.m.Y') }}</x-badge>@endif
+                            @if ($source['reported_many'] ?? false)<x-badge compact tone="warning">Mehrfach zur Prüfung gemeldet</x-badge>@endif
                             @if ($source['state'] === 'changed')<x-badge compact tone="info">Seit dem Vorschlag geändert</x-badge>@endif
                             @if ($source['state'] === 'removed')<x-badge compact tone="danger">nicht mehr vorhanden</x-badge>@endif
                         </summary>
@@ -287,6 +288,11 @@
                             @endif
                             @if ($source['url'])
                                 <p class="mt-3"><a href="{{ $source['url'] }}" class="font-semibold text-brand hover:text-brand-hover">In der Knowledge-Übersicht öffnen</a></p>
+                            @endif
+                            @if ($source['state'] !== 'removed')
+                                @if (session('review_error'))<p class="mt-2 text-sm font-medium text-danger-700" role="alert">{{ session('review_error') }}</p>@endif
+                                @if (session('review_reported') === $source['id'])<p class="mt-2 text-sm font-medium text-success-700" role="status">Danke, die Meldung ist angekommen. Ein Admin schaut sich das Dokument an.</p>@endif
+                                <x-knowledge.review-form :document-id="$source['id']" :analysis="$result['id'] ?? null" :ticket="$number" />
                             @endif
                         </div>
                     </details>

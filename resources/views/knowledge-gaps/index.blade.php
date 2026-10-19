@@ -18,6 +18,10 @@
                 {{ $label }} ({{ $counts[$key] }})
             </a>
         @endforeach
+        <a href="{{ route('knowledge-gaps.index', ['status' => 'review']) }}" @if ($status === 'review') aria-current="page" @endif
+           @class(['rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset focus-visible:outline-2 focus-visible:outline-brand', 'bg-brand text-white ring-brand' => $status === 'review', 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50' => $status !== 'review'])>
+            Zur Prüfung ({{ $reviewCount }})
+        </a>
     </nav>
 
     @if ($status === 'open' && $unknownProducts->isNotEmpty())
@@ -60,6 +64,47 @@
         </x-card>
     @endif
 
+    @if ($status === 'review')
+        <p class="text-sm text-slate-600">Wissen, das Mitarbeiter als möglicherweise veraltet gemeldet haben. Eine Meldung schaltet nichts ab; ihr entscheidet, ob das Dokument bleibt, überarbeitet wird oder entfällt.</p>
+        @forelse ($reviews as $row)
+            <x-card>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                    <span class="font-mono text-slate-600">{{ $row['id'] }}</span>
+                    @if ($row['path'])
+                        <a href="{{ route('knowledge.show', ['path' => $row['path']]) }}" class="font-semibold text-brand hover:text-brand-hover">{{ $row['title'] ?? $row['path'] }}</a>
+                    @else
+                        <span class="font-semibold text-slate-900">{{ $row['title'] ?? 'Dokument nicht mehr vorhanden' }}</span>
+                    @endif
+                    @if ($row['status'])<x-knowledge.status-badge :status="$row['status']" />@endif
+                    <x-badge compact tone="warning">{{ $row['flags']->count() }} {{ $row['flags']->count() === 1 ? 'Meldung' : 'Meldungen' }} von {{ $row['staff'] }} {{ $row['staff'] === 1 ? 'Person' : 'Personen' }}</x-badge>
+                    @if ($row['many'])<x-badge compact tone="danger">Mehrfach gemeldet</x-badge>@endif
+                    @if ($row['changed'])<x-badge compact tone="info">Seit einer Meldung geändert</x-badge>@endif
+                </div>
+                <ul class="mt-3 space-y-2 text-sm">
+                    @foreach ($row['flags'] as $flag)
+                        <li class="border-l-2 border-slate-200 pl-3">
+                            <span class="font-medium text-slate-900">{{ $flag->staff_name }}</span>
+                            <span class="text-slate-600">{{ $flag->created_at->setTimezone('Europe/Berlin')->format('d.m.Y') }} · {{ \App\Knowledge\KnowledgeReviewLog::REASONS[$flag->reason] ?? $flag->reason }}</span>
+                            @if ($flag->ticket_number)<a href="{{ route('tickets.show', array_filter(['number' => $flag->ticket_number, 'analyse' => $flag->analysis_uuid])) }}" class="font-mono text-xs text-brand hover:text-brand-hover">Ticket#{{ $flag->ticket_number }}</a>@endif
+                            @if ($flag->comment)<p class="mt-1 whitespace-pre-line text-slate-700">{{ $flag->comment }}</p>@endif
+                        </li>
+                    @endforeach
+                </ul>
+                <div class="mt-4 flex flex-wrap items-start gap-3" x-data="{ copied: false }">
+                    <form method="POST" action="{{ route('knowledge.review.resolve', ['documentId' => $row['id']]) }}">
+                        @csrf
+                        <x-button type="submit" variant="secondary">Geprüft, bleibt</x-button>
+                    </form>
+                    <textarea x-ref="text" readonly class="sr-only" aria-hidden="true" tabindex="-1">{{ $reviewChatText($row['id']) }}</textarea>
+                    <x-button variant="secondary" x-on:click="navigator.clipboard.writeText($refs.text.value).then(() => { copied = true; setTimeout(() => copied = false, 2500) })">Für den KI-Chat kopieren</x-button>
+                    <span x-show="copied" x-cloak role="status" class="self-center text-sm font-medium text-success-700">Kopiert</span>
+                    @if ($row['path'])<a href="{{ route('knowledge.show', ['path' => $row['path']]) }}" class="self-center text-sm font-semibold text-brand hover:text-brand-hover">Dokument öffnen (dort: Als veraltet markieren)</a>@endif
+                </div>
+            </x-card>
+        @empty
+            <x-card><p class="text-sm text-slate-600">Es liegen keine Meldungen zur Prüfung vor.</p></x-card>
+        @endforelse
+    @else
     @forelse ($gaps as $gap)
         @php($content = $gap->content ?? [])
         <x-card>
@@ -133,4 +178,5 @@
     @empty
         <x-alert>{{ $status === 'open' ? 'Keine offenen Wissenslücken.' : 'Keine Einträge.' }}</x-alert>
     @endforelse
+    @endif
 </x-layouts.app>

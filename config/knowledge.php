@@ -387,4 +387,17 @@ return [
 
     'max_body_length' => 8000,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reports "please check" (PROJ-56)
+    |--------------------------------------------------------------------------
+    |
+    | A document counts as "reported several times" with this many open reports
+    | from at least this many different staff members. Reports never switch a
+    | document off.
+    |
+    */
+
+    'review' => ['many_flags' => 3, 'many_staff' => 2],
+
 ];

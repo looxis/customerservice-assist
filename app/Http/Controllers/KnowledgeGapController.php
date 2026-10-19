@@ -8,6 +8,7 @@ use App\Analysis\QuestionNumber;
 use App\Http\Requests\ResolveKnowledgeGapRequest;
 use App\Http\Requests\StoreKnowledgeGapRequest;
 use App\Knowledge\CustomerGroup;
+use App\Knowledge\KnowledgeReviewLog;
 use App\Knowledge\KnowledgeSelector;
 use App\Models\KnowledgeGap;
 use App\Staff\StaffDirectory;
@@ -36,16 +37,19 @@ class KnowledgeGapController extends Controller
     /**
      * The reported gaps for admins, with the success figure of the feedback.
      */
-    public function index(Request $request, KnowledgeGapLog $gaps, AnalysisStore $store, KnowledgeSelector $selector, TestMode $testMode): View
+    public function index(Request $request, KnowledgeGapLog $gaps, AnalysisStore $store, KnowledgeSelector $selector, TestMode $testMode, KnowledgeReviewLog $reviews): View
     {
         abort_unless($testMode->isAvailable($request), 403);
 
-        $status = array_key_exists((string) $request->query('status'), KnowledgeGapLog::STATUSES) ? (string) $request->query('status') : 'open';
+        $status = array_key_exists((string) $request->query('status'), KnowledgeGapLog::STATUSES) || $request->query('status') === 'review' ? (string) $request->query('status') : 'open';
         $groups = collect($selector->customerGroups())->mapWithKeys(fn (CustomerGroup $group): array => [$group->key => $group->label])->all();
 
         return view('knowledge-gaps.index', [
             'status' => $status,
-            'gaps' => $gaps->list($status),
+            'gaps' => $status === 'review' ? collect() : $gaps->list($status),
+            'reviews' => $status === 'review' ? $reviews->openByDocument() : collect(),
+            'reviewCount' => $reviews->openDocumentCount(),
+            'reviewChatText' => fn (string $id): string => $reviews->chatText($id),
             'unknownProducts' => $gaps->unknownProducts(),
             'notInProductForge' => $gaps->notInProductForge(),
             'counts' => collect(KnowledgeGapLog::STATUSES)->map(fn (string $label, string $key): int => KnowledgeGap::query()->where('status', $key)->count())->all(),

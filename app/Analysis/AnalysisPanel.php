@@ -12,6 +12,7 @@ use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
+use App\Knowledge\KnowledgeReviewLog;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Knowledge\ProcedureFinder;
@@ -553,8 +554,9 @@ class AnalysisPanel
     {
         $snapshots = collect($stored['sources'] ?? [])->keyBy('id');
         $drafts = $stored['draft_ids'] ?? [];
+        $reportedMany = array_map(fn (array $count): bool => $count['many'], app(KnowledgeReviewLog::class)->openCounts());
 
-        return array_map(function (string $id) use ($snapshots, $drafts): array {
+        return array_map(function (string $id) use ($snapshots, $drafts, $reportedMany): array {
             $snapshot = $snapshots->get($id);
             $current = $this->library->find($id);
 
@@ -565,6 +567,7 @@ class AnalysisPanel
                 'draft' => $snapshot['draft'] ?? in_array($id, $drafts, true),
                 'trial_until' => $snapshot['trial_until'] ?? null,
                 'trial_goal' => $snapshot['trial_goal'] ?? null,
+                'reported_many' => $reportedMany[$id] ?? false,
                 'html' => $snapshot !== null ? $this->markdown->render((string) $snapshot['body']) : null,
                 'state' => match (true) {
                     $current === null => 'removed',

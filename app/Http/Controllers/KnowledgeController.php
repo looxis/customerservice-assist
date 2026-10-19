@@ -9,6 +9,7 @@ use App\Knowledge\DocumentStatusChanger;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
+use App\Knowledge\KnowledgeReviewLog;
 use App\Knowledge\StatusChangeException;
 use App\Staff\TestMode;
 use Illuminate\Contracts\View\View;
@@ -45,6 +46,7 @@ class KnowledgeController extends Controller
                 'active' => $usable->where('status', 'active')->count(),
             ],
             'issuesByPath' => $library->issues()->groupBy('path'),
+            'reportedMany' => array_map(fn (array $count): bool => $count['many'], app(KnowledgeReviewLog::class)->openCounts()),
             'documentPaths' => $documents->pluck('path')->all(),
         ]);
     }
@@ -78,6 +80,7 @@ class KnowledgeController extends Controller
             'html' => $document->parsed ? $markdown->render($document->body, $links) : null,
             'links' => $links,
             'typeLabel' => config("knowledge.types.{$document->type}.label"),
+            'reportedMany' => $document->id !== null && app(KnowledgeReviewLog::class)->isReportedMany($document->id),
             'statusPanel' => $testMode->isAvailable($request) ? $this->statusPanel($document, $changer, $evidence) : null,
             'backUrl' => $previous === $index || str_starts_with($previous, $index.'?') ? $previous : $index,
         ]);

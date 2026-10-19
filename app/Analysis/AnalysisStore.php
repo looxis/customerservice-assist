@@ -5,6 +5,7 @@ namespace App\Analysis;
 use App\Models\Analysis;
 use App\Models\CustomerGroupMemory;
 use App\Models\KnowledgeGap;
+use App\Models\KnowledgeReviewFlag;
 use App\Models\MessageTranslation;
 use App\Models\TicketCaseChoice;
 use App\Models\TicketOrderMemory;
@@ -489,6 +490,7 @@ class AnalysisStore
         $before = now()->subMonths((int) config('analysis.content_retention_months'));
 
         TicketOrderMemory::query()->where('updated_at', '<', $before)->delete();
+        KnowledgeReviewFlag::query()->where('created_at', '<', $before)->delete();
 
         return [
             'analyses' => Analysis::query()->whereNotNull('content')->where('created_at', '<', $before)

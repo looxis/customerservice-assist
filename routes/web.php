@@ -8,6 +8,7 @@ use App\Http\Controllers\AnalysisOverviewController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
+use App\Http\Controllers\KnowledgeReviewController;
 use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\ProductSearchController;
 use App\Http\Controllers\QuestionController;
@@ -58,6 +59,8 @@ Route::post('/erweitert', AdvancedModeController::class)->name('advanced-mode.sw
 Route::get('/ablaeufe/{id}', [ProcedureController::class, 'show'])->where('id', '[A-Z]+-[0-9]{3}')->name('procedures.show');
 
 Route::get('/wissensluecken', [KnowledgeGapController::class, 'index'])->name('knowledge-gaps.index');
+Route::post('/knowledge/pruefung', [KnowledgeReviewController::class, 'store'])->middleware(['staff.selected', 'throttle:20,1'])->name('knowledge.review.store');
+Route::post('/wissensluecken/pruefung/{documentId}/geprueft', [KnowledgeReviewController::class, 'resolve'])->middleware('staff.selected')->name('knowledge.review.resolve');
 Route::patch('/wissensluecken/{gap}', [KnowledgeGapController::class, 'update'])->middleware('staff.selected')->whereNumber('gap')->name('knowledge-gaps.update');
 
 Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');

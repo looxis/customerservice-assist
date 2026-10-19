@@ -12,7 +12,7 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 
 ## Umfang in vier Schritten
 1. **Befristung im Dokument** (`trial_until`, `trial_goal`), Kennzeichnung, Prompt-Hinweis, Prüfung. **Gebaut am 2026-10-19.**
-2. **Meldung „bitte prüfen“ für alle Wissensdokumente** durch Mitarbeiter, Reiter „Zur Prüfung“ in der Admin-Seite der Wissenslücken, Zähler je Dokument, Hinweis „mehrfach gemeldet“ ab 3 Meldungen von 2 Mitarbeitern, nie automatische Abschaltung; Admin-Aktionen „Geprüft, bleibt“, „Für den KI-Chat kopieren“, „Als veraltet markieren“.
+2. **Meldung „bitte prüfen“ für alle Wissensdokumente** (gebaut 2026-10-19) durch Mitarbeiter, Reiter „Zur Prüfung“ in der Admin-Seite der Wissenslücken, Zähler je Dokument, Hinweis „mehrfach gemeldet“ ab 3 Meldungen von 2 Mitarbeitern, nie automatische Abschaltung; Admin-Aktionen „Geprüft, bleibt“, „Für den KI-Chat kopieren“, „Als veraltet markieren“.
 3. **Ablauf der Testphase:** Das Dokument bleibt im Einsatz mit der Warnung „Prüfung überfällig seit X Tagen“ (Ergebnis, Wissensübersicht, Seitenleiste, Admins); nach 30 Tagen ohne Entscheidung wird es nicht mehr abgerufen; Entscheidung per Klick (bewährt und dauerhaft gültig, Testphase verlängern, beenden), Zahl „zur Überprüfung“ in der Seitenleiste.
 4. **Belege je Dokument** aus vorhandenen Daten: wie oft abgerufen, Entwürfe unverändert/angepasst/gesendet, Bewertungen, Meldungen; für befristete hervorgehoben.
 
@@ -30,6 +30,14 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - [x] Angenommen ein Vorschlag stützt sich auf ein Dokument in der Testphase, dann nennt das Ergebnis es („Beruht teilweise auf vorläufigem Wissen“), die Quelle trägt „Vorläufig bis TT.MM.JJJJ“, nach Ablauf „Testphase abgelaufen, Überprüfung überfällig“.
 - [x] Angenommen ein Dokument ist in der Testphase, dann zeigt die Wissensübersicht „Vorläufig bis …“ (nach Ablauf „abgelaufen“, rot) und die Dokumentseite einen Hinweis mit Ziel.
 - [x] Angenommen ein Dokument hat keine Befristung, dann ändert sich nichts.
+
+## Acceptance Criteria – Schritt 2
+- [x] Angenommen ich habe meinen Namen gewählt, wenn ich unter einer Quelle im Ergebnis oder auf der Dokumentseite „Möglicherweise veraltet? Bitte prüfen lassen“ mit Grund (hilft nicht, Kunden reagieren schlecht, Regel stimmt nicht mehr, Sonstiges) und optionalem Kommentar absende, dann ist die Meldung gespeichert und ich sehe eine Bestätigung.
+- [x] Angenommen ich melde dasselbe Dokument ein zweites Mal, dann ersetzt die neue Meldung meine offene; eine Person zählt je Dokument nur einmal.
+- [x] Angenommen ein Dokument hat mindestens 3 offene Meldungen von mindestens 2 Personen, dann trägt es „Mehrfach zur Prüfung gemeldet“ (Quelle im Ergebnis, Wissensübersicht, Dokumentseite); geschlossene Meldungen zählen nicht; abgeschaltet wird nichts.
+- [x] Angenommen ich bin Admin, wenn ich bei den Wissenslücken den Reiter „Zur Prüfung“ öffne, dann sehe ich je Dokument die Meldungen mit Person, Datum, Grund, Kommentar und Ticket, den Hinweis „seit einer Meldung geändert“, und kann „Geprüft, bleibt“ wählen (schließt nur die Meldungen dieses Dokuments), „Für den KI-Chat kopieren“ (Dokument, Meldungen und Inhalt) und zum Dokument wechseln (dort „Als veraltet markieren“).
+- [x] Angenommen ich bin kein Admin, dann ist der Reiter und das Schließen verboten (403); eine unbekannte oder ungültige Dokument-ID, ein ungültiger Grund oder ein zu langer Kommentar wird abgelehnt; mehr als 20 Meldungen pro Minute werden gebremst.
+- [x] Angenommen der Kommentar enthält Fallangaben, dann ist er verschlüsselt gespeichert und wird mit den übrigen Inhalten nach der Aufbewahrungsfrist gelöscht.
 
 ## Decision Log
 
@@ -54,7 +62,13 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - **Anzeige:** Quellen im Ergebnis (Badge und Hinweiszeile), Wissensübersicht (Badge), Dokumentseite (Hinweis), `AnalysisPanel::sources()` liest die Felder aus dem Protokoll.
 - **Autoren:** Authoring Guide, Skill `knowledge` und die Vorlagen Policy und Playbook kennen die Felder.
 - **Tests:** `PROJ-56-TrialKnowledgeTest` (12 Tests).
-- **Schritte 2 bis 4:** noch offen.
+- **Schritte 3 und 4:** noch offen.
+
+## Implementation Notes (Schritt 2, 2026-10-19)
+- **Neu:** Tabelle `knowledge_review_flags` (Modell `KnowledgeReviewFlag`, Kommentar verschlüsselt, Stand des Dokuments als Fingerabdruck), `KnowledgeReviewLog` (melden, zählen, Liste, „Geprüft, bleibt“, Text für den KI-Chat, Aufbewahrung), `KnowledgeReviewController` mit Routen `knowledge.review.store` (POST, Drosselung 20 je Minute) und `knowledge.review.resolve` (nur Admins), Anfragen `StoreKnowledgeReviewRequest` und `ResolveKnowledgeReviewRequest`, Baustein `components/knowledge/review-form`, Konfiguration `knowledge.review` (3 Meldungen, 2 Personen).
+- **Anzeige:** Formular unter jeder Quelle im Ergebnis, auf der Dokumentseite und Hinweis „Mehrfach zur Prüfung gemeldet“ in Ergebnis, Liste und Dokumentseite; Reiter „Zur Prüfung (n)“ bei den Wissenslücken.
+- **Tests:** `PROJ-56-ReviewFlagsTest` (20 Tests).
+- **Abweichung vom Plan:** Eigene Tabelle statt Erweiterung der Wissenslücken, weil Meldungen zu einem Dokument und Lücken (fehlendes Wissen) unterschiedlich ausgewertet werden; sichtbar liegen sie in derselben Admin-Seite.
 
 ## QA Test Results
 _To be added by /qa_

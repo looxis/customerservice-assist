@@ -7,6 +7,16 @@
         <x-icon name="chevron-left" size="16" /> Zur Übersicht
     </a>
 
+    @if (session('review_reported') === $document->id)
+        <x-alert type="success">Danke, die Meldung ist angekommen. Ein Admin schaut sich das Dokument an.</x-alert>
+    @endif
+    @if (session('review_error'))
+        <x-alert type="error">{{ session('review_error') }}</x-alert>
+    @endif
+    @if ($document->parsed && $document->id && ($reportedMany ?? false))
+        <x-alert type="warning">Mehrfach zur Prüfung gemeldet: Mitarbeiter halten dieses Wissen für möglicherweise veraltet. Ein Admin prüft es.</x-alert>
+    @endif
+
     @if ($document->parsed && $document->isTrial())
         <x-alert :type="$document->trialExpired() ? 'danger' : 'info'">
             @if ($document->trialExpired())
@@ -120,6 +130,13 @@
     @endif
     @if (session('status_error'))
         <x-alert type="error">{{ session('status_error') }}</x-alert>
+    @endif
+
+    @if ($document->parsed && $document->id)
+        <x-card>
+            <h2 class="text-base font-semibold text-slate-900">Stimmt dieses Wissen noch?</h2>
+            <x-knowledge.review-form :document-id="$document->id" />
+        </x-card>
     @endif
 
     @if ($statusPanel !== null && $document->parsed)
