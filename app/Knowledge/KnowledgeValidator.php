@@ -142,6 +142,10 @@ class KnowledgeValidator
 
         $until = $document->trialUntil();
 
+        if (! $document->trialOpen()) {
+            return $issues;
+        }
+
         if ($document->trialLapsed()) {
             $issues[] = KnowledgeIssue::warning($document->path, 'Die Testphase ist am '.$until->format('d.m.Y').' abgelaufen und die Nachfrist von '.(int) config('knowledge.trial.grace_days').' Tagen vorbei: Das Dokument wird nicht mehr verwendet, bis entschieden ist, ob es bleibt, verlängert wird (`trial_until`) oder entfällt.');
         } elseif ($document->trialExpired()) {

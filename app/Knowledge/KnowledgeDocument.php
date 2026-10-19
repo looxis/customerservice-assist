@@ -250,6 +250,14 @@ final readonly class KnowledgeDocument
     }
 
     /**
+     * A trial that still matters: a document that was ended (`deprecated`) keeps its dates but is no trial any more.
+     */
+    public function trialOpen(): bool
+    {
+        return $this->isTrial() && $this->status !== 'deprecated';
+    }
+
+    /**
      * Whether the trial period is over: after its last day.
      */
     public function trialExpired(?CarbonImmutable $now = null): bool

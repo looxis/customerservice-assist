@@ -17,7 +17,7 @@
         <x-alert type="warning">Mehrfach zur Prüfung gemeldet: Mitarbeiter halten dieses Wissen für möglicherweise veraltet. Ein Admin prüft es.</x-alert>
     @endif
 
-    @if ($document->parsed && $document->isTrial())
+    @if ($document->parsed && $document->trialOpen())
         <x-alert :type="$document->trialExpired() ? 'danger' : 'info'">
             @if ($document->trialLapsed())
                 Testphase abgelaufen und nicht entschieden: Dieses Vorgehen wurde nur bis {{ $document->trialUntil()->format('d.m.Y') }} getestet und wird seit {{ $document->trialOverdueDays() - (int) config('knowledge.trial.grace_days') }} {{ $document->trialOverdueDays() - (int) config('knowledge.trial.grace_days') === 1 ? 'Tag' : 'Tagen' }} nicht mehr verwendet. Ein Admin entscheidet, ob es bleibt, verlängert wird oder entfällt.

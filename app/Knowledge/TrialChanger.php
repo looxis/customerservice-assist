@@ -2,6 +2,7 @@
 
 namespace App\Knowledge;
 
+use App\Analysis\AppStats;
 use Carbon\CarbonImmutable;
 
 /**
@@ -26,7 +27,7 @@ class TrialChanger
      */
     public function targets(KnowledgeDocument $document): array
     {
-        if (! $document->parsed || $document->id === null || ! $document->isTrial() || str_starts_with($document->path, 'templates/') || str_starts_with($document->path, 'examples/')) {
+        if (! $document->parsed || $document->id === null || ! $document->trialOpen() || str_starts_with($document->path, 'templates/') || str_starts_with($document->path, 'examples/')) {
             return [];
         }
 
@@ -71,6 +72,7 @@ class TrialChanger
         }
 
         $this->write($file, $changed);
+        AppStats::forgetReviewCount();
         $this->library->refresh();
 
         return $this->library->all()->first(fn (KnowledgeDocument $candidate): bool => $candidate->path === $path) ?? $document;

@@ -18,6 +18,8 @@ class AppStats
 {
     private const int KNOWLEDGE_CACHE_SECONDS = 60;
 
+    private const string REVIEW_CACHE_KEY = 'app-stats.review';
+
     public function __construct(private readonly KnowledgeLibrary $library) {}
 
     /**
@@ -30,7 +32,7 @@ class AppStats
             ...$this->knowledge(),
             'tickets' => $this->processedTickets(),
             ...$this->gaps(),
-            'review' => $this->review(),
+            'review' => $this->reviewCount(),
         ];
     }
 
@@ -43,11 +45,25 @@ class AppStats
     }
 
     /**
+     * The figure for the sidebar, kept for a minute like the knowledge figures so not every page reads all files.
+     * Reports, decisions and changes of the trial forget it at once.
+     */
+    public function reviewCount(): int
+    {
+        return Cache::remember(self::REVIEW_CACHE_KEY, self::KNOWLEDGE_CACHE_SECONDS, fn (): int => $this->review());
+    }
+
+    public static function forgetReviewCount(): void
+    {
+        Cache::forget(self::REVIEW_CACHE_KEY);
+    }
+
+    /**
      * Knowledge documents to look at (PROJ-56): a trial that is over, or open reports "please check".
      */
     public function review(): int
     {
-        $overdue = $this->library->all()->filter(fn (KnowledgeDocument $document): bool => $document->parsed && $document->id !== null && $document->trialExpired())->pluck('id');
+        $overdue = $this->library->all()->filter(fn (KnowledgeDocument $document): bool => $document->parsed && $document->id !== null && $document->trialOpen() && $document->trialExpired())->pluck('id');
         $reported = KnowledgeReviewFlag::query()->where('status', 'open')->distinct()->pluck('document_id');
 
         return $overdue->merge($reported)->unique()->count();

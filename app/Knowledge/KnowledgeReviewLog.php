@@ -2,6 +2,7 @@
 
 namespace App\Knowledge;
 
+use App\Analysis\AppStats;
 use App\Models\KnowledgeReviewFlag;
 use Illuminate\Support\Collection;
 
@@ -32,6 +33,8 @@ class KnowledgeReviewLog
         }
 
         $comment = $comment === null || trim($comment) === '' ? null : trim($comment);
+
+        AppStats::forgetReviewCount();
 
         $flag = KnowledgeReviewFlag::query()->where('document_id', $documentId)->where('staff_name', $staff)->where('status', 'open')->first();
         $data = ['document_fingerprint' => $document->fingerprint, 'analysis_uuid' => $analysisUuid, 'ticket_number' => $ticketNumber, 'reason' => $reason, 'comment' => $comment];
@@ -107,6 +110,8 @@ class KnowledgeReviewLog
      */
     public function markChecked(string $documentId, string $staff): int
     {
+        AppStats::forgetReviewCount();
+
         return KnowledgeReviewFlag::query()->where('document_id', $documentId)->where('status', 'open')
             ->update(['status' => 'checked', 'resolved_by' => $staff, 'resolved_at' => now()]);
     }

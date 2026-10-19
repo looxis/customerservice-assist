@@ -125,7 +125,7 @@
                                         <x-badge tone="warning">Mehrfach zur Prüfung gemeldet</x-badge>
                                     @endif
 
-                                    @if ($document->parsed && $document->isTrial())
+                                    @if ($document->parsed && $document->trialOpen())
                                         <x-badge :tone="$document->trialExpired() ? 'danger' : 'info'">{{ 'Vorläufig bis '.$document->trialUntil()->format('d.m.Y').($document->trialLapsed() ? ' – abgelaufen, wird nicht mehr verwendet' : ($document->trialExpired() ? ' – abgelaufen, Überprüfung überfällig seit '.$document->trialOverdueDays().' Tg.' : '')) }}</x-badge>
                                     @endif
 

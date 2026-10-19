@@ -95,9 +95,9 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - Alle vier Schritte sind gebaut; offen ist `/qa`.
 
 ## QA Test Results (2026-10-19)
-**Ergebnis: bereit (keine Critical-/High-Fehler), zwei Fehler mit mittlerer Schwere offen.**
+**Ergebnis: bereit (keine Critical-/High-Fehler). Die zwei gefundenen Fehler (B1, B2) sind behoben.**
 
-**Akzeptanzkriterien: alle bestanden** (Schritt 1: 7, Schritt 2: 6, Schritt 3: 6, Schritt 4: 4), belegt durch `PROJ-56-TrialKnowledgeTest` (12), `PROJ-56-ReviewFlagsTest` (20), `PROJ-56-TrialLapseTest` (17), `PROJ-56-TrialUsageTest` (8) und `PROJ-56-QaTest` (4 grün, 3 als offene Fehler vorgemerkt).
+**Akzeptanzkriterien: alle bestanden** (Schritt 1: 7, Schritt 2: 6, Schritt 3: 6, Schritt 4: 4), belegt durch `PROJ-56-TrialKnowledgeTest` (12), `PROJ-56-ReviewFlagsTest` (20), `PROJ-56-TrialLapseTest` (17), `PROJ-56-TrialUsageTest` (8) und `PROJ-56-QaTest` (9).
 
 **Live geprüft (Sail, Port 8081):** Wissensübersicht und die Dokumentseiten von POLICY-048 und PLAYBOOK-029 liefern 200 und zeigen „Vorläufig bis 31.01.2027“ mit Hinweis; die neuen POST-Routen („bitte prüfen“, Entscheidung zur Testphase) lehnen Anfragen ohne CSRF-Token mit 419 ab.
 
@@ -108,13 +108,15 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - Melden ist auf 20 je Minute gebremst; ID, Grund, Kommentarlänge und Ticketnummer werden geprüft; Kommentare sind verschlüsselt gespeichert und werden nach der Aufbewahrungsfrist gelöscht.
 - Bekannte, bewusst akzeptierte Grenze ohne Login: Wer einen anderen Namen wählt, kann in dessen Namen melden und als Admin gelten.
 
-**Regression:** Gesamtsuite 1768 Tests, 1763 grün, 5 übersprungen (2 bekannte, 3 vorgemerkte Fehler).
+**Regression:** Gesamtsuite 1770 Tests, 1768 grün, 2 übersprungen (bekannt).
 
 **Fehler**
 | ID | Schwere | Beschreibung | Schritte |
 |----|---------|--------------|----------|
-| PROJ-56-B1 | Medium | Die neue Seitenleisten-Zahl „Wissen zur Überprüfung“ liest bei jedem Seitenaufruf alle Wissensdateien (rund 70 ms zusätzlich je Seite). Die übrigen Zahlen der Seitenleiste (PROJ-41) werden dafür eine Minute zwischengespeichert. | Beliebige Seite öffnen; `AppStats::review()` messen (Tinker: etwa 74 ms gegenüber etwa 21 ms für `knowledge()` mit Zwischenspeicher) |
-| PROJ-56-B2 | Medium | Ein beendetes Dokument (Entscheidung „Beenden (veraltet)“, Status `deprecated`) behält `trial_until` und `trial_goal`. Dadurch zählt es weiter in der Seitenleiste als „zur Überprüfung“, `knowledge:check` warnt weiter vor der Testphase, und die Dokumentseite bietet weiter die Entscheidung an. Die Zahl geht erst weg, wenn jemand die Felder von Hand entfernt. | Dokument in der Testphase mit „Beenden (veraltet)“ abschließen; Seitenleiste, `knowledge:check` und Dokumentseite ansehen (drei vorgemerkte Tests in `PROJ-56-QaTest`) |
+| PROJ-56-B1 (behoben 2026-10-19) | Medium | Die neue Seitenleisten-Zahl „Wissen zur Überprüfung“ liest bei jedem Seitenaufruf alle Wissensdateien (rund 70 ms zusätzlich je Seite). Die übrigen Zahlen der Seitenleiste (PROJ-41) werden dafür eine Minute zwischengespeichert. | Beliebige Seite öffnen; `AppStats::review()` messen (Tinker: etwa 74 ms gegenüber etwa 21 ms für `knowledge()` mit Zwischenspeicher) |
+| PROJ-56-B2 (behoben 2026-10-19) | Medium | Ein beendetes Dokument (Entscheidung „Beenden (veraltet)“, Status `deprecated`) behält `trial_until` und `trial_goal`. Dadurch zählt es weiter in der Seitenleiste als „zur Überprüfung“, `knowledge:check` warnt weiter vor der Testphase, und die Dokumentseite bietet weiter die Entscheidung an. Die Zahl geht erst weg, wenn jemand die Felder von Hand entfernt. | Dokument in der Testphase mit „Beenden (veraltet)“ abschließen; Seitenleiste, `knowledge:check` und Dokumentseite ansehen (drei vorgemerkte Tests in `PROJ-56-QaTest`) |
+
+**Behebung:** B1: Die Zahl wird eine Minute zwischengespeichert (`AppStats::reviewCount()`); eine Meldung, das Schließen von Meldungen und jede Entscheidung zur Testphase leeren den Zwischenspeicher sofort. B2: `KnowledgeDocument::trialOpen()` gilt nur für Dokumente, die nicht `deprecated` sind; die Seitenleisten-Zahl, die Warnungen von `knowledge:check`, die Hinweise und Badges der Seiten und das Angebot der Entscheidung berücksichtigen nur noch offene Testphasen. Die drei vorgemerkten Tests laufen jetzt, dazu zwei neue (Zwischenspeicher, Beenden).
 
 **Beobachtung (Low):** Ein wegen abgelaufener Testphase ausgeschlossenes Dokument fehlt im Vorschlag, ohne dass das Ergebnis es nennt (siehe Schritt 3). Bei einem verbindlichen Dokument wäre ein Hinweis sinnvoll; das gehört zu PROJ-44.
 
