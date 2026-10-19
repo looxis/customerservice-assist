@@ -3,6 +3,8 @@ id: PLAYBOOK-032
 title: Fachhändler kann sich im neuen Shop nicht anmelden
 type: playbook
 status: active
+trial_until: 2026-11-02
+trial_goal: "Nach dem 2. November 2026 die Hinweise zur Aktivierung und zur Frist bereinigen und prüfen, wie viele Konten gesperrt, neu angelegt oder gelöscht wurden."
 customer_types:
   - b2b-reseller
 sales_channels:

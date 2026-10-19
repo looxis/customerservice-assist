@@ -3,6 +3,8 @@ id: POLICY-052
 title: Fachhändler-Shop fachhaendler.looxis.de – Konten und Umstellung
 type: policy
 status: active
+trial_until: 2026-11-02
+trial_goal: "Nach dem 2. November 2026 die Hinweise zur Aktivierung und zur Frist bereinigen und prüfen, wie viele Konten gesperrt, neu angelegt oder gelöscht wurden."
 customer_types:
   - b2b-reseller
 sales_channels:
@@ -39,7 +41,7 @@ related_knowledge:
   - POLICY-041
 ---
 
-Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler.
+Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler. **Die Hinweise zur Aktivierung und zur Frist gelten bis 2. November 2026**; danach gilt die Kontosperrung (Abschnitt „Erinnerung vom 19. Oktober 2026 und Kontosperrung ab 3. November 2026“).
 
 # Regel
 
