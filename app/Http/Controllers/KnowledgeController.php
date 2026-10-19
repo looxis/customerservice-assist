@@ -89,6 +89,7 @@ class KnowledgeController extends Controller
                 'targets' => $trial->targets($document),
                 'writable' => $changer->writable($document),
                 'suggested' => CarbonImmutable::now('Europe/Berlin')->addMonths(3)->format('Y-m-d'),
+                'usage' => $document->id === null ? null : $evidence->usage($document->id),
             ] : null,
             'backUrl' => $previous === $index || str_starts_with($previous, $index.'?') ? $previous : $index,
         ]);

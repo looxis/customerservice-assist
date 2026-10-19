@@ -90,6 +90,10 @@
                         </li>
                     @endforeach
                 </ul>
+                <details class="mt-3 text-sm">
+                    <summary class="cursor-pointer font-medium text-slate-700 hover:text-slate-900">Belege zum Dokument</summary>
+                    <x-knowledge.usage :usage="$reviewUsage($row['id'])" />
+                </details>
                 <div class="mt-4 flex flex-wrap items-start gap-3" x-data="{ copied: false }">
                     <form method="POST" action="{{ route('knowledge.review.resolve', ['documentId' => $row['id']]) }}">
                         @csrf

@@ -142,6 +142,9 @@
         <x-card>
             <h2 class="text-base font-semibold text-slate-900">Entscheidung zur Testphase</h2>
             <p class="mt-1 text-sm text-slate-600">Nur für Admins. Die App ändert die Datei, committet wird von Hand.</p>
+            @if ($trialPanel['usage'] ?? null)
+                <x-knowledge.usage :usage="$trialPanel['usage']" :goal="$document->trialGoal()" />
+            @endif
             @unless ($trialPanel['writable'])
                 <p class="mt-2 text-sm font-medium text-danger-700">Die Datei kann in dieser Umgebung nicht geschrieben werden.</p>
             @endunless

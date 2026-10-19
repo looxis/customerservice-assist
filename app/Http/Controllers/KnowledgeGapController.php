@@ -8,6 +8,7 @@ use App\Analysis\QuestionNumber;
 use App\Http\Requests\ResolveKnowledgeGapRequest;
 use App\Http\Requests\StoreKnowledgeGapRequest;
 use App\Knowledge\CustomerGroup;
+use App\Knowledge\DocumentEvidence;
 use App\Knowledge\KnowledgeReviewLog;
 use App\Knowledge\KnowledgeSelector;
 use App\Models\KnowledgeGap;
@@ -37,7 +38,7 @@ class KnowledgeGapController extends Controller
     /**
      * The reported gaps for admins, with the success figure of the feedback.
      */
-    public function index(Request $request, KnowledgeGapLog $gaps, AnalysisStore $store, KnowledgeSelector $selector, TestMode $testMode, KnowledgeReviewLog $reviews): View
+    public function index(Request $request, KnowledgeGapLog $gaps, AnalysisStore $store, KnowledgeSelector $selector, TestMode $testMode, KnowledgeReviewLog $reviews, DocumentEvidence $evidence): View
     {
         abort_unless($testMode->isAvailable($request), 403);
 
@@ -49,6 +50,7 @@ class KnowledgeGapController extends Controller
             'gaps' => $status === 'review' ? collect() : $gaps->list($status),
             'reviews' => $status === 'review' ? $reviews->openByDocument() : collect(),
             'reviewCount' => $reviews->openDocumentCount(),
+            'reviewUsage' => fn (string $id): array => $evidence->usage($id),
             'reviewChatText' => fn (string $id): string => $reviews->chatText($id),
             'unknownProducts' => $gaps->unknownProducts(),
             'notInProductForge' => $gaps->notInProductForge(),
