@@ -21,6 +21,8 @@ triggers:
   - nicht mehr einloggen
   - nicht mehr anmelden
   - Konto gesperrt
+  - Konto ist gesperrt
+  - Konto wurde gesperrt
   - kein Zugang mehr
   - Login funktioniert nicht
   - Anmeldung funktioniert nicht

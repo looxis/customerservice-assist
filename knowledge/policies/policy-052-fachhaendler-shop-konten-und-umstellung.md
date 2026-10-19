@@ -27,6 +27,8 @@ triggers:
   - Konto übernommen
   - Konto freischalten
   - Konto gesperrt
+  - Konto ist gesperrt
+  - Konto wurde gesperrt
   - Kontosperrung
   - Konto gelöscht
   - Zugangsdaten
