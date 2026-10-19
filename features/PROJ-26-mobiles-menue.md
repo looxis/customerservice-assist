@@ -1,6 +1,6 @@
 # PROJ-26: Mobiles Menü (Burger-Menü)
 
-## Status: Planned
+## Status: Zurückgestellt
 **Created:** 2026-10-05
 **Last Updated:** 2026-10-05
 

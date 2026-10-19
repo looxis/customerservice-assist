@@ -39,14 +39,14 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Testmodus für Admins: beantwortete Tickets auf einen früheren Stand zurückspulen | Approved |
 | Produktvorschlag aus Kundenbegriffen (frühere Namen, Synonyme im Tickettext erkennen) | Approved |
 | Evaluation: Gold-Testset automatisch gegen die App laufen lassen | Roadmap |
-| Mobiles Menü (Burger-Menü in der Kopfleiste) | Planned |
+| Mobiles Menü (Burger-Menü in der Kopfleiste) | Zurückgestellt |
 | Einstellungen: KI-Modell und Prompts (Modell wählbar, Prompts änderbar und versioniert) | Approved |
 | Einstellungsseite: Grundlage und Mail-Anzeige (PROJ-27), danach Prompts und Modell (PROJ-31), Erkennungsregeln (PROJ-49), Kundengruppen/Kategorien/Vorgänge (PROJ-50, Spec geschrieben); ansehen für alle, ändern nur Admins, mit Verlauf | Approved |
 | Ticketbearbeitung in der App (Antworten, Notizen, Status direkt nach Zammad) | Roadmap |
 | Analysen-Übersicht für Admins: eine Zeile je Analyse mit Feedback, Kopier-Stand, Filtern und Kennzahlen | Approved |
 | Benutzerverwaltung und Anmeldung (kein eigenes Passwortsystem, später SSO) | Roadmap |
 | Tickettext manuell einfügen (Fallback ohne Zammad) – aufgegangen in der Wissensabfrage ohne Ticket | Approved |
-| Zweiter LLM-Anbieter zum Vergleich | Roadmap |
+| Zweiter LLM-Anbieter zum Vergleich | Zurückgestellt |
 | Entwurfs-Wissen per Klick bestätigen (`draft` → `active`) | Approved |
 | Auswertung der Zammad-Historie (Fallmuster, Testset-Kandidaten) | Zurückgestellt |
 | Antwort direkt aus der App nach Zammad übergeben (Versand nur nach Klick, im Namen des Mitarbeiters) | Approved |
