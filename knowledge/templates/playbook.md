@@ -27,6 +27,9 @@ risk_level:
 owner:
 reviewed_by:
 last_reviewed:
+# Nur für vorläufiges Wissen (befristeter Test): letzter Tag JJJJ-MM-TT und ein Satz, woran wir erkennen, ob es hilft
+trial_until:
+trial_goal:
 
 related_knowledge:
 ---
