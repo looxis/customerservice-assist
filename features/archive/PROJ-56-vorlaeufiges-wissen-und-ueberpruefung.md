@@ -1,8 +1,8 @@
 # PROJ-56: Vorläufiges Wissen und Überprüfung
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-19
-**Last Updated:** 2026-10-19
+**Last Updated:** 2026-10-19 (QA)
 
 ## Dependencies
 - Requires: PROJ-3 (Wissen einlesen und prüfen), PROJ-12 (Meldungen und Wissenslücken), PROJ-23 (Status per Klick), PROJ-36 (Abruf), PROJ-41 (Seitenleiste).
@@ -94,5 +94,28 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - **Tests:** `PROJ-56-TrialUsageTest` (8 Tests).
 - Alle vier Schritte sind gebaut; offen ist `/qa`.
 
-## QA Test Results
-_To be added by /qa_
+## QA Test Results (2026-10-19)
+**Ergebnis: bereit (keine Critical-/High-Fehler), zwei Fehler mit mittlerer Schwere offen.**
+
+**Akzeptanzkriterien: alle bestanden** (Schritt 1: 7, Schritt 2: 6, Schritt 3: 6, Schritt 4: 4), belegt durch `PROJ-56-TrialKnowledgeTest` (12), `PROJ-56-ReviewFlagsTest` (20), `PROJ-56-TrialLapseTest` (17), `PROJ-56-TrialUsageTest` (8) und `PROJ-56-QaTest` (4 grün, 3 als offene Fehler vorgemerkt).
+
+**Live geprüft (Sail, Port 8081):** Wissensübersicht und die Dokumentseiten von POLICY-048 und PLAYBOOK-029 liefern 200 und zeigen „Vorläufig bis 31.01.2027“ mit Hinweis; die neuen POST-Routen („bitte prüfen“, Entscheidung zur Testphase) lehnen Anfragen ohne CSRF-Token mit 419 ab.
+
+**Sicherheit (Red Team)**
+- Markup in einem Kommentar erscheint für Admins als Text (maskiert).
+- Kommentare und der Reiter „Zur Prüfung“ sind für Nicht-Admins nicht erreichbar (403), die Dokumentseite zeigt Nicht-Admins nur den Zähler, nie Kommentare.
+- Die Entscheidung zur Testphase kann keine Datei außerhalb der Wissensbasis erreichen (Pfade wie `../../.env` werden abgelehnt, die App vergleicht nur mit eingelesenen Dokumenten); Vorlagen können nicht entschieden werden.
+- Melden ist auf 20 je Minute gebremst; ID, Grund, Kommentarlänge und Ticketnummer werden geprüft; Kommentare sind verschlüsselt gespeichert und werden nach der Aufbewahrungsfrist gelöscht.
+- Bekannte, bewusst akzeptierte Grenze ohne Login: Wer einen anderen Namen wählt, kann in dessen Namen melden und als Admin gelten.
+
+**Regression:** Gesamtsuite 1768 Tests, 1763 grün, 5 übersprungen (2 bekannte, 3 vorgemerkte Fehler).
+
+**Fehler**
+| ID | Schwere | Beschreibung | Schritte |
+|----|---------|--------------|----------|
+| PROJ-56-B1 | Medium | Die neue Seitenleisten-Zahl „Wissen zur Überprüfung“ liest bei jedem Seitenaufruf alle Wissensdateien (rund 70 ms zusätzlich je Seite). Die übrigen Zahlen der Seitenleiste (PROJ-41) werden dafür eine Minute zwischengespeichert. | Beliebige Seite öffnen; `AppStats::review()` messen (Tinker: etwa 74 ms gegenüber etwa 21 ms für `knowledge()` mit Zwischenspeicher) |
+| PROJ-56-B2 | Medium | Ein beendetes Dokument (Entscheidung „Beenden (veraltet)“, Status `deprecated`) behält `trial_until` und `trial_goal`. Dadurch zählt es weiter in der Seitenleiste als „zur Überprüfung“, `knowledge:check` warnt weiter vor der Testphase, und die Dokumentseite bietet weiter die Entscheidung an. Die Zahl geht erst weg, wenn jemand die Felder von Hand entfernt. | Dokument in der Testphase mit „Beenden (veraltet)“ abschließen; Seitenleiste, `knowledge:check` und Dokumentseite ansehen (drei vorgemerkte Tests in `PROJ-56-QaTest`) |
+
+**Beobachtung (Low):** Ein wegen abgelaufener Testphase ausgeschlossenes Dokument fehlt im Vorschlag, ohne dass das Ergebnis es nennt (siehe Schritt 3). Bei einem verbindlichen Dokument wäre ein Hinweis sinnvoll; das gehört zu PROJ-44.
+
+**Nicht durchgeführt:** eigener Browser-Durchgang (Chrome, Firefox, Safari; 375, 768, 1440 px). Die Oberfläche des Meldeformulars und der Entscheidungsseite habe ich nur über Seitenaufrufe und Tests geprüft.
