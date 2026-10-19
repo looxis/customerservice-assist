@@ -13,7 +13,7 @@ categories:
   - order-process-question
 topics:
   - usage-rights
-summary: "Ein Fachhändler fragt, ob er ein Foto, Video, einen Produkttext oder das Logo von LOOXIS in seinem Shop, in Social Media oder in Werbung nutzen darf. Der Agent beantwortet es nach der Nutzungsrichtlinie für Vertriebspartner (Hero-Bild plus ein Lifestyle-Bild, Videos wie Bilder, eigene Texte, Logo unverändert), nennt den Link und weist auf kostenpflichtige eigene Muster hin."
+summary: "Ein Fachhändler fragt, ob er ein Foto, Video, einen Produkttext oder das Logo von LOOXIS in seinem Shop, in Social Media, in Werbung oder im Ladengeschäft und Schaufenster (zum Beispiel ein Video auf einem Monitor) nutzen darf. Der Agent beantwortet es nach der Nutzungsrichtlinie für Vertriebspartner (Hero-Bild plus ein Lifestyle-Bild, Videos wie Bilder, eigene Texte, Logo unverändert), nennt den Link und weist auf kostenpflichtige eigene Muster hin."
 retrieval: triggered
 triggers:
   - Nutzungsrichtlinie
@@ -36,6 +36,12 @@ triggers:
   - Produktvideo
   - Bildmaterial
   - Marketingmaterial
+  - Schaufenster
+  - Ladengeschäft
+  - im Laden zeigen
+  - Monitor im Laden
+  - Bildschirm im Laden
+  - Video abspielen
   - auf meiner Website
   - auf unserer Website
   - auf meiner Webseite
@@ -62,7 +68,7 @@ Gilt für Foto-Fachhändler und andere Vertriebspartner im Vertriebskanal fachha
 
 # Fallmuster
 
-Ein Händler möchte ein Bild, Video, einen Text oder das Logo von LOOXIS für seinen Onlineshop, Social Media oder bezahlte Werbung verwenden und fragt, ob das erlaubt ist.
+Ein Händler möchte ein Bild, Video, einen Text oder das Logo von LOOXIS für seinen Onlineshop, Social Media, bezahlte Werbung oder sein Ladengeschäft und Schaufenster verwenden und fragt, ob das erlaubt ist.
 
 # Erkennungsmerkmale
 
@@ -72,7 +78,7 @@ Ein Händler möchte ein Bild, Video, einen Text oder das Logo von LOOXIS für s
 # Zu prüfen
 
 1. Was genau soll genutzt werden: Produktbild, Video, Text, Logo?
-2. Wofür: eigener Onlineshop, Social Media, bezahlte Werbung?
+2. Wofür: eigener Onlineshop, Social Media, bezahlte Werbung, Ladengeschäft oder Schaufenster?
 3. Für Produkte, die der Händler über LOOXIS bezieht?
 
 # Noch nicht entscheidbar wenn
@@ -86,7 +92,8 @@ Unklar ist, was genau genutzt werden soll oder wofür. Gezielt nachfragen, bevor
 3. **Texte:** Sachliche Produktangaben korrekt übernehmen, die werblichen Verkaufstexte nicht wortgleich, sondern als Vorlage für einen eigenen Text.
 4. **Logo:** Nur für LOOXIS-Produkte, unverändert, nicht mit eigenen Logos kombiniert.
 5. **Social Media und Werbung:** Hero- oder Lifestyle-Bild darf angepasst genutzt werden, nur für LOOXIS-Produkte. Für individuelle Fotos und Videos eigene Produktmuster mit eigenen Motiven empfehlen (kostenpflichtig).
-6. Dazu gehören immer: nur für aktive Partner und ein Hinweis auf LOOXIS im Impressum mit Link auf www.looxis.de; keine Weitergabe an Dritte.
+6. **Ladengeschäft und Schaufenster:** Bilder und Videos dürfen auch dort gezeigt werden, zum Beispiel ein Video auf einem Monitor im Geschäft oder im Schaufenster, nach denselben Regeln. Das Geschäft darf nicht wie eine LOOXIS-Filiale wirken; ein eigener LOOXIS-Hinweis ist für diese Darstellung nicht festgelegt.
+7. Dazu gehören immer: nur für aktive Partner und ein Hinweis auf LOOXIS im Impressum mit Link auf www.looxis.de; keine Weitergabe an Dritte.
 
 # Kommunikation
 
@@ -95,6 +102,8 @@ Allgemein: „Als LOOXIS-Vertriebspartner dürfen Sie ausgewählte Bilder, Video
 Bilder und Videos: „Pro Produkt dürfen Sie das Haupt- beziehungsweise Hero-Bild und höchstens ein zusätzliches Lifestyle-, Ambiente- oder Anwendungsbild aus unserem Endkunden-Onlineshop verwenden; für Videos gilt dasselbe. Weitere Bilder der Produktdetailseite bitte nicht übernehmen. Größe, Zuschnitt und Layout dürfen Sie anpassen, das Produkt und die Marke dürfen aber nicht verfälscht dargestellt werden. Bitte nehmen Sie außerdem im Impressum einen Hinweis auf LOOXIS mit Link auf www.looxis.de auf.“
 
 Texte: „Sachliche Angaben wie Maße, Materialien und Lieferumfang müssen korrekt sein. Unsere werblichen Verkaufstexte bitte nicht wortgleich übernehmen; sie dürfen Ihnen als Vorlage für einen eigenen Text dienen.“
+
+Ladengeschäft und Schaufenster: „Sie dürfen unsere Bilder und Videos auch in Ihrem Ladengeschäft oder Schaufenster zeigen, zum Beispiel ein Video auf einem Monitor abspielen. Es gelten dieselben Regeln: nur für LOOXIS-Produkte, Produkt und Marke nicht verfälscht darstellen, nicht an Dritte weitergeben, und Ihr Geschäft sollte als Ihr eigenes Geschäft erkennbar bleiben.“
 
 Eigene Muster: „Für eine individuelle und authentische Präsentation empfehlen wir, eigene Produktmuster mit eigenen Motiven zu bestellen und daraus eigene Fotos, Videos, Social-Media-Inhalte und Anzeigen zu erstellen. Solche Muster sind kostenpflichtig.“
 

@@ -13,7 +13,7 @@ categories:
   - order-process-question
 topics:
   - usage-rights
-summary: "Ein Fachhändler oder Vertriebspartner fragt, ob er ein LOOXIS-Foto, ein Video, einen Produkttext oder das Logo für seinen Shop, Social Media oder Werbung nutzen darf. Fasst die Nutzungsrichtlinie für Vertriebspartner zusammen: nur für LOOXIS-Produkte, nur für aktive Partner, Hero-Bild plus ein Lifestyle-Bild pro Produkt, Videos wie Bilder, eigene Texte statt Kopie, Logo unverändert, keine Weitergabe, jederzeit widerruflich."
+summary: "Ein Fachhändler oder Vertriebspartner fragt, ob er ein LOOXIS-Foto, ein Video, einen Produkttext oder das Logo für seinen Shop, Social Media, Werbung oder sein Ladengeschäft und Schaufenster (zum Beispiel ein Video auf einem Monitor) nutzen darf. Fasst die Nutzungsrichtlinie für Vertriebspartner zusammen: nur für LOOXIS-Produkte, nur für aktive Partner, Hero-Bild plus ein Lifestyle-Bild pro Produkt, Videos wie Bilder, eigene Texte statt Kopie, Logo unverändert, keine Weitergabe, jederzeit widerruflich."
 retrieval: triggered
 triggers:
   - Nutzungsrichtlinie
@@ -36,6 +36,12 @@ triggers:
   - Produktvideo
   - Bildmaterial
   - Marketingmaterial
+  - Schaufenster
+  - Ladengeschäft
+  - im Laden zeigen
+  - Monitor im Laden
+  - Bildschirm im Laden
+  - Video abspielen
   - auf meiner Website
   - auf unserer Website
   - auf meiner Webseite
@@ -59,11 +65,13 @@ related_knowledge:
   - POLICY-052
 ---
 
-Gilt für Foto-Fachhändler und andere Vertriebspartner im Vertriebskanal fachhaendler. Maßgeblich ist die Nutzungsrichtlinie für LOOXIS-Vertriebspartner: https://fachhaendler.looxis.de/info/nutzungsrichtlinie-vertriebspartner (im Footer von fachhaendler.looxis.de verlinkt). Dieses Dokument fasst sie zusammen; bei Abweichungen gilt der Wortlaut der Richtlinie.
+Gilt für Foto-Fachhändler und andere Vertriebspartner im Vertriebskanal fachhaendler. Maßgeblich ist die Nutzungsrichtlinie für LOOXIS-Vertriebspartner: https://fachhaendler.looxis.de/info/nutzungsrichtlinie-vertriebspartner (im Footer von fachhaendler.looxis.de verlinkt). Dieses Dokument fasst sie zusammen und ergänzt sie um die Darstellung im Ladengeschäft (siehe unten); sonst gilt bei Abweichungen der Wortlaut der Richtlinie.
 
 # Regel
 
 LOOXIS-Vertriebspartner dürfen ausgewählte Bilder, Videos, Texte, Logos und sonstige Inhalte von LOOXIS für die Präsentation und den Verkauf unserer Produkte nutzen. Videos gelten wie Bilder; eine separate Freigabe ist nicht nötig. Die folgenden Regeln gelten dabei.
+
+**Auch im Ladengeschäft und im Schaufenster:** Die Inhalte dürfen nicht nur im Onlineshop, in Social Media und in Werbung, sondern auch im stationären Geschäft gezeigt werden, zum Beispiel ein Video auf einem Monitor im Ladengeschäft oder im Schaufenster abspielen oder Bilder dort präsentieren. Dafür gelten dieselben Regeln: nur für LOOXIS-Produkte, nur durch aktive Partner, keine Verfälschung von Produkt und Marke, keine Weitergabe an Dritte, jederzeit widerruflich. Das Geschäft darf nicht den Eindruck erwecken, eine LOOXIS-Filiale zu sein. Ein eigener Hinweis auf LOOXIS ist für diese Darstellung nicht festgelegt (der Impressums-Hinweis gilt für Onlineshops).
 
 # Die Regeln
 
