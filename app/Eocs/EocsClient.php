@@ -160,6 +160,64 @@ class EocsClient
     }
 
     /**
+     * The variants of the master products of the item with this number (PROJ-54), one list per master. One
+     * request asks both directions: the variants of the item (when it is a master) and the variants of its
+     * masters (when it is a variant). Null when EOCS does not know the number; an empty list when the item
+     * has no visible variants (a valid answer). Deactivated variants are not delivered by EOCS.
+     *
+     * @return list<EocsVariantList>|null
+     *
+     * @throws EocsException
+     */
+    public function variantsOf(string $sku): ?array
+    {
+        if (preg_match('/^\d{1,12}$/', $sku) !== 1) {
+            return null;
+        }
+
+        $row = null;
+
+        foreach ($this->itemRows(['filter[item_id]' => $sku, 'paginate' => 5, 'include' => 'variants,master_products.variants']) as $candidate) {
+            if ((string) ($candidate['item_id'] ?? '') === $sku) {
+                $row = $candidate;
+
+                break;
+            }
+        }
+
+        if ($row === null) {
+            return null;
+        }
+
+        $limit = (int) config('analysis.product_info.max_variants');
+        $now = CarbonImmutable::now();
+        $chosen = [(int) $sku];
+        $masters = [];
+
+        if (($row['is_master'] ?? false) === true) {
+            $masters[] = $row;
+        }
+
+        foreach ((array) ($row['master_products'] ?? []) as $master) {
+            if (is_array($master)) {
+                $masters[] = $master;
+            }
+        }
+
+        $lists = [];
+
+        foreach ($masters as $master) {
+            $list = EocsVariantList::fromMaster($master, in_array((int) $sku, array_column((array) ($master['variants'] ?? []), 'item_id'), true) ? $chosen : [], $limit, $now);
+
+            if ($list !== null && ! isset($lists[$list->masterId])) {
+                $lists[$list->masterId] = $list;
+            }
+        }
+
+        return array_values($lists);
+    }
+
+    /**
      * Items whose name contains the term (and the one with this number when the term is a number).
      *
      * @return list<EocsItem>
@@ -190,6 +248,17 @@ class EocsClient
      */
     private function items(array $query): array
     {
+        return array_values(array_filter(array_map(fn (array $row): ?EocsItem => EocsItem::fromApi($row), $this->itemRows($query))));
+    }
+
+    /**
+     * @param  array<string, mixed>  $query
+     * @return list<array<string, mixed>>
+     *
+     * @throws EocsException
+     */
+    private function itemRows(array $query): array
+    {
         $this->ensureConfigured();
 
         try {
@@ -212,7 +281,7 @@ class EocsClient
             throw new EocsException(EocsProblem::Unavailable, $response->status());
         }
 
-        return array_values(array_filter(array_map(fn (mixed $row): ?EocsItem => is_array($row) ? EocsItem::fromApi($row) : null, $response->json('data'))));
+        return array_values(array_filter($response->json('data'), 'is_array'));
     }
 
     /**

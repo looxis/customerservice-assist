@@ -5,6 +5,8 @@ namespace App\ProductForge;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\EocsItem;
+use App\Eocs\EocsProblem;
+use App\Eocs\EocsVariantList;
 
 /**
  * Builds the data package for one analysis. Only the chosen products are fetched; whatever the earlier
@@ -18,6 +20,11 @@ class ProductResolver
      * @var array<int, ForgeProduct>
      */
     private array $retrieved = [];
+
+    /**
+     * @var array<string, list<EocsVariantList>|null>
+     */
+    private array $variantsBySku = [];
 
     public function __construct(private readonly ProductForgeClient $client, private readonly EocsClient $eocs) {}
 
@@ -104,7 +111,62 @@ class ProductResolver
             $items = [...array_values(array_filter($items, fn (EocsItem $other): bool => $other->itemId !== $number)), $item];
         }
 
-        return new ProductPackage($products, $selected, $problems, $reused, $changed, $items, $eocsSelected, $eocsReused);
+        $package = new ProductPackage($products, $selected, $problems, $reused, $changed, $items, $eocsSelected, $eocsReused);
+        [$lists, $variantProblems, $variantChecked] = $this->variants($package, $carriedPackage, $carried !== null);
+
+        return new ProductPackage($products, $selected, $problems, $reused, $changed, $items, $eocsSelected, $eocsReused, $lists, $variantProblems, $variantChecked);
+    }
+
+    /**
+     * The variants of the products that concern the case (PROJ-54), asked from EOCS by SKU: one list per
+     * master, however many chosen products belong to it. A continuation keeps the lists of the earlier step.
+     * Whatever cannot be checked is named, never guessed.
+     *
+     * @return array{0: list<EocsVariantList>, 1: list<array{sku: string|null, name: string, problem: string}>, 2: list<string>}
+     */
+    private function variants(ProductPackage $package, ProductPackage $carried, bool $continued): array
+    {
+        $lists = [];
+        $problems = [];
+        $checked = [];
+
+        foreach ($package->variantCandidates() as $candidate) {
+            $sku = $candidate['sku'];
+
+            if ($sku === null || preg_match('/^\d{1,12}$/', $sku) !== 1) {
+                $problems[] = ['sku' => $sku, 'name' => $candidate['name'], 'problem' => 'no_sku'];
+
+                continue;
+            }
+
+            $found = $continued && in_array($sku, $carried->variantChecked, true) ? array_values(array_filter($carried->variantLists, fn (EocsVariantList $list): bool => in_array((int) $sku, $list->chosen, true))) : null;
+
+            if ($found === null) {
+                try {
+                    $fresh = $this->variantsBySku[$sku] ??= $this->eocs->variantsOf($sku);
+                } catch (EocsException $exception) {
+                    $problems[] = ['sku' => $sku, 'name' => $candidate['name'], 'problem' => $exception->problem === EocsProblem::Misconfigured ? 'misconfigured' : 'unavailable'];
+
+                    continue;
+                }
+
+                if ($fresh === null) {
+                    $problems[] = ['sku' => $sku, 'name' => $candidate['name'], 'problem' => 'not_found'];
+
+                    continue;
+                }
+
+                $found = $fresh;
+            }
+
+            $checked[] = $sku;
+
+            foreach ($found as $list) {
+                $lists[$list->masterId] = isset($lists[$list->masterId]) ? array_reduce($list->chosen, fn (EocsVariantList $kept, int $chosen): EocsVariantList => $kept->withChosen($chosen), $lists[$list->masterId]) : $list;
+            }
+        }
+
+        return [array_values($lists), $problems, array_values(array_unique($checked))];
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\KnowledgeReviewController;
 use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\ProductSearchController;
+use App\Http\Controllers\ProductVariantsController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffSelectionController;
@@ -54,6 +55,7 @@ Route::middleware('staff.selected')->group(function (): void {
 });
 
 Route::get('/produktsuche', ProductSearchController::class)->middleware(['staff.selected', 'throttle:60,1'])->name('products.search');
+Route::get('/produktvarianten', ProductVariantsController::class)->middleware(['staff.selected', 'throttle:60,1'])->name('products.variants');
 
 Route::post('/name', StaffSelectionController::class)->name('staff.select');
 Route::post('/testmodus', TestModeController::class)->name('test-mode.switch');

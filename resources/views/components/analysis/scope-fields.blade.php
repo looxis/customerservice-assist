@@ -20,6 +20,7 @@
         'forge' => [
             'enabled' => $forgeEnabled,
             'searchUrl' => route('products.search'),
+            'variantsUrl' => route('products.variants'),
             'candidates' => $forge['candidates'],
             'selected' => $forgeSelected,
         ],
@@ -67,6 +68,7 @@
                             <span class="font-medium text-slate-900" x-text="product.name"></span>
                             <span class="block text-xs text-slate-600" x-text="forgeLabel(product)"></span>
                             <span class="block text-xs text-slate-600" x-text="product.source + (forgeIsSelected(product.key) ? ' · betrifft den Fall' : '')"></span>
+                            <span class="block text-xs text-slate-600" aria-live="polite" x-show="variantText(product) !== ''" x-cloak x-text="variantText(product)"></span>
                             <span class="block text-xs" :class="product.has_service_knowledge ? 'text-brand-700' : 'text-slate-600'" x-show="product.has_service_knowledge !== null && product.has_service_knowledge !== undefined" x-text="product.origin === 'eocs' ? 'Nur Beschreibung und Bullet Points aus EOCS, kein Kundenservice-Wissen' : (product.has_service_knowledge ? 'Produktdaten und Kundenservice-Wissen vorhanden' : 'Produktdaten vorhanden, kein Kundenservice-Wissen')"></span>
                         </span>
                     </li>

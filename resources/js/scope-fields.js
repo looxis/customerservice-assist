@@ -27,9 +27,18 @@ export default (config) => ({
     forgeMessage: '',
     forgeTimer: null,
 
+    // Other variants of the chosen catalog products (PROJ-54), by product key: { state, variants, omitted }.
+    variantInfo: {},
+
     init() {
         if (this.forge.enabled) {
-            this.forgeSelected.filter((key) => !this.forgeList.some((product) => product.key === key)).forEach((key) => this.forgeLoad(key));
+            this.forgeSelected.forEach((key) => {
+                if (this.forgeList.some((product) => product.key === key)) {
+                    this.variantsLoad(key);
+                } else {
+                    this.forgeLoad(key).then(() => this.variantsLoad(key));
+                }
+            });
             this.forgeSelected.forEach((key) => this.forgeSuggestAreas(this.forgeProduct(key)));
         }
 
@@ -116,6 +125,7 @@ export default (config) => ({
             this.forgeSelected.push(key);
             this.none = false;
             this.forgeSuggestAreas(this.forgeProduct(key));
+            this.variantsLoad(key);
         }
     },
 
@@ -186,6 +196,52 @@ export default (config) => ({
         this.forgeOpen = false;
         await this.forgeLoad(hit.key);
         this.forgeSuggestAreas(this.forgeProduct(hit.key));
+        this.variantsLoad(hit.key);
+    },
+
+    // The other variants of a chosen product come from EOCS by SKU; the choice never waits for them.
+    async variantsLoad(key) {
+        const product = this.forgeProduct(key);
+        const sku = product?.origin === 'eocs' ? String(product.id) : product?.sku;
+
+        if (!this.forge.variantsUrl || !sku || this.variantInfo[key]?.state === 'ok') {
+            return;
+        }
+
+        this.variantInfo = { ...this.variantInfo, [key]: { state: 'loading', variants: [], omitted: 0 } };
+
+        try {
+            const response = await fetch(`${this.forge.variantsUrl}?${new URLSearchParams({ sku })}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+            const answer = await response.json();
+
+            this.variantInfo = { ...this.variantInfo, [key]: answer.checked ? { state: 'ok', variants: answer.variants ?? [], omitted: answer.omitted ?? 0 } : { state: 'error', variants: [], omitted: 0 } };
+        } catch {
+            this.variantInfo = { ...this.variantInfo, [key]: { state: 'error', variants: [], omitted: 0 } };
+        }
+    },
+
+    variantText(product) {
+        const info = this.variantInfo[product.key];
+
+        if (!info || !this.forgeIsSelected(product.key)) {
+            return '';
+        }
+
+        if (info.state === 'loading') {
+            return 'Varianten werden geladen …';
+        }
+
+        if (info.state === 'error') {
+            return 'Varianten konnten nicht geladen werden.';
+        }
+
+        if (info.variants.length === 0) {
+            return '';
+        }
+
+        const names = info.variants.map((variant) => `${variant.name} (SKU ${variant.sku}${variant.active ? '' : ', inaktiv'})`).join(', ');
+
+        return `Weitere Varianten: ${names}${info.omitted > 0 ? ` und ${info.omitted} weitere` : ''}`;
     },
 
     // Details of one product (what exists, which area of rules fits); also restores a product chosen before.

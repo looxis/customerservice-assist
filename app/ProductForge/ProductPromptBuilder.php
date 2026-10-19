@@ -70,6 +70,12 @@ class ProductPromptBuilder
             $notes[] = "Produktinformationen zu {$what} nicht verfügbar: {$reason}";
         }
 
+        foreach ($package->variantProblems as $problem) {
+            $reason = ProductPackage::variantProblemMessage($problem['problem']);
+            $tail[] = "Die Varianten zu {$problem['name']} wurden nicht geprüft ({$reason}). Mache keine Aussagen über weitere Größen oder Varianten.";
+            $notes[] = "Varianten zu {$problem['name']} nicht geprüft: {$reason}";
+        }
+
         foreach ($eocs as $item) {
             $notes[] = "{$item->name} (SKU {$item->itemId}) ist noch nicht in ProductForge gepflegt: Beschreibung und Bullet Points kommen aus EOCS, Kundenservice-Wissen gibt es dazu nicht.";
         }
@@ -91,7 +97,7 @@ class ProductPromptBuilder
         }
 
         $shared = $this->sharedOrigins($affected);
-        $items = [...$this->items($affected, $shared, $channel, $omitted), ...$this->eocsItems($eocs)];
+        $items = [...$this->variantItems($package), ...$this->items($affected, $shared, $channel, $omitted), ...$this->eocsItems($eocs)];
 
         $used = mb_strlen($head) + 2 + array_sum(array_map(fn (string $line): int => mb_strlen($line) + 1, $tail));
         $chosen = [];
@@ -117,7 +123,7 @@ class ProductPromptBuilder
         }
 
         foreach ($omitted as $entry) {
-            if ($entry['reason'] === 'budget' && in_array($entry['field'], ['service', 'warnings', 'shared'], true)) {
+            if ($entry['reason'] === 'budget' && in_array($entry['field'], ['service', 'warnings', 'shared', 'variants'], true)) {
                 $notes[] = 'Wichtige Produktinformation ('.$this->label($entry['field']).') passte nicht ins Budget und wurde nicht mitgesendet.';
             }
         }
@@ -136,7 +142,7 @@ class ProductPromptBuilder
         foreach ($chosen as $item) {
             if ($item['product'] === null) {
                 $text .= "\n\n".$item['block'];
-                $sent['shared'][] = ['title' => $item['title'], 'text' => $item['text']];
+                $sent[$item['field'] === 'variants' ? 'variants' : 'shared'][] = ['title' => $item['title'], 'text' => $item['text']];
             }
         }
 
@@ -261,6 +267,33 @@ class ProductPromptBuilder
     }
 
     /**
+     * The variants per master (PROJ-54): small, so they come before the product fields; all or nothing.
+     * The names are single lines of data; the text tells the model what it may do with them.
+     *
+     * @return list<array{product: null, field: string, block: string, text: string, title: string}>
+     */
+    private function variantItems(ProductPackage $package): array
+    {
+        $items = [];
+
+        foreach ($package->variantLists as $list) {
+            $lines = array_map(
+                fn (array $variant): string => "- {$variant['name']} (SKU {$variant['sku']})".(in_array($variant['sku'], $list->chosen, true) ? ' – gewähltes Produkt' : '').($variant['active'] ? '' : ' – nicht mehr aktiv'),
+                $list->variants,
+            );
+            $complete = $list->isTruncated()
+                ? "Die Liste ist gekürzt: {$list->omitted} weitere Varianten werden nicht genannt. Sage nicht, dass dies alle Varianten sind."
+                : 'Die Liste ist vollständig.';
+            $text = implode("\n", $lines);
+            $title = "{$list->masterName} (abgerufen ".$list->fetchedAt->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr)';
+            $block = "### Weitere Varianten (EOCS): {$title}\nNenne Varianten nur, wenn der Kunde danach fragt. Mache keine Aussagen zu Preisen, Lieferzeiten oder Lieferfähigkeit. {$complete}\n{$text}";
+            $items[] = ['product' => null, 'field' => 'variants', 'block' => $block, 'text' => $text, 'title' => $title];
+        }
+
+        return $items;
+    }
+
+    /**
      * The fields of items that are only in EOCS: bullet points first, then the description. Plain text, as
      * EOCS delivers it (the markup is dropped); no channel split exists there.
      *
@@ -307,6 +340,7 @@ class ProductPromptBuilder
     {
         return match ($field) {
             'shared' => 'Gemeinsamer Wissensursprung',
+            'variants' => 'Weitere Varianten',
             'eocs_bullet_points' => 'Bullet Points (EOCS)',
             'eocs_description' => 'Beschreibung (EOCS)',
             default => self::LABELS[$field] ?? $field,

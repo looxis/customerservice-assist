@@ -142,6 +142,9 @@ return [
         'max_total' => (int) env('ANALYSIS_PRODUCT_INFO_CHARACTERS', 20000),
         'reserve' => (int) env('ANALYSIS_PRODUCT_INFO_RESERVE', 8000),
         'max_selected' => 5,
+        // PROJ-54: variants shown per master, and how long the form may reuse a list of EOCS.
+        'max_variants' => 30,
+        'variants_cache_minutes' => 10,
         'channels' => [
             'looxis-de' => 'shop',
             'looxis-pro' => 'shop',

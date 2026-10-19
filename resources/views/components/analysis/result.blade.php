@@ -317,11 +317,11 @@
             @endif
 
             @if (($result['product_sent'] ?? null) !== null)
-                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'eocs_bullet_points' => 'Bullet Points (EOCS)', 'eocs_description' => 'Beschreibung (EOCS)', 'all' => 'alle Felder'])
+                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'eocs_bullet_points' => 'Bullet Points (EOCS)', 'eocs_description' => 'Beschreibung (EOCS)', 'variants' => 'Weitere Varianten', 'all' => 'alle Felder'])
                 @php($reasonLabels = ['budget' => 'zu umfangreich für den Platz im Prompt', 'channel_unclear' => 'Kanal unklar', 'not_affected' => 'nicht als betroffen markiert'])
                 @php($forgeProducts = collect($result['product_data']['products'] ?? [])->keyBy('id'))
                 @php($sent = $result['product_sent'])
-                <x-analysis.section title="Produktinformationen" :count="count($sent['sent']['products'] ?? []) + count($sent['sent']['eocs'] ?? [])">
+                <x-analysis.section title="Produktinformationen" :count="count($sent['sent']['products'] ?? []) + count($sent['sent']['eocs'] ?? []) + count($sent['sent']['variants'] ?? [])">
                     @foreach ($sent['sent']['products'] ?? [] as $productId => $fields)
                         @php($product = $forgeProducts->get($productId) ?? ['name' => 'Produkt '.$productId, 'sku' => null])
                         <details class="group/product border-b border-slate-100 last:border-b-0">
@@ -358,6 +358,15 @@
                                     <p class="whitespace-pre-line">{{ $fieldText }}</p>
                                 @endforeach
                             </div>
+                        </details>
+                    @endforeach
+                    @foreach ($sent['sent']['variants'] ?? [] as $variantBlock)
+                        <details class="group/variants border-b border-slate-100 last:border-b-0">
+                            <summary class="flex cursor-pointer list-none flex-wrap items-center gap-2 py-2 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                                <x-icon name="chevron-right" size="14" class="text-slate-400 transition group-open/variants:rotate-90" />
+                                <span class="font-medium">Varianten aus EOCS: {{ $variantBlock['title'] }}</span>
+                            </summary>
+                            <p class="whitespace-pre-line pb-4 pl-6 text-sm">{{ $variantBlock['text'] }}</p>
                         </details>
                     @endforeach
                     @foreach ($sent['sent']['shared'] ?? [] as $shared)

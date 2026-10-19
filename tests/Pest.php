@@ -294,6 +294,29 @@ function eocsItem(int $number, string $name = 'Demo Leuchtsockel', ?string $desc
 }
 
 /**
+ * A variant row as EOCS delivers it inside "variants".
+ *
+ * @return array<string, mixed>
+ */
+function variantRow(int $sku, string $name, bool $active = true): array
+{
+    return ['id' => $sku + 1000, 'item_id' => $sku, 'name' => $name, 'deactivated_at' => $active ? null : '2026-01-01 00:00:00'];
+}
+
+/**
+ * An item of EOCS that is a variant of the master "Essbares Foto, Rund" (id 1625) with the given siblings.
+ *
+ * @param  list<array<string, mixed>>|null  $siblings
+ * @return array<string, mixed>
+ */
+function variantItem(int $sku = 11235, string $name = 'Essbares Foto, Rund 16 cm', ?array $siblings = null): array
+{
+    $siblings ??= [variantRow(11235, 'Essbares Foto, Rund 16 cm'), variantRow(11747, 'Essbares Foto, Rund 18 cm'), variantRow(11748, 'Essbares Foto, Rund 20 cm')];
+
+    return [...eocsItem($sku, $name), 'is_master' => false, 'master_products' => [['id' => 1625, 'name' => 'Essbares Foto, Rund', 'is_master' => true, 'variants' => $siblings]]];
+}
+
+/**
  * Fakes the EOCS items API: items keyed by number; "filter[item_id]" is exact, "filter[name]" a part of the name.
  *
  * @param  array<int, array<string, mixed>>  $items
