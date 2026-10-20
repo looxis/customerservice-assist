@@ -25,6 +25,24 @@ order_keywords:
 - fondant
 - esspapier
 - tortendeko
+customer_terms:
+- Essbares Foto
+- Tortenaufleger
+- Tortenbild
+- Tortenfoto
+- Zuckerbild
+- Essbares Bild
+- Esspapier
+- Bedrucktes Esspapier
+- Foto-Tortenaufleger
+- Tortenaufleger mit Foto
+- Tortenaufleger mit eigenem Motiv
+- Zuckerbild mit Foto
+- Fondantaufleger
+- Tortenbild drucken lassen
+- Essbarer Fotodruck
+- Fondant
+- Oblate
 summary: "Wissensbereich für essbare Fotos und personalisierte Tortenmotive: ordnet Fragen und Reklamationen zu Farben, Helligkeit, Geschmack und Material den Regeln zu (POLICY-037, PLAYBOOK-024, PROCESS-014, GLOSSARY-001). Die Produktfakten stehen in ProductForge."
 retrieval: core
 triggers:
