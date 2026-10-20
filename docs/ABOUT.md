@@ -84,6 +84,20 @@ Optional mit `--product=<produkt>` und `--title="Betreff"`. Die Vorschau zeigt d
 
 Damit sich auch bereits beantwortete Tickets zum Testen eignen, kann ein Admin ein Ticket auf den Stand einer früheren Kundennachricht zurückspulen. Spätere Antworten gehen dann nicht an die KI und lassen sich zum Vergleich aufklappen. Dafür schaltet der Admin oben rechts den „Testmodus" ein und wählt an einer Kundennachricht „Bis hierher testen". Testläufe sind gekennzeichnet und beeinflussen keine echten Vorschläge.
 
+**Wohin gehört was?** Wissen hat zwei Orte. In den Textdateien der Knowledge steht, **was wir tun und wer es darf** (Regeln, Kulanz, Abläufe). Im Produktkatalog ProductForge steht, **wie das Produkt ist** (Aufbau, Funktion, Pflege, häufige Beanstandungen mit Erklärung). Drei Fragen helfen:
+
+1. **Tatsache über das Produkt oder Entscheidung von uns?** Produkt: ProductForge. Entscheidung: Knowledge-Datei, auch wenn sie nur ein Produkt betrifft.
+2. **Gilt es für alle Varianten?** Dann steht es am Master. Gilt es für mehrere Serien, teilen sie es über einen „Wissensursprung“.
+3. **Unterscheiden sich die Varianten?** Dann steht der Unterschied an der Variante (SKU), aber nur in den Datenfeldern wie Technische Daten oder Pflege. Kundenservice-Wissen gibt es nur am Master; gilt eine Beanstandung nur für eine Variante, steht sie dort mit dem Zusatz „Nur Variante …“.
+
+| Ort | Beispiel Zaubertasse |
+|---|---|
+| Knowledge-Datei | Was wir tun, wenn die Kundin eine „schwarze Tasse“ meldet oder der Effekt nicht funktioniert |
+| ProductForge, Master | Wie die Thermobeschichtung funktioniert und warum die Füllhöhe zählt |
+| ProductForge, Variante | Innen weiß oder innen schwarz |
+
+Der Wissens-Chat sortiert deinen Input selbst und sagt dir am Ende, was er als Datei anlegt und was du in ProductForge eintragen musst (Produkt, Feld und Text zum Kopieren). Ausführlich mit weiteren Beispielen: Schreibanleitung für Wissen (`docs/KNOWLEDGE_AUTHORING_GUIDE.md`, Abschnitt „Wohin gehört welches Wissen?“).
+
 Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für Wissen (dem „Authoring Guide"); ein Entwickler pflegt die Dateien anschließend ein. Welche Dokumente es gibt und ob sie fehlerfrei sind, zeigt die [Knowledge-Übersicht](/knowledge).
 
 # Noch zu klären
@@ -125,7 +139,7 @@ Verfasst wird Wissen mit Hilfe einer Chat-KI nach unserer Schreibanleitung für 
 - `docs/PRD.md` – Ziel, Zielgruppen, Roadmap, Rahmenbedingungen
 - `features/INDEX.md` – alle Features mit Status und Abhängigkeiten
 - `docs/KNOWLEDGE_BASE_DESIGN.md` – feste Struktur der Knowledge Base
-- `docs/KNOWLEDGE_AUTHORING_GUIDE.md` – Anleitung zum Verfassen von Wissen, auch für die Chat-KI
+- `docs/KNOWLEDGE_AUTHORING_GUIDE.md` – Anleitung zum Verfassen von Wissen, auch für die Chat-KI; Abschnitt „Wohin gehört welches Wissen?“ grenzt Markdown-Wissen und ProductForge (Master, Variante) ab
 - `docs/KNOWLEDGE_CHAT_HANDBUCH.md` – eine Seite für die Chat-KI: wie die App Wissen auswählt und welche Felder dafür nötig sind
 - `docs/design-system.md` – LOOXIS Design System
 - `README.md` – Einrichtung und Start mit Sail

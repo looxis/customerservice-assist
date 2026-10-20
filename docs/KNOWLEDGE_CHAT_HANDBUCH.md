@@ -27,6 +27,7 @@
 Zusätzlich zu den Auslösern ergänzt ein Router Dokumente, die zum Anliegen **sinngemäß** passen, auch wenn der Kunde andere Wörter nutzt. Er wählt nur aus Dokumenten, die der Abruf nicht genommen hat, ersetzt nichts und umgeht keine verbindlichen Regeln. Deshalb gilt: `summary` sorgfältig schreiben; Auslöser bleiben wichtig, müssen aber nicht jede Formulierung abdecken.
 
 ## Fragen, die du stellst
+0. Vor allem anderen: Was davon ist eine Regel oder Entscheidung (Markdown) und was ein Produktfakt (ProductForge)? Sortiere zuerst, siehe Authoring Guide, Abschnitt „Wohin gehört welches Wissen?“.
 1. Wann wird das gebraucht, und welche Wörter schreibt der Kunde dann?
 2. Gilt es immer oder nur unter Bedingungen?
 3. Muss es unbedingt greifen?
