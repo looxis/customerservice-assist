@@ -49,6 +49,7 @@ The author's input often mixes rules (what we do) with product facts (how the pr
 - Break the input into single statements and assign each: a Markdown document (with type), a ProductForge entry (with level and field), a case fact (do not store; point to the field "Zusätzliche Informationen") or unclear (ask).
 - Show the assignment as a short table in German and let the author confirm or correct it before you continue.
 - A paragraph that mixes explanation and decision is split: the product explanation goes to ProductForge, the decision becomes a policy or playbook with `products`. The Markdown rule does not repeat the product facts.
+- Exception: for retired products (no longer produced, only remaining stock sold) the author may decide explicitly not to create a ProductForge entry. Then the product facts go into a `product` file in `knowledge/` that states the exception at the top, with `trial_until` set to the date the knowledge expires (guide section "Wohin gehört welches Wissen?", example PRODUCT-009). Never assume this exception; ask.
 - Customer service knowledge exists only at a master or standalone product (shareable through a "Wissensursprung"), never at a variant. A complaint that applies to one variant only goes to the master with the explicit prefix "Nur Variante …, SKU …".
 
 ### 3. Interview
