@@ -161,6 +161,17 @@ final readonly class ForgeProduct
     }
 
     /**
+     * Effective user manual (content.user_manual): how the product is used. Missing in older stored
+     * data packages, then null.
+     */
+    public function userManual(): ?string
+    {
+        $manual = is_array($this->content['user_manual'] ?? null) ? $this->content['user_manual'] : [];
+
+        return self::clean($manual['combined'] ?? null);
+    }
+
+    /**
      * @return array{combined: ?string, origin_text: ?string, own_text: ?string, origin: ?array<string, mixed>, holder: ?array<string, mixed>}
      */
     public function serviceKnowledge(): array
@@ -201,7 +212,7 @@ final readonly class ForgeProduct
      */
     private static function assertContentShape(array $content): void
     {
-        foreach ([...self::TEXT_FIELDS, 'description', 'bullet_points', 'customer_service_knowledge'] as $field) {
+        foreach ([...self::TEXT_FIELDS, 'description', 'bullet_points', 'customer_service_knowledge', 'user_manual'] as $field) {
             if (array_key_exists($field, $content) && ! is_array($content[$field])) {
                 throw new ProductForgeException(ProductForgeProblem::UnexpectedResponse);
             }

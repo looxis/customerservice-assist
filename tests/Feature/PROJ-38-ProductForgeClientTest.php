@@ -222,6 +222,31 @@ describe('prompt fields', function () {
         expect($full->text)->toContain("Material: Beispiel-Zuckerpapier; Dicke: 0,3 mm\n\nFormat: 16 x 16 cm")->toContain('Im Lieferumfang')->not->toContain('Pflegehinweise');
     });
 
+    test('the user manual is sent after the warnings and left out when empty or missing', function () {
+        $full = app(ProductPromptBuilder::class)->build(new ProductPackage([forgeProductWith([])], [2002]), 'shop', 100000);
+
+        expect($full->text)->toContain("Bedienungsanleitung:\nSchritt 1: Aufleger mittig platzieren (fiktiv).")
+            ->and(strpos($full->text, 'Bedienungsanleitung:'))->toBeGreaterThan(strpos($full->text, 'Warnhinweise:'))
+            ->and(strpos($full->text, 'Bedienungsanleitung:'))->toBeLessThan(strpos($full->text, 'Im Lieferumfang:'))
+            ->and($full->record['sent']['products'][2002]['user_manual'])->toBe('Schritt 1: Aufleger mittig platzieren (fiktiv).');
+
+        $empty = app(ProductPromptBuilder::class)->build(new ProductPackage([ForgeProduct::fromResponse(forgeFixture('empty-product')['data'])], [3001]), 'shop', 100000);
+        expect($empty->text)->not->toContain('Bedienungsanleitung');
+
+        $data = forgeFixture('variant-with-origin')['data'];
+        unset($data['content']['user_manual']);
+        $old = ForgeProduct::fromResponse($data);
+        expect($old->userManual())->toBeNull()
+            ->and(app(ProductPromptBuilder::class)->build(new ProductPackage([$old], [2002]), 'shop', 100000)->text)->not->toContain('Bedienungsanleitung');
+    });
+
+    test('a malformed user manual is reported as an unexpected response', function () {
+        $data = forgeFixture('variant-with-origin')['data'];
+        $data['content']['user_manual'] = 'Text statt Objekt';
+
+        expect(forgeProblemOf(fn () => ForgeProduct::fromResponse($data)))->toBe(ProductForgeProblem::UnexpectedResponse);
+    });
+
     test('fields go in whole or not at all and the important ones come first', function () {
         $long = str_repeat('Bedingung beachten. ', 150).'AUSNAHME AM ENDE.';
         $package = new ProductPackage([forgeProductWith(['care_instructions' => ['combined' => $long], 'description' => ['shop' => ['combined' => $long], 'amazon' => ['combined' => null]]])], [2002]);

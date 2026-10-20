@@ -68,6 +68,21 @@
         },
         "inherited_from_master": false,
         "holder_is_successor": false
+      },
+      "user_manual": {
+        "combined": null,
+        "origin_text": null,
+        "own_text": null,
+        "origin": null,
+        "holder": {
+          "id": 3001,
+          "name": "Demo Artikel leer",
+          "sku": "DEMO-EMPTY",
+          "type": "standalone",
+          "status": "active"
+        },
+        "inherited_from_master": false,
+        "holder_is_successor": false
       }
     },
     "data_version": "sha256:9b7e0000000000000000000000000000000000000000000000000000000000bb",

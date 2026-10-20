@@ -100,6 +100,21 @@
         },
         "inherited_from_master": true,
         "holder_is_successor": false
+      },
+      "user_manual": {
+        "combined": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
+        "origin_text": null,
+        "own_text": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
+        "origin": null,
+        "holder": {
+          "id": 2001,
+          "name": "Demo Tortenaufleger eckig",
+          "sku": "DEMO-SQUARE",
+          "type": "master",
+          "status": "active"
+        },
+        "inherited_from_master": true,
+        "holder_is_successor": false
       }
     },
     "data_version": "sha256:3f1c0000000000000000000000000000000000000000000000000000000000aa",

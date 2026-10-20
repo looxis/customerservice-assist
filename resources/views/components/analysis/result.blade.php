@@ -317,7 +317,7 @@
             @endif
 
             @if (($result['product_sent'] ?? null) !== null)
-                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'eocs_bullet_points' => 'Bullet Points (EOCS)', 'eocs_description' => 'Beschreibung (EOCS)', 'variants' => 'Weitere Varianten', 'all' => 'alle Felder'])
+                @php($fieldLabels = ['service' => 'Kundenservice-Wissen', 'warnings' => 'Warnhinweise', 'user_manual' => 'Bedienungsanleitung', 'care_instructions' => 'Pflegehinweise', 'technical_data' => 'Technische Daten', 'included_in_delivery' => 'Im Lieferumfang', 'description' => 'Beschreibung', 'bullet_points' => 'Bullet Points', 'shared' => 'Gemeinsamer Wissensursprung', 'eocs_bullet_points' => 'Bullet Points (EOCS)', 'eocs_description' => 'Beschreibung (EOCS)', 'variants' => 'Weitere Varianten', 'all' => 'alle Felder'])
                 @php($reasonLabels = ['budget' => 'zu umfangreich für den Platz im Prompt', 'channel_unclear' => 'Kanal unklar', 'not_affected' => 'nicht als betroffen markiert'])
                 @php($forgeProducts = collect($result['product_data']['products'] ?? [])->keyBy('id'))
                 @php($sent = $result['product_sent'])

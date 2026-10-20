@@ -16,6 +16,7 @@ class ProductPromptBuilder
     private const array LABELS = [
         'service' => 'Kundenservice-Wissen',
         'warnings' => 'Warnhinweise',
+        'user_manual' => 'Bedienungsanleitung',
         'care_instructions' => 'Pflegehinweise',
         'technical_data' => 'Technische Daten',
         'included_in_delivery' => 'Im Lieferumfang',
@@ -244,7 +245,7 @@ class ProductPromptBuilder
             $items[] = ['product' => null, 'field' => 'shared', 'block' => $block, 'text' => $group['text'], 'title' => $group['title']];
         }
 
-        $fields = ['service', 'warnings', 'care_instructions', 'technical_data', 'included_in_delivery', 'description', 'bullet_points'];
+        $fields = ['service', 'warnings', 'user_manual', 'care_instructions', 'technical_data', 'included_in_delivery', 'description', 'bullet_points'];
 
         foreach ($fields as $field) {
             foreach ($affected as $product) {
@@ -330,6 +331,7 @@ class ProductPromptBuilder
     {
         return match ($field) {
             'service' => $sharedOrigin ? $product->serviceKnowledge()['own_text'] : $product->serviceKnowledge()['combined'],
+            'user_manual' => $product->userManual(),
             'description' => $channel === null ? null : $product->description($channel),
             'bullet_points' => $channel === null ? null : ($product->bulletPoints($channel) === [] ? null : implode("\n", array_map(fn (string $text): string => '- '.$text, $product->bulletPoints($channel)))),
             default => $product->text($field),

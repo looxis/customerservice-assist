@@ -1,4 +1,4 @@
-> **Vertragsreferenz (PROJ-38).** Unveränderte Kopie von `looxis-productforge/docs/product-information-api.md` (Stand Commit e5e537f vom 2026-10-16). Maßgeblich bleibt das ProductForge-Repository; bei Änderungen dort diese Kopie erneuern. Einrichtung in der Service-App: `PRODUCTFORGE_URL`, `PRODUCTFORGE_TOKEN`, `PRODUCTFORGE_TIMEOUT` (siehe Spec PROJ-38).
+> **Vertragsreferenz (PROJ-38).** Kopie von `looxis-productforge/docs/product-information-api.md`, erneuert am 2026-10-20 um den Schlüssel `content.user_manual` (Bedienungsanleitung). Maßgeblich bleibt das ProductForge-Repository; bei Änderungen dort diese Kopie erneuern. Einrichtung in der Service-App: `PRODUCTFORGE_URL`, `PRODUCTFORGE_TOKEN`, `PRODUCTFORGE_TIMEOUT` (siehe Spec PROJ-38).
 
 # Produktinformations-API (v1)
 
@@ -154,6 +154,8 @@ bullet_points: { format: { shop: "text; only <b></b> markup allowed", amazon: "p
 
 Regeln: Varianten haben kein eigenes Wissen. Ein Master/eigenständiges Produkt hat optional eigenen Text und höchstens einen Ursprung; Ursprungsketten gibt es nicht. Der Verweis wird bei jedem Abruf live aufgelöst (keine Kopien) — Änderungen am Ursprung sind im nächsten Abruf sichtbar. Fehlendes Wissen: alle Texte `null`, `origin` `null` — die übrigen Produktdaten bleiben vollständig nutzbar.
 
+**`user_manual`** — wirksame Bedienungsanleitung (PROJ-38): identische Struktur und Regeln wie `customer_service_knowledge` (`combined`, `origin_text`, `own_text`, `origin`, `holder`, `inherited_from_master`, `holder_is_successor`), jedoch mit eigener Pflege und eigenem Ursprung. Fehlende Bedienungsanleitung: alle Texte `null`.
+
 ### Leere Werte
 Textfelder sind **`null`**, nie `""` (nur Leerzeichen zählt als leer). Listen (`positions`) sind `[]`. Objekte (`master`, `origin`, `holder`) sind `null`.
 
@@ -233,6 +235,15 @@ curl -s -H "Authorization: Bearer $TOKEN" \
         "holder": { "id": 2001, "name": "Demo Tortenaufleger eckig", "sku": "DEMO-SQUARE", "type": "master", "status": "active" },
         "inherited_from_master": true,
         "holder_is_successor": false
+      },
+      "user_manual": {
+        "combined": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
+        "origin_text": null,
+        "own_text": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
+        "origin": null,
+        "holder": { "id": 2001, "name": "Demo Tortenaufleger eckig", "sku": "DEMO-SQUARE", "type": "master", "status": "active" },
+        "inherited_from_master": true,
+        "holder_is_successor": false
       }
     },
     "data_version": "sha256:3f1c…(fiktiv gekürzt)",
@@ -260,6 +271,11 @@ curl -s -H "Authorization: Bearer $TOKEN" \
       },
       "bullet_points": { "format": { "shop": "text; only <b></b> markup allowed", "amazon": "plain_text" }, "positions": [] },
       "customer_service_knowledge": {
+        "combined": null, "origin_text": null, "own_text": null, "origin": null,
+        "holder": { "id": 3001, "name": "Demo Artikel leer", "sku": "DEMO-EMPTY", "type": "standalone", "status": "active" },
+        "inherited_from_master": false, "holder_is_successor": false
+      },
+      "user_manual": {
         "combined": null, "origin_text": null, "own_text": null, "origin": null,
         "holder": { "id": 3001, "name": "Demo Artikel leer", "sku": "DEMO-EMPTY", "type": "standalone", "status": "active" },
         "inherited_from_master": false, "holder_is_successor": false

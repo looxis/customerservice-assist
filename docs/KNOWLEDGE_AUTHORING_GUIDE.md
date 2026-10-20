@@ -36,7 +36,7 @@ Du schreibst nur, was der Autor dir sagt oder bestätigt. Fehlt eine Angabe (ein
 
 1. **Beschreibt die Aussage das Produkt** (Aufbau, Funktion, Maße, Lieferumfang, Pflege, Warnung, „das wird häufig beanstandet, und das ist die Erklärung“)? → **ProductForge.** **Beschreibt sie eine Handlung oder Entscheidung** („wir ersetzen“, „bis 50 € ohne Rücksprache“, „zuerst Foto anfordern“, „Kulanz nur bei Kundenfehler“)? → **Markdown in `knowledge/`**, auch wenn sie nur für ein Produkt gilt (dafür gibt es `products` im Frontmatter).
 2. **(ProductForge) Gilt sie für alle Varianten?** → **Master** bzw. eigenständiges Produkt. Gilt sie für mehrere Master einer Serie? → **Wissensursprung**: ein Master hält den Text, andere Produkte übernehmen ihn und können ergänzen; Ursprungsketten gibt es nicht.
-3. **(ProductForge) Unterscheiden sich die Varianten** (Größe, Farbe, Innenfarbe)? → Der Unterschied steht an der **Variante**, aber nur in den Datenblattfeldern: Technische Daten, Lieferumfang, Pflegehinweise, Warnhinweise, Beschreibung, Bullet Points. Die Variante **ergänzt** den Text des Masters, sie ersetzt ihn nie. **Kundenservice-Wissen gibt es an der Variante nicht.** Gilt eine Beanstandung nur für eine Variante, steht sie am Master mit ausdrücklichem Zusatz („Nur Variante innen schwarz, SKU …“), damit die KI sie nicht auf alle Varianten überträgt.
+3. **(ProductForge) Unterscheiden sich die Varianten** (Größe, Farbe, Innenfarbe)? → Der Unterschied steht an der **Variante**, aber nur in den Datenblattfeldern: Technische Daten, Lieferumfang, Pflegehinweise, Warnhinweise, Bedienungsanleitung, Beschreibung, Bullet Points. Die Variante **ergänzt** den Text des Masters, sie ersetzt ihn nie. **Kundenservice-Wissen gibt es an der Variante nicht.** Gilt eine Beanstandung nur für eine Variante, steht sie am Master mit ausdrücklichem Zusatz („Nur Variante innen schwarz, SKU …“), damit die KI sie nicht auf alle Varianten überträgt.
 
 | Ebene | Wofür | Beispiel |
 |---|---|---|
@@ -44,6 +44,8 @@ Du schreibst nur, was der Autor dir sagt oder bestätigt. Fehlt eine Angabe (ein
 | ProductForge, Master oder eigenständiges Produkt | Produktfakten und Kundenservice-Wissen für alle Varianten: Aufbau, Funktion, Grenzen, Pflege, häufige Beanstandungen mit Erklärung | Wie die Thermobeschichtung der Zaubertasse funktioniert |
 | ProductForge, Wissensursprung | derselbe Servicetext für mehrere Master | Fernbedienungs-Verhalten, das mehrere Leuchtsockel-Serien teilen |
 | ProductForge, Variante (SKU) | nur was die Varianten unterscheidet, als Ergänzung der Datenblattfelder | 20 cm gegenüber 16 cm; Tasse innen schwarz oder innen weiß |
+
+**Bedienungsanleitung.** Wie das Produkt benutzt wird (zum Beispiel wann und wie ein essbarer Aufleger auf die Torte gelegt wird, oder die Schritte der beiliegenden Anleitung eines Leuchtsockels), steht im ProductForge-Feld „Bedienungsanleitung“, nicht in Pflegehinweisen oder Kundenservice-Wissen. Der Text wird möglichst wörtlich aus der gedruckten Anleitung übernommen. Gesetzliche Hinweise und Warnhinweise bleiben im Feld „Warnhinweise“. Bei den meisten Produkten bleibt das Feld leer.
 
 ### Beispiele mit unseren Produkten
 
@@ -79,7 +81,7 @@ Mehrere Dateien: jede mit eigenem Pfad und eigenem Codeblock.
 
 - **Produkt:** Name, SKU, Master oder Variante, vom Autor bestätigt; ist etwas unbekannt, steht dort „bitte ergänzen“
 - **Ebene:** Master / eigenständiges Produkt / Wissensursprung / Variante
-- **Feld:** Kundenservice-Wissen, Technische Daten, Lieferumfang, Pflegehinweise, Warnhinweise, Beschreibung oder Bullet Points
+- **Feld:** Kundenservice-Wissen, Technische Daten, Lieferumfang, Pflegehinweise, Warnhinweise, Bedienungsanleitung, Beschreibung oder Bullet Points
 - **Art:** ergänzen (Text am Ende anfügen) oder ersetzen (nur wenn der Autor den heutigen Text mitgeliefert hat)
 - **Text:** Klartext ohne HTML, zum Einfügen; Technische Daten als semikolon-getrennte Liste; bei Variantenbezug im Kundenservice-Wissen beginnt der Text mit „Nur Variante …, SKU …“
 - **Hinweis:** was dazu in der Markdown-Datei steht (z. B. „Die Entscheidung dazu steht in PLAYBOOK-nnn“)
