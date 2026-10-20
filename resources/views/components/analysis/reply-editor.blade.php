@@ -165,11 +165,14 @@
     >{{ $result['reply_text'] }}</textarea>
 
     <div class="mt-3 flex flex-wrap items-center gap-3">
-        @if ($locked)
-            <x-button x-bind:disabled="true"><x-icon name="doc" size="16" /> Kopieren</x-button>
-        @else
-            <x-button x-on:click="copy()" x-bind:disabled="text.trim() === ''"><x-icon name="doc" size="16" /> Kopieren</x-button>
-        @endif
+        {{-- With a Zammad token the reply is sent from the app; "Kopieren" stays only where sending is not offered. --}}
+        @unless (in_array($send['state'], ['ready', 'sent'], true))
+            @if ($locked)
+                <x-button x-bind:disabled="true"><x-icon name="doc" size="16" /> Kopieren</x-button>
+            @else
+                <x-button x-on:click="copy()" x-bind:disabled="text.trim() === ''"><x-icon name="doc" size="16" /> Kopieren</x-button>
+            @endif
+        @endunless
         @unless ($readonly)
         <x-button variant="secondary" x-show="text !== original" x-cloak x-on:click="restore()"><x-icon name="refresh" size="16" /> Original der KI wiederherstellen</x-button>
         @endunless

@@ -71,6 +71,33 @@ final readonly class ReplyTarget
 
         $candidate = preg_match('/<([^<>]+)>\s*$/', $value, $match) === 1 ? $match[1] : trim($value, " \t\n\r\"'");
 
-        return filter_var($candidate, FILTER_VALIDATE_EMAIL) !== false ? $candidate : null;
+        if (filter_var($candidate, FILTER_VALIDATE_EMAIL) !== false) {
+            return $candidate;
+        }
+
+        return self::internationalDomain($candidate);
+    }
+
+    /**
+     * An address whose domain has umlauts (for example kunde@autoschlüssel.de) in the form mail servers
+     * accept: the domain as Punycode (xn--…). Null when it is not a valid address even then.
+     */
+    private static function internationalDomain(string $candidate): ?string
+    {
+        $at = strrpos($candidate, '@');
+
+        if ($at === false || ! function_exists('idn_to_ascii')) {
+            return null;
+        }
+
+        $domain = idn_to_ascii(substr($candidate, $at + 1), IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+
+        if (! is_string($domain) || $domain === '') {
+            return null;
+        }
+
+        $address = substr($candidate, 0, $at + 1).$domain;
+
+        return filter_var($address, FILTER_VALIDATE_EMAIL) !== false ? $address : null;
     }
 }

@@ -227,6 +227,11 @@ Der gesendete Text wird nicht erneut gespeichert. Das Token wird nie gespeichert
 ### D) Abhängigkeiten
 Keine neuen Pakete.
 
+## Nachtrag (2026-10-20)
+- **Adressen mit Umlauten in der Domain** (zum Beispiel `kontakt@autoschlüssel.de`) wurden als ungültig abgelehnt, deshalb fehlte der Block „Antwort versenden“ und es stand nur der Hinweis „keine eindeutige Antwortadresse“. `ReplyTarget` wandelt die Domain jetzt in Punycode (`xn--…`) um; so wird sie auch an Zammad übergeben. Ungültige Adressen bleiben abgelehnt.
+- **„Kopieren“ entfällt**, solange der Direktversand angeboten wird (Zustand „bereit“ oder „gesendet“, also mit Zammad-Token). Wo kein Versand möglich ist (kein Token, keine eindeutige Adresse, Regelprüfung offen), bleibt „Kopieren“ als Ausweg.
+- „Ticket schließen“ ist bei „Danach“ weiter vorausgewählt.
+
 ## Implementation Notes (2026-10-18)
 - **Neu:** `ZammadReplySender` (einziger Schreibzugriff: `users/me` zur Tokenprüfung, dann ein `PUT tickets/{id}` mit Status und angehängter E-Mail-Nachricht, danach Lesen der neuen Nachricht für die Artikel-ID), `ReplyProblem`/`ReplyException`/`OutgoingReply`/`SentReply`, `ReplyTarget` (Antwortadresse, Betreff, Bezugsnachricht und „neuere Nachrichten“ aus dem Ticket), `ReplyDelivery` (Angebot für die Oberfläche, Signatur mit vollem Namen, Erinnerungsdatum 8 Uhr), `SendReplyRequest`, `AnalysisController::sendReply` mit Route `tickets.analysis.send` (POST, Drosselung 10 je Minute), Migration mit `reply_send_started_at`, `reply_sent_at`, `reply_sent_by`, `reply_sent_zammad_user`, `reply_sent_subject`, `reply_sent_state`, `reply_sent_article_id`, Einstellungsart `SIGNATURE` und Gruppe `reply_signature` auf „Mail-Anzeige“ (nur der Platzhalter `{Name}`).
 - **Namensliste:** `config/staff.php` hat `full_names` und `zammad_tokens` (Umgebungsvariablen `ZAMMAD_TOKEN_CARA`, `_ETIENNE`, `_JOHANNES`, `_KERSTIN`, `_NELE`, `_THOMAS`; Werte trägst du selbst in der `.env` ein). Das Dropdown zeigt weiter die Vornamen, Cookies bleiben gültig.

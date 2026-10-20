@@ -95,6 +95,17 @@ describe('the offer', function () {
         expect($html)->toContain('Re: Motiv erscheint nicht')->toContain('Nele Gorka')->toContain('LOOXIS GmbH')->toContain('Ticket schließen')->not->toContain('nele-secret-token');
     });
 
+    test('with a token the copy button is gone while sending is offered, and it stays where sending is not offered', function () {
+        $id = sendAnalysis();
+        $html = test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->getContent();
+        expect($html)->toContain('id="antwort-versenden"')->not->toMatch('/x-on:click="copy\(\)"/');
+
+        $this->articles = [zammadArticle(['id' => 1, 'type' => 'phone', 'body' => '<p>Anruf</p>'])];
+        $blocked = sendAnalysis();
+        $html = test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$blocked)->assertOk()->getContent();
+        expect($html)->not->toContain('id="antwort-versenden"')->toMatch('/x-on:click="copy\(\)"/');
+    });
+
     test('without a token there is only the copy button and the hint', function () {
         $id = sendAnalysis(staff: 'Cara');
 
@@ -112,6 +123,24 @@ describe('the offer', function () {
         test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('keine Kundennachricht mit eindeutiger Antwortadresse');
         sendReply($id)->assertStatus(409);
         expect(putRequests())->toBe([]);
+    });
+
+    test('an address with umlauts in the domain is sent in the form mail servers accept', function () {
+        $this->articles = [zammadArticle(['id' => 1, 'from' => '"autoschlüssel.de Team" <kontakt@autoschlüssel.de>', 'subject' => 'Frage', 'message_id' => '<m1@example.org>'])];
+        $target = ReplyTarget::for(app(ZammadClient::class)->ticket('2137942'));
+
+        expect($target->to)->toBe('kontakt@xn--autoschlssel-klb.de');
+
+        $id = sendAnalysis();
+        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('Antwort versenden')->assertSeeText('kontakt@xn--autoschlssel-klb.de');
+        sendReply($id, ['subject' => 'Re: Frage'])->assertOk();
+        expect(putRequests()[0]['article']['to'])->toBe('kontakt@xn--autoschlssel-klb.de');
+    });
+
+    test('an address that is not valid even as Punycode is still refused', function () {
+        $this->articles = [zammadArticle(['id' => 1, 'from' => 'Kunde <kontakt@@ungültig>', 'message_id' => '<m1@example.org>'])];
+
+        expect(ReplyTarget::for(app(ZammadClient::class)->ticket('2137942')))->toBeNull();
     });
 
     test('a test run is offered nothing, and a question without ticket neither', function () {
