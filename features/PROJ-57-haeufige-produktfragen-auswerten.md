@@ -122,12 +122,104 @@ Beispiele: „Kann das essbare Foto eingefroren werden?“ ist eine Detailfrage.
 
 ### Technical Decisions
 <!-- Added by /architecture -->
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Zweites Ergebnisfeld „Detailfragen“ statt Kennzeichen an den Wissenslücken | Seite „Wissenslücken“ und PROJ-12/PROJ-45 bleiben unberührt | 2026-10-20 |
+| Eigene Tabellen für Einträge und Themenzustand | Zustände und Zählung gelten je Thema, nicht je Lücke; getrennte Löschregeln | 2026-10-20 |
+| Produkt auf Master (oder eigenständiges Produkt) zusammenfassen | Eine Frage zu einer Größe gilt für alle Größen; sonst erreicht kein Thema die Schwelle | 2026-10-20 |
+| Bisherige Stichwörter an die KI mitgeben | Gleiche Fragen bekommen dasselbe Stichwort, ohne Zusammenführung in der Oberfläche | 2026-10-20 |
+| Stichwort unverschlüsselt, Formulierung verschlüsselt | Gruppieren geht nur über unverschlüsselte Werte; Formulierung bleibt geschützt | 2026-10-20 |
+| Schwelle und Löschfrist in der Konfiguration, nicht in der Oberfläche | Spec: Schwelle fest; weniger Oberfläche | 2026-10-20 |
+| Bereinigung im bestehenden nächtlichen Lauf | Kein neuer geplanter Auftrag nötig | 2026-10-20 |
+| Abgrenzung im Standard-Prompt, Formulierung als Ton-Dokument | Fachlich änderbar ohne Code; Ton gehört ins Wissen | 2026-10-20 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Die Funktion braucht ein Backend und eine Datenbank, weil gezählt und über Wochen und Monate bewahrt wird. Es sind keine neuen Pakete nötig. Sie folgt dem Muster der Wissenslücken (PROJ-12, PROJ-45): ein Protokoll mit Zählung, eine Admin-Seite, ein Hinweis im Ergebnis. Neu sind ein zweites Ergebnisfeld der KI, zwei kleine Tabellen und eine Seite.
+
+### A) Ablauf und Bausteine
+```
+Analyse (KI)
++-- liefert wie bisher: Empfehlung, Antwortentwurf, echte Wissenslücken
++-- NEU: "Detailfragen" (Produkt, Stichwort, kurze Kundenformulierung)
+|
+Ergebnis prüfen und speichern (Validator)
++-- unvollständige oder doppelte Detailfragen verwerfen
+|
+Protokoll "Produktfragen" (NEU, vom CaseAnalyzer nach dem Speichern aufgerufen)
++-- legt je Ticket/Frage, Produkt und Thema einen Eintrag an
++-- ignoriert Testläufe für die Zählung
+|
+Ergebnisansicht (unverändert)
++-- Begründung nennt die Detailfrage in einem Halbsatz
++-- keine Lücke, kein Knopf, kein gelber Hinweis dafür
+|
+Seite "Häufige Produktfragen" (NEU, nur Admins)
++-- Kopf: Erklärung, Filter (Status, Produkt), Schalter "alle Themen anzeigen"
++-- Liste der Themen (Produkt, Thema, letzte 3 Monate, gesamt, letzte Frage)
+|   +-- aufklappbar: Kundenformulierungen mit Links zu Tickets oder Fragen
+|   +-- Aktionen: Erledigt, Ignorieren, Wieder öffnen, Kopieren
++-- Leerer Zustand
+|
+Seitenleiste
++-- Eintrag "Häufige Produktfragen" unter "Wissenslücken" (nur Admins)
+```
+
+### B) Datenmodell (in einfachen Worten)
+
+**Eintrag je Detailfrage** (Tabelle "Produktfragen"):
+- Verweis auf die Analyse (bleibt erhalten, auch wenn die Analyse später bereinigt wird)
+- Ticketnummer oder Frage-Kennung
+- Produkt: Schlüssel und Anzeigename (siehe Entscheidung zur Zusammenfassung), leer bei „kein Produkt“
+- Thema: kurzes Stichwort in Kleinbuchstaben, **unverschlüsselt**, damit die Liste gruppieren kann
+- Kundenformulierung: kurzer Satz ohne persönliche Daten, **verschlüsselt**
+- Kundengruppe, Datum
+- Kennzeichen „Testlauf“
+- Je Ticket (oder Frage), Produkt und Thema höchstens ein Eintrag; eine erneute Analyse aktualisiert nur die Formulierung
+
+**Zustand je Thema** (Tabelle "Themenzustand"), ein Eintrag je Produkt und Thema, nur wenn der Admin etwas markiert hat:
+- Zustand: erledigt oder ignoriert (ohne Eintrag gilt „offen“)
+- Wer hat wann markiert
+- Bei „erledigt“ zählen nur Fragen, die **nach** diesem Zeitpunkt eintreffen; so beginnt die Zählung neu
+- Bei „ignoriert“ zählen alle Fragen weiter, das Thema bleibt aber ausgeblendet
+
+**Berechnete Zahlen** (nicht gespeichert): Tickets der letzten drei Monate und Gesamtzahl je Produkt und Thema, jeweils Tickets (oder Fragen) einmal gezählt, ohne Testläufe.
+
+Gespeichert wird in der bestehenden MySQL-Datenbank. Keine Kontaktdaten.
+
+### C) Entscheidungen, erklärt
+
+1. **Zweites Ergebnisfeld der KI statt eines Kennzeichens an den Wissenslücken.** Die KI gibt „Detailfragen“ getrennt von „Wissenslücken“ aus. So bleibt die Seite „Wissenslücken“ unberührt, und die Auswertung kann ohne Eingriffe in PROJ-12 und PROJ-45 entstehen. Ein Kennzeichen an den Lücken hätte beide Seiten vermischt.
+2. **Eigene Tabellen statt der Lücken-Tabelle.** Die Lücken-Tabelle hat ein Thema pro Zeile und Zustände für einzelne Lücken, wir brauchen aber Zustände je Thema und Zählungen. Eigene Tabellen halten die Abfragen einfach und die Lösch-Regeln getrennt (offene bleiben, erledigte werden nach 12 Monaten gelöscht).
+3. **Produkt zusammenfassen auf den Master.** „Vegan“ gilt für alle Größen des Essbaren Fotos. Eine Frage zu einer Variante zählt deshalb beim Master (oder beim eigenständigen Produkt); sonst würde sie sich auf Varianten verteilen und die Schwelle nie erreichen. Fehlt ein Katalogprodukt, gilt der Wissensbereich; fehlt auch der, bleibt das Produkt leer.
+4. **Stichwörter wiederverwenden.** Die KI bekommt zur Analyse eine kurze Liste der bisher verwendeten Stichwörter der betroffenen Produkte (nur Stichwörter, keine Formulierungen) mit der Bitte, ein passendes wiederzuverwenden. Das hält gleiche Fragen zusammen, ohne dass es eine Zusammenführung in der Oberfläche braucht.
+5. **Im Zweifel echte Lücke.** Die Regel steht im Prompt. Prüfungen im Code gibt es dafür nicht (die KI entscheidet), aber der Validator verwirft Detailfragen ohne Produkt-Stichwort oder ohne Formulierung, und eine Detailfrage darf nicht mit derselben Frage auch als Lücke erscheinen.
+6. **Seite wie die Wissenslücken.** Gleiche Admin-Prüfung, gleicher Aufbau (Filter über die Adresszeile, Seitenleiste mit Eintrag, Kopieren in den KI-Chat). Die Schwelle (drei Tickets, drei Monate) und die Löschfrist (12 Monate für Erledigtes) stehen in der Konfiguration der App und sind nicht in der Oberfläche einstellbar.
+7. **Aufräumen im bestehenden nächtlichen Lauf.** Der vorhandene tägliche Bereinigungslauf löscht erledigte Themen mit den Einträgen nach 12 Monaten. Offene und ignorierte bleiben.
+8. **Prompt-Änderung statt Code für die Abgrenzung.** Die Grenze zwischen Detailfrage und echter Lücke steht im Standard-Prompt (Kern und Produkt-Zusatz) und ersetzt dort die Regel, die zur Meldung der Lagertemperatur führte. Die Version wird erhöht. Haben Admins eigene Prompttexte gespeichert, zeigen die Einstellungen den bekannten Hinweis, dass der Standard erneuert wurde.
+9. **Feste Formulierung als Wissen.** Der lockere Satz („wir sind uns nicht sicher …“) steht als Ton-Dokument in `knowledge/`, nicht im Prompt. Der Prompt verlangt nur, dass die Regel greift und der Ton passt. Das Ton-Dokument wird mit der Umsetzung erstellt.
+
+### D) Zugriff und Sicherheit
+- Die Seite ist nur für Admins; die vorhandene Admin-Prüfung der App wird wiederverwendet.
+- Die Kundenformulierung wird verschlüsselt gespeichert und nur auf der Admin-Seite angezeigt. Die KI wird angewiesen, keine Namen, E-Mail-Adressen oder Anschriften hineinzuschreiben.
+- Wer die Daten bearbeitet (Erledigt, Ignorieren), wird mit Namen und Zeit am Themenzustand festgehalten.
+
+### E) Dependencies
+Keine neuen Pakete.
+
+### F) Betroffene Bereiche (für die Umsetzung)
+- KI-Ausgabe und Prüfung des Ergebnisses (neues Feld „Detailfragen“)
+- Analyse nach dem Speichern (neues Protokoll „Produktfragen“)
+- Standard-Prompts (Kern und Produkt-Zusatz, Version erhöhen)
+- Datenbank (zwei neue Tabellen)
+- Seite, Seitenleiste und Kopier-Text
+- Nächtliche Bereinigung (erledigte Themen)
+- Wissen: Ton-Dokument zur festen Formulierung
+
 
 ## QA Test Results
 _To be added by /qa_
