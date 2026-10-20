@@ -10,6 +10,7 @@ use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\KnowledgeReviewController;
 use App\Http\Controllers\ProcedureController;
+use App\Http\Controllers\ProductQuestionController;
 use App\Http\Controllers\ProductSearchController;
 use App\Http\Controllers\ProductVariantsController;
 use App\Http\Controllers\QuestionController;
@@ -67,6 +68,9 @@ Route::get('/wissensluecken', [KnowledgeGapController::class, 'index'])->name('k
 Route::post('/knowledge/pruefung', [KnowledgeReviewController::class, 'store'])->middleware(['staff.selected', 'throttle:20,1'])->name('knowledge.review.store');
 Route::post('/wissensluecken/pruefung/{documentId}/geprueft', [KnowledgeReviewController::class, 'resolve'])->middleware('staff.selected')->name('knowledge.review.resolve');
 Route::patch('/wissensluecken/{gap}', [KnowledgeGapController::class, 'update'])->middleware('staff.selected')->whereNumber('gap')->name('knowledge-gaps.update');
+
+Route::get('/produktfragen', [ProductQuestionController::class, 'index'])->name('product-questions.index');
+Route::patch('/produktfragen', [ProductQuestionController::class, 'update'])->middleware('staff.selected')->name('product-questions.update');
 
 Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');

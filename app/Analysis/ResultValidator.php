@@ -63,6 +63,8 @@ class ResultValidator
             $data['category'] = null;
         }
 
+        $data['detail_questions'] = $this->detailQuestions($data['detail_questions'] ?? [], $data['knowledge_gaps'], $notes);
+
         $actions = array_values(array_filter((array) $data['actions'], 'is_string'));
         $unknownActions = array_diff($actions, array_keys(config('knowledge.actions')));
 
@@ -90,6 +92,41 @@ class ResultValidator
         }
 
         return ['result' => $data, 'notes' => $notes];
+    }
+
+    /**
+     * The detail questions (PROJ-57): kept only with a keyword and a wording, without placeholders for contact
+     * data, at most five, once per product and keyword. A question that is also reported as a gap is a gap,
+     * not a detail question.
+     *
+     * @param  list<array<string, mixed>>  $gaps
+     * @param  list<string>  $notes
+     * @return list<array{product: string|null, topic: string, question: string}>
+     */
+    private function detailQuestions(mixed $questions, array $gaps, array &$notes): array
+    {
+        $gapTopics = array_map(fn (array $gap): string => ProductQuestionLog::normalize((string) $gap['topic']), $gaps);
+        $kept = [];
+
+        foreach (is_array($questions) ? $questions : [] as $question) {
+            $topic = is_array($question) && is_string($question['topic'] ?? null) ? ProductQuestionLog::normalize($question['topic']) : '';
+            $wording = is_array($question) && is_string($question['question'] ?? null) ? trim((string) preg_replace('/\s*\[[A-ZÄÖÜ\-]+_?\d*\]/u', '', $question['question'])) : '';
+            $product = is_array($question) && is_string($question['product'] ?? null) && trim($question['product']) !== '' ? trim($question['product']) : null;
+
+            if ($topic === '' || $wording === '') {
+                continue;
+            }
+
+            if (in_array($topic, $gapTopics, true)) {
+                $notes[] = "Die Detailfrage „{$topic}“ steht auch als Wissenslücke und wurde nicht gezählt.";
+
+                continue;
+            }
+
+            $kept[($product ?? '')."\u{1F}".$topic] ??= ['product' => $product, 'topic' => $topic, 'question' => mb_substr($wording, 0, 400)];
+        }
+
+        return array_slice(array_values($kept), 0, 5);
     }
 
     /**

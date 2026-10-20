@@ -155,6 +155,26 @@ return [
     ],
 
     /*
+    |--------------------------------------------------------------------------
+    | Product questions (PROJ-57)
+    |--------------------------------------------------------------------------
+    |
+    | Detail questions about a product that the product information does not
+    | answer are counted silently. A topic appears on the admin page from
+    | "threshold" tickets within "window_months"; done topics are deleted after
+    | "done_retention_months". "known_topics" is how many keywords per product
+    | the model gets to reuse.
+    |
+    */
+
+    'product_questions' => [
+        'threshold' => 3,
+        'window_months' => 3,
+        'done_retention_months' => 12,
+        'known_topics' => 20,
+    ],
+
+    /*
     | From this moment on it is recorded whether a reply draft was copied or
     | edited (PROJ-35). Earlier analyses show "unknown" in the overview (PROJ-14).
     */

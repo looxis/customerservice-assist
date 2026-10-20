@@ -483,7 +483,7 @@ class AnalysisStore
      * Empty content older than the retention period; drop old summaries,
      * choices and customer memories.
      *
-     * @return array{analyses: int, gaps: int, translations: int, summaries: int, choices: int, customers: int, visits: int}
+     * @return array{analyses: int, gaps: int, translations: int, summaries: int, choices: int, customers: int, visits: int, product_questions: int}
      */
     public function purge(): array
     {
@@ -501,6 +501,7 @@ class AnalysisStore
             'summaries' => TicketSummary::query()->where('updated_at', '<', $before)->delete(),
             'choices' => TicketCaseChoice::query()->where('updated_at', '<', $before)->delete(),
             'visits' => app(TicketActivityLog::class)->purge(),
+            'product_questions' => app(ProductQuestionLog::class)->purge(),
             'customers' => CustomerGroupMemory::query()->where('updated_at', '<', now()->subDays((int) config('analysis.customer_group_retention_days')))->delete(),
         ];
     }

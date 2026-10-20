@@ -1,6 +1,6 @@
 # PROJ-57: Häufige Produktfragen auswerten
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-20
 **Last Updated:** 2026-10-20
 
@@ -220,6 +220,16 @@ Keine neuen Pakete.
 - Nächtliche Bereinigung (erledigte Themen)
 - Wissen: Ton-Dokument zur festen Formulierung
 
+
+## Implementation Notes (2026-10-20)
+- **Neu:** `app/Analysis/ProductQuestionLog.php` (Erfassen, Zählen, Themenliste, Markieren, Kopier-Text, Bereinigen), Modelle `ProductQuestion` und `ProductQuestionState` mit Factories und zwei Migrationen (`product_questions`, `product_question_states`), `ProductQuestionController` mit `UpdateProductQuestionRequest`, Seite `resources/views/product-questions/index.blade.php`, Routen `/produktfragen` (GET, PATCH), Eintrag „Häufige Produktfragen“ in der Seitenleiste (nur Admins).
+- **Geändert:** `CaseAgent` (neues Ergebnisfeld `detail_questions` mit Produkt, Stichwort, Frage; Produktliste als Auswahl), `ResultValidator` (verwirft unvollständige, doppelte und als Lücke gemeldete Detailfragen, entfernt Platzhalter für Kontaktdaten, höchstens fünf), `CaseAnalyzer` (Erfassung nach dem Speichern; bisherige Stichwörter des Produkts im Abschnitt „Fall“), `AnalysisStore::purge()` und `analysis:purge` (erledigte Themen nach 12 Monaten), `config/analysis.php` (Block `product_questions`: Schwelle 3, Fenster 3 Monate, 12 Monate, 20 Stichwörter).
+- **Prompts:** `analysis.md` auf `analysis-2026-10-20.1` (Abgrenzung Detailfrage und Lücke, Antwort in lockerem Ton, im Zweifel Lücke), `analysis-products.md` auf `products-2026-10-20.1` (die Regel „Produktangabe fehlt, also Lücke“ ersetzt). Haben Admins in den Einstellungen eigene Prompttexte gespeichert, gelten die weiter; dort zurücksetzen.
+- **Wissen:** Ton-Dokument `knowledge/tone/tone-010-fehlende-produktangabe-locker-sagen.md` (TONE-010, Entwurf, `binding` ohne Auslöser, damit es bei jeder Analyse im Geltungsbereich mitkommt). Der genaue Wortlaut bleibt offen (siehe Open Questions).
+- **Produktschlüssel:** `pf:<ID des Masters>` (Variante zählt beim Master), `eocs:<SKU>`, `kb:<Wissensbereich>`, `x:<Name ohne Wissen>`, leer ohne Produkt. Hat der Fall genau ein Produkt, wird die Frage ihm zugeordnet; bei mehreren wählt die KI aus der Liste.
+- **Zählung:** Ein Eintrag je Ticket (oder Frage), Produkt und Thema, Testläufe getrennt. „Erledigt“ setzt einen Zeitpunkt; nur spätere Fragen zählen neu und lassen das Thema wieder erscheinen. „Ignoriert“ blendet nur aus.
+- **Tests:** `PROJ-57-ProductQuestionsTest` (15). Angepasst: Prompt-Versionen in `PROJ-36-AnalysisIntegrationTest` und `PROJ-38-ProductInfoAnalysisTest`, Schlüsselliste im Test der Bereinigung in `PROJ-12-FeedbackTest`. Vollständige Suite danach: grün (1825 Tests).
+- **Nicht getestet:** Verhalten des echten Modells (hält es sich an die Abgrenzung? gibt es „Detailfragen“ nur dort aus, wo sie hingehören?) und die Seite im Browser (375/768/1440 px).
 
 ## QA Test Results
 _To be added by /qa_

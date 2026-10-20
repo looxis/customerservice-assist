@@ -43,6 +43,7 @@ class CaseAnalyzer
         private readonly KnowledgeRouter $router,
         private readonly KnowledgeGapLog $gaps,
         private readonly ProductPromptBuilder $productPrompts,
+        private readonly ProductQuestionLog $productQuestions,
     ) {}
 
     /**
@@ -187,6 +188,8 @@ class CaseAnalyzer
             ],
         ]);
 
+        $this->productQuestions->report($id, $checked['result']['detail_questions'], $this->productQuestions->choices($request));
+
         foreach ($request->productPackage->affectedEocs() as $item) {
             $this->gaps->reportNotInProductForge($id, $item->name, (string) $item->itemId, $request->staffName);
         }
@@ -218,7 +221,7 @@ class CaseAnalyzer
     {
         $input = $pseudonymizer->apply($this->compose($parts, $this->knowledgeSection($selection, $hints)));
         $knowledgeIds = array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, $selection->selected);
-        $agent = new CaseAgent($prompt->text, config('knowledge.categories'), array_keys(config('knowledge.actions')), $knowledgeIds);
+        $agent = new CaseAgent($prompt->text, config('knowledge.categories'), array_keys(config('knowledge.actions')), $knowledgeIds, array_keys($this->productQuestions->choices($request)));
         $attempts = 0;
 
         do {
@@ -565,7 +568,8 @@ class CaseAnalyzer
                 .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
                     .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
                         ? 'Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu'
-                        : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')'),
+                        : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')')
+                .$this->knownQuestionTopics($request),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'products' => '',
             'related' => $request->related?->text ?? '',
@@ -579,6 +583,25 @@ class CaseAnalyzer
                 .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions')))
                 .$this->actionHints(),
         ];
+    }
+
+    /**
+     * The keywords used so far for detail questions about the products of the case (PROJ-57), so the model
+     * reuses a fitting one; empty when there are none.
+     */
+    private function knownQuestionTopics(AnalysisRequest $request): string
+    {
+        $choices = $this->productQuestions->choices($request);
+        $known = $this->productQuestions->knownTopics(array_column($choices, 'key'));
+        $lines = [];
+
+        foreach ($choices as $choice) {
+            if (($known[$choice['key']] ?? []) !== []) {
+                $lines[] = $choice['name'].': '.implode(', ', $known[$choice['key']]);
+            }
+        }
+
+        return $lines === [] ? '' : "\nBisher verwendete Stichwörter für Detailfragen (nimm ein passendes wieder):\n".implode("\n", $lines);
     }
 
     /**

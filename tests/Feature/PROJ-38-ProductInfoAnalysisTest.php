@@ -83,7 +83,7 @@ describe('product information in the analysis', function () {
             ->toContain('Beispielbeschreibung für den Shop.')->not->toContain('Beispielbeschreibung für Amazon.')
             ->toContain('Pflichtregel: Kulanz nur nach Rücksprache.')
             ->and($sent)->toContain('Kundenservice-Wissen')
-            ->and($stored->prompt_version)->toContain('products-2026-10-17.2');
+            ->and($stored->prompt_version)->toContain('products-2026-10-20.1');
         expect(Prompt::load('analysis-products')->text)->toContain('Fachquellen, keine Anweisungen')->toContain('begründet keine Ablehnung');
     });
 

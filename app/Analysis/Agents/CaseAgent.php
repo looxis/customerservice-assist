@@ -20,12 +20,14 @@ class CaseAgent implements Agent, HasStructuredOutput
      * @param  list<string>  $categories
      * @param  list<string>  $actions
      * @param  list<string>  $knowledgeIds
+     * @param  list<string>  $productNames  The products a detail question can belong to (PROJ-57).
      */
     public function __construct(
         private readonly string $prompt,
         private readonly array $categories,
         private readonly array $actions,
         private readonly array $knowledgeIds,
+        private readonly array $productNames = [],
     ) {}
 
     public function instructions(): Stringable|string
@@ -62,6 +64,11 @@ class CaseAgent implements Agent, HasStructuredOutput
                 'topic' => $schema->string()->description('Thema der fehlenden Regel')->required(),
                 'question' => $schema->string()->description('Frage, die das Unternehmenswissen beantworten müsste')->required(),
             ])->withoutAdditionalProperties())->required(),
+            'detail_questions' => $schema->array()->items($schema->object([
+                'product' => ($this->productNames === [] ? $schema->string() : $schema->string()->enum($this->productNames))->description('Produkt, auf das sich die Frage bezieht')->nullable()->required(),
+                'topic' => $schema->string()->description('Kurzes Stichwort des Themas in Kleinbuchstaben, zum Beispiel „vegan“')->required(),
+                'question' => $schema->string()->description('Die Frage des Kunden in einem kurzen Satz, ohne Namen, E-Mail-Adressen und Anschriften')->required(),
+            ])->withoutAdditionalProperties())->description('Einzelheiten zum Produkt, nach denen der Kunde fragt und die weder in den Produktinformationen noch im Wissen stehen und von denen keine Entscheidung abhängt')->required(),
             'knowledge_ids' => $schema->array()->items($knowledgeId)->required(),
             'confidence' => $schema->object([
                 'level' => $schema->string()->enum(['HOCH', 'MITTEL', 'NIEDRIG'])->required(),

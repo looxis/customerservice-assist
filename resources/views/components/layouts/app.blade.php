@@ -42,6 +42,9 @@
             @if ($openGapCount !== null)
                 <x-nav-item :href="route('knowledge-gaps.index')" icon="warning" :active="request()->routeIs('knowledge-gaps.*')">Wissenslücken @if ($openGapCount > 0)<span class="ml-2 rounded-full bg-warning-500/15 px-2 text-xs font-semibold text-warning-700">{{ $openGapCount }}</span>@endif</x-nav-item>
             @endif
+            @if ($openGapCount !== null)
+                <x-nav-item :href="route('product-questions.index')" icon="chat" :active="request()->routeIs('product-questions.*')">Häufige Produktfragen</x-nav-item>
+            @endif
         </nav>
 
         <nav class="shrink-0 space-y-1 border-t border-slate-200 px-3 py-3" aria-label="Weitere Seiten">
