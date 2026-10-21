@@ -46,42 +46,42 @@ Beispiele: „Kann das essbare Foto eingefroren werden?“ ist eine Detailfrage.
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
 **Ergebnis und Antwortentwurf**
-- [ ] Angenommen ein Kunde fragt nach einer Einzelheit zum Produkt, die nicht in den Produktinformationen oder im Wissen steht, wenn der Vorschlag erstellt wird, dann erscheint dazu keine Wissenslücke, kein gelber Hinweis und kein Knopf „Wissenslücke melden“.
+- [x] Angenommen ein Kunde fragt nach einer Einzelheit zum Produkt, die nicht in den Produktinformationen oder im Wissen steht, wenn der Vorschlag erstellt wird, dann erscheint dazu keine Wissenslücke, kein gelber Hinweis und kein Knopf „Wissenslücke melden“.
 - [ ] Angenommen eine Detailfrage liegt vor, wenn der Antwortentwurf entsteht, dann sagt er in lockerem, nicht förmlichem Ton offen, dass wir uns nicht sicher sind oder es nicht mit Garantie sagen können, bietet eine erneute Rückmeldung an und nennt, dass eine Antwort einige Tage dauern kann.
 - [ ] Angenommen eine Detailfrage liegt vor, wenn der Entwurf entsteht, dann behauptet er nichts, was nicht in den Produktinformationen steht, und leitet keine Aussage aus Allgemeinwissen ab; was dort wörtlich steht, darf er wiedergeben.
 - [ ] Angenommen eine Detailfrage liegt vor, wenn die Begründung angezeigt wird, dann nennt sie in einem Halbsatz, dass zu dieser Frage keine Produktangabe vorliegt und der Entwurf das offen sagt.
 - [ ] Angenommen es ist unklar, ob eine Frage eine Detailfrage oder eine echte Lücke ist, wenn der Vorschlag erstellt wird, dann gilt sie als echte Wissenslücke.
-- [ ] Angenommen im selben Ticket gibt es eine Detailfrage und eine echte Wissenslücke, wenn der Vorschlag erstellt wird, dann wird nur die echte Lücke wie bisher gezeigt, und die Detailfrage wird still gezählt.
-- [ ] Angenommen eine Wissensabfrage ohne Antwortentwurf, wenn eine Detailfrage vorliegt, dann wird sie trotzdem gezählt, und die Begründung sagt, dass keine Angabe vorliegt.
+- [x] Angenommen im selben Ticket gibt es eine Detailfrage und eine echte Wissenslücke, wenn der Vorschlag erstellt wird, dann wird nur die echte Lücke wie bisher gezeigt, und die Detailfrage wird still gezählt.
+- [x] Angenommen eine Wissensabfrage ohne Antwortentwurf, wenn eine Detailfrage vorliegt, dann wird sie trotzdem gezählt, und die Begründung sagt, dass keine Angabe vorliegt.
 
 **Erfassung und Zählung**
-- [ ] Angenommen eine Detailfrage wurde erkannt, wenn der Vorschlag gespeichert wird, dann entsteht ein Eintrag mit Produkt, Stichwort des Themas, kurzer Kundenformulierung, Ticketnummer oder Frage-Kennung, Datum und Kundengruppe.
-- [ ] Angenommen die Kundenformulierung wird gespeichert, wenn sie keine persönlichen Daten enthalten darf, dann ist sie so zusammengefasst, dass Name, E-Mail-Adresse und Anschrift nicht darin stehen, und sie wird verschlüsselt gespeichert; das Stichwort steht unverschlüsselt.
-- [ ] Angenommen es gibt zu diesem Produkt schon Stichwörter, wenn die Analyse läuft, dann bekommt die KI die bisherigen Stichwörter dieses Produkts und soll ein passendes wiederverwenden.
-- [ ] Angenommen derselbe Vorschlag wird erneut erstellt oder fortgesetzt, wenn dieselbe Detailfrage wieder erkannt wird, dann entsteht kein zweiter Eintrag je Ticket (oder Frage), Produkt und Thema.
-- [ ] Angenommen ein Testlauf (zurückgespultes Ticket), wenn eine Detailfrage erkannt wird, dann wird sie als Testlauf gekennzeichnet und nicht gezählt.
-- [ ] Angenommen die Frage gehört zu einer Wissensabfrage ohne Ticket, wenn eine Detailfrage erkannt wird, dann zählt sie wie ein Ticket.
-- [ ] Angenommen ein Fall hat kein Produkt, wenn eine Detailfrage erkannt wird, dann wird das Thema ohne Produkt erfasst und gezählt.
+- [x] Angenommen eine Detailfrage wurde erkannt, wenn der Vorschlag gespeichert wird, dann entsteht ein Eintrag mit Produkt, Stichwort des Themas, kurzer Kundenformulierung, Ticketnummer oder Frage-Kennung, Datum und Kundengruppe.
+- [x] Angenommen die Kundenformulierung wird gespeichert, wenn sie keine persönlichen Daten enthalten darf, dann ist sie so zusammengefasst, dass Name, E-Mail-Adresse und Anschrift nicht darin stehen, und sie wird verschlüsselt gespeichert; das Stichwort steht unverschlüsselt.
+- [x] Angenommen es gibt zu diesem Produkt schon Stichwörter, wenn die Analyse läuft, dann bekommt die KI die bisherigen Stichwörter dieses Produkts und soll ein passendes wiederverwenden.
+- [x] Angenommen derselbe Vorschlag wird erneut erstellt oder fortgesetzt, wenn dieselbe Detailfrage wieder erkannt wird, dann entsteht kein zweiter Eintrag je Ticket (oder Frage), Produkt und Thema.
+- [x] Angenommen ein Testlauf (zurückgespultes Ticket), wenn eine Detailfrage erkannt wird, dann wird sie als Testlauf gekennzeichnet und nicht gezählt.
+- [x] Angenommen die Frage gehört zu einer Wissensabfrage ohne Ticket, wenn eine Detailfrage erkannt wird, dann zählt sie wie ein Ticket.
+- [x] Angenommen ein Fall hat kein Produkt, wenn eine Detailfrage erkannt wird, dann wird das Thema ohne Produkt erfasst und gezählt.
 
 **Admin-Seite**
-- [ ] Angenommen ein Nutzer ist kein Admin, wenn er die Seite „Häufige Produktfragen“ aufruft, dann sieht er sie nicht (kein Eintrag in der Seitenleiste, Aufruf verweigert).
-- [ ] Angenommen ein Admin öffnet die Seite, wenn Themen mit mindestens drei Tickets in den letzten drei Monaten existieren, dann stehen sie in einer Liste mit Produkt, Thema, Zahl der Tickets in den letzten drei Monaten, Gesamtzahl und Datum der letzten Frage.
-- [ ] Angenommen die Liste ist sichtbar, wenn mehrere Themen die Schwelle erreichen, dann sind sie nach der Zahl der letzten drei Monate absteigend sortiert, bei Gleichstand nach der Gesamtzahl.
-- [ ] Angenommen ein Thema hat die Schwelle erreicht, wenn weitere Tickets zur gleichen Frage kommen, dann zählt es weiter und steigt in der Liste.
-- [ ] Angenommen ein Thema hat weniger als drei Tickets in den letzten drei Monaten, wenn der Admin „alle Themen anzeigen“ wählt, dann erscheint es ebenfalls; ohne diese Auswahl bleibt es verborgen.
-- [ ] Angenommen ein Admin klappt ein Thema auf, wenn Formulierungen vorliegen, dann sieht er die Kundenformulierungen mit Link zum Ticket oder zur Frage.
-- [ ] Angenommen ein Admin markiert ein Thema als „Erledigt“, wenn die Seite neu lädt, dann erscheint es nicht mehr unter „Offen“; bis dahin gestellte Fragen zählen nicht mehr mit, und eine spätere Frage zum selben Thema beginnt die Zählung neu.
-- [ ] Angenommen ein Admin markiert ein Thema als „Ignoriert“, wenn die Seite neu lädt, dann erscheint es nicht mehr unter „Offen“, wird aber weiter gezählt, und der Admin kann es wieder öffnen.
-- [ ] Angenommen ein Admin filtert, wenn er Status (offen, erledigt, ignoriert) oder Produkt wählt, dann zeigt die Liste nur dazu passende Themen.
-- [ ] Angenommen ein Admin wählt „Kopieren“ bei einem Thema, wenn der Text kopiert wird, dann enthält er Produkt, Thema, Zahl der Tickets und die Kundenformulierungen mit der Bitte, einen ProductForge-Eintrag zu prüfen.
+- [x] Angenommen ein Nutzer ist kein Admin, wenn er die Seite „Häufige Produktfragen“ aufruft, dann sieht er sie nicht (kein Eintrag in der Seitenleiste, Aufruf verweigert).
+- [x] Angenommen ein Admin öffnet die Seite, wenn Themen mit mindestens drei Tickets in den letzten drei Monaten existieren, dann stehen sie in einer Liste mit Produkt, Thema, Zahl der Tickets in den letzten drei Monaten, Gesamtzahl und Datum der letzten Frage.
+- [x] Angenommen die Liste ist sichtbar, wenn mehrere Themen die Schwelle erreichen, dann sind sie nach der Zahl der letzten drei Monate absteigend sortiert, bei Gleichstand nach der Gesamtzahl.
+- [x] Angenommen ein Thema hat die Schwelle erreicht, wenn weitere Tickets zur gleichen Frage kommen, dann zählt es weiter und steigt in der Liste.
+- [x] Angenommen ein Thema hat weniger als drei Tickets in den letzten drei Monaten, wenn der Admin „alle Themen anzeigen“ wählt, dann erscheint es ebenfalls; ohne diese Auswahl bleibt es verborgen.
+- [x] Angenommen ein Admin klappt ein Thema auf, wenn Formulierungen vorliegen, dann sieht er die Kundenformulierungen mit Link zum Ticket oder zur Frage.
+- [x] Angenommen ein Admin markiert ein Thema als „Erledigt“, wenn die Seite neu lädt, dann erscheint es nicht mehr unter „Offen“; bis dahin gestellte Fragen zählen nicht mehr mit, und eine spätere Frage zum selben Thema beginnt die Zählung neu.
+- [x] Angenommen ein Admin markiert ein Thema als „Ignoriert“, wenn die Seite neu lädt, dann erscheint es nicht mehr unter „Offen“, wird aber weiter gezählt, und der Admin kann es wieder öffnen.
+- [x] Angenommen ein Admin filtert, wenn er Status (offen, erledigt, ignoriert) oder Produkt wählt, dann zeigt die Liste nur dazu passende Themen.
+- [x] Angenommen ein Admin wählt „Kopieren“ bei einem Thema, wenn der Text kopiert wird, dann enthält er Produkt, Thema, Zahl der Tickets und die Kundenformulierungen mit der Bitte, einen ProductForge-Eintrag zu prüfen.
 
 **Aufbewahrung und Altbestand**
-- [ ] Angenommen ein Eintrag ist offen oder ignoriert, wenn Zeit vergeht, dann wird er nicht gelöscht.
-- [ ] Angenommen ein Thema ist seit mehr als 12 Monaten erledigt, wenn die Bereinigung läuft, dann werden Einträge und Formulierungen dazu gelöscht.
-- [ ] Angenommen auf der Seite „Wissenslücken“ stehen bereits Lücken, die Detailfragen waren, wenn PROJ-57 im Einsatz ist, dann bleiben sie unverändert und werden nicht umgewandelt.
+- [x] Angenommen ein Eintrag ist offen oder ignoriert, wenn Zeit vergeht, dann wird er nicht gelöscht.
+- [x] Angenommen ein Thema ist seit mehr als 12 Monaten erledigt, wenn die Bereinigung läuft, dann werden Einträge und Formulierungen dazu gelöscht.
+- [x] Angenommen auf der Seite „Wissenslücken“ stehen bereits Lücken, die Detailfragen waren, wenn PROJ-57 im Einsatz ist, dann bleiben sie unverändert und werden nicht umgewandelt.
 
 **Prompt**
-- [ ] Angenommen die Analyse läuft, wenn der Prompt die Grenze zwischen Detailfrage und echter Lücke enthält, dann ersetzt diese Regel die bisherige Anweisung, eine Lücke zu melden, wenn eine für die Antwort nötige Produktangabe fehlt; die Prompt-Version wird erhöht.
+- [x] Angenommen die Analyse läuft, wenn der Prompt die Grenze zwischen Detailfrage und echter Lücke enthält, dann ersetzt diese Regel die bisherige Anweisung, eine Lücke zu melden, wenn eine für die Antwort nötige Produktangabe fehlt; die Prompt-Version wird erhöht.
 
 ## Edge Cases
 - **Schreibweisen desselben Themas** („vegan“ und „tierfrei“) bleiben getrennte Themen; die Wiederverwendung bisheriger Stichwörter mindert das nur.
@@ -232,7 +232,62 @@ Keine neuen Pakete.
 - **Nicht getestet:** Verhalten des echten Modells (hält es sich an die Abgrenzung? gibt es „Detailfragen“ nur dort aus, wo sie hingehören?) und die Seite im Browser (375/768/1440 px).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-21
+**App URL:** http://localhost:8081 (interne Aufrufe der Seite als Admin, kein Browser)
+**Tester:** QA Engineer (AI)
+**Methode:** Abgleich jedes Kriteriums mit Pest-Tests (26 Tests in `PROJ-57-ProductQuestionsTest` und `PROJ-57-QaTest`), Lesen des Codes, Messung mit 6.000 Einträgen, komplette Suite (1836 Tests, 1834 bestanden, 2 übersprungen wie zuvor). **Nicht getestet:** Browser (Chrome/Firefox/Safari) und Breiten 375/768/1440 px; Verhalten des echten Modells.
+
+### Acceptance Criteria Status
+- [x] Ergebnis und Antwortentwurf: keine Lücke, kein Hinweis, kein Knopf für Detailfragen (Test mit simulierter KI-Antwort); Mischfälle werden getrennt behandelt; Wissensabfrage ohne Entwurf zählt trotzdem.
+- [ ] **Nicht prüfbar ohne echtes Modell (4 Kriterien):** lockerer Ton der Antwort, „behauptet nichts und leitet nichts ab“, Halbsatz in der Begründung, „im Zweifel echte Lücke“. Die Regeln stehen im Prompt (`analysis-2026-10-20.1`), geprüft ist nur die Verarbeitung der Ausgabe.
+- [x] Erfassung und Zählung: Eintrag mit Produkt, Stichwort, Formulierung, Ticket, Datum, Gruppe; Formulierung verschlüsselt, ohne Kontakt-Platzhalter; bisherige Stichwörter gehen an die KI; ein Eintrag je Ticket, Produkt und Thema; Testläufe getrennt; Fragen ohne Ticket zählen; ohne Produkt wird das Thema ohne Produkt erfasst.
+- [x] Admin-Seite: nur Admins (403 sonst, kein Eintrag in der Seitenleiste); Schwelle drei Tickets in drei Monaten; Sortierung nach den letzten drei Monaten, dann Gesamtzahl; Zählung läuft über die Schwelle weiter; „Alle Themen anzeigen“; aufklappbare Formulierungen mit Links; Erledigt (Zählung beginnt neu), Ignorieren (zählt weiter), Wieder öffnen; Filter; Kopier-Text.
+- [x] Aufbewahrung: offene und ignorierte Themen bleiben, erledigte werden nach 12 Monaten gelöscht (Einträge bis zur Markierung, neuere bleiben); Altbestand der Wissenslücken bleibt unverändert.
+- [x] Prompt: Abgrenzung im Kern-Prompt, ersetzte Regel im Produkt-Zusatz, Versionen erhöht.
+
+### Edge Cases Status
+- [x] Zwei Schreibweisen desselben Themas bleiben getrennte Themen (gewollt).
+- [x] Produkt später in ProductForge gepflegt: Einträge bleiben bis zur Markierung (kein automatischer Abgleich, wie in der Spec).
+- [x] Mehrere Produkte im Fall: die KI wählt über den Namen; ein unbekannter Name ergibt „ohne Produkt“; bei einem Produkt gehört die Frage immer ihm; Variante zählt beim Master.
+- [x] Dieselbe Frage mehrfach im Ticket zählt einmal.
+- [x] Leere Liste nennt die Schwelle und verweist auf „Alle Themen anzeigen“.
+- [x] Ungültiger Status oder Produktfilter: Rückfall auf „Offen“ beziehungsweise Fehlermeldung beim Markieren.
+- [ ] Ticket oder Frage später gelöscht: Der Link führt zur Zielseite, die dann selbst meldet, dass es das Ticket nicht gibt. Einen eigenen Hinweis „nicht mehr vorhanden“ an der Zeile gibt es nicht (Low).
+- [ ] Persönliche Daten in der Formulierung trotz Anweisung: nur Platzhalter wie [E-MAIL_1] werden entfernt, Klartext-Namen nicht; die Formulierung ist verschlüsselt und nur für Admins sichtbar (siehe Security).
+
+### Security Audit
+- **Zugriff:** Seite und Markieren nur für Admins; ohne Namenswahl oder als Nicht-Admin 403 (Test). Der Name kommt wie überall aus der Namenswahl, kein Login (PRD-Vorgabe).
+- **CSRF:** Das Formular hat `@csrf` und `@method('PATCH')`; es gibt keine Ausnahme in `bootstrap/app.php`.
+- **XSS:** Kundenformulierung und Produktname werden maskiert ausgegeben (Test mit `<script>`).
+- **Mass Assignment:** `#[Fillable]` an beiden Modellen. Markieren validiert Status (nur offen/ignoriert/erledigt) und Längen.
+- **Daten:** Formulierung verschlüsselt (Rohwert enthält den Text nicht), Stichwort unverschlüsselt; keine Kontaktdaten angefordert; keine neuen Schlüssel oder Konfigurationswerte.
+- **Prompt-Injection:** Die KI-Ausgabe wird nur als Text gespeichert und maskiert angezeigt; sie löst keine Aktion aus.
+- **Last:** `topics()` mit 6.000 Einträgen und 600 Themen 0,09 s, `counts()` 0,16 s, 50 Themen aufklappen 0,03 s.
+
+### Regression
+Komplette Suite grün. Angepasst waren zuvor nur die Prompt-Versionen (PROJ-36/38) und die Schlüsselliste der Bereinigung (PROJ-12). Die Fragen ohne Ticket, der Versand und die Ergebnisansicht laufen unverändert.
+
+### Bugs Found
+Keine Critical, High oder Medium.
+
+| # | Severity | Beschreibung | Schritte |
+|---|----------|--------------|----------|
+| 1 | Low | „Über die App“ (`docs/ABOUT.md`, Abschnitt zu fehlenden Angaben und Wissenslücken) erklärt die Detailfrage nicht. Mitarbeiter wundern sich vielleicht, warum die Antwort „wir sind uns nicht sicher“ sagt, aber keine Lücke erscheint. | Abschnitt „Wissenslücke – uns fehlt eine Regel“ lesen |
+| 2 | Low | Die Seitenleiste nutzt für „Häufige Produktfragen“ dasselbe Symbol (Sprechblase) wie „Frage stellen“. | Seitenleiste als Admin öffnen |
+| 3 | Low | Am Eintrag fehlt ein eigener Hinweis, wenn Ticket oder Frage nicht mehr existieren (siehe Randfall). | Ticket löschen oder zurückspulen, Seite öffnen |
+| 4 | Low | Klartext-Namen in der Formulierung werden nicht erkannt, nur Platzhalter entfernt. Schutz liegt allein in der Anweisung an die KI und der Verschlüsselung. | Frage mit Namen stellen, Formulierung auf der Seite lesen |
+
+### Offene Prüfungen (vor „Approved“)
+1. Analyse am Ticket mit der Lagertemperatur (Essbares Foto) mit dem echten Modell erneut ausführen und prüfen: keine Lücke, Antwort im lockeren Ton, Halbsatz in der Begründung, Eintrag auf der Seite „Häufige Produktfragen“ (mit „Alle Themen anzeigen“).
+2. Prompts in den Einstellungen auf den neuen Standard zurücksetzen, falls dort eigene Texte stehen.
+3. Seite in Chrome, Firefox und Safari bei 375, 768 und 1440 px ansehen.
+
+### Summary
+- **Acceptance Criteria:** 24 von 28 bestanden (die 4 übrigen hängen am echten Modell)
+- **Bugs Found:** 4 (0 Critical, 0 High, 0 Medium, 4 Low)
+- **Security:** bestanden
+- **Production Ready:** JA, bei Erfolg der offenen Prüfungen 1 und 2 (keine Critical/High)
 
 ## Deployment
 _To be added by /deploy_
