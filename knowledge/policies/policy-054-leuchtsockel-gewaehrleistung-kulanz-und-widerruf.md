@@ -2,7 +2,8 @@
 id: POLICY-054
 title: "Leuchtsockel: Gewährleistung, Kulanz und Widerruf bei Direktkäufen"
 type: policy
-status: draft
+status: active
+last_reviewed: 2026-10-21
 customer_types:
   - b2c
 sales_channels:

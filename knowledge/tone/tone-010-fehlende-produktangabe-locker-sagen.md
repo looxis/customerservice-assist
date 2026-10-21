@@ -2,7 +2,8 @@
 id: TONE-010
 title: Fehlende Produktangabe ehrlich und locker sagen
 type: tone
-status: draft
+status: active
+last_reviewed: 2026-10-21
 customer_types:
 sales_channels:
 categories:
@@ -43,7 +44,3 @@ Locker und freundlich, wie im übrigen Kundenservice (TONE-002). Kein Amtsdeutsc
 - Aus einer vorhandenen Angabe auf einen neuen Fall schließen (zum Beispiel von „trockener Kälte“ auf „tiefgefroren“).
 - Allgemeinwissen als Aussage von LOOXIS ausgeben.
 - Eine Auskunft versprechen, die wir nicht innerhalb einiger Tage geben können.
-
-# Noch zu klären
-
-- Genauer Wortlaut und weitere Varianten, sobald der Autor sie festlegt.

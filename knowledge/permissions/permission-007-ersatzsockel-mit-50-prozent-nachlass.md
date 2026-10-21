@@ -2,7 +2,8 @@
 id: PERMISSION-007
 title: Ersatzsockel mit 50 Prozent Nachlass bei Leuchtsockeln
 type: permission
-status: draft
+status: active
+last_reviewed: 2026-10-21
 action:
   - goodwill-reproduction
 agent_allowed: true

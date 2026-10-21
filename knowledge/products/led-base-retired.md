@@ -2,7 +2,8 @@
 id: PRODUCT-009
 title: "Ausgelaufene Leuchtsockel und Leuchtstelen: Opera, Opera für Glasfotos in Farbe, Leuchtstelen"
 type: product
-status: draft
+status: active
+last_reviewed: 2026-10-21
 trial_until: 2027-12-31
 trial_goal: "Prüfen, ob die Restbestände der Leuchtstelen-Lampen aufgebraucht sind; Dokument anpassen oder auf deprecated setzen."
 customer_types:

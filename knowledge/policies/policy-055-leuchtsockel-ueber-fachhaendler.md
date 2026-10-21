@@ -2,7 +2,8 @@
 id: POLICY-055
 title: Leuchtsockel über Fachhändler gekauft und Reklamationen von Fachhändlern
 type: policy
-status: draft
+status: active
+last_reviewed: 2026-10-21
 customer_types:
 sales_channels:
 products:

@@ -2,7 +2,8 @@
 id: PROCESS-012
 title: "Rückgabe von Leihmustern und LED-Präsentationsdisplays bei Fachhändlern prüfen"
 type: process
-status: draft
+status: active
+last_reviewed: 2026-10-21
 products: []
 categories:
   - order-process-question

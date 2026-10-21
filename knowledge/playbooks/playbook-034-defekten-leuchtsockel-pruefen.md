@@ -2,7 +2,8 @@
 id: PLAYBOOK-034
 title: Defekten Leuchtsockel prüfen
 type: playbook
-status: draft
+status: active
+last_reviewed: 2026-10-21
 customer_types:
 sales_channels:
 products:
