@@ -315,6 +315,7 @@ Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Eur
 | `quote` | Angebot erstellen |
 | `order-confirmation` | Auftrag bestätigen |
 | `pickup` | Selbstabholung |
+| `account-closure` | Kundenkonto eines Fachhändlers schließen |
 
 Fehlt ein passender Vorgang, nicht selbst erfinden, sondern als neuen Wert vorschlagen. `customer_types`, `sales_channels`, `products` und `categories` funktionieren wie bei allen anderen Typen: Ein Ablauf nur für Amazon bekommt `sales_channels: [amazon]`.
 

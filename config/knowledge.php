@@ -130,6 +130,7 @@ return [
         'quote' => 'Angebot erstellen',
         'order-confirmation' => 'Auftrag bestätigen',
         'pickup' => 'Selbstabholung',
+        'account-closure' => 'Kundenkonto schließen',
     ],
 
     /*
@@ -147,6 +148,7 @@ return [
         'reproduction' => 'kostenfreie Neuproduktion oder Ersatz bei einer berechtigten Reklamation (Mangel, eigener Fehler)',
         'goodwill-reproduction' => 'kostenpflichtige oder vergünstigte Neuanfertigung aus Kulanz, weil der Fehler beim Kunden lag (Kundenfehler, Dateifehler, Tippfehler) oder die Reklamation unberechtigt ist und der Kunde eine andere Ausführung wünscht; nie bei berechtigter Reklamation',
         'partial-refund' => 'Teilerstattung oder Preisnachlass ohne Neuanfertigung',
+        'account-closure' => 'Kundenkonto eines Fachhändlers schließen, nachdem er die Geschäftsbeziehung schriftlich beendet hat (Mailcoach, Vanilo, EOCS)',
     ],
 
     /*
