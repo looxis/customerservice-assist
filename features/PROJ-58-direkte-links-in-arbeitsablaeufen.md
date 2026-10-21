@@ -1,6 +1,6 @@
 # PROJ-58: Direkte Links zu internen Tools in Arbeitsabläufen
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-21
 **Last Updated:** 2026-10-21
 
@@ -189,6 +189,15 @@ Keine neuen Pakete.
 - Stilregel für den Knopf im Ablauf
 - Wissen: PROCEDURE-001 bis 005 auf Kürzel umstellen; Authoring Guide und Skill um die Kürzel ergänzen
 
+
+## Implementation Notes (2026-10-21)
+- **Neu:** `app/Knowledge/CaseLinks.php` (Ziele eines Falls: Aufträge und Reklamationsaufträge aus EOCS, Ticket in Zammad, E-Mail des Kunden für Vanilo, feste Werkzeugadressen; nur `https` für feste Adressen), `app/Knowledge/CaseLinksBuilder.php` (liest Ticket und Bestellungen für einen von Hand gewählten Ablauf neu), Stilregel `.procedure-link` in `resources/css/app.css`, Konfigurationsblock `tool_links` in `config/knowledge.php` (Überschreiben mit `LINK_EOCS_CUSTOMERS`, `LINK_VANILO_SHOPPERS`, `LINK_MAILCOACH_LISTS`).
+- **Geändert:** `KnowledgeMarkdown` (macht aus `[Text](link:Kürzel)` einen Knopf, mehrere Aufträge ergeben einen Knopf je Auftrag mit Nummer, ohne Ziel bleibt der Text), `ProcedureRenderer`, `AnalysisPanel` (Fall-Links an die vorgeschlagenen Abläufe), `ProcedureController` und die Komponente `analysis/procedures` (Ticketnummer und Bestellnummern gehen beim Nachladen mit), `KnowledgeValidator` (unbekanntes Kürzel ist ein Fehler).
+- **Kürzel:** `eocs-auftrag`, `zammad-ticket`, `eocs-kunden`, `vanilo-kunden`, `mailcoach-listen`. Vanilo bekommt `?email=<URL-kodiert>&order_by=newest_first`, wenn eine Adresse bekannt ist (Kunde im Zammad-Ticket, ersatzweise Antwortadresse der letzten Kundennachricht), sonst die Seite ohne Suchbegriff.
+- **Wissen:** PROCEDURE-001 bis 005 auf Kürzel umgestellt (Schritt 11 in PROCEDURE-001 „Ticket in Zammad erstellen“ bewusst nicht verlinkt: dort entsteht ein neues Ticket, nicht das des Falls).
+- **Tests:** `PROJ-58-ToolLinksTest` (14); komplette Suite 1850 Tests grün. Mit echten Daten geprüft (Ticket 2139982): PROCEDURE-005 zeigt je einen Knopf für den Originalauftrag und den Reklamationsauftrag R1-…, PROCEDURE-004 die drei festen Ziele mit Vanilo-Suchbegriff.
+- **Nicht getestet:** Browser und Breiten 375/768/1440 px.
+- **Nicht angefasst:** `.env.example` (der Zugriff war gesperrt). Die drei `LINK_*`-Variablen sind optional; ohne sie gelten die Standardadressen aus der Konfiguration.
 
 ## QA Test Results
 _To be added by /qa_

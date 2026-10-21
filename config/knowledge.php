@@ -135,6 +135,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Links to internal tools in procedures (PROJ-58)
+    |--------------------------------------------------------------------------
+    |
+    | A procedure writes `[text](link:key)`. These keys have a fixed address;
+    | `eocs-auftrag` and `zammad-ticket` depend on the case (App\Knowledge\CaseLinks).
+    | The addresses can be overridden with LINK_EOCS_CUSTOMERS, LINK_VANILO_SHOPPERS
+    | and LINK_MAILCOACH_LISTS. Only https addresses are used.
+    |
+    */
+
+    'tool_links' => [
+        'eocs-kunden' => env('LINK_EOCS_CUSTOMERS', 'https://eocs.loox.is/customers'),
+        'vanilo-kunden' => env('LINK_VANILO_SHOPPERS', 'https://looxis.de/manage/shopper'),
+        'mailcoach-listen' => env('LINK_MAILCOACH_LISTS', 'https://looxis.mailcoach.app/email-lists'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Action hints
     |--------------------------------------------------------------------------
     |

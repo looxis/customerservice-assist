@@ -37,7 +37,7 @@ Für alle Produkte auf looxis.de, im Fachhändlerkanal, bei LOOXIS-Pro und maste
 
 # Arbeitsschritte
 
-1. In EOCS: Den Barcode des Produktlabels scannen oder die interne Auftragsnummer manuell eingeben, um die „Übersicht“ der Bestellung zu öffnen. Alternativ den Auftrag anhand der externen Bestellnummer aufrufen.
+1. In EOCS: Den Barcode des Produktlabels scannen oder die interne Auftragsnummer manuell eingeben, um die „Übersicht“ der Bestellung zu öffnen. Alternativ den Auftrag anhand der externen Bestellnummer aufrufen. Direkt zum Auftrag des Falls: [Auftrag in EOCS öffnen](link:eocs-auftrag).
 2. In EOCS: In der Bestellübersicht auf „Sendungen (1)“ klicken. Die Zahl in Klammern kann je nach Anzahl der Sendungen abweichen.
 3. In EOCS: Die tatsächlich zurückgekommene Sendung anhand der Sendungsnummer zuordnen. Bei mehreren Paketen die entsprechende Zeile auswählen.
 4. In EOCS: Die sechsstellige ID dieser Sendung anklicken, um deren Sendungsdetailseite zu öffnen.

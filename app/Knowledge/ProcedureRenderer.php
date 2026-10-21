@@ -22,9 +22,9 @@ class ProcedureRenderer
         private readonly KnowledgeLibrary $library,
     ) {}
 
-    public function render(KnowledgeDocument $procedure): HtmlString
+    public function render(KnowledgeDocument $procedure, ?CaseLinks $case = null): HtmlString
     {
-        $html = $this->markdown->render($procedure->body, $this->links($procedure))->toHtml();
+        $html = $this->markdown->render($procedure->body, $this->links($procedure), $case)->toHtml();
         $document = HTMLDocument::createFromString('<!DOCTYPE html><html><body>'.$html.'</body></html>', LIBXML_NOERROR, 'UTF-8');
         $section = null;
         $critical = null;

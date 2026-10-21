@@ -44,7 +44,7 @@ Einen Reklamationsauftrag anlegen, damit der reklamierte Artikel neu produziert 
 
 # Arbeitsschritte
 
-1. In EOCS: Den Auftrag öffnen.
+1. In EOCS: Den Auftrag öffnen: [Auftrag in EOCS öffnen](link:eocs-auftrag).
 2. In EOCS: In der Übersicht des Auftrags oben rechts auf „Reklamation“ klicken. Es öffnet sich die Seite „Reklamation von Bestellung #…“.
 3. In EOCS: Unter „Reklamation Info“ ganz knapp eintragen, was falsch gelaufen ist (zum Beispiel: weiße Tasse statt schwarz geliefert, bitte neu). Zusätzlich die Ticketnummer eintragen.
 4. In EOCS: Etwas nach unten scrollen und unter „Bestellartikel“ prüfen, ob die Bestellung mehrere Artikel enthält. Falls ja, alle Artikel, die **nicht** reklamiert wurden, über das rote Mülleimer-Symbol löschen. Nur der reklamierte Artikel bleibt stehen, denn nur er wird neu produziert.

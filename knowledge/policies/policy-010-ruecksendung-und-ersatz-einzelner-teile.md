@@ -2,7 +2,7 @@
 id: POLICY-010
 title: Rücksendung und Ersatz bei teilweise personalisierten Produkten
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

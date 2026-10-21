@@ -1,4 +1,4 @@
-@props(['result', 'number', 'stand' => null, 'question' => false])
+@props(['result', 'number', 'stand' => null, 'question' => false, 'orders' => []])
 
 @php
     $procedures = $result['procedures'] ?? ['suggested' => [], 'catalogue' => []];
@@ -21,7 +21,7 @@
     x-data="{
         pickedKey: @js('procedures.picked.'.$number),
         closedKey: @js('procedures.closed.'.$result['id']),
-        url: @js(route('procedures.show', ['id' => '__ID__'])),
+        url: @js(route('procedures.show', array_filter(['id' => '__ID__', 'ticket' => $question ? null : $number, 'bestellungen' => $question || $orders === [] ? null : array_values($orders)]))),
         suggested: @js($suggestedIds),
         picked: [],
         closed: [],

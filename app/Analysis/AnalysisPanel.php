@@ -8,6 +8,7 @@ use App\Eocs\EocsItem;
 use App\Eocs\EocsOrder;
 use App\Eocs\EocsOrderItem;
 use App\Eocs\OrderLookup;
+use App\Knowledge\CaseLinks;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeLibrary;
@@ -74,7 +75,7 @@ class AnalysisPanel
         }
 
         $latestId = $this->store->latest($ticket->summaryKey());
-        $result = $this->decorate($this->result($ticket, $resultId ?? $latestId), $ticket, $latestId);
+        $result = $this->decorate($this->result($ticket, $resultId ?? $latestId), $ticket, $latestId, CaseLinks::forTicket($ticket, $orders));
         $inputs = $result['inputs'] ?? [];
 
         $choice = $this->store->caseChoice($ticket->number);
@@ -123,7 +124,7 @@ class AnalysisPanel
     {
         $ticket = QuestionTicket::make($number, '');
         $latestId = $this->store->latest($number);
-        $result = $this->decorate($this->result($ticket, $analysisId ?? $latestId), $ticket, $latestId);
+        $result = $this->decorate($this->result($ticket, $analysisId ?? $latestId), $ticket, $latestId, CaseLinks::none());
 
         if ($result === null) {
             return null;
@@ -149,7 +150,7 @@ class AnalysisPanel
      * @param  array<string, mixed>|null  $result
      * @return array<string, mixed>|null
      */
-    private function decorate(?array $result, Ticket $ticket, ?string $latestId): ?array
+    private function decorate(?array $result, Ticket $ticket, ?string $latestId, CaseLinks $links): ?array
     {
         if ($result === null) {
             return null;
@@ -159,7 +160,7 @@ class AnalysisPanel
         // link outside the test mode is not taken for an older analysis.
         $result['is_latest'] = $result['id'] === (($result['scope'] ?? $ticket->summaryKey()) === $ticket->summaryKey() ? $latestId : $this->store->latest((string) $result['scope']));
         $result['gaps_reported'] = app(KnowledgeGapLog::class)->reportedFor($result['id']);
-        $result['procedures'] = $this->procedures($result);
+        $result['procedures'] = $this->procedures($result, $links);
 
         return $result;
     }
@@ -464,7 +465,7 @@ class AnalysisPanel
      * @param  array<string, mixed>  $result
      * @return array{suggested: list<array<string, mixed>>, catalogue: array<string, list<array{id: string, title: string|null, draft: bool, note: string|null}>>}
      */
-    private function procedures(array $result): array
+    private function procedures(array $result, CaseLinks $links): array
     {
         $finder = app(ProcedureFinder::class);
         $group = $this->selector->customerGroup((string) ($result['inputs']['kundengruppe'] ?? $result['meta']['customer_group'] ?? 'unclear'))
@@ -473,7 +474,7 @@ class AnalysisPanel
 
         return [
             'suggested' => array_map(
-                fn (KnowledgeDocument $document): array => self::procedureCard($document),
+                fn (KnowledgeDocument $document): array => self::procedureCard($document, $links),
                 $finder->suggested($group, $products, $result['result']['category'] ?? null, array_values((array) ($result['result']['actions'] ?? []))),
             ),
             'catalogue' => array_map(fn (array $entries): array => array_map(fn (array $entry): array => [
@@ -490,14 +491,14 @@ class AnalysisPanel
      *
      * @return array{id: string, title: string|null, draft: bool, actions: list<string>, html: HtmlString}
      */
-    public static function procedureCard(KnowledgeDocument $document): array
+    public static function procedureCard(KnowledgeDocument $document, ?CaseLinks $links = null): array
     {
         return [
             'id' => (string) $document->id,
             'title' => $document->title,
             'draft' => $document->isDraft(),
             'actions' => array_map(fn (string $action): string => config("knowledge.actions.{$action}", $action), $document->actions()),
-            'html' => app(ProcedureRenderer::class)->render($document),
+            'html' => app(ProcedureRenderer::class)->render($document, $links),
         ];
     }
 

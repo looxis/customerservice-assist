@@ -62,6 +62,7 @@ class KnowledgeValidator
                 ...$this->retrieval($document),
                 ...$this->reachability($document),
                 ...$this->body($document),
+                ...$this->toolLinks($document),
                 ...$this->openQuestions($document),
                 ...$this->missingCategories($document),
                 ...$this->filename($document),
@@ -491,6 +492,25 @@ class KnowledgeValidator
         }
 
         return [];
+    }
+
+    /**
+     * `link:key` targets of procedures (PROJ-58) must be known keys.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function toolLinks(KnowledgeDocument $document): array
+    {
+        preg_match_all('/\]\(link:([^)\s]*)\)/u', $document->body, $matches);
+        $issues = [];
+
+        foreach (array_unique($matches[1]) as $key) {
+            if (! CaseLinks::isKnown($key)) {
+                $issues[] = KnowledgeIssue::error($document->path, "Unbekanntes Ziel `link:{$key}`. Erlaubt: ".implode(', ', CaseLinks::keys()).'.');
+            }
+        }
+
+        return $issues;
     }
 
     /** @return list<KnowledgeIssue> */

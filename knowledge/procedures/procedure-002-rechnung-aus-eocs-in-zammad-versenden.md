@@ -32,12 +32,12 @@ Eine vorhandene Rechnung als PDF aus EOCS herunterladen und einer Kundenantwort 
 
 # Arbeitsschritte
 
-1. Auf „in EOCS öffnen“ klicken oder EOCS aufrufen und die Bestellnummer einfügen.
+1. Auf [Auftrag in EOCS öffnen](link:eocs-auftrag) klicken oder EOCS aufrufen und die Bestellnummer einfügen.
 2. In EOCS die Bestellung öffnen.
 3. Links in der Übersicht auf „Buchhaltungsdokumente (1)“ klicken. Die Zahl in Klammern zeigt die Anzahl der Dokumente; bei mehreren Dokumenten steht dort eine andere Zahl.
 4. In der Übersicht die Rechnungsnummer der zu versendenden Rechnung anklicken.
 5. Auf der geöffneten Seite mit den Rechnungspositionen oben rechts auf „Download“ klicken und die Rechnung herunterladen.
-6. In Zammad das Antwort-Fenster des zugehörigen Tickets öffnen.
+6. In Zammad das Antwort-Fenster des zugehörigen Tickets öffnen: [Ticket in Zammad öffnen](link:zammad-ticket).
 7. Die soeben heruntergeladene Rechnung in das Antwort-Fenster ziehen.
 8. Den PDF-Anhang und die vorbereitete Antwort kontrollieren und die Antwort an den Kunden senden.
 

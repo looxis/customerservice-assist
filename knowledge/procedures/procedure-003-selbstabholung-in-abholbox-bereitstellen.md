@@ -42,7 +42,7 @@ Eine fertige Bestellung ohne persönliche Übergabe in der gesicherten Abholbox 
 
 # Arbeitsschritte
 
-1. Die zugehörige Bestellung und den vorgesehenen Bestellweg prüfen; Amazon-Bestellungen ausschließen.
+1. Die zugehörige [Bestellung in EOCS](link:eocs-auftrag) und den vorgesehenen Bestellweg prüfen; Amazon-Bestellungen ausschließen.
 2. Bei einem manuell angelegten Auftrag in EOCS kontrollieren, ob Selbstabholung vereinbart und vermerkt wurde. Bei einer Shop-Bestellung reicht die ausgewählte Versandoption aus; eine vorherige E-Mail ist nicht erforderlich.
 3. Den konkreten Standort der eingerichteten Abholbox auf dem Grundstück und die gültige Zahlenkombination für diese Bereitstellung prüfen.
 4. Die fertiggestellte Ware dem richtigen Auftrag zuordnen und in der Abholbox platzieren.

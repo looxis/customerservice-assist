@@ -26,12 +26,37 @@ class KnowledgeMarkdown
 
     /**
      * @param  array<string, string>  $links  Knowledge ID => URL of its document view.
+     * @param  CaseLinks|null  $case  The links of the case for `link:` targets (PROJ-58); without a case only the fixed tool addresses become buttons.
      */
-    public function render(string $markdown, array $links = []): HtmlString
+    public function render(string $markdown, array $links = [], ?CaseLinks $case = null): HtmlString
     {
         $html = $this->converter()->convert($markdown)->getContent();
 
-        return new HtmlString($this->linkIds($this->demoteHeadings($html), $links));
+        return new HtmlString($this->toolLinks($this->linkIds($this->demoteHeadings($html), $links), $case ?? CaseLinks::none()));
+    }
+
+    /**
+     * `[text](link:key)` becomes a button to the target of the key (one per order when there are several), or
+     * stays plain text when the case has no target for it.
+     */
+    private function toolLinks(string $html, CaseLinks $case): string
+    {
+        return preg_replace_callback(
+            '/<a href="link:([a-z0-9-]+)"[^>]*>(.*?)<\/a>/su',
+            function (array $match) use ($case): string {
+                $targets = $case->targets($match[1]);
+
+                if ($targets === []) {
+                    return $match[2];
+                }
+
+                return implode(' ', array_map(
+                    fn (array $target): string => '<a href="'.e($target['url']).'" target="_blank" rel="noopener noreferrer" class="procedure-link">'.$match[2].($target['label'] === null ? '' : ' ('.e($target['label']).')').'</a>',
+                    $targets,
+                ));
+            },
+            $html,
+        ) ?? $html;
     }
 
     private function converter(): MarkdownConverter

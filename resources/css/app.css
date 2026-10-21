@@ -134,6 +134,11 @@
         @apply rounded-md bg-warning-500/10 px-3 py-2 font-medium text-warning-700 ring-1 ring-warning-500/30 ring-inset;
     }
 
+    /* Button to an internal tool inside a procedure step (PROJ-58). */
+    .knowledge-text a.procedure-link {
+        @apply inline-flex items-center rounded-md bg-brand-tint px-2 py-0.5 text-sm font-medium text-brand-700 no-underline ring-1 ring-brand/30 ring-inset hover:bg-brand/15 focus-visible:outline-2 focus-visible:outline-brand;
+    }
+
     .knowledge-text li:has(> .procedure-check) {
         @apply list-none;
     }
