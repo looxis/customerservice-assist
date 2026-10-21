@@ -46,13 +46,13 @@ Ein Kunde hat den Aufstrich Mix als Zusatzartikel bestellt und beanstandet, dass
 
 # Hintergrund
 
-Das MHD ist bei einem Teil der Aufstriche tatsächlich überschritten. LOOXIS hat die Ware geprüft und freigegeben: Sie ist originalverschlossen, wurde sachgemäß gelagert und auf ihre einwandfreie Beschaffenheit geprüft. Das MHD ist kein Verbrauchsdatum, die Ware ist in Ordnung. Sie darf deshalb noch verkauft werden.
+Das MHD ist bei einem Teil der Aufstriche tatsächlich überschritten. LOOXIS hat die Ware geprüft und freigegeben: Sie ist originalverschlossen, wurde sachgemäß gelagert und auf ihre einwandfreie Beschaffenheit geprüft. Das MHD ist kein Verbrauchsdatum, die Ware ist in Ordnung und lebensmittelrechtlich nicht zu beanstanden. Sie darf deshalb noch verkauft werden.
 
 # Empfohlene Maßnahme
 
-1. Die Beanstandung ernst nehmen und erklären, dass das MHD kein Verbrauchsdatum ist und die Ware geprüft wurde und in Ordnung ist (siehe Hintergrund).
+1. Die Beanstandung ernst nehmen und erklären, dass das MHD kein Verbrauchsdatum ist und die Ware geprüft wurde und in Ordnung ist (siehe Hintergrund). Dem Kunden dabei ausdrücklich versichern, dass die Ware **lebensmittelrechtlich in Ordnung** ist.
 2. **Keine Erstattung anbieten.** Stattdessen einen Nachlass von **50 Prozent auf den Preis des Aufstrich Mix** anbieten. Die Kundin beziehungsweise der Kunde behält den Aufstrich Mix. Der Kundenservice darf das selbst zusagen (PERMISSION-008).
-3. Der Nachlass wird als Teilerstattung von 50 Prozent des Preises des Aufstrich Mix umgesetzt.
+3. **Den Kunden fragen, ob er damit einverstanden ist** (50 Prozent Nachlass, die Ware behalten). Die Teilerstattung von 50 Prozent des Preises des Aufstrich Mix wird veranlasst, sobald der Kunde zugestimmt hat.
 
 # Besteht der Kunde weiterhin auf Erstattung
 
@@ -64,6 +64,13 @@ Dann ist das nicht mehr allein vom Kundenservice zu entscheiden. Intern klären,
 Bis zu dieser Klärung keine Erstattung zusagen.
 
 # Kommunikation
+
+Pflichtinhalt der Antwort:
+
+- Die Versicherung, dass die Ware lebensmittelrechtlich in Ordnung ist.
+- Die Frage am Ende, ob der Kunde mit dem Nachlass von 50 Prozent und dem Behalten der Ware einverstanden ist.
+
+Darüber hinaus:
 
 - Sachlich und freundlich, ohne Vorwurf.
 - Der Hinweis auf das MHD steht seit dem 21.10.2026 auf looxis.de und bei Amazon. Bei Bestellungen dieser Kanäle darf darauf verwiesen werden, wenn die Bestellung nach der Veröffentlichung aufgegeben wurde. Bei Bestellungen davor sowie in den übrigen Kanälen (zum Beispiel Fachhändler-Shop) nicht behaupten, der Kunde habe den Hinweis bei der Bestellung lesen können.
