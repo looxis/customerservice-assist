@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Log;
  */
 class ZammadClient
 {
+    /** Shortest text of ours (letters and digits only) that counts as quoted when it shows up again in a customer's message. */
+    private const int ECHO_MIN_LENGTH = 60;
+
     private const array STATE_LABELS = [
         'new' => 'neu',
         'open' => 'offen',
@@ -266,7 +269,7 @@ class ZammadClient
     {
         usort($articles, fn (array $a, array $b): int => [(string) ($a['created_at'] ?? ''), (int) ($a['id'] ?? 0)] <=> [(string) ($b['created_at'] ?? ''), (int) ($b['id'] ?? 0)]);
 
-        return array_map(function (array $article) use ($customerId, $customerEmail): TicketArticle {
+        return $this->withoutEchoedOwnMessages(array_map(function (array $article) use ($customerId, $customerEmail): TicketArticle {
             $sender = strtolower((string) ($article['sender'] ?? ''));
 
             // Zammad files a mail under "Agent" when its sender is also an agent
@@ -307,7 +310,61 @@ class ZammadClient
                 subject: filled($article['subject'] ?? null) ? (string) $article['subject'] : null,
                 messageId: filled($article['message_id'] ?? null) ? (string) $article['message_id'] : null,
             );
-        }, array_values(array_filter($articles, 'is_array')));
+        }, array_values(array_filter($articles, 'is_array'))));
+    }
+
+    /**
+     * Safety net for the split between new text and quote: if the visible text of a customer's message contains the
+     * text of an earlier message of ours and the collapsed quote does not, the mail was written the other way round
+     * than the split assumed (the customer's new text is in the quote). Text and quote are then exchanged.
+     *
+     * @param  list<TicketArticle>  $articles
+     * @return list<TicketArticle>
+     */
+    private function withoutEchoedOwnMessages(array $articles): array
+    {
+        $ours = [];
+
+        foreach ($articles as $index => $article) {
+            if ($article->kind === ArticleKind::Agent && ! $article->automatic) {
+                $text = TicketArticle::comparableText($article->body);
+
+                if (mb_strlen($text) >= self::ECHO_MIN_LENGTH) {
+                    $ours[] = $text;
+                }
+
+                continue;
+            }
+
+            if ($article->kind !== ArticleKind::Customer || $article->quote === null || $ours === []) {
+                continue;
+            }
+
+            $visible = TicketArticle::comparableText($article->body);
+            $quoted = TicketArticle::comparableText($article->quote);
+
+            if ($quoted === '' || $this->containsAny($visible, $ours) === false || $this->containsAny($quoted, $ours)) {
+                continue;
+            }
+
+            $articles[$index] = $article->withBodyAndQuoteSwapped();
+        }
+
+        return $articles;
+    }
+
+    /**
+     * @param  list<string>  $needles
+     */
+    private function containsAny(string $text, array $needles): bool
+    {
+        foreach ($needles as $needle) {
+            if (str_contains($text, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

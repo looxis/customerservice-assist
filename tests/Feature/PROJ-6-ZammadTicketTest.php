@@ -297,6 +297,33 @@ describe('thread', function () {
         $this->get('/tickets/2137942')->assertSeeTextInOrder(['Neuer Text des Kunden.', 'Zitat anzeigen', 'Alte Antwort von uns.']);
     });
 
+    test('when the visible text repeats an earlier message of ours and the quote does not, text and quote are exchanged', function () {
+        $ours = 'Hallo Herr Lange, vielen Dank für die Fehlermeldung. Sie haben Recht, der Fehler ist uns bekannt und wir beheben ihn noch heute Vormittag.';
+        fakeZammad([
+            zammadArticle(['id' => 1, 'sender' => 'Agent', 'body' => "<p>{$ours}</p>", 'created_at' => '2026-10-20T07:45:00.000Z']),
+            zammadArticle(['id' => 2, 'body' => "<blockquote><p>Da ich nichts mehr gehört habe, habe ich den Sockel einzeln bestellt.</p></blockquote><blockquote><p>{$ours}</p></blockquote><div>Gesendet mit dem Mailprogramm</div>", 'created_at' => '2026-10-21T07:37:00.000Z']),
+        ]);
+
+        $ticket = app(ZammadClient::class)->ticket('2137942');
+        $last = collect($ticket->articles)->last();
+
+        expect(strip_tags((string) $last->body))->toContain('einzeln bestellt')->not->toContain('Fehlermeldung')
+            ->and(strip_tags((string) $last->quote))->toContain('Fehlermeldung')
+            ->and($last->signature)->toBeNull();
+    });
+
+    test('a customer message that does not repeat our text is left alone', function () {
+        $ours = 'Hallo Herr Lange, vielen Dank für die Fehlermeldung. Sie haben Recht, der Fehler ist uns bekannt und wir beheben ihn noch heute Vormittag.';
+        fakeZammad([
+            zammadArticle(['id' => 1, 'sender' => 'Agent', 'body' => "<p>{$ours}</p>", 'created_at' => '2026-10-20T07:45:00.000Z']),
+            zammadArticle(['id' => 2, 'body' => '<div>Danke, das passt.<blockquote>Alt: etwas ganz anderes, das nicht von uns stammt.</blockquote></div>', 'created_at' => '2026-10-21T07:37:00.000Z']),
+        ]);
+
+        $last = collect(app(ZammadClient::class)->ticket('2137942')->articles)->last();
+
+        expect(strip_tags((string) $last->body))->toContain('Danke, das passt.')->and(strip_tags((string) $last->quote))->toContain('etwas ganz anderes');
+    });
+
     test('a quote at the start followed by more text than one quote is still collapsed as before', function () {
         $parsed = app(MessageBody::class)->parse('<blockquote>Alt eins</blockquote><blockquote>Alt zwei</blockquote><p>Neu danach</p>', 'text/html');
 
