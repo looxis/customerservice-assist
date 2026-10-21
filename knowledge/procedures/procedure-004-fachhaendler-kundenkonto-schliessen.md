@@ -47,7 +47,7 @@ Das Kundenkonto eines Fachhändlers schließen, der die Zusammenarbeit beendet h
 # Arbeitsschritte
 
 1. **Mailcoach:** https://looxis.mailcoach.app/email-lists öffnen und die E-Mail-Adresse des Kunden aus der Liste löschen. Der Kunde erhält dadurch keine weiteren E-Mails.
-2. **Vanilo:** https://looxis.de/manage/shopper öffnen, nach der E-Mail-Adresse suchen, auf „Edit“ klicken und anschließend „löschen“.
+2. **Vanilo:** https://looxis.de/manage/shopper öffnen, nach der E-Mail-Adresse suchen, auf „Edit“ klicken und anschließend „löschen“. Das Backend ist dasselbe für looxis.de und fachhaendler.looxis.de.
 3. **EOCS:** https://eocs.loox.is/customers öffnen, den Kunden suchen, auf „Edit“ klicken, „deaktiviert“ anhaken und speichern.
 
 # Kritische Hinweise
