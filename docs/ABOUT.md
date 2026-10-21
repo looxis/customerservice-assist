@@ -63,6 +63,8 @@ Die App soll nie raten oder etwas erfinden. Fehlt etwas, sagt sie es offen. Dabe
 
 **Das Feld „Zusätzliche Informationen / eigene Einschätzung"** ist für **Fakten zum Fall** da, die nicht im Ticket stehen: „Foto geprüft: Motiv ist verschoben gedruckt", „Kundin am Telefon: braucht Ersatz bis zum 20.12.", „Produktion bestätigt Fehldruck". Die KI behandelt diese Angaben als geprüft und richtet sich danach.
 
+**So schreibst du es:** Fakten in einfachen Sätzen, Entscheidungen mit „Wir …“ („Wir erstatten die Differenz, die Versandkosten nicht, weil …“), Wünsche an die Antwort mit „Bitte erkläre …“ oder „Bitte entschuldige dich für …“. Gab es schon eine Antwort von uns, zeigt das Feld Beispiele für eine Folgenachricht (Stand, Entscheidung, Wunsch an die Antwort). Ein Wunsch ändert nur die Formulierung der Antwort, nie die Bewertung oder die Befugnis, und Interna gehören nicht in die Antwort.
+
 **Regeln gehören nicht in dieses Feld**, also nichts wie „Bestellungen kann man nicht zusammenführen, nur der Kunde bestimmt, was zu einer Bestellung gehört". Die KI würde die Regel zwar richtig anwenden. Aber dann merkt niemand, dass sie in der Knowledge fehlt, und beim nächsten Mal fehlt sie wieder. Solche Regeln bitte als Wissenslücke melden.
 
 # Wissen ergänzen

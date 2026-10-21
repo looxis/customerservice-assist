@@ -573,7 +573,7 @@ class CaseAnalyzer
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'products' => '',
             'related' => $request->related?->text ?? '',
-            'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
+            'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten, Entscheidungen und Wünsche an die Antwort)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
                 .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),
             'ticket' => $request->isQuestion()
                 ? "# Anfrage des Mitarbeiters (kein Ticket)\n".trim((string) $request->questionText)."\n\nAntwortentwurf an den Kunden: ".($request->replyWanted ? 'gewünscht' : 'nicht gewünscht')

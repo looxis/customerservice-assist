@@ -577,7 +577,7 @@ describe('missing knowledge', function () {
 
         $this->get('/tickets/2137942')
             ->assertSee('Was du über diesen Fall weißt, das nicht im Ticket steht', false)
-            ->assertSeeText('Gilt für die KI als geprüfter Fakt. Allgemeine Regeln');
+            ->assertSeeText('Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln');
     });
 });
 

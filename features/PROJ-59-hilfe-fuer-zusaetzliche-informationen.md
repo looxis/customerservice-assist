@@ -1,6 +1,6 @@
 # PROJ-59: Hilfe für das Feld „Zusätzliche Informationen“
 
-## Status: Planned
+## Status: In Review
 **Created:** 2026-10-21
 **Last Updated:** 2026-10-21
 
@@ -27,15 +27,15 @@ Das Feld „Zusätzliche Informationen / eigene Einschätzung“ am Analyse-Form
 
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
-- [ ] Angenommen das Ticket enthält schon eine Antwort von uns (öffentliche Nachricht eines Mitarbeiters, nicht automatisch, keine interne Notiz), wenn das Analyse-Formular angezeigt wird, dann zeigt das Feld „Zusätzliche Informationen“ im grauen Beispieltext Beispiele für eine Folgenachricht: bisherige Entscheidung, Stand, Wunsch an die Antwort.
-- [ ] Angenommen das Ticket enthält noch keine Antwort von uns, wenn das Formular angezeigt wird, dann bleiben die bisherigen Beispiele (Fakten zum Fall) stehen.
-- [ ] Angenommen das Formular ist sichtbar, wenn der Mitarbeiter den Hinweis „So schreibst du es“ aufklappt, dann stehen dort kurze Hinweise: Fakten in einfachen Sätzen, Entscheidungen mit „Wir …“, Wünsche an die Antwort mit „Bitte erkläre …“, keine allgemeinen Regeln.
-- [ ] Angenommen das Feld enthält schon Text (früherer Vorschlag), wenn das Formular angezeigt wird, dann bleibt der Text unverändert; nur der graue Beispieltext hängt von der Lage ab.
-- [ ] Angenommen der Mitarbeiter schreibt eine Entscheidung („Wir erstatten die Differenz“), wenn die Analyse läuft, dann setzt der Antwortentwurf sie um, und die Angabe gilt wie bisher mit Vorrang vor Vermutungen.
-- [ ] Angenommen die Angaben nennen eine Ursache oder den Grund einer Verzögerung, die nicht intern ist, wenn der Antwortentwurf entsteht, dann steht die Erklärung kurz in der Antwort.
-- [ ] Angenommen die Angaben enthalten einen Wunsch an die Antwort („bitte für die verspätete Rückmeldung entschuldigen“), wenn der Antwortentwurf entsteht, dann erfüllt der Entwurf den Wunsch, soweit er nicht gegen Regeln im Wissen verstößt.
-- [ ] Angenommen die Angaben enthalten Interna (Namen von Kollegen, interne Kosten), wenn der Antwortentwurf entsteht, dann stehen sie nicht wörtlich im Entwurf.
-- [ ] Angenommen die Prompts werden geändert, wenn die Analyse läuft, dann ist die Prompt-Version erhöht.
+- [x] Angenommen das Ticket enthält schon eine Antwort von uns (öffentliche Nachricht eines Mitarbeiters, nicht automatisch, keine interne Notiz), wenn das Analyse-Formular angezeigt wird, dann zeigt das Feld „Zusätzliche Informationen“ im grauen Beispieltext Beispiele für eine Folgenachricht: bisherige Entscheidung, Stand, Wunsch an die Antwort.
+- [x] Angenommen das Ticket enthält noch keine Antwort von uns, wenn das Formular angezeigt wird, dann bleiben die bisherigen Beispiele (Fakten zum Fall) stehen.
+- [x] Angenommen das Formular ist sichtbar, wenn der Mitarbeiter den Hinweis „So schreibst du es“ aufklappt, dann stehen dort kurze Hinweise: Fakten in einfachen Sätzen, Entscheidungen mit „Wir …“, Wünsche an die Antwort mit „Bitte erkläre …“, keine allgemeinen Regeln.
+- [x] Angenommen das Feld enthält schon Text (früherer Vorschlag), wenn das Formular angezeigt wird, dann bleibt der Text unverändert; nur der graue Beispieltext hängt von der Lage ab.
+- [x] Angenommen der Mitarbeiter schreibt eine Entscheidung („Wir erstatten die Differenz“), wenn die Analyse läuft, dann setzt der Antwortentwurf sie um, und die Angabe gilt wie bisher mit Vorrang vor Vermutungen.
+- [x] Angenommen die Angaben nennen eine Ursache oder den Grund einer Verzögerung, die nicht intern ist, wenn der Antwortentwurf entsteht, dann steht die Erklärung kurz in der Antwort.
+- [x] Angenommen die Angaben enthalten einen Wunsch an die Antwort („bitte für die verspätete Rückmeldung entschuldigen“), wenn der Antwortentwurf entsteht, dann erfüllt der Entwurf den Wunsch, soweit er nicht gegen Regeln im Wissen verstößt.
+- [x] Angenommen die Angaben enthalten Interna (Namen von Kollegen, interne Kosten), wenn der Antwortentwurf entsteht, dann stehen sie nicht wörtlich im Entwurf.
+- [x] Angenommen die Prompts werden geändert, wenn die Analyse läuft, dann ist die Prompt-Version erhöht.
 
 ## Edge Cases
 - Eine Nachricht von uns, die ein Kollege als „Kunde“ in Zammad geschrieben hat: zählt nach der Regel der App als Kundennachricht (wie bisher), nicht als Antwort von uns.
@@ -49,7 +49,7 @@ Das Feld „Zusätzliche Informationen / eigene Einschätzung“ am Analyse-Form
 - Der Beispieltext ist reiner Text (Platzhalter), kein Eingabewert; er wird nicht gesendet.
 
 ## Open Questions
-- [ ] Soll der Hinweis „So schreibst du es“ auch auf der Seite „Über die App“ stehen? (Vorschlag: ja, ein kurzer Absatz.)
+- [x] Hinweis „So schreibst du es“ auch auf „Über die App“: ja, ein kurzer Absatz (umgesetzt).
 
 ## Decision Log
 
@@ -74,6 +74,11 @@ Das Feld „Zusätzliche Informationen / eigene Einschätzung“ am Analyse-Form
 
 ## Tech Design (Solution Architect)
 _Nicht nötig, siehe Technical Decisions._
+
+## Implementation Notes (2026-10-21)
+- **Geändert:** `AnalysisPanel` (neues Feld `hasEarlierReply`: Das Ticket enthält eine öffentliche, nicht automatische Nachricht von uns), Komponente `analysis/form.blade.php` (zwei Beispieltexte je nach Lage, aufklappbarer Hinweis „So schreibst du es“, neuer Hilfetext zum Feld), `resources/prompts/analysis.md` (Version `analysis-2026-10-21.2`: Fakten, Entscheidungen und Wünsche an die Antwort; Entscheidungen umsetzen; Wunsch ändert nur die Formulierung; Ursachen und Verzögerungsgründe erklären, Interna nie; bei Folgenachricht an die frühere Antwort anknüpfen und Verständnis zeigen), Überschrift des Abschnitts im Prompt („… geprüfte Fakten, Entscheidungen und Wünsche an die Antwort“), `docs/ABOUT.md` (Absatz „So schreibst du es“).
+- **Tests:** `PROJ-59-AdditionalInfoHelpTest` (6); angepasst: Prompt-Version in `PROJ-36-AnalysisIntegrationTest`. Komplette Suite grün.
+- **Nicht geprüft:** Verhalten des echten Modells (zum Beispiel am Ticket 2139949 mit den Angaben des Auftraggebers) und das Aussehen der Maske im Browser. Haben Admins eigene Prompttexte gespeichert, müssen sie in den Einstellungen auf den Standard zurücksetzen.
 
 ## QA Test Results
 _To be added by /qa_

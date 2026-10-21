@@ -71,7 +71,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | Approved |
 | Häufige Produktfragen auswerten: Detailfragen ohne Produktangabe still zählen statt als Wissenslücke melden, eigene Admin-Seite ab drei Tickets in drei Monaten | Approved |
 | Direkte Links zu internen Tools in Arbeitsabläufen (EOCS-Auftrag, Zammad-Ticket, Vanilo, Mailcoach, EOCS-Kundenliste) | Approved |
-| Hilfe für das Feld „Zusätzliche Informationen“: lageabhängige Beispiele, Hinweis zum Formulieren, Prompt-Regel für Fakten, Entscheidungen und Wünsche an die Antwort | Planned |
+| Hilfe für das Feld „Zusätzliche Informationen“: lageabhängige Beispiele, Hinweis zum Formulieren, Prompt-Regel für Fakten, Entscheidungen und Wünsche an die Antwort | In Review |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

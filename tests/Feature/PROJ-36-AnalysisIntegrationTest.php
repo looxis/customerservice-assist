@@ -419,12 +419,12 @@ describe('the standing instructions and the versions', function () {
         retrAnalyze();
         $third = retrStored();
 
-        expect($first->prompt_version)->toBe('analysis-2026-10-21.1+retrieval-2026-10-13.2')
+        expect($first->prompt_version)->toBe('analysis-2026-10-21.2+retrieval-2026-10-13.2')
             ->and($first->retrieval_version)->toMatch('/^2026-10-13\.1\/[0-9a-f]{8}$/')
             ->and($second->retrieval_version)->not->toBe($first->retrieval_version)
             ->and($first->content['retrieval']['configuration'])->toMatchArray(['version' => $first->retrieval_version])
             ->and($first->content['retrieval']['configuration']['budget']['target'])->toBe(40000)
-            ->and($third->prompt_version)->toBe('analysis-2026-10-21.1')->and($third->retrieval_version)->toBeNull();
+            ->and($third->prompt_version)->toBe('analysis-2026-10-21.2')->and($third->retrieval_version)->toBeNull();
     });
 });
 

@@ -25,8 +25,10 @@ use App\ProductForge\ProductForgeClient;
 use App\ProductForge\ProductForgeException;
 use App\ProductForge\ProductForgeProblem;
 use App\ProductForge\SkuDetector;
+use App\Zammad\ArticleKind;
 use App\Zammad\RelatedTicketFinder;
 use App\Zammad\Ticket;
+use App\Zammad\TicketArticle;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
 
@@ -96,6 +98,7 @@ class AnalysisPanel
             'forge' => $this->forgeChoice($orders, $inputs, $result, $context->customerTexts()),
             'related' => $this->relatedChoice($ticket, $inputs, $choice['related'] ?? null),
             'hasOrders' => $orders !== [],
+            'hasEarlierReply' => collect($ticket->articles)->contains(fn (TicketArticle $article): bool => $article->kind === ArticleKind::Agent && ! $article->automatic),
             'variants' => $context->variants(),
             'defaultVariant' => ContextVariant::tryFrom((string) ($inputs['variante'] ?? '')) ?? $context->defaultVariant(),
             'inputs' => $inputs,
