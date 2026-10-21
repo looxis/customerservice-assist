@@ -1,6 +1,6 @@
 # PROJ-59: Hilfe für das Feld „Zusätzliche Informationen“
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-21
 **Last Updated:** 2026-10-21
 
@@ -81,7 +81,24 @@ _Nicht nötig, siehe Technical Decisions._
 - **Nicht geprüft:** Verhalten des echten Modells (zum Beispiel am Ticket 2139949 mit den Angaben des Auftraggebers) und das Aussehen der Maske im Browser. Haben Admins eigene Prompttexte gespeichert, müssen sie in den Einstellungen auf den Standard zurücksetzen.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-21
+**Methode:** 6 Pest-Tests (`PROJ-59-AdditionalInfoHelpTest`) für Beispieltexte nach Lage, Hinweis „So schreibst du es“, unveränderten Feldtext, Prompt-Inhalt und -Version, Überschrift des Abschnitts im gesendeten Prompt; komplette Suite 1868 Tests, 1866 bestanden, 2 übersprungen wie zuvor. Der Auftraggeber hat das Formular und den Vorschlag am echten Fall geprüft und die Freigabe erteilt.
+
+### Acceptance Criteria Status
+- [x] Beispiele für eine Folgenachricht, wenn das Ticket schon eine Antwort von uns enthält; bisherige Beispiele sonst
+- [x] Interne Notiz und automatische Nachricht zählen nicht als Antwort von uns
+- [x] Hinweis „So schreibst du es“ mit Fakten, Entscheidungen und Wünschen an die Antwort
+- [x] Vorhandener Text im Feld bleibt unverändert
+- [x] Prompt: Entscheidungen umsetzen, Wunsch ändert nur die Formulierung, Ursachen erklären, Interna nie im Entwurf, bei Folgenachricht anknüpfen; Prompt-Version erhöht
+
+### Bugs Found
+Keine.
+
+### Summary
+- **Acceptance Criteria:** 9 von 9 bestanden
+- **Bugs Found:** 0
+- **Production Ready:** JA
 
 ## Deployment
 _To be added by /deploy_
