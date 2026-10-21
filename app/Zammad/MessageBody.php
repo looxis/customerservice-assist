@@ -319,7 +319,8 @@ class MessageBody
 
     /**
      * A reply written below the quote: the quote opens the message and new text
-     * follows after it. The top-level block holding the quote is collapsed.
+     * follows after it. The top-level block holding the quote is collapsed. If only
+     * another quote follows, the first block is the new text and the rest the quote.
      *
      * @return array{0: string, 1: string}|null
      */
@@ -343,8 +344,19 @@ class MessageBody
 
         $rest = array_slice(iterator_to_array($body->childNodes), count($quoted));
 
-        if (! array_filter($rest, fn (Node $node): bool => $this->hasText($node))) {
+        $restWithText = array_values(array_filter($rest, fn (Node $node): bool => $this->hasText($node)));
+
+        if ($restWithText === []) {
             return null;
+        }
+
+        // Some clients wrap the new text in a block quote of its own and put the earlier message after it, also as
+        // a quote. If what follows the first block is only such a quote, the first block is the new text.
+        if (count($restWithText) === 1 && $this->opensWithQuote($restWithText[0])) {
+            return [
+                implode('', array_map(fn (Node $node): string => $document->saveHtml($node), $quoted)),
+                implode('', array_map(fn (Node $node): string => $document->saveHtml($node), $rest)),
+            ];
         }
 
         return [

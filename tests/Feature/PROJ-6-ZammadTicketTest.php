@@ -286,6 +286,24 @@ describe('thread', function () {
         $this->get('/tickets/2137942')->assertSeeTextInOrder(['Goedemiddag', 'Nieuwe tekst', 'Zitat anzeigen', 'Alte Antwort']);
     });
 
+    test('new text in a block quote of its own followed by the earlier message as a second quote shows the new text', function () {
+        $html = '<div><blockquote dir="ltr"> <div>&nbsp;</div><br> <div>Hallo Herr Renaud,</div><div>&nbsp;</div><div>Neuer Text des Kunden.</div><div>Mit freundlichen Grüßen</div><div>Markus Lange</div></blockquote> </div><div> </div><blockquote> <table><tbody><tr><td><div>Original Message processed by david®</div></td></tr></tbody></table> <div>Hallo Herr Lange,</div><div>Alte Antwort von uns.</div><div>Mit freundlichen Grüßen</div><div>Etienne Renaud</div></blockquote>';
+        $parsed = app(MessageBody::class)->parse($html, 'text/html');
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Neuer Text des Kunden.')->not->toContain('Alte Antwort von uns.')
+            ->and(strip_tags((string) $parsed['quote']))->toContain('Original Message processed by david')->toContain('Alte Antwort von uns.')->not->toContain('Neuer Text des Kunden.');
+
+        fakeZammad([zammadArticle(['body' => $html])]);
+        $this->get('/tickets/2137942')->assertSeeTextInOrder(['Neuer Text des Kunden.', 'Zitat anzeigen', 'Alte Antwort von uns.']);
+    });
+
+    test('a quote at the start followed by more text than one quote is still collapsed as before', function () {
+        $parsed = app(MessageBody::class)->parse('<blockquote>Alt eins</blockquote><blockquote>Alt zwei</blockquote><p>Neu danach</p>', 'text/html');
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Neu danach')->not->toContain('Alt eins')
+            ->and(strip_tags((string) $parsed['quote']))->toContain('Alt eins');
+    });
+
     test('lines written as div elements stay separate lines', function () {
         expect((string) app(MessageBody::class)->parse('<div>Zeile 1</div><div>Zeile 2</div>', 'text/html')['body'])
             ->toBe('<div>Zeile 1</div><div>Zeile 2</div>');
