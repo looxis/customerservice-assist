@@ -2,7 +2,8 @@
 id: PERMISSION-008
 title: Aufstrich Mix – Nachlass von 50 Prozent bei Beanstandung des MHD
 type: permission
-status: draft
+status: active
+last_reviewed: 2026-10-21
 trial_until: 2026-12-31
 trial_goal: "Prüfen, ob der Nachlass von 50 Prozent die Beanstandungen wegen des MHD löst und ob die Befugnis ohne Geschäftsführerfreigabe angemessen ist."
 action:

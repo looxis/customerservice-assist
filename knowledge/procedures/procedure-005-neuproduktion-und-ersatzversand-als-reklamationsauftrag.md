@@ -2,7 +2,7 @@
 id: PROCEDURE-005
 title: Neuproduktion mit Ersatzversand als Reklamationsauftrag in EOCS anlegen
 type: procedure
-status: draft
+status: active
 actions:
   - reproduction
   - reshipment

@@ -2,7 +2,8 @@
 id: PRODUCT-010
 title: "Aufstrich Mix (Zusatzartikel): Wissensbereich"
 type: product
-status: draft
+status: active
+last_reviewed: 2026-10-21
 customer_types:
 sales_channels:
 products:

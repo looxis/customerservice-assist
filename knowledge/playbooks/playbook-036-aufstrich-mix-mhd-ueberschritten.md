@@ -2,7 +2,8 @@
 id: PLAYBOOK-036
 title: Aufstrich Mix – Beanstandung wegen überschrittenem Mindesthaltbarkeitsdatum
 type: playbook
-status: draft
+status: active
+last_reviewed: 2026-10-21
 trial_until: 2026-12-31
 trial_goal: "Prüfen, ob Kundinnen das Angebot von 50 Prozent annehmen, wie oft trotzdem eine Erstattung verlangt wird und ob der Hinweis auf Webseite und Amazon die Beanstandungen senkt."
 customer_types:
