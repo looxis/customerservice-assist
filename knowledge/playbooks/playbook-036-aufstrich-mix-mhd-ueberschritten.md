@@ -66,12 +66,12 @@ Bis zu dieser Klärung keine Erstattung zusagen.
 # Kommunikation
 
 - Sachlich und freundlich, ohne Vorwurf.
-- Der Hinweis auf das MHD steht (Stand 21.10.2026) noch nicht auf der Webseite und bei Amazon. Solange er dort nicht veröffentlicht ist, darf nicht behauptet werden, der Kunde habe das bei der Bestellung lesen können.
+- Der Hinweis auf das MHD steht seit dem 21.10.2026 auf looxis.de und bei Amazon. Bei Bestellungen dieser Kanäle darf darauf verwiesen werden, wenn die Bestellung nach der Veröffentlichung aufgegeben wurde. Bei Bestellungen davor sowie in den übrigen Kanälen (zum Beispiel Fachhändler-Shop) nicht behaupten, der Kunde habe den Hinweis bei der Bestellung lesen können.
 
 # No-Gos
 
 - Eine Erstattung zusagen, bevor intern entschieden ist.
-- Behaupten, das MHD sei auf der Produktseite oder bei Amazon angegeben, solange es dort nicht steht.
+- Behaupten, das MHD sei auf der Produktseite oder bei Amazon angegeben, wenn die Bestellung vor der Veröffentlichung (21.10.2026) oder in einem anderen Kanal aufgegeben wurde.
 - Das MHD als Verbrauchsdatum darstellen oder zum Verzehr abgelaufener Ware raten, wenn der Kunde Anzeichen von Verderb nennt (dann ist es ein anderer Fall, siehe unten).
 
 # Abgrenzung
