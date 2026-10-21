@@ -1,6 +1,6 @@
 # PROJ-58: Direkte Links zu internen Tools in Arbeitsabläufen
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-21
 **Last Updated:** 2026-10-21
 
@@ -56,20 +56,20 @@ Die Adressen stehen in PROCEDURE-004 heute als Klartext im Text. Mit der Umstell
 
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
-- [ ] Angenommen ein Ablauf enthält `[Auftrag in EOCS öffnen](link:eocs-auftrag)` und der Fall hat eine Bestellung aus EOCS, wenn der Ablauf angezeigt wird, dann erscheint an dieser Stelle ein Knopf „Auftrag in EOCS öffnen“, der den Auftrag in einem neuen Tab öffnet.
-- [ ] Angenommen der Fall hat mehrere Bestellungen aus EOCS, wenn der Ablauf angezeigt wird, dann erscheint je Bestellung ein Knopf mit der Bestellnummer.
-- [ ] Angenommen der Fall hat keine Bestellung aus EOCS, wenn der Ablauf angezeigt wird, dann steht an der Stelle nur der Text ohne Knopf, und ein Hinweis nennt, dass keine Bestellung geladen ist.
-- [ ] Angenommen ein Ablauf enthält `link:zammad-ticket`, wenn er zu einem Ticket angezeigt wird, dann führt der Knopf zum Ticket in Zammad; bei einer Frage ohne Ticket steht nur der Text.
-- [ ] Angenommen ein Ablauf enthält ein festes Kürzel (`eocs-kunden`, `vanilo-kunden`, `mailcoach-listen`), wenn er angezeigt wird, dann führt der Knopf zur konfigurierten Adresse, auch ohne Ticket oder Bestellung.
-- [ ] Angenommen ein Ablauf enthält `link:vanilo-kunden` und der Fall hat eine bekannte E-Mail-Adresse des Kunden, wenn der Ablauf angezeigt wird, dann führt der Knopf zur Vanilo-Seite „Shopper“ mit der Adresse als Suchbegriff (`email=`, URL-kodiert) und der Sortierung „neueste zuerst“ (`order_by=newest_first`).
-- [ ] Angenommen die E-Mail-Adresse des Kunden ist nicht bekannt (Frage ohne Ticket, keine Kundennachricht), wenn der Ablauf mit `link:vanilo-kunden` angezeigt wird, dann führt der Knopf zur Vanilo-Seite ohne Suchbegriff.
-- [ ] Angenommen `link:eocs-kunden` oder `link:mailcoach-listen`, wenn der Ablauf angezeigt wird, dann hängt die App keinen Suchbegriff und keine Kundendaten an.
-- [ ] Angenommen ein Ablauf enthält ein unbekanntes Kürzel, wenn er angezeigt wird, dann steht nur der Text ohne Knopf, und `knowledge:check` meldet das Kürzel als Fehler.
-- [ ] Angenommen ein normaler Link mit `https://…` steht in einem Ablauf, wenn er angezeigt wird, dann verhält er sich wie bisher.
-- [ ] Angenommen ein Knopf zeigt auf ein Werkzeug, wenn er geklickt wird, dann öffnet er in einem neuen Tab mit `noopener`; die App sendet keine Daten an das Werkzeug.
-- [ ] Angenommen ein Admin ändert die Adresse eines festen Ziels, wenn ein Ablauf angezeigt wird, dann führt der Knopf zur neuen Adresse, ohne dass ein Ablauf geändert werden muss.
-- [ ] Angenommen die Abläufe PROCEDURE-001 bis PROCEDURE-005 sind auf Kürzel umgestellt, wenn sie angezeigt werden, dann stehen die Knöpfe an den Stellen der Tabelle oben.
-- [ ] Angenommen der Ablauf wird im KI-Chat oder in Git gelesen, wenn der Link `link:…` dort steht, dann ist die Beschriftung lesbar und der Satz bleibt verständlich.
+- [x] Angenommen ein Ablauf enthält `[Auftrag in EOCS öffnen](link:eocs-auftrag)` und der Fall hat eine Bestellung aus EOCS, wenn der Ablauf angezeigt wird, dann erscheint an dieser Stelle ein Knopf „Auftrag in EOCS öffnen“, der den Auftrag in einem neuen Tab öffnet.
+- [x] Angenommen der Fall hat mehrere Bestellungen aus EOCS, wenn der Ablauf angezeigt wird, dann erscheint je Bestellung ein Knopf mit der Bestellnummer.
+- [x] Angenommen der Fall hat keine Bestellung aus EOCS, wenn der Ablauf angezeigt wird, dann steht an der Stelle nur der Text ohne Knopf, und ein Hinweis nennt, dass keine Bestellung geladen ist.
+- [x] Angenommen ein Ablauf enthält `link:zammad-ticket`, wenn er zu einem Ticket angezeigt wird, dann führt der Knopf zum Ticket in Zammad; bei einer Frage ohne Ticket steht nur der Text.
+- [x] Angenommen ein Ablauf enthält ein festes Kürzel (`eocs-kunden`, `vanilo-kunden`, `mailcoach-listen`), wenn er angezeigt wird, dann führt der Knopf zur konfigurierten Adresse, auch ohne Ticket oder Bestellung.
+- [x] Angenommen ein Ablauf enthält `link:vanilo-kunden` und der Fall hat eine bekannte E-Mail-Adresse des Kunden, wenn der Ablauf angezeigt wird, dann führt der Knopf zur Vanilo-Seite „Shopper“ mit der Adresse als Suchbegriff (`email=`, URL-kodiert) und der Sortierung „neueste zuerst“ (`order_by=newest_first`).
+- [x] Angenommen die E-Mail-Adresse des Kunden ist nicht bekannt (Frage ohne Ticket, keine Kundennachricht), wenn der Ablauf mit `link:vanilo-kunden` angezeigt wird, dann führt der Knopf zur Vanilo-Seite ohne Suchbegriff.
+- [x] Angenommen `link:eocs-kunden` oder `link:mailcoach-listen`, wenn der Ablauf angezeigt wird, dann hängt die App keinen Suchbegriff und keine Kundendaten an.
+- [x] Angenommen ein Ablauf enthält ein unbekanntes Kürzel, wenn er angezeigt wird, dann steht nur der Text ohne Knopf, und `knowledge:check` meldet das Kürzel als Fehler.
+- [x] Angenommen ein normaler Link mit `https://…` steht in einem Ablauf, wenn er angezeigt wird, dann verhält er sich wie bisher.
+- [x] Angenommen ein Knopf zeigt auf ein Werkzeug, wenn er geklickt wird, dann öffnet er in einem neuen Tab mit `noopener`; die App sendet keine Daten an das Werkzeug.
+- [x] Angenommen ein Admin ändert die Adresse eines festen Ziels, wenn ein Ablauf angezeigt wird, dann führt der Knopf zur neuen Adresse, ohne dass ein Ablauf geändert werden muss.
+- [x] Angenommen die Abläufe PROCEDURE-001 bis PROCEDURE-005 sind auf Kürzel umgestellt, wenn sie angezeigt werden, dann stehen die Knöpfe an den Stellen der Tabelle oben.
+- [x] Angenommen der Ablauf wird im KI-Chat oder in Git gelesen, wenn der Link `link:…` dort steht, dann ist die Beschriftung lesbar und der Satz bleibt verständlich.
 
 ## Edge Cases
 - Der Auftrag des Falls ist in EOCS nicht auffindbar (Bestellnummer unbekannt): kein Knopf, Hinweis „Bestellung nicht geladen“.
@@ -200,7 +200,54 @@ Keine neuen Pakete.
 - **Nicht angefasst:** `.env.example` (der Zugriff war gesperrt). Die drei `LINK_*`-Variablen sind optional; ohne sie gelten die Standardadressen aus der Konfiguration.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-21
+**App URL:** http://localhost:8081 (interne Aufrufe der Seiten als Admin; zusätzlich vom Auftraggeber im laufenden System geprüft: „hat gut funktioniert“)
+**Tester:** QA Engineer (AI)
+**Methode:** Abgleich jedes Kriteriums mit Pest-Tests (21 Tests in `PROJ-58-ToolLinksTest` und `PROJ-58-QaTest`), Lesen des Codes, Aufruf mit echten Daten (Ticket 2139982), komplette Suite (1857 Tests, 1855 bestanden, 2 übersprungen wie zuvor). **Nicht von mir getestet:** Chrome/Firefox/Safari und die Breiten 375/768/1440 px; das Aussehen der Knöpfe hat der Auftraggeber im Betrieb gesehen.
+
+### Acceptance Criteria Status
+- [x] Knopf zum Auftrag des Falls (neuer Tab), ein Knopf je Bestellung mit Nummer, Reklamationsaufträge eingeschlossen (Test, echte Daten)
+- [x] Ohne Bestellung nur Text; ohne Ticket (Frage) nur Text für das Ticket; unbekanntes Kürzel nur Text und Fehler in `knowledge:check` (auch leeres und großgeschriebenes Kürzel)
+- [x] Zammad-Ticket-Knopf; Vanilo mit URL-kodierter E-Mail und `order_by=newest_first`, ohne Adresse die Seite ohne Suchbegriff; EOCS-Kunden und Mailcoach ohne Suchbegriff
+- [x] Normaler https-Link unverändert; Knöpfe mit `target="_blank" rel="noopener noreferrer"`; keine Daten an das Werkzeug außer dem Suchbegriff bei Vanilo
+- [x] Geänderte Adresse wirkt ohne Änderung an einem Ablauf. **Abweichung:** Die Adresse wird in der Konfiguration oder per Umgebungsvariable geändert, nicht in einer Einstellungsseite (Architekturentscheidung).
+- [x] PROCEDURE-001 bis 005 auf Kürzel umgestellt; ein Test prüft, dass alle Kürzel in den echten Dateien bekannt sind
+- [x] Lesbarkeit außerhalb der App: Der Satz bleibt mit Beschriftung verständlich
+
+### Edge Cases Status
+- [x] Kein Auftrag geladen: kein Knopf, nur Text
+- [x] Dasselbe Kürzel mehrmals: überall ein Knopf
+- [x] Entwurf: Knöpfe funktionieren, Hinweis „Entwurf“ bleibt
+- [x] Zammad nicht lesbar beim Nachladen: der Ablauf öffnet sich trotzdem, mit den festen Knöpfen
+- [x] Frage ohne Ticket und ungültige Ticketnummer beim Nachladen (`F…`, Sonderzeichen): nur feste Knöpfe, kein Fehler
+- [x] Viele Bestellnummern beim Nachladen: auf fünf begrenzt
+- [x] Reklamationsaufträge (R1-…) erscheinen mit eigener Nummer (echte Daten)
+- [ ] Älterer Vorschlag: Die Knöpfe nutzen die Bestellungen, die auf der Seite gewählt sind, nicht die zum Vorschlag gespeicherten (Low, siehe unten)
+
+### Security Audit
+- **Ziele:** nur aus Konfiguration (https), aus den von EOCS gelieferten Adressen und aus dem Ticket; kein Ziel kommt aus dem Browser. Der Schlüssel im Verweis ist auf `a-z`, `0-9` und `-` beschränkt.
+- **Eingaben beim Nachladen:** Ticketnummer nur Ziffern (sonst keine Fallbindung), Bestellnummern über den vorhandenen Detektor geprüft; kein Weg zu fremden Adressen.
+- **XSS/Injection:** E-Mail-Adresse und Beschriftungen werden maskiert und die Adresse vollständig URL-kodiert (Test mit `<script>`).
+- **Datenschutz:** Die E-Mail steht in der Adresse des Vanilo-Knopfs im Seitentext und geht nur beim Klick an das interne Vanilo.
+- **CSRF/Zugriff:** Der Nachladeaufruf ist ein reines Lesen (GET) wie bisher; er liefert nur, was Mitarbeiter ohnehin am Ticket sehen.
+
+### Regression
+Komplette Suite grün (Abläufe, Ergebnisansicht, Versand, Fragen ohne Ticket, Wissensprüfung).
+
+### Bugs Found
+Keine Critical, High oder Medium.
+
+| # | Severity | Beschreibung |
+|---|----------|--------------|
+| 1 | Low | Älterer Vorschlag: Knöpfe zeigen die Bestellungen der aktuellen Seitenauswahl statt der gespeicherten (Randfall der Spec nicht wörtlich erfüllt). |
+| 2 | Low | `.env.example` nennt die drei optionalen Variablen `LINK_*` nicht (Zugriff war gesperrt). |
+
+### Summary
+- **Acceptance Criteria:** 14 von 14 bestanden
+- **Bugs Found:** 2 (0 Critical, 0 High, 0 Medium, 2 Low)
+- **Security:** bestanden
+- **Production Ready:** JA
 
 ## Deployment
 _To be added by /deploy_
