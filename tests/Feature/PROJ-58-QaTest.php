@@ -1,6 +1,7 @@
 <?php
 
 use App\Analysis\Agents\CaseAgent;
+use App\Eocs\EocsOrder;
 use App\Knowledge\CaseLinks;
 use Illuminate\Support\Facades\Http;
 
@@ -103,4 +104,17 @@ test('a changed address in the configuration reaches the buttons without touchin
     config(['knowledge.tool_links.mailcoach-listen' => 'https://neu.example/listen']);
 
     expect((new CaseLinks)->targets('mailcoach-listen')[0]['url'])->toBe('https://neu.example/listen');
+});
+
+test('the Amazon order link carries the order number, only for Amazon orders in the right format', function () {
+    config(['knowledge.order_links.amazon-bestellung' => 'https://seller.example/orders/{number}']);
+    $amazon = fn (string $number, ?string $channel = 'amazon') => new EocsOrder(1, $number, null, $channel, null, null, null, null, [], [], [], 'https://eocs.example/orders/1');
+
+    expect((new CaseLinks([$amazon('306-7190795-2981965')]))->targets('amazon-bestellung'))->toBe([['url' => 'https://seller.example/orders/306-7190795-2981965', 'label' => null]])
+        ->and(array_column((new CaseLinks([$amazon('306-7190795-2981965'), $amazon('306-1111111-2222222')]))->targets('amazon-bestellung'), 'label'))->toBe(['306-7190795-2981965', '306-1111111-2222222'])
+        ->and((new CaseLinks([$amazon('306-7190795-2981965', 'looxis-de')]))->targets('amazon-bestellung'))->toBe([])
+        ->and((new CaseLinks([$amazon('R1-306-7190795-2981965')]))->targets('amazon-bestellung'))->toBe([])
+        ->and((new CaseLinks([$amazon('306-7190795-2981965/../x')]))->targets('amazon-bestellung'))->toBe([])
+        ->and((new CaseLinks)->targets('amazon-bestellung'))->toBe([])
+        ->and(CaseLinks::isKnown('amazon-bestellung'))->toBeTrue();
 });

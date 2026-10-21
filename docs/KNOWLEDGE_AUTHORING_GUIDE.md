@@ -335,6 +335,7 @@ Fehlt „Voraussetzungen", „Arbeitsschritte" oder „Abschlusskontrolle", warn
 |---|---|
 | `eocs-auftrag` | der Auftrag des Falls in EOCS; bei mehreren Bestellungen (und Reklamationsaufträgen) ein Knopf je Auftrag mit der Nummer |
 | `zammad-ticket` | das Ticket des Falls in Zammad |
+| `amazon-bestellung` | die Amazon-Bestellung des Falls in der Sellercentral (nur Amazon-Bestellungen mit Amazon-Bestellnummer); bei mehreren ein Knopf je Bestellung |
 | `eocs-kunden` | Kundenliste in EOCS (ohne Suchbegriff) |
 | `vanilo-kunden` | Vanilo-Backend, Seite „Shopper“; die E-Mail-Adresse des Kunden aus dem Ticket ist als Suchbegriff vorbelegt, sonst die Seite ohne Suchbegriff |
 | `mailcoach-listen` | Mailcoach, E-Mail-Listen (ohne Suchbegriff) |

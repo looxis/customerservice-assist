@@ -152,6 +152,15 @@ return [
     ],
 
     /*
+    | Links to one order in an external tool: the address with `{number}` for the order number
+    | (Amazon order numbers only, checked by format). Override with LINK_AMAZON_ORDER.
+    */
+
+    'order_links' => [
+        'amazon-bestellung' => env('LINK_AMAZON_ORDER', 'https://sellercentral.amazon.de/orders-v3/order/{number}'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Action hints
     |--------------------------------------------------------------------------

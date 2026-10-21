@@ -26,7 +26,7 @@
 ## Arbeitsabläufe (`procedure`) gehen nicht an die KI
 Ein Arbeitsablauf ist eine Anleitung für Menschen. Die KI bekommt ihn nie; die App zeigt ihn dem Mitarbeiter nach dem Vorschlag, passend zum Vorgang (`actions`), zur Kundengruppe und zum Produkt. Verweist ein anderes Dokument auf ihn (PROCEDURE-004), meldet die KI deshalb keine Wissenslücke.
 
-Im Ablauf stehen Links zu Werkzeugen als `[Text](link:kürzel)`: `eocs-auftrag`, `zammad-ticket`, `eocs-kunden`, `vanilo-kunden`, `mailcoach-listen`. Die App macht daraus Knöpfe, ohne Ziel bleibt nur der Text. Adressen schreibst du nicht hinein. Einzelheiten: Authoring Guide, Abschnitt „Arbeitsabläufe“.
+Im Ablauf stehen Links zu Werkzeugen als `[Text](link:kürzel)`: `eocs-auftrag`, `zammad-ticket`, `amazon-bestellung`, `eocs-kunden`, `vanilo-kunden`, `mailcoach-listen`. Die App macht daraus Knöpfe, ohne Ziel bleibt nur der Text. Adressen schreibst du nicht hinein. Einzelheiten: Authoring Guide, Abschnitt „Arbeitsabläufe“.
 
 ## Der KI-Router (zweite Stufe des Abrufs)
 Zusätzlich zu den Auslösern ergänzt ein Router Dokumente, die zum Anliegen **sinngemäß** passen, auch wenn der Kunde andere Wörter nutzt. Er wählt nur aus Dokumenten, die der Abruf nicht genommen hat, ersetzt nichts und umgeht keine verbindlichen Regeln. Deshalb gilt: `summary` sorgfältig schreiben; Auslöser bleiben wichtig, müssen aber nicht jede Formulierung abdecken.

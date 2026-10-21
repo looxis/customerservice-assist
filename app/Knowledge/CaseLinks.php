@@ -54,7 +54,7 @@ final readonly class CaseLinks
      */
     public static function keys(): array
     {
-        return [...self::CASE_KEYS, ...array_keys(config('knowledge.tool_links', []))];
+        return [...self::CASE_KEYS, ...array_keys(config('knowledge.order_links', [])), ...array_keys(config('knowledge.tool_links', []))];
     }
 
     public static function isKnown(string $key): bool
@@ -72,6 +72,7 @@ final readonly class CaseLinks
         return match ($key) {
             'eocs-auftrag' => $this->orderTargets(),
             'zammad-ticket' => $this->ticketUrl === null ? [] : [['url' => $this->ticketUrl, 'label' => null]],
+            'amazon-bestellung' => $this->amazonTargets($key),
             'vanilo-kunden' => $this->fixed($key, $this->customerEmail === null ? null : ['email' => $this->customerEmail, 'order_by' => 'newest_first']),
             default => $this->fixed($key),
         };
@@ -89,6 +90,31 @@ final readonly class CaseLinks
 
             foreach ($order->claims as $claim) {
                 $entries[] = ['url' => $claim->url, 'label' => $claim->externalNumber];
+            }
+        }
+
+        return count($entries) === 1 ? [['url' => $entries[0]['url'], 'label' => null]] : $entries;
+    }
+
+    /**
+     * One link per Amazon order of the case: the order number goes into the configured address, only if it
+     * has the format of an Amazon order number.
+     *
+     * @return list<array{url: string, label: string|null}>
+     */
+    private function amazonTargets(string $key): array
+    {
+        $template = trim((string) config("knowledge.order_links.{$key}"));
+
+        if (! str_starts_with($template, 'https://') || ! str_contains($template, '{number}')) {
+            return [];
+        }
+
+        $entries = [];
+
+        foreach ($this->orders as $order) {
+            if ($order->channel === 'amazon' && preg_match('/^\d{3}-\d{7}-\d{7}$/', $order->externalNumber) === 1) {
+                $entries[] = ['url' => str_replace('{number}', $order->externalNumber, $template), 'label' => $order->externalNumber];
             }
         }
 

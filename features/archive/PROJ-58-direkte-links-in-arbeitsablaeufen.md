@@ -199,6 +199,9 @@ Keine neuen Pakete.
 - **Nicht getestet:** Browser und Breiten 375/768/1440 px.
 - **Nicht angefasst:** `.env.example` (der Zugriff war gesperrt). Die drei `LINK_*`-Variablen sind optional; ohne sie gelten die Standardadressen aus der Konfiguration.
 
+## Nachtrag (2026-10-21)
+- **Neues Kürzel `amazon-bestellung`:** Link zur Amazon-Bestellung in der Sellercentral (`https://sellercentral.amazon.de/orders-v3/order/<Bestellnummer>`, Adresse in `knowledge.order_links`, überschreibbar mit `LINK_AMAZON_ORDER`). Es gibt nur Knöpfe für Aufträge im Kanal Amazon, deren Nummer das Format einer Amazon-Bestellnummer hat (drei, sieben, sieben Ziffern); bei mehreren Bestellungen ein Knopf je Bestellung. Verwendet in PROCEDURE-006 (Teilerstattung in der Sellercentral). Test in `PROJ-58-QaTest`.
+
 ## QA Test Results
 
 **Tested:** 2026-10-21
