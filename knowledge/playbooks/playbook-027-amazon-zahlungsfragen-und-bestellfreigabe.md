@@ -91,7 +91,9 @@ Wiederholte Zahlungsaufforderung:
 
 Nach Prüfung: Bestellung liegt LOOXIS nicht vor (in EOCS nicht gefunden):
 
-„Ihre Bestellung liegt uns derzeit nicht zur Bearbeitung vor. Amazon hält Bestellungen zunächst mindestens 30 Minuten zurück und übermittelt sie erst nach der Freigabe an uns; einzelne Bestellungen werden erst später freigegeben, und eine Bestellung kann in dieser Zeit auch storniert worden sein. Den konkreten Grund können wir nicht einsehen. Bitte prüfen Sie den Status Ihrer Bestellung und die Zahlungsaufforderung direkt bei Amazon. Sobald die Bestellung freigegeben und bei uns eingegangen ist, können wir sie bearbeiten. Die Reihenfolge richtet sich nach dem Eingang bei uns.“
+„Ihre Bestellung liegt uns derzeit nicht zur Bearbeitung vor. Amazon hält Bestellungen zunächst mindestens 30 Minuten zurück und übermittelt sie erst nach der Freigabe an uns; einzelne Bestellungen werden erst später freigegeben, und eine Bestellung kann in dieser Zeit auch storniert worden sein. Den konkreten Grund können wir nicht einsehen. Erfahrungsgemäß liegt es bei einer noch nicht freigegebenen Bestellung oft an Dingen rund um die Bezahlung bei Amazon. Bitte prüfen Sie den Status Ihrer Bestellung und die Zahlungsaufforderung direkt bei Amazon. Sobald die Bestellung freigegeben und bei uns eingegangen ist, können wir sie bearbeiten.“
+
+Schreibt der Kunde, dass es dringend ist, zusätzlich: „Sobald Ihre Bestellung bei uns eingegangen ist, wird sie wie bei uns üblich zügig und schnellstmöglich bearbeitet, produziert und verschickt.“ Den Hinweis auf die Reihenfolge des Eingangs bei LOOXIS (POLICY-040) nicht ungefragt nennen; er gilt als Hintergrund, nicht als Kundenaussage. Fragt der Kunde nach einem Vorrang oder einem Liefertermin, bleibt es bei der Reihenfolge des Eingangs und ohne Terminzusage.
 
 Nach Prüfung: Bestellung bei LOOXIS eingegangen:
 

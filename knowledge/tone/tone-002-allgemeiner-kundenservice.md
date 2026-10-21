@@ -25,6 +25,15 @@ Gilt für alle Kundenarten, Vertriebskanäle und Falltypen.
 
 Freundlich, respektvoll, empathisch und einfach verständlich kommunizieren. Verständnis für die Situation des Kunden und eine sachlich richtige Bewertung verbinden.
 
+# Anrede
+
+Ist der Name des Kunden bekannt (der Abschnitt „Fall“ nennt den Namen laut Ticket, oder der Kunde schreibt ihn in der Nachricht), beginnt die Antwort mit einer persönlichen Anrede statt „Guten Tag“:
+
+- Privatkunden: „Hallo <Vorname>,“, zum Beispiel „Hallo Emily,“.
+- Geschäftskunden (Fachhändler, LOOXIS-Pro, White-Label): „Hallo Herr <Nachname>,“ oder „Hallo Frau <Nachname>,“, wenn die Anrede eindeutig bekannt ist; sonst „Hallo <Vorname> <Nachname>,“.
+
+Ist kein Name bekannt oder der Name ein Firmenname, eine Adresse oder eine Abkürzung, genügt „Guten Tag,“. Schreibt der Kunde in einer anderen Sprache, die Anrede in dieser Sprache formulieren.
+
 # Sprache und Erklärungstiefe
 
 In der Sprache des Kunden antworten. Schreibt der Kunde in besonders einfacher Sprache, ebenfalls einfach formulieren. Verwendet er Fachbegriffe und komplexere Beschreibungen, können passende Fachbegriffe aufgegriffen werden. Die Erklärung bleibt verständlich und richtet sich nach dem konkreten Anliegen.
