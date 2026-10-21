@@ -69,7 +69,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Ticketseite: letzte Kundennachricht ganz oben, Verlauf unten | Approved |
 | Sichtbar machen, welches Wissen wegen Produkt oder Kundengruppe nicht geprüft wurde | Approved |
 | Produkt ohne hinterlegtes Wissen automatisch als Wissenslücke melden (mit Angaben des Mitarbeiters, nach Häufigkeit für Admins) | Approved |
-| Häufige Produktfragen auswerten: Detailfragen ohne Produktangabe still zählen statt als Wissenslücke melden, eigene Admin-Seite ab drei Tickets in drei Monaten | In Progress |
+| Häufige Produktfragen auswerten: Detailfragen ohne Produktangabe still zählen statt als Wissenslücke melden, eigene Admin-Seite ab drei Tickets in drei Monaten | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

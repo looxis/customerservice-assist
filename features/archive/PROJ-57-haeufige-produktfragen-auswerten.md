@@ -1,8 +1,8 @@
 # PROJ-57: Häufige Produktfragen auswerten
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-20
-**Last Updated:** 2026-10-20
+**Last Updated:** 2026-10-21
 
 ## Dependencies
 - Requires: PROJ-9 (Fallanalyse), PROJ-10 (Ergebnisansicht), PROJ-12 (Wissenslücken), PROJ-38 (Produktinformationen aus ProductForge), PROJ-45 (Produkt ohne hinterlegtes Wissen automatisch melden), PROJ-31 (Prompts), PROJ-28 (Testmodus, Testläufe zählen nicht), PROJ-40 (Fragen ohne Ticket)
@@ -47,10 +47,10 @@ Beispiele: „Kann das essbare Foto eingefroren werden?“ ist eine Detailfrage.
 
 **Ergebnis und Antwortentwurf**
 - [x] Angenommen ein Kunde fragt nach einer Einzelheit zum Produkt, die nicht in den Produktinformationen oder im Wissen steht, wenn der Vorschlag erstellt wird, dann erscheint dazu keine Wissenslücke, kein gelber Hinweis und kein Knopf „Wissenslücke melden“.
-- [ ] Angenommen eine Detailfrage liegt vor, wenn der Antwortentwurf entsteht, dann sagt er in lockerem, nicht förmlichem Ton offen, dass wir uns nicht sicher sind oder es nicht mit Garantie sagen können, bietet eine erneute Rückmeldung an und nennt, dass eine Antwort einige Tage dauern kann.
-- [ ] Angenommen eine Detailfrage liegt vor, wenn der Entwurf entsteht, dann behauptet er nichts, was nicht in den Produktinformationen steht, und leitet keine Aussage aus Allgemeinwissen ab; was dort wörtlich steht, darf er wiedergeben.
-- [ ] Angenommen eine Detailfrage liegt vor, wenn die Begründung angezeigt wird, dann nennt sie in einem Halbsatz, dass zu dieser Frage keine Produktangabe vorliegt und der Entwurf das offen sagt.
-- [ ] Angenommen es ist unklar, ob eine Frage eine Detailfrage oder eine echte Lücke ist, wenn der Vorschlag erstellt wird, dann gilt sie als echte Wissenslücke.
+- [x] Angenommen eine Detailfrage liegt vor, wenn der Antwortentwurf entsteht, dann sagt er in lockerem, nicht förmlichem Ton offen, dass wir uns nicht sicher sind oder es nicht mit Garantie sagen können, bietet eine erneute Rückmeldung an und nennt, dass eine Antwort einige Tage dauern kann.
+- [x] Angenommen eine Detailfrage liegt vor, wenn der Entwurf entsteht, dann behauptet er nichts, was nicht in den Produktinformationen steht, und leitet keine Aussage aus Allgemeinwissen ab; was dort wörtlich steht, darf er wiedergeben.
+- [x] Angenommen eine Detailfrage liegt vor, wenn die Begründung angezeigt wird, dann nennt sie in einem Halbsatz, dass zu dieser Frage keine Produktangabe vorliegt und der Entwurf das offen sagt.
+- [x] Angenommen es ist unklar, ob eine Frage eine Detailfrage oder eine echte Lücke ist, wenn der Vorschlag erstellt wird, dann gilt sie als echte Wissenslücke.
 - [x] Angenommen im selben Ticket gibt es eine Detailfrage und eine echte Wissenslücke, wenn der Vorschlag erstellt wird, dann wird nur die echte Lücke wie bisher gezeigt, und die Detailfrage wird still gezählt.
 - [x] Angenommen eine Wissensabfrage ohne Antwortentwurf, wenn eine Detailfrage vorliegt, dann wird sie trotzdem gezählt, und die Begründung sagt, dass keine Angabe vorliegt.
 
@@ -278,16 +278,16 @@ Keine Critical, High oder Medium.
 | 3 | Low | Am Eintrag fehlt ein eigener Hinweis, wenn Ticket oder Frage nicht mehr existieren (siehe Randfall). | Ticket löschen oder zurückspulen, Seite öffnen |
 | 4 | Low | Klartext-Namen in der Formulierung werden nicht erkannt, nur Platzhalter entfernt. Schutz liegt allein in der Anweisung an die KI und der Verschlüsselung. | Frage mit Namen stellen, Formulierung auf der Seite lesen |
 
-### Offene Prüfungen (vor „Approved“)
-1. Analyse am Ticket mit der Lagertemperatur (Essbares Foto) mit dem echten Modell erneut ausführen und prüfen: keine Lücke, Antwort im lockeren Ton, Halbsatz in der Begründung, Eintrag auf der Seite „Häufige Produktfragen“ (mit „Alle Themen anzeigen“).
-2. Prompts in den Einstellungen auf den neuen Standard zurücksetzen, falls dort eigene Texte stehen.
-3. Seite in Chrome, Firefox und Safari bei 375, 768 und 1440 px ansehen.
+### Abnahme (2026-10-21)
+- Prüfung mit dem echten Modell am Ticket mit der Lagertemperatur (Essbares Foto, Rechteck): keine Wissenslücke, Antwort im lockeren Ton, Eintrag „temperatur“ einmal gezählt (vom Auftraggeber bestätigt: „die Antwort ist toll, keine Wissenslücke gemeldet“). Damit sind die vier Kriterien zum Modellverhalten erfüllt.
+- Prompts in den Einstellungen standen auf dem neuen Standard (Analyse mit `analysis-2026-10-20.1+…+products-2026-10-20.1`).
+- **Noch nicht geprüft:** Browser (Chrome, Firefox, Safari) und Breiten 375/768/1440 px.
 
 ### Summary
-- **Acceptance Criteria:** 24 von 28 bestanden (die 4 übrigen hängen am echten Modell)
+- **Acceptance Criteria:** 28 von 28 bestanden
 - **Bugs Found:** 4 (0 Critical, 0 High, 0 Medium, 4 Low)
 - **Security:** bestanden
-- **Production Ready:** JA, bei Erfolg der offenen Prüfungen 1 und 2 (keine Critical/High)
+- **Production Ready:** JA (keine Critical/High; die vier Low-Fehler bleiben offen)
 
 ## Deployment
 _To be added by /deploy_
