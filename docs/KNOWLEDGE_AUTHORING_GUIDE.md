@@ -329,11 +329,25 @@ Feste Abschnitte (Überschriften der ersten Ebene, genau so geschrieben):
 
 Fehlt „Voraussetzungen", „Arbeitsschritte" oder „Abschlusskontrolle", warnt die Prüfung. Die App macht jeden Arbeitsschritt und jeden Kontrollpunkt abhakbar und hebt „Kritische Hinweise" und Zeilen mit „Achtung:" hervor.
 
+**Links zu internen Werkzeugen.** Im Arbeitsschritt, in dem ein Werkzeug geöffnet wird, steht ein normaler Markdown-Link mit einem Kürzel statt einer Adresse: `[Auftrag in EOCS öffnen](link:eocs-auftrag)`. Die App macht daraus einen Knopf, der in einem neuen Tab öffnet. Außerhalb der App (Git, KI-Chat) bleibt es ein lesbarer Satz. Erlaubte Kürzel:
+
+| Kürzel | Ziel |
+|---|---|
+| `eocs-auftrag` | der Auftrag des Falls in EOCS; bei mehreren Bestellungen (und Reklamationsaufträgen) ein Knopf je Auftrag mit der Nummer |
+| `zammad-ticket` | das Ticket des Falls in Zammad |
+| `eocs-kunden` | Kundenliste in EOCS (ohne Suchbegriff) |
+| `vanilo-kunden` | Vanilo-Backend, Seite „Shopper“; die E-Mail-Adresse des Kunden aus dem Ticket ist als Suchbegriff vorbelegt, sonst die Seite ohne Suchbegriff |
+| `mailcoach-listen` | Mailcoach, E-Mail-Listen (ohne Suchbegriff) |
+
+Regeln: Die Beschriftung ist frei, das Kürzel muss genau stimmen (die Prüfung meldet ein unbekanntes Kürzel als Fehler). Gibt es im Fall kein Ziel (zum Beispiel keine Bestellung geladen), steht nur der Text ohne Knopf; der Satz muss also auch ohne Knopf verständlich sein. Adressen schreibst du nicht in den Ablauf. Ein weiteres Werkzeug ist ein neues Kürzel; es nicht selbst erfinden, sondern vorschlagen.
+
+**Verweise auf Abläufe.** Eine Policy, ein Playbook oder ein Ton-Dokument darf auf einen Arbeitsablauf verweisen („Konto schließen nach PROCEDURE-004“). Die KI sieht den Ablauf nicht und meldet dafür keine Wissenslücke; die App zeigt ihn dem Mitarbeiter nach dem Vorschlag, wenn der Vorgang (`actions`) passt. Deshalb im verweisenden Dokument nur den Anlass und das Ergebnis nennen, nicht die Schritte wiederholen.
+
 Fragen beim Erfassen eines Arbeitsablaufs, eine nach der anderen:
 
 1. Welcher Vorgang ist das, und für welche Kundengruppen, Kanäle und Produkte gilt er?
 2. Was muss vorher entschieden oder vorhanden sein (Befugnis, Freigabe, Daten)?
-3. In welchen Systemen wird gearbeitet, und wie heißen dort Knöpfe, Felder und Status genau?
+3. In welchen Systemen wird gearbeitet, und wie heißen dort Knöpfe, Felder und Status genau? Wo soll ein Link zum Werkzeug stehen (Kürzel siehe oben)?
 4. Welche Schritte, in welcher Reihenfolge? Gibt es Varianten je Kanal, die besser ein eigener Ablauf wären?
 5. Was geht in der Praxis häufig schief?
 6. Woran erkennt man am Ende, dass alles richtig erledigt ist?
