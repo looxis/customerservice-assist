@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
@@ -245,6 +246,7 @@ describe('finding the latest analysis', function () {
 
 describe('ticket header', function () {
     test('the header has no customer group, the zammad group only in the advanced mode, and the group of the proposal stands in the form summary', function () {
+        $this->withCookie('advanced_mode', '0');
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('noch nicht gewählt')->assertDontSeeText('Zammad-Gruppe')->getContent();
         expect(str($html)->before('Vorschlag erstellen')->toString())->not->toContain('Kundengruppe');
 

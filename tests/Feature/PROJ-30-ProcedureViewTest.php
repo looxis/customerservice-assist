@@ -6,6 +6,7 @@ use App\Knowledge\ProcedureFinder;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
@@ -88,11 +89,12 @@ describe('suggestions', function () {
 });
 
 describe('view', function () {
-    test('the internal procedures appear after the result, set apart from the reply, with id, title, actions, draft mark and text', function () {
+    test('the internal procedures appear under what to do and above the reply, set apart from it, with id, title, actions, draft mark and text', function () {
         $html = procedureCase(['return']);
 
         expect($html)->toContain('Interne Abläufe')->toContain('– intern, nicht an den Kunden')
-            ->and(strpos($html, 'aria-label="Antwortentwurf"'))->toBeLessThan(strpos($html, 'id="ablaeufe"'))
+            ->and(strpos($html, 'Was ist zu tun?'))->toBeLessThan(strpos($html, 'id="ablaeufe"'))
+            ->and(strpos($html, 'id="ablaeufe"'))->toBeLessThan(strpos($html, 'aria-label="Antwortentwurf"'))
             ->and($html)->toContain('PROCEDURE-001')->toContain('Retoure erfassen')->toContain(config('knowledge.actions.return'))
             ->toContain('Dieser Ablauf ist noch ein Entwurf.');
     });

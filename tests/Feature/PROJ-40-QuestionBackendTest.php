@@ -14,6 +14,7 @@ use Illuminate\Testing\TestResponse;
 use Laravel\Ai\Prompts\AgentPrompt;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
@@ -234,7 +235,7 @@ describe('following up', function () {
         CaseAgent::fake([qAnswer(['next_step' => 'internal_first', 'decision' => $decision]), qAnswer()]);
         $asked = ask();
 
-        $this->withCookie('staff_name', 'Nele')->get(route('questions.show', ['number' => $asked['number']]))->assertSeeTextInOrder(['Noch kein Antwortentwurf', 'Zuerst zu klären', 'Besteht Bedarf?', 'Ja, Bedarf']);
+        $this->withCookie('staff_name', 'Nele')->get(route('questions.show', ['number' => $asked['number']]))->assertSeeTextInOrder(['Zuerst zu klären', 'Besteht Bedarf?', 'Ja, Bedarf', 'Noch kein Antwortentwurf']);
 
         followUp($asked['number'], $asked['id'], ['klaerung_option' => 'nein'])->assertRedirect();
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Besteht Bedarf? → Nein, kein Bedarf'));

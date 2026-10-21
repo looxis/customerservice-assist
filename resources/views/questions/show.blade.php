@@ -8,9 +8,7 @@
         </p>
     </x-card>
 
-    <x-analysis.result :result="$result" :number="$number" :history="$history" :admin="$admin" :stand="null" :question="true" />
-
-    <x-analysis.procedures :result="$result" :number="$number" :question="true" />
+    <x-analysis.result :result="$result" :number="$number" :history="$history" :admin="$admin" :stand="null" :question="true" :advanced="$advancedModeActive ?? false" />
 
     <x-question.follow-up :result="$result" :number="$number" />
 

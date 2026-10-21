@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Laravel\Ai\Prompts\AgentPrompt;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
@@ -115,7 +116,7 @@ describe('blocked analysis', function () {
         stepRun();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Noch kein Antwortentwurf', 'Interne Abläufe', 'Zuerst zu klären', 'Was wird zurückgenommen?', 'Nur Display zurück', 'Nur Glasfoto-Muster zurück', 'Beides zurück', 'Kein Bedarf – kann entsorgt werden', 'Für diesen Fall', 'Bei der Produktionsleitung nachfragen'])
+            ->assertSeeTextInOrder(['Interne Abläufe', 'Zuerst zu klären', 'Was wird zurückgenommen?', 'Nur Display zurück', 'Nur Glasfoto-Muster zurück', 'Beides zurück', 'Kein Bedarf – kann entsorgt werden', 'Für diesen Fall', 'Bei der Produktionsleitung nachfragen', 'Noch kein Antwortentwurf'])
             ->assertDontSeeText('Für diesen Fall fehl')
             ->assertDontSeeText('Antwortentwurf (Deutsch)')
             ->assertDontSeeText('Interne To-dos');

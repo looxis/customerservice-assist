@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
     config([
         'staff.admins' => ['Etienne'],

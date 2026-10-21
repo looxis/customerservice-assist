@@ -5,6 +5,7 @@ use App\Analysis\AnalysisStore;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
@@ -81,9 +82,9 @@ describe('result view', function () {
         $analysis = osAnalyze(['kein_produktbezug' => '1']);
 
         $this->withCookie('staff_name', 'Nele')->get($analysis['location'])
-            ->assertSeeText('Ohne Produktwahl nicht berücksichtigt')
-            ->assertSeeText('3 Dokumente gelten nur für bestimmte Produkte (3D-Glasfotos, Zaubertasse mit Thermoeffekt)')
-            ->assertSeeText('Produkt wählen und neu erstellen');
+            ->assertSeeText('Kein Produktwissen berücksichtigt')
+            ->assertSee('3 Dokumente gelten nur für bestimmte Produkte (3D-Glasfotos, Zaubertasse mit Thermoeffekt)', false)
+            ->assertSeeText('Produkt wählen');
     });
 
     test('the section lists the documents by cause, opened when a product is missing, with the product names', function () {
@@ -101,7 +102,7 @@ describe('result view', function () {
         CaseAgent::fake([osAnswer()]);
         $analysis = osAnalyze(['produkte' => ['magic-mug']]);
 
-        $html = $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertDontSeeText('Ohne Produktwahl nicht berücksichtigt')->assertSeeText('Gelten für andere Produkte als die gewählten')->getContent();
+        $html = $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertDontSeeText('Kein Produktwissen berücksichtigt')->assertSeeText('Gelten für andere Produkte als die gewählten')->getContent();
 
         expect($html)->not->toMatch('/<details[^>]*id="ausserhalb-geltungsbereich"[^>]*\sopen/');
     });
@@ -110,7 +111,7 @@ describe('result view', function () {
         CaseAgent::fake([osAnswer()]);
         $analysis = osAnalyze(['produkt_ohne_wissen' => 'Fotokalender']);
 
-        $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertSeeText('Kein Produktwissen zu „Fotokalender“')->assertDontSeeText('Ohne Produktwahl nicht berücksichtigt');
+        $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertSeeText('Kein Produktwissen zu „Fotokalender“')->assertDontSeeText('Kein Produktwissen berücksichtigt');
     });
 
     test('an analysis from before this feature shows neither section nor warning', function () {
@@ -123,7 +124,7 @@ describe('result view', function () {
             return $content;
         });
 
-        $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertOk()->assertDontSeeText('Nicht geprüft, außerhalb des Geltungsbereichs')->assertDontSeeText('Ohne Produktwahl nicht berücksichtigt');
+        $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertOk()->assertDontSeeText('Nicht geprüft, außerhalb des Geltungsbereichs')->assertDontSeeText('Kein Produktwissen berücksichtigt');
     });
 
     test('a long list is cut at thirty with the number of the rest', function () {
@@ -145,6 +146,6 @@ describe('result view', function () {
 
         $response = $this->withCookie('staff_name', 'Nele')->post(route('questions.store'), ['text' => 'Frage', 'kundengruppe' => 'private-looxis-de', 'kein_produktbezug' => '1']);
 
-        $this->withCookie('staff_name', 'Nele')->get((string) $response->headers->get('Location'))->assertSeeText('Ohne Produktwahl nicht berücksichtigt')->assertDontSeeText('Produkt wählen und neu erstellen');
+        $this->withCookie('staff_name', 'Nele')->get((string) $response->headers->get('Location'))->assertSeeText('Kein Produktwissen berücksichtigt')->assertDontSee('open-analysis-form', false);
     });
 });

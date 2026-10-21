@@ -1,4 +1,4 @@
-@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null, 'question' => false])
+@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null, 'question' => false, 'advanced' => false, 'orders' => []])
 
 @php
     $r = $result['result'];
@@ -186,13 +186,10 @@
             @php($withoutProduct = collect($retrieval['out_of_scope'] ?? [])->where('cause', 'product-missing'))
             @if ($withoutProduct->isNotEmpty() && ! ($meta['unknown_product'] ?? null))
                 @php($productNames = collect(app(\App\Knowledge\KnowledgeSelector::class)->products())->mapWithKeys(fn (array $product): array => [$product['slug'] => $product['name'] ?? $product['title']]))
-                <x-alert type="warning">
-                    <p class="font-semibold">Ohne Produktwahl nicht berücksichtigt</p>
-                    <p class="mt-1">{{ $withoutProduct->count() }} {{ $withoutProduct->count() === 1 ? 'Dokument gilt' : 'Dokumente gelten' }} nur für bestimmte Produkte
-                        ({{ $withoutProduct->pluck('products')->flatten()->unique()->take(4)->map(fn ($slug) => $productNames[$slug] ?? $slug)->implode(', ') }}{{ $withoutProduct->pluck('products')->flatten()->unique()->count() > 4 ? ' …' : '' }}) und wurde nicht geprüft, weil kein Produkt gewählt war.
-                        Geht es um ein Produkt, wähle es und erstelle den Vorschlag neu.</p>
+                <x-alert type="warning" class="flex flex-wrap items-center gap-x-3 gap-y-2 p-3!">
+                    <p class="font-semibold" title="{{ $withoutProduct->count() }} {{ $withoutProduct->count() === 1 ? 'Dokument gilt' : 'Dokumente gelten' }} nur für bestimmte Produkte ({{ $withoutProduct->pluck('products')->flatten()->unique()->take(4)->map(fn ($slug) => $productNames[$slug] ?? $slug)->implode(', ') }}{{ $withoutProduct->pluck('products')->flatten()->unique()->count() > 4 ? ' …' : '' }}) und {{ $withoutProduct->count() === 1 ? 'wurde' : 'wurden' }} nicht geprüft, weil kein Produkt gewählt war.">❗ Kein Produktwissen berücksichtigt</p>
                     @unless ($question)
-                        <p class="mt-2"><x-button variant="secondary" x-data x-on:click="$dispatch('open-analysis-form')"><x-icon name="refresh" size="16" /> Produkt wählen und neu erstellen</x-button></p>
+                        <x-button variant="secondary" class="px-2! py-1! text-xs!" x-data x-on:click="$dispatch('open-analysis-form')">Produkt wählen</x-button>
                     @endunless
                 </x-alert>
             @endif
@@ -221,7 +218,7 @@
                 </p>
             @endif
 
-            @if ($notes !== [] || ($meta['knowledge_warnings'] ?? []) !== [])
+            @if ($advanced && ($notes !== [] || ($meta['knowledge_warnings'] ?? []) !== []))
                 <p class="text-slate-600">Prüfhinweise vorhanden – siehe unten.</p>
             @endif
         </div>
@@ -234,6 +231,10 @@
                 </ul>
             </div>
         @endif
+
+        <div class="mt-4">
+            <x-analysis.procedures :result="$result" :number="$number" :stand="$stand" :question="$question" :orders="$orders" />
+        </div>
 
         @if ($hasReply)
             <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" :locked="$ruleIncomplete && ! $ruleAcknowledged" />
@@ -260,7 +261,8 @@
 
         <x-analysis.gap-form :result="$result" :number="$number" :stand="$stand" />
 
-        {{-- Reasoning and details --}}
+        {{-- Reasoning and details: only in the expert mode --}}
+        @if ($advanced)
         <div class="mt-6">
             <x-analysis.section title="Begründung">
                 <p>{{ $text($r['reasoning']) }}</p>
@@ -438,5 +440,6 @@
                 </p>
             </x-analysis.section>
         </div>
+        @endif
     </x-card>
 </section>

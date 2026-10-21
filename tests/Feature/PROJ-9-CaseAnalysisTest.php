@@ -14,6 +14,7 @@ use Illuminate\Testing\TestResponse;
 use Laravel\Ai\Prompts\AgentPrompt;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
@@ -154,6 +155,7 @@ describe('analysis form', function () {
     });
 
     test('without the advanced mode the technical parts stay out of the form and the recommended variant is sent', function () {
+        $this->withCookie('advanced_mode', '0');
         analysisTicket();
 
         $html = $this->get('/tickets/2137942')->assertDontSee('Was an die KI geht')->assertDontSee('Erreichbar unter [E-MAIL_1]', false)->assertDontSeeText('Zammad-Gruppe')->getContent();
@@ -242,13 +244,13 @@ describe('running an analysis', function () {
                 'Was ist zu tun?', 'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
                 'Du darfst das selbst entscheiden.',
                 'Beruht teilweise auf Entwurfs-Wissen', 'POLICY-001',
+                'Interne Abläufe', 'Für diesen Fall', 'Antwort abwarten',
                 'Antwortentwurf', 'Von der App eingesetzt: Lieferadresse', 'Hallo Erika,',
                 'Begründung', 'Ohne Test kein Urteil.',
                 'Quellen', 'POLICY-001', 'Entwurf',
                 'Kurzfassung', 'Die Tasse bleibt schwarz.', 'Ersatz', 'Reklamation', 'Thermoeffekt angeblich defekt',
                 'Bestellung gefunden',
                 'Nele', 'gpt-5.5', 'Prompt analysis-',
-                'Interne Abläufe', 'Für diesen Fall', 'Antwort abwarten',
             ])
             ->assertSee("ist diese Adresse korrekt: Erika Beispiel\nMusterweg 7\n12345 Musterstadt\nDE?", false);
     });
@@ -743,6 +745,7 @@ describe('order numbers known from the ticket', function () {
     });
 
     test('the form announces the automatic loading and offers the opt-out only when a found number is not loaded', function () {
+        $this->withCookie('advanced_mode', '0');
         analysisTicket([zammadArticle(['id' => 1, 'body' => '<p>Bestellung 402-0000000-0000001 ist defekt.</p>'])], [analysisOrder()]);
 
         $this->get('/tickets/2137942?bestellungen[0]=')

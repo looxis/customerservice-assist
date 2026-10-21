@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Laravel\Ai\Prompts\AgentPrompt;
 
 beforeEach(function () {
+    $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
 
     config([
