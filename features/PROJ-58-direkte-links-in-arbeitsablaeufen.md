@@ -87,10 +87,10 @@ Die Adressen stehen in PROCEDURE-004 heute als Klartext im Text. Mit der Umstell
 
 ## Open Questions
 - [x] Suchbegriff in den Werkzeugen: Vanilo ja (`…/shopper?email=<Adresse>&order_by=newest_first`), EOCS nein, Mailcoach nicht gewünscht (2026-10-21).
-- [ ] Welche E-Mail-Adresse gilt als „die des Kunden“: die Antwortadresse der letzten Kundennachricht (wie beim Antworten), oder der Kunde im Zammad-Ticket?
-- [ ] Wo werden die festen Adressen gepflegt: in der Konfiguration der App (Vorschlag für den Anfang) oder unter „Einstellungen“ (Admin)?
+- [x] E-Mail für Vanilo: Kunde im Zammad-Ticket, ersatzweise Antwortadresse (Architekturentscheidung 2026-10-21, auf Wunsch änderbar).
+- [x] Feste Adressen: in der Konfiguration der App (Architekturentscheidung 2026-10-21).
 - [ ] Gibt es weitere Werkzeuge, die verlinkt werden sollen (APC, Versanddienstleister, Mollie)?
-- [ ] Bei mehreren Bestellungen im Fall: Reicht ein Knopf je Bestellung, oder soll der Mitarbeiter vorher eine Bestellung wählen?
+- [x] Mehrere Bestellungen: ein Knopf je Bestellung (Architekturentscheidung 2026-10-21).
 
 ## Decision Log
 
@@ -105,12 +105,90 @@ Die Adressen stehen in PROCEDURE-004 heute als Klartext im Text. Mit der Umstell
 
 ### Technical Decisions
 <!-- Added by /architecture -->
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Keine Datenbank, keine neuen Pakete | Fall-Links werden bei jeder Anzeige aus Ticket und Bestellungen gebildet, feste Ziele stehen in der Konfiguration | 2026-10-21 |
+| Verweise auf dem Server ersetzen, nicht im Browser | Testbar, kein zusätzliches Skript, Ziele nur vom Server | 2026-10-21 |
+| Von Hand gewählter Ablauf lädt Ticket und Bestellungen mit der Ticketnummer neu | Der Ablauf wird nachgeladen und kennt sonst den Fall nicht | 2026-10-21 |
+| Dokumentansicht zeigt nur feste Ziele als Knöpfe | Dort gibt es keinen Fall; trotzdem keine kaputten Verweise | 2026-10-21 |
+| Vanilo-E-Mail vom Zammad-Kunden, ersatzweise Antwortadresse der letzten Kundennachricht | Der Zammad-Kunde entspricht meist dem Shop-Konto | 2026-10-21 |
+| Ein Knopf je Bestellung bei mehreren Aufträgen | Einfacher als eine Auswahl; Bestellnummer als Beschriftung | 2026-10-21 |
+| `knowledge:check` meldet unbekannte Kürzel als Fehler | Tippfehler fallen vor dem Aktivieren auf | 2026-10-21 |
+| Feste Adressen in der Konfiguration mit Umgebungsvariablen | Ändern sich selten; keine Einstellungsseite nötig | 2026-10-21 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Es wird **keine Datenbank** gebraucht und kein neues Paket. Die Funktion arbeitet auf dem, was die Ticketseite schon weiß (Ticket, Bestellungen aus EOCS), und auf einer kleinen Liste fester Adressen in der Konfiguration. Sie ändert, wie ein Arbeitsablauf aus dem Markdown-Text in die Anzeige umgesetzt wird.
+
+### A) Bausteine
+```
+Arbeitsablauf (Markdown in knowledge/)
++-- Autor schreibt: [Auftrag in EOCS öffnen](link:eocs-auftrag)
+
+Fall-Links (NEU, "was kenne ich zu diesem Fall?")
++-- Auftrag/Aufträge in EOCS (Adresse + Bestellnummer je Bestellung)
++-- Ticket in Zammad (Adresse)
++-- E-Mail-Adresse des Kunden (für Vanilo)
++-- leer bei Frage ohne Ticket und ohne Bestellung
+
+Feste Ziele (NEU, Konfiguration)
++-- EOCS-Kundenliste, Vanilo-Shopper, Mailcoach-Listen
+
+Anzeige des Ablaufs (bestehender Renderer, erweitert)
++-- Link mit "link:" + Kürzel gefunden
+|   +-- Ziel bekannt -> Knopf (neuer Tab), bei mehreren Bestellungen ein Knopf je Bestellung
+|   +-- Ziel unbekannt -> nur der Text, kein Knopf
++-- normaler https-Link -> wie bisher
+
+Wo der Ablauf erscheint
++-- Vorgeschlagene Abläufe auf der Ticketseite (kennen den Fall schon)
++-- Von Hand gewählter Ablauf (wird nachgeladen, bekommt Ticketnummer und Bestellnummern mit)
++-- Dokumentansicht in der Knowledge-Übersicht (kein Fall: nur feste Ziele sind Knöpfe, alle anderen Kürzel stehen als Text)
+
+Prüfung "knowledge:check" (erweitert)
++-- unbekanntes Kürzel hinter "link:" = Fehler
+```
+
+### B) Datenmodell
+Nichts wird gespeichert.
+
+- **Feste Ziele** stehen in der Konfiguration der App (mit Umgebungsvariablen zum Überschreiben, dokumentiert in `.env.example`): EOCS-Kundenliste, Vanilo-Shopper, Mailcoach-Listen.
+- **Fall-Links** werden bei jeder Anzeige aus dem frisch geladenen Ticket und den Bestellungen gebildet, nicht aus gespeicherten Daten.
+- **Bestehende Abläufe** (PROCEDURE-001 bis 005) werden von Hand auf die Kürzel umgestellt, wie in der Tabelle oben.
+
+### C) Entscheidungen, erklärt
+1. **Umsetzung auf dem Server statt im Browser.** Die App ersetzt die `link:`-Verweise beim Erzeugen der Seite. So ist es mit den vorhandenen Tests prüfbar, es braucht kein zusätzliches Skript, und die Adressen kommen nur vom Server (kein Ziel, das ein Browser vorgibt).
+2. **Von Hand gewählte Abläufe bekommen den Fall mit.** Der Ablauf wird heute nachgeladen, ohne dass die Seite weiß, zu welchem Ticket er gehört. Der Aufruf bekommt künftig Ticketnummer und Bestellnummern mit; die App lädt das Ticket und die Bestellungen erneut (das ist eine Einzelaktion, kein Dauerbetrieb) und bildet dieselben Fall-Links.
+3. **Die Dokumentansicht zeigt feste Ziele als Knöpfe,** alles andere als Text. Dort gibt es keinen Fall, aber der Autor sieht dasselbe Dokument ohne kaputte Verweise.
+4. **E-Mail für Vanilo vom Kunden im Zammad-Ticket,** ersatzweise die Antwortadresse der letzten Kundennachricht. Der Kunde im Ticket entspricht meist dem Shop-Konto, die Antwortadresse kann abweichen (anderer Absender). Ohne Adresse öffnet sich die Vanilo-Seite ohne Suchbegriff.
+5. **Vanilo-Adresse mit URL-kodierter E-Mail** und der Sortierung „neueste zuerst“. Die E-Mail ist die einzige Eingabe aus dem Ticket; sie wird vollständig kodiert und nur als Wert von `email` angehängt.
+6. **Mehrere Bestellungen: ein Knopf je Bestellung** mit der Bestellnummer, ohne vorherige Auswahl. Das ist einfacher, und der Mitarbeiter sieht gleich, welche Aufträge es gibt. Reklamationsaufträge (R1-…) erscheinen mit ihrer Nummer.
+7. **Unbekanntes Ziel heißt nur Text.** Kein Knopf ins Leere. Die Prüfung von `knowledge:check` verhindert Tippfehler im Kürzel, bevor das Dokument aktiv wird.
+8. **Gleiche Schreibweise wie ein normaler Markdown-Link.** Das Dokument bleibt in Git und im KI-Chat lesbar. Das Kürzel steht im Link-Ziel, die Beschriftung ist frei.
+9. **Konfiguration statt Einstellungsseite.** Die festen Adressen ändern sich selten; eine Einstellungsseite wäre mehr Oberfläche, als nötig ist. Später möglich, wenn Admins sie ohne Entwickler pflegen sollen.
+10. **Knopf-Aussehen über eine kleine Stilregel.** Der Link wird als Knopf neben dem Schritt dargestellt, ohne die Haken-Kästchen der Schritte zu stören.
+
+### D) Zugriff und Sicherheit
+- Nur `https`-Ziele aus der Konfiguration oder aus den geladenen Bestellungen und dem Ticket.
+- Links öffnen in einem neuen Tab mit `noopener noreferrer`.
+- Die E-Mail-Adresse des Kunden steht in der Adresse des Vanilo-Knopfs im Seitentext, geht aber nur beim Klick an das interne Vanilo. Sie wird nicht protokolliert.
+- Das Markdown darf weiter kein rohes HTML enthalten; unbekannte Verweisarten bleiben verworfen.
+
+### E) Dependencies
+Keine neuen Pakete.
+
+### F) Betroffene Bereiche (für die Umsetzung)
+- Umsetzung der Abläufe in der Anzeige (`ProcedureRenderer`, Markdown-Darstellung der Dokumentansicht)
+- Neuer Baustein für die Fall-Links; Aufruf auf der Ticketseite und beim Nachladen eines Ablaufs
+- Konfiguration und `.env.example`
+- Prüfung `knowledge:check` (Kürzel)
+- Stilregel für den Knopf im Ablauf
+- Wissen: PROCEDURE-001 bis 005 auf Kürzel umstellen; Authoring Guide und Skill um die Kürzel ergänzen
+
 
 ## QA Test Results
 _To be added by /qa_
