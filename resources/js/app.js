@@ -82,40 +82,6 @@ Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
         this.$dispatch('loading-start', { title: 'Ticket wird geladen …' });
     },
 
-    async paste() {
-        if (!navigator.clipboard?.readText) {
-            this.pasteManually();
-
-            return;
-        }
-
-        let text;
-
-        try {
-            text = await navigator.clipboard.readText();
-        } catch {
-            this.pasteManually();
-
-            return;
-        }
-
-        this.value = text.trim();
-
-        if (this.normalize(text) === null) {
-            this.error = this.invalidMessage;
-            this.$refs.input.focus();
-
-            return;
-        }
-
-        this.$nextTick(() => this.$refs.form.requestSubmit());
-    },
-
-    pasteManually() {
-        this.error = 'Bitte mit Strg+V einfügen.';
-        this.$refs.input.focus();
-    },
-
     reset() {
         this.busy = false;
     },

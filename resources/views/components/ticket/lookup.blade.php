@@ -37,14 +37,11 @@
             x-bind:class="error ? 'ring-danger-500 focus:ring-danger-500' : ''"
         >
         <div class="flex gap-3">
-            <x-button type="button" variant="secondary" x-on:click="paste()" x-bind:disabled="busy" class="min-h-11 flex-1 sm:flex-none">
-                <x-icon name="download" size="16" /> Einfügen
-            </x-button>
             <x-button type="submit" x-bind:disabled="busy" class="min-h-11 flex-1 sm:flex-none">Ticket laden</x-button>
         </div>
     </div>
     <p id="ticket-help" class="mt-2 text-sm" role="status" aria-live="polite">
         <span x-show="error" x-text="error" class="text-danger-700" @unless ($serverError) x-cloak @endunless>{{ $serverError }}</span>
-        <span x-show="! error" class="text-slate-600" @if ($serverError) x-cloak @endif>In Zammad am Ticket auf „Kopieren" klicken (oder die Adresse aus der Browserzeile kopieren), dann hier „Einfügen".</span>
+        <span x-show="! error" class="text-slate-600" @if ($serverError) x-cloak @endif>In Zammad am Ticket auf „Kopieren" klicken (oder die Adresse aus der Browserzeile kopieren), dann hier mit Strg+V einfügen.</span>
     </p>
 </form>

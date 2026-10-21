@@ -564,6 +564,7 @@ class CaseAnalyzer
             'case' => "# Fall\n"
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
+                .$this->customerNameLine($request)
                 .($request->claimReferences === [] ? '' : "\n".implode("\n", array_map(fn (array $claim): string => 'Das Ticket nennt den Reklamationsauftrag '.app(OrderFormats::class)->claimPrefix()."{$claim['claim']} zur Bestellung {$claim['order']} (Folgevorgang einer Reklamation).", $request->claimReferences)))
                 .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
                     .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
@@ -583,6 +584,17 @@ class CaseAnalyzer
                 .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions')))
                 .$this->actionHints(),
         ];
+    }
+
+    /**
+     * The name of the customer as the ticket has it, for the salutation of the reply; nothing when it is empty,
+     * an address or very long.
+     */
+    private function customerNameLine(AnalysisRequest $request): string
+    {
+        $name = trim((string) $request->ticket->customerName);
+
+        return $name === '' || str_contains($name, '@') || mb_strlen($name) > 80 ? '' : "\nName des Kunden laut Ticket: {$name}";
     }
 
     /**
