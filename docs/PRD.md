@@ -62,7 +62,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Produktvarianten anbieten (weitere Größen/Varianten eines Produkts aus EOCS, später Content Studio) | Approved |
 | Diagnose zum Vorschlag (Admin): warum dieses Ergebnis, Vorschlag zur Wissensänderung, später Änderung und Commit aus der App | Roadmap |
 | Vorläufiges Wissen (befristete Testphase mit Überprüfung) und Meldung veralteten Wissens durch Mitarbeiter für alle Wissensdokumente | Approved |
-| Produktwissen aus `knowledge/products/` nach ProductForge migrieren (Produktfakten raus, Regeln bleiben) | Roadmap |
+| Produktwissen aus `knowledge/products/` nach ProductForge migrieren (Produktfakten raus, Regeln bleiben) | Approved |
 | Schrittweise Fallbearbeitung: Analyse erkennt, wann zuerst eine interne Klärung nötig ist (kein Antwortentwurf, Auswahl oder freies Ergebnis, Fortsetzung der Analyse); Interne To-dos und Interne Abläufe zusammengeführt; „Wissenslücken“ nur für fehlende Regeln | In Progress |
 | Wissensabfrage ohne Ticket: Frage, Anrufnotiz oder eingefügter Kundentext, Vorschlag im selben Aufbau wie die Ticketanalyse (Antwortentwurf nur auf Wunsch); Oberfläche „Frage stellen“ und „Vorschlag“ statt „Analyse“ | Approved |
 | Formular „Vorschlag erstellen“: Pflichtangaben (Kundengruppe, Produkt, auch „Produkt ohne hinterlegtes Wissen“), Produktsuche, Erweiterter Modus | Approved |
