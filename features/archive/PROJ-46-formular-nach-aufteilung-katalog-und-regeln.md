@@ -1,6 +1,6 @@
 # PROJ-46: Formular und Hinweise nach der Aufteilung von Produktkatalog und Wissensdatenbank
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-22
 **Last Updated:** 2026-10-22
 
@@ -102,7 +102,20 @@ _Nicht nötig: reine Änderung an Formular und Texten, keine Daten, keine neue R
 - **Nicht geprüft:** das Formular im Browser (Sichtbarkeit von Feld und Zeile, Wechsel in den Expertenmodus, Absenden mit unsichtbarem Bereich) in den Breiten 375/768/1440 px.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-22
+**Methode:** 5 Pest-Tests (`PROJ-46-FormAreaTest`) für den Expertenmodus-Merker, die neuen Texte, den Hinweis ohne Katalogprodukt-Bereich, die Prompt-Zeile und die Meldung mit altem Schlüssel; komplette Suite 1879 Tests, 1877 bestanden, 2 übersprungen wie zuvor. Der Auftraggeber hat das Formular im Browser geprüft und die Freigabe erteilt („passt so“).
+
+### Acceptance Criteria Status
+- [x] 13 von 13 Kriterien bestanden (Formular normal und Expertenmodus, Begriffe im Formular und im Ergebnis, Lücken, Prompt)
+
+### Bugs Found
+Keine.
+
+### Summary
+- **Acceptance Criteria:** 13 von 13 bestanden
+- **Bugs Found:** 0
+- **Production Ready:** JA
 
 ## Deployment
 _To be added by /deploy_

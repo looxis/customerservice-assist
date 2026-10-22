@@ -58,7 +58,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
 | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | Approved |
 | Produktinformationen aus ProductForge (LOOXIS Content Studio) abrufen: Datenblattfelder und Kundenservice-Wissen je Produkt, Produktsuche, Zuordnung zur Bestellposition (statt Markdown-Dateien für alle Produktdetails) | Approved |
-| Aufgabenteilung Produktfakten (ProductForge) und Regeln (`/knowledge`) im Formular, bei Hinweisen und Wissenslücken | In Review |
+| Aufgabenteilung Produktfakten (ProductForge) und Regeln (`/knowledge`) im Formular, bei Hinweisen und Wissenslücken | Approved |
 | Produktvarianten anbieten (weitere Größen/Varianten eines Produkts aus EOCS, später Content Studio) | Approved |
 | Diagnose zum Vorschlag (Admin): warum dieses Ergebnis, Vorschlag zur Wissensänderung, später Änderung und Commit aus der App | Roadmap |
 | Vorläufiges Wissen (befristete Testphase mit Überprüfung) und Meldung veralteten Wissens durch Mitarbeiter für alle Wissensdokumente | Approved |
