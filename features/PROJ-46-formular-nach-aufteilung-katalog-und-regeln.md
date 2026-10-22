@@ -1,6 +1,6 @@
 # PROJ-46: Formular und Hinweise nach der Aufteilung von Produktkatalog und Wissensdatenbank
 
-## Status: Planned
+## Status: In Review
 **Created:** 2026-10-22
 **Last Updated:** 2026-10-22
 
@@ -32,28 +32,28 @@ Seit ProductForge (PROJ-38) und der Migration (PROJ-47) gilt: Der **Produktkatal
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
 **Formular, normal**
-- [ ] Angenommen ein Katalogprodukt ist gewählt und der Expertenmodus ist aus, wenn das Formular angezeigt wird, dann gibt es kein Feld „Wissensbereich“; stattdessen steht eine Zeile „Regeln für: <Bereich>“ mit dem vorbelegten Bereich.
-- [ ] Angenommen ein Katalogprodukt ist gewählt und es wurde kein Wissensbereich gefunden, wenn das Formular angezeigt wird, dann steht die neutrale Zeile „Es gelten die allgemeinen Regeln.“ ohne orangen Hinweis und ohne Satz zu einer Lücke.
-- [ ] Angenommen der vorbelegte Wissensbereich ist unsichtbar, wenn der Vorschlag erstellt wird, dann wird er wie bisher mit gesendet und bestimmt die Regeln.
-- [ ] Angenommen kein Katalogprodukt ist gewählt, wenn das Formular angezeigt wird, dann bleibt der Wissensbereich wie bisher im normalen Formular wählbar, ebenso „Produkt ohne hinterlegtes Wissen“ (neu beschriftet) und „Kein Produktbezug“.
+- [x] Angenommen ein Katalogprodukt ist gewählt und der Expertenmodus ist aus, wenn das Formular angezeigt wird, dann gibt es kein Feld „Wissensbereich“; stattdessen steht eine Zeile „Regeln für: <Bereich>“ mit dem vorbelegten Bereich.
+- [x] Angenommen ein Katalogprodukt ist gewählt und es wurde kein Wissensbereich gefunden, wenn das Formular angezeigt wird, dann steht die neutrale Zeile „Es gelten die allgemeinen Regeln.“ ohne orangen Hinweis und ohne Satz zu einer Lücke.
+- [x] Angenommen der vorbelegte Wissensbereich ist unsichtbar, wenn der Vorschlag erstellt wird, dann wird er wie bisher mit gesendet und bestimmt die Regeln.
+- [x] Angenommen kein Katalogprodukt ist gewählt, wenn das Formular angezeigt wird, dann bleibt der Wissensbereich wie bisher im normalen Formular wählbar, ebenso „Produkt ohne hinterlegtes Wissen“ (neu beschriftet) und „Kein Produktbezug“.
 
 **Formular, Expertenmodus**
-- [ ] Angenommen der Expertenmodus ist an, wenn ein Katalogprodukt gewählt ist, dann ist das Feld „Wissensbereich“ sichtbar, vorbelegt und änderbar wie heute.
+- [x] Angenommen der Expertenmodus ist an, wenn ein Katalogprodukt gewählt ist, dann ist das Feld „Wissensbereich“ sichtbar, vorbelegt und änderbar wie heute.
 
 **Begriffe im Formular und im Ergebnis**
-- [ ] Angenommen der Mitarbeiter tippt ein Produkt ein, das weder im Produktkatalog noch in der Wissensdatenbank steht, wenn der Eintrag in der Suche erscheint, dann lautet er „…“ – dazu ist weder im Produktkatalog (ProductForge/Content Studio & EOCS) noch in der Wissensdatenbank etwas hinterlegt. Du kannst die Bezeichnung trotzdem verwenden.
-- [ ] Angenommen ein so eingetipptes Produkt ist gewählt, wenn es als Marke erscheint, dann steht dort „(nicht im Produktkatalog)“, und der Hilfetext lautet „Zu diesem Produkt gibt es weder Katalogangaben noch Regeln …“.
-- [ ] Angenommen „Kein Produktbezug“ ist gewählt, wenn der Hinweis erscheint, dann nennt er, dass weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt werden.
-- [ ] Angenommen ein Vorschlag nennt ein Produkt, das weder im Katalog noch in der Wissensdatenbank steht, wenn das Ergebnis angezeigt wird, dann lautet der Hinweis „Weder Katalogangaben noch Regeln zu „…““; die beiden anderen Fälle („Noch nicht in ProductForge gepflegt“, „Kein Kundenservice-Wissen im Produktkatalog zu …“) bleiben.
-- [ ] Angenommen das Ergebnis zeigt „❗ Kein Produktwissen berücksichtigt“ (ohne Produktwahl), wenn es angezeigt wird, dann bleibt diese Zeile unverändert.
+- [x] Angenommen der Mitarbeiter tippt ein Produkt ein, das weder im Produktkatalog noch in der Wissensdatenbank steht, wenn der Eintrag in der Suche erscheint, dann lautet er „…“ – dazu ist weder im Produktkatalog (ProductForge/Content Studio & EOCS) noch in der Wissensdatenbank etwas hinterlegt. Du kannst die Bezeichnung trotzdem verwenden.
+- [x] Angenommen ein so eingetipptes Produkt ist gewählt, wenn es als Marke erscheint, dann steht dort „(nicht im Produktkatalog)“, und der Hilfetext lautet „Zu diesem Produkt gibt es weder Katalogangaben noch Regeln …“.
+- [x] Angenommen „Kein Produktbezug“ ist gewählt, wenn der Hinweis erscheint, dann nennt er, dass weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt werden.
+- [x] Angenommen ein Vorschlag nennt ein Produkt, das weder im Katalog noch in der Wissensdatenbank steht, wenn das Ergebnis angezeigt wird, dann lautet der Hinweis „Weder Katalogangaben noch Regeln zu „…““; die beiden anderen Fälle („Noch nicht in ProductForge gepflegt“, „Kein Kundenservice-Wissen im Produktkatalog zu …“) bleiben.
+- [x] Angenommen das Ergebnis zeigt „❗ Kein Produktwissen berücksichtigt“ (ohne Produktwahl), wenn es angezeigt wird, dann bleibt diese Zeile unverändert.
 
 **Lücken**
-- [ ] Angenommen die automatische Meldung für ein Produkt ohne Eintrag entsteht, wenn sie auf der Seite „Wissenslücken“ steht, dann lautet der Titel „Produkt „…“: weder Katalogangaben noch Regeln“, und der Kasten heißt „Produkte ohne Katalogangaben und ohne Regeln, nach Häufigkeit“.
-- [ ] Angenommen es gibt bereits automatische Meldungen mit dem alten Titel, wenn gleiche Produkte neu gemeldet werden, dann werden sie weiter mit den alten zusammengezählt (der interne Schlüssel bleibt unverändert).
-- [ ] Angenommen ein Katalogprodukt hat Daten, aber kein Kundenservice-Wissen, wenn ein Vorschlag erstellt wird, dann entsteht die Meldung für den Produktkatalog wie bisher und nennt „Produktkatalog“.
+- [x] Angenommen die automatische Meldung für ein Produkt ohne Eintrag entsteht, wenn sie auf der Seite „Wissenslücken“ steht, dann lautet der Titel „Produkt „…“: weder Katalogangaben noch Regeln“, und der Kasten heißt „Produkte ohne Katalogangaben und ohne Regeln, nach Häufigkeit“.
+- [x] Angenommen es gibt bereits automatische Meldungen mit dem alten Titel, wenn gleiche Produkte neu gemeldet werden, dann werden sie weiter mit den alten zusammengezählt (der interne Schlüssel bleibt unverändert).
+- [x] Angenommen ein Katalogprodukt hat Daten, aber kein Kundenservice-Wissen, wenn ein Vorschlag erstellt wird, dann entsteht die Meldung für den Produktkatalog wie bisher und nennt „Produktkatalog“.
 
 **Prompt**
-- [ ] Angenommen der Fall hat ein Produkt ohne Eintrag, wenn der Prompt entsteht, dann steht im Fallabschnitt „Produkt ohne hinterlegtes Wissen: … (weder Produktkatalog noch Regeln …)“.
+- [x] Angenommen der Fall hat ein Produkt ohne Eintrag, wenn der Prompt entsteht, dann steht im Fallabschnitt „Produkt ohne hinterlegtes Wissen: … (weder Produktkatalog noch Regeln …)“.
 
 ## Edge Cases
 - Mehrere Katalogprodukte mit verschiedenen Wissensbereichen: Die Zeile nennt alle Bereiche („Regeln für: A, B“).
@@ -91,7 +91,15 @@ Seit ProductForge (PROJ-38) und der Migration (PROJ-47) gilt: Der **Produktkatal
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+_Nicht nötig: reine Änderung an Formular und Texten, keine Daten, keine neue Route._
+
+## Implementation Notes (2026-10-22)
+- **Formular:** `scope-fields.blade.php` und `resources/js/scope-fields.js`: neues Merkmal `advanced` (aus `form.blade.php` und `question/form.blade.php`), Getter `areaVisible` (ohne Katalogprodukt oder im Expertenmodus sichtbar) und `areaLine` („Regeln für: A, B“ oder „Es gelten die allgemeinen Regeln.“). Überschrift, Hilfetext, gewählte Bereiche, Suchfeld und „Kein Produktbezug“ sind bei einem Katalogprodukt im normalen Modus ausgeblendet; die versteckten Felder `produkte[]` werden weiter gesendet. Der orange Hinweis „Kein passender Wissensbereich gefunden …“ ist entfernt.
+- **Wortwahl:** Eintrag in der Suche, Marke „(nicht im Produktkatalog)“, Hilfetexte und Hinweis bei „Kein Produktbezug“ (auch im Skript); Ergebnishinweis „Weder Katalogangaben noch Regeln zu …“; Seite „Wissenslücken“ (Titel und Kasten); Fehlermeldung bei fehlender Produktangabe.
+- **Meldung:** Anzeigetitel „Produkt „…“: weder Katalogangaben noch Regeln“ (`KnowledgeGapLog`); der interne Schlüssel („Produktwissen: <Name>“) bleibt unverändert, ältere Meldungen zählen weiter mit.
+- **Prompt:** Der Fallabschnitt nennt bei einem Produkt ohne Eintrag „weder Produktkatalog noch Regeln der Wissensdatenbank kennen es; erfinde nichts dazu“.
+- **Tests:** `PROJ-46-FormAreaTest` (5); angepasst: `PROJ-36` (Eisberg-Fall ohne PRODUCT-006, das seit PROJ-47 veraltet ist), `PROJ-42`, `PROJ-44`, `PROJ-45` (neue Texte). Komplette Suite grün.
+- **Nicht geprüft:** das Formular im Browser (Sichtbarkeit von Feld und Zeile, Wechsel in den Expertenmodus, Absenden mit unsichtbarem Bereich) in den Breiten 375/768/1440 px.
 
 ## QA Test Results
 _To be added by /qa_

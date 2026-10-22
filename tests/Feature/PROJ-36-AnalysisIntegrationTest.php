@@ -733,9 +733,9 @@ describe('the router in the analysis (PROJ-37)', function () {
 
     beforeEach(fn () => config(['knowledge.retrieval.active' => true, 'knowledge.router.active' => true]));
 
-    test('the Eisberg case: PRODUCT-006, PLAYBOOK-018 and PLAYBOOK-019 reach the analysis without any note of the employee', function () use ($eisberg, $routerAnswer) {
+    test('the Eisberg case: PLAYBOOK-018 and PLAYBOOK-019 reach the analysis without any note of the employee', function () use ($eisberg, $routerAnswer) {
         retrTicket($eisberg);
-        RouterAgent::fake([$routerAnswer(['PRODUCT-006', 'PLAYBOOK-018', 'PLAYBOOK-019'])]);
+        RouterAgent::fake([$routerAnswer(['PLAYBOOK-018', 'PLAYBOOK-019'])]);
         CaseAgent::fake([retrAnswer(['knowledge_ids' => ['PLAYBOOK-018']])]);
 
         retrAnalyze(['kundengruppe' => 'reseller', 'produkte' => ['3d-glass-photo']]);
@@ -744,17 +744,17 @@ describe('the router in the analysis (PROJ-37)', function () {
         $record = $stored->content['retrieval'];
         $origins = collect($record['documents'])->mapWithKeys(fn (array $item): array => [$item['id'] => $item['origin']]);
 
-        expect($stored->content['sent_input'])->toContain('## PRODUCT-006')->toContain('## PLAYBOOK-018')->toContain('## PLAYBOOK-019')
-            ->and($origins['PRODUCT-006'])->toBe('router')->and($origins['PLAYBOOK-018'])->toBe('router')->and($origins['PLAYBOOK-019'])->toBe('router')
+        expect($stored->content['sent_input'])->toContain('## PLAYBOOK-018')->toContain('## PLAYBOOK-019')
+            ->and($origins['PLAYBOOK-018'])->toBe('router')->and($origins['PLAYBOOK-019'])->toBe('router')
             ->and($origins['POLICY-004'])->toBe('core')
-            ->and($record['router']['status'])->toBe('executed')->and($record['router']['additions'])->toHaveCount(3)
-            ->and($record['router']['pool'])->toContain('PRODUCT-006', 'PLAYBOOK-018', 'PLAYBOOK-019')
+            ->and($record['router']['status'])->toBe('executed')->and($record['router']['additions'])->toHaveCount(2)
+            ->and($record['router']['pool'])->toContain('PLAYBOOK-018', 'PLAYBOOK-019')
             ->and(collect($record['documents'])->firstWhere('id', 'PLAYBOOK-018')['reasons'][0])->toStartWith('KI-Router: ')
-            ->and($stored->router_status)->toBe('executed')->and($stored->router_additions)->toBe(3)->and($stored->router_characters)->toBeGreaterThan(1000)
+            ->and($stored->router_status)->toBe('executed')->and($stored->router_additions)->toBe(2)->and($stored->router_characters)->toBeGreaterThan(1000)
             ->and($stored->content['sent_input'])->not->toContain('erika@example.org');
     });
 
-    test('without the router the same case does not find the three documents (so the router makes the difference)', function () use ($eisberg) {
+    test('without the router the same case does not find the two documents (so the router makes the difference)', function () use ($eisberg) {
         config(['knowledge.router.active' => false]);
         retrTicket($eisberg);
         CaseAgent::fake([retrAnswer()]);

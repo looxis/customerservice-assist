@@ -35,7 +35,7 @@ trait ChecksProductChoice
         $none = $this->boolean('kein_produktbezug');
 
         if (! $hasProduct && ! $hasName && ! $hasCatalogProduct && ! $none) {
-            $validator->errors()->add('produkte', 'Bitte ein Produkt wählen, ein Produkt ohne hinterlegtes Wissen nennen oder „Kein Produktbezug“ bestätigen.');
+            $validator->errors()->add('produkte', 'Bitte ein Produkt wählen, ein Produkt nennen, das nicht im Produktkatalog steht, oder „Kein Produktbezug“ bestätigen.');
         } elseif ($none && ($hasProduct || $hasName || $hasCatalogProduct)) {
             $validator->errors()->add('kein_produktbezug', 'Entweder Produkte angeben oder „Kein Produktbezug“ wählen, nicht beides.');
         }

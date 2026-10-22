@@ -1,4 +1,4 @@
-@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen'])
+@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen', 'advanced' => false])
 
 @php
     $products = collect($analysis['products'])->map(fn (array $product): array => [
@@ -31,6 +31,7 @@
         'unknown' => (string) $unknownName,
         'none' => (bool) $noProduct,
         'group' => (string) old('kundengruppe', $analysis['suggestedGroup'] ?? ''),
+        'advanced' => (bool) $advanced,
     ];
 @endphp
 
@@ -96,13 +97,14 @@
 
     <fieldset class="min-w-0 {{ $forgeEnabled ? 'md:col-span-2' : '' }}" aria-describedby="produkt-hinweis">
         @if ($forgeEnabled)
-            <legend class="block text-sm font-medium text-slate-900">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0"> *</span></legend>
-            <p class="mt-1 text-xs text-slate-600">Zu welchem Bereich unserer Regeln gehört der Fall (z. B. Essbare Fotos)? Die App schlägt ihn aus dem Produkt vor; bitte nur ändern, wenn der Vorschlag nicht stimmt. Das ist nicht das Produkt selbst.</p>
+            <legend class="block text-sm font-medium text-slate-900" x-show="areaVisible">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0"> *</span></legend>
+            <p class="mt-1 text-xs text-slate-600" x-show="areaVisible">Zu welchem Bereich unserer Regeln gehört der Fall (z. B. Essbare Fotos)? Die App schlägt ihn aus dem Produkt vor; bitte nur ändern, wenn der Vorschlag nicht stimmt. Das ist nicht das Produkt selbst.</p>
+            <p class="mt-1 text-xs text-slate-600" x-show="areaLine !== ''" x-cloak x-text="areaLine"></p>
         @else
             <legend class="block text-sm font-medium text-slate-900">Produkt(e)<span class="text-danger-500" aria-hidden="true"> *</span></legend>
         @endif
 
-        <div class="mt-1 flex flex-wrap gap-2" x-show="selected.length > 0 || unknown !== ''">
+        <div class="mt-1 flex flex-wrap gap-2" x-show="areaVisible && (selected.length > 0 || unknown !== '')">
             <template x-for="slug in selected" :key="slug">
                 <span class="inline-flex max-w-full items-center gap-1 rounded-full bg-brand/10 py-1 pr-1 pl-3 text-sm text-brand-700">
                     <input type="hidden" name="produkte[]" :value="slug">
@@ -114,12 +116,12 @@
             <span x-show="unknown !== ''" x-cloak class="inline-flex max-w-full items-center gap-1 rounded-full bg-warning-500/15 py-1 pr-1 pl-3 text-sm text-warning-700">
                 <input type="hidden" name="produkt_ohne_wissen" :value="unknown">
                 <span class="truncate" x-text="unknown"></span>
-                <span class="text-xs">(noch kein Produktwissen)</span>
-                <button type="button" class="inline-flex size-6 cursor-pointer items-center justify-center rounded-full hover:bg-warning-500/20 focus-visible:outline-2 focus-visible:outline-brand" x-on:click="unknown = ''" aria-label="Produkt ohne hinterlegtes Wissen entfernen">×</button>
+                <span class="text-xs">(nicht im Produktkatalog)</span>
+                <button type="button" class="inline-flex size-6 cursor-pointer items-center justify-center rounded-full hover:bg-warning-500/20 focus-visible:outline-2 focus-visible:outline-brand" x-on:click="unknown = ''" aria-label="Eingetipptes Produkt entfernen">×</button>
             </span>
         </div>
 
-        <div class="relative mt-2" x-on:click.outside="open = false">
+        <div class="relative mt-2" x-show="areaVisible" x-on:click.outside="open = false">
             <input type="text" x-model="query" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="produkt-treffer" :aria-expanded="open.toString()"
                    placeholder="Produkt suchen, z. B. Glasfoto, Tasse, Lunchbox …"
                    x-on:focus="open = true" x-on:input="open = true; active = 0"
@@ -137,12 +139,12 @@
                 </template>
                 <li role="option" x-show="canAddUnknown" x-on:mousedown.prevent="addUnknown()" x-on:mousemove="active = matches.length" :aria-selected="(active === matches.length).toString()"
                     class="cursor-pointer border-t border-slate-100 px-3 py-2 text-warning-700" :class="active === matches.length ? 'bg-warning-500/10' : ''">
-                    <span x-text="'„' + query.trim() + '“ – hierfür ist noch kein Produktwissen hinterlegt. Du kannst die Bezeichnung trotzdem verwenden.'"></span>
+                    <span x-text="'„' + query.trim() + '“ – dazu ist weder im Produktkatalog (ProductForge/Content Studio & EOCS) noch in der Wissensdatenbank etwas hinterlegt. Du kannst die Bezeichnung trotzdem verwenden.'"></span>
                 </li>
             </ul>
         </div>
 
-        <label class="mt-3 flex items-start gap-2 text-sm text-slate-900">
+        <label class="mt-3 flex items-start gap-2 text-sm text-slate-900" x-show="areaVisible">
             <input type="checkbox" name="kein_produktbezug" value="1" x-model="none" x-on:change="toggleNone()" class="mt-0.5 size-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand">
             <span>Kein Produktbezug <span class="text-slate-600">(z. B. Sendungsverfolgung oder eine allgemeine Frage)</span></span>
         </label>
@@ -150,9 +152,8 @@
         @foreach (($analysis['mentionedProducts'] ?? []) as $mentionedSlug)
             <p class="mt-1 text-xs font-medium text-warning-700">Im Ticket erwähnt: {{ $titles[$mentionedSlug] ?? $mentionedSlug }} ({{ implode(' · ', $reasons[$mentionedSlug] ?? []) }}) – nicht ausgewählt</p>
         @endforeach
-        <p x-show="unknown !== ''" x-cloak class="mt-1 text-xs font-medium text-warning-700">Zu diesem Produkt ist noch kein Wissen hinterlegt; die App erfindet nichts dazu. Kennst du die gesuchte Information (z. B. eine Funktion)? Trage sie unter „{{ $infoField }}“ ein, die KI nutzt sie. Nach dem Vorschlag kannst du die Wissenslücke melden.</p>
-        <p x-show="withoutProduct" x-cloak class="mt-1 text-xs font-medium text-warning-700">Ohne Produkt wird kein Produktwissen berücksichtigt. Geht es doch um ein Produkt, wähle es oder gib es oben ein – auch wenn es noch nicht in der Liste steht.</p>
-        <p x-show="forgeWithoutArea" x-cloak class="mt-1 text-xs font-medium text-warning-700">Kein passender Wissensbereich gefunden: Es gelten die allgemeinen Regeln. Die Produktdaten aus dem Katalog gehen trotzdem mit, ihre Verfügbarkeit steht oben beim Produkt. Gibt es zu diesem Bereich noch kein Wissen, wird die Lücke automatisch gemeldet, sofern der Katalog dazu kein Servicewissen hat.</p>
+        <p x-show="unknown !== ''" x-cloak class="mt-1 text-xs font-medium text-warning-700">Zu diesem Produkt gibt es weder Katalogangaben noch Regeln; die App erfindet nichts dazu. Kennst du die gesuchte Information (z. B. eine Funktion)? Trage sie unter „{{ $infoField }}“ ein, die KI nutzt sie. Nach dem Vorschlag kannst du die Wissenslücke melden.</p>
+        <p x-show="withoutProduct" x-cloak class="mt-1 text-xs font-medium text-warning-700">Ohne Produkt werden weder Produktangaben aus dem Produktkatalog (ProductForge/Content Studio & EOCS) noch produktbezogene Regeln berücksichtigt. Geht es doch um ein Produkt, wähle es oder gib es oben ein – auch wenn es noch nicht in der Liste steht.</p>
         <p id="produkt-hinweis" class="mt-1 text-xs text-slate-600" x-show="selected.length === 0 && unknown === '' && !none && forgeSelected.length === 0">Bitte ein Produkt wählen, ein unbekanntes Produkt eingeben oder „Kein Produktbezug“ ankreuzen.</p>
         @error('produkte')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror
         @error('kein_produktbezug')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror

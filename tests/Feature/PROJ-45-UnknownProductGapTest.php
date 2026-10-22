@@ -79,7 +79,7 @@ describe('automatic gap for a product without knowledge', function () {
         $this->withCookie('staff_name', 'Nele')->get($location)->assertSeeText('automatisch gemeldet');
 
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))
-            ->assertOk()->assertSeeText('Produkte ohne Wissen')->assertSeeText('LED-Leuchtsockel')->assertSeeText('1 Anfrage')->assertSeeText('Dimmbar laut Datenblatt')->assertSeeText('automatisch erfasst');
+            ->assertOk()->assertSeeText('Produkte ohne Katalogangaben und ohne Regeln')->assertSeeText('LED-Leuchtsockel')->assertSeeText('1 Anfrage')->assertSeeText('Dimmbar laut Datenblatt')->assertSeeText('automatisch erfasst');
     });
 
     test('a question records the gap with the text of the question as notes', function () {

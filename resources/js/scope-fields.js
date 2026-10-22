@@ -12,6 +12,7 @@ export default (config) => ({
     unknown: config.unknown,
     none: config.none,
     group: config.group,
+    advanced: config.advanced ?? false,
     query: '',
     open: false,
     active: 0,
@@ -139,6 +140,22 @@ export default (config) => ({
             this.selected.push(slug);
             this.reasons[slug] = [...(this.reasons[slug] ?? []), 'vom Katalogprodukt vorgeschlagen'];
         });
+    },
+
+    // The area of rules (PROJ-46): with a catalog product the form shows it only as a line; the field itself is for the
+    // expert mode. The hidden area is still sent.
+    get areaVisible() {
+        return !this.forge.enabled || this.forgeSelected.length === 0 || this.advanced;
+    },
+
+    get areaLine() {
+        if (!this.forge.enabled || this.forgeSelected.length === 0) {
+            return '';
+        }
+
+        const names = this.selected.map((slug) => this.product(slug)?.name ?? slug);
+
+        return names.length > 0 ? `Regeln für: ${names.join(', ')}` : 'Es gelten die allgemeinen Regeln.';
     },
 
     get forgeWithoutArea() {
@@ -309,8 +326,8 @@ export default (config) => ({
 
         if (this.withoutProduct) {
             parts.push(this.mentioned.length > 0
-                ? `„Kein Produktbezug“ ist gewählt, im Ticket wird aber ${this.mentioned.join(', ')} erwähnt. Dann wird kein Produktwissen berücksichtigt.`
-                : '„Kein Produktbezug“ ist gewählt. Dann wird kein Produktwissen berücksichtigt.');
+                ? `„Kein Produktbezug“ ist gewählt, im Ticket wird aber ${this.mentioned.join(', ')} erwähnt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.`
+                : '„Kein Produktbezug“ ist gewählt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.');
         }
 
         if (this.forgeUnchosen) {

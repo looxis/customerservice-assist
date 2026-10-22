@@ -164,7 +164,7 @@
             @if (($meta['unknown_product'] ?? null) && ! $catalogHasService)
                 @php($unknownReportedBy = $reported['topics'][\App\Analysis\KnowledgeGapLog::topicHash(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product']))] ?? null)
                 <x-alert type="warning">
-                    <p class="font-semibold">{{ $eocsSelected->isNotEmpty() ? 'Noch nicht in ProductForge gepflegt:' : ($catalogSelected->isNotEmpty() ? 'Kein Kundenservice-Wissen im Produktkatalog zu' : 'Kein Produktwissen zu') }} „{{ $meta['unknown_product'] }}“</p>
+                    <p class="font-semibold">{{ $eocsSelected->isNotEmpty() ? 'Noch nicht in ProductForge gepflegt:' : ($catalogSelected->isNotEmpty() ? 'Kein Kundenservice-Wissen im Produktkatalog zu' : 'Weder Katalogangaben noch Regeln zu') }} „{{ $meta['unknown_product'] }}“</p>
                     @if ($eocsSelected->isNotEmpty())
                         <p class="mt-1 text-sm">Beschreibung und Bullet Points kommen aus EOCS; Kundenservice-Wissen gibt es dazu nicht. Das fehlende Produkt in ProductForge wurde automatisch gemeldet, du musst nichts tun.</p>
                     @elseif ($catalogSelected->isNotEmpty())
@@ -174,10 +174,10 @@
                     @endif
                     @if ($eocsSelected->isEmpty())
                         @if ($unknownReportedBy)
-                            <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Die fehlende Information wurde automatisch gemeldet, zusammen mit deinen Angaben aus dem Formular. Du musst nichts weiter tun.</p>
+                            <p class="mt-1">Zu diesem Produkt gibt es weder Katalogangaben noch Regeln; der Vorschlag sagt dazu bewusst nichts zu. Die fehlende Information wurde automatisch gemeldet, zusammen mit deinen Angaben aus dem Formular. Du musst nichts weiter tun.</p>
                         @else
-                            <p class="mt-1">Zu diesem Produkt ist noch kein Wissen hinterlegt; der Vorschlag sagt dazu bewusst nichts zu. Bitte melde das fehlende Wissen, damit es ergänzt wird.</p>
-                            <button type="button" class="mt-1 text-xs font-semibold underline" x-data x-on:click="$dispatch('report-gap', { topic: @js(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product'])), missing: @js('Produktwissen zu „'.$meta['unknown_product'].'“') })">Wissenslücke melden</button>
+                            <p class="mt-1">Zu diesem Produkt gibt es weder Katalogangaben noch Regeln; der Vorschlag sagt dazu bewusst nichts zu. Bitte melde das fehlende Wissen, damit es ergänzt wird.</p>
+                            <button type="button" class="mt-1 text-xs font-semibold underline" x-data x-on:click="$dispatch('report-gap', { topic: @js(\App\Analysis\KnowledgeGapLog::unknownProductTopic($meta['unknown_product'])), missing: @js('Produkt „'.$meta['unknown_product'].'“: weder Katalogangaben noch Regeln') })">Wissenslücke melden</button>
                         @endif
                     @endif
                 </x-alert>

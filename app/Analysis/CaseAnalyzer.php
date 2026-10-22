@@ -568,7 +568,7 @@ class CaseAnalyzer
                 .($request->claimReferences === [] ? '' : "\n".implode("\n", array_map(fn (array $claim): string => 'Das Ticket nennt den Reklamationsauftrag '.app(OrderFormats::class)->claimPrefix()."{$claim['claim']} zur Bestellung {$claim['order']} (Folgevorgang einer Reklamation).", $request->claimReferences)))
                 .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
                     .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
-                        ? 'Produktwissen fehlt in der Wissensbasis; erfinde nichts dazu'
+                        ? 'weder Produktkatalog noch Regeln der Wissensdatenbank kennen es; erfinde nichts dazu'
                         : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')')
                 .$this->knownQuestionTopics($request),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),

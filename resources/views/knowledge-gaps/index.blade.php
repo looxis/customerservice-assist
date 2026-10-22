@@ -26,8 +26,8 @@
 
     @if ($status === 'open' && $unknownProducts->isNotEmpty())
         <x-card>
-            <h2 class="text-base font-semibold text-slate-900">Produkte ohne Wissen, nach Häufigkeit</h2>
-            <p class="mt-1 text-sm text-slate-600">Automatisch erfasst, wenn ein Vorschlag für ein Produkt ohne hinterlegtes Wissen erstellt wurde. Gezählt werden Tickets und Fragen, ohne Testläufe.</p>
+            <h2 class="text-base font-semibold text-slate-900">Produkte ohne Katalogangaben und ohne Regeln, nach Häufigkeit</h2>
+            <p class="mt-1 text-sm text-slate-600">Automatisch erfasst, wenn ein Vorschlag für ein Produkt erstellt wurde, zu dem weder der Produktkatalog (ProductForge/Content Studio & EOCS) noch die Wissensdatenbank etwas enthält. Gezählt werden Tickets und Fragen, ohne Testläufe.</p>
             <ul class="mt-3 divide-y divide-slate-100">
                 @foreach ($unknownProducts as $row)
                     <li class="py-3 text-sm">

@@ -95,7 +95,7 @@ describe('required answers', function () {
         $stored = app(AnalysisStore::class)->result($query['analyse']);
         expect($stored['inputs']['produkt_ohne_wissen'])->toBe('Fotokalender')->and($stored['meta']['unknown_product'])->toBe('Fotokalender');
 
-        $this->withCookie('staff_name', 'Nele')->get($location)->assertSeeText('Kein Produktwissen zu „Fotokalender“')->assertSeeText('automatisch gemeldet');
+        $this->withCookie('staff_name', 'Nele')->get($location)->assertSeeText('Weder Katalogangaben noch Regeln zu „Fotokalender“')->assertSeeText('automatisch gemeldet');
     });
 
     test('a too long name is refused', function () {

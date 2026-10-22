@@ -76,7 +76,7 @@ class KnowledgeGapLog
             'test_run' => $analysis->test_until !== null,
             'gap_topic_hash' => $hash,
             'content' => [
-                'missing' => 'Produktwissen zu „'.$name.'“',
+                'missing' => 'Produkt „'.$name.'“: weder Katalogangaben noch Regeln',
                 'solution' => null,
                 'comment' => null,
                 'source' => 'auto',

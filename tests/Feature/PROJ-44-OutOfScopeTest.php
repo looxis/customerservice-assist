@@ -111,7 +111,7 @@ describe('result view', function () {
         CaseAgent::fake([osAnswer()]);
         $analysis = osAnalyze(['produkt_ohne_wissen' => 'Fotokalender']);
 
-        $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertSeeText('Kein Produktwissen zu „Fotokalender“')->assertDontSeeText('Kein Produktwissen berücksichtigt');
+        $this->withCookie('staff_name', 'Nele')->get($analysis['location'])->assertSeeText('Weder Katalogangaben noch Regeln zu „Fotokalender“')->assertDontSeeText('Kein Produktwissen berücksichtigt');
     });
 
     test('an analysis from before this feature shows neither section nor warning', function () {

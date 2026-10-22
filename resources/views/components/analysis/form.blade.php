@@ -72,7 +72,7 @@
                 <x-analysis.related-tickets :related="$analysis['related']" />
             @endif
 
-            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" />
+            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" />
 
             <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}
                 @if ($unloadedOrders !== [] || $selected !== [] || $analysis['hasOrders']) <span class="text-slate-600">Auswahl und Laden stehen oben unter „Bestellungen“.</span>@endif
