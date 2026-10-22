@@ -76,6 +76,7 @@ Die Aussage allein zeigt noch nicht, ob eine falsche Variante geliefert wurde od
 2. Bei farbiger Variante prüfen, ob Henkel und Innenseite der Lieferung der bestellten Farbe entsprechen. Bereits mitgeschickte Fotos zuerst auswerten. Die allgemeine Produktgestaltung kann schon in der ersten Antwort erklärt werden; fehlt ein Foto, dabei vorsorglich um eines bitten, falls wir das Anliegen falsch verstanden haben. Eine abschließende Bestätigung der korrekten Lieferung setzt eine hinreichende Prüfung voraus.
 3. Bei beanstandeten weißen Außenbereichen die gespeicherte Konfiguration prüfen: Weißer Motivhintergrund, nicht belegte Druckfläche oder der technische Freiraum am Henkel? Das Motiv nicht allein aus der Kundenschilderung als korrekt umgesetzt behandeln.
 4. Tatsächlich gedruckte und konfigurierte Fläche vergleichen. Bei Zweifeln Produktbeschreibung, Produktfotos und Muster nach POLICY-033 berücksichtigen. Keine erfundene Millimetergrenze für den Henkelbereich anwenden.
+5. Bei einer konkreten Reklamation die tatsächlich bestellte Variante, die gespeicherte Gestaltung und die für den Auftrag maßgebliche Darstellung prüfen. Nicht allein aus der heute beschriebenen Darstellung (Bulletpoints, Produktbeschreibung, Produktfotos) auf den Inhalt eines früheren Angebots schließen.
 
 # Einordnung
 
