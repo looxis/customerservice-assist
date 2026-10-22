@@ -27,7 +27,11 @@ order_keywords:
 - B07R51MVTJ
 - '11282'
 - '11051'
-summary: "Grundlagen zur Zaubertasse mit Thermoeffekt: Funktion, Grenzen, Pflege."
+customer_terms:
+- Tasse mit Thermoeffekt
+- Tasse mit Farbwechsel
+- Tasse mit Zaubereffekt
+summary: "Wissensbereich für die Zaubertasse mit Thermoeffekt: ordnet Fragen und Beanstandungen (schwarze Tasse erhalten, Thermoeffekt funktioniert nicht, Beschichtung löst sich) den Playbooks und dem Prüfablauf zu (PLAYBOOK-003 bis 005, PROCESS-004). Die Produktfakten stehen in ProductForge."
 retrieval: core
 triggers:
 exclude_triggers:
@@ -37,31 +41,9 @@ actions:
 
 Gilt für Zaubertassen aller Kundenarten und Vertriebskanäle.
 
-# Varianten und Funktion
+# Überblick
 
-Die Zaubertasse gibt es innen weiß und innen schwarz. Außen und am Henkel ist sie bei beiden Varianten schwarz. Die äußere Thermobeschichtung verdeckt im kalten Zustand den darunterliegenden, nach Kundenkonfiguration angefertigten Druck. Beim Erwärmen wird die Beschichtung transparent und der Druck sichtbar.
-
-# Grenzen der Deckung
-
-Im kalten Zustand beträgt die Deckung ungefähr 95 Prozent. Starke Kontraste des Drucks können deshalb auch kalt erkennbar sein. Das ist eine beschriebene Produkteigenschaft und allein kein Reklamationsgrund.
-
-Im warmen Zustand verbleibt ungefähr 10 Prozent Deckung. Eine vollständig transparente Beschichtung ist nicht zugesagt. Diese ungefähren Angaben beschreiben den Effekt; sie sind keine festgelegten messtechnischen Prüftoleranzen.
-
-Beim Einfüllen heißen Wassers erwärmt sich die Keramik samt Beschichtung. Der Druck wird üblicherweise schrittweise von unten nach oben sichtbar.
-
-# Einfluss der Füllhöhe
-
-Die Thermobeschichtung reagiert auf die Erwärmung der Keramik. Deshalb muss für eine vollständige Prüfung auch der obere Bereich der Tasse ausreichend erwärmt werden.
-
-Wird nur wenig heißes Wasser eingefüllt, erwärmt sich zunächst vor allem der untere Bereich. Gleichzeitig gibt das Wasser Wärme an die Keramik ab und kühlt dadurch ab. Ein nur teilweise gefüllter Becher kann deshalb im oberen Bereich dunkel bleiben, obwohl der Thermoeffekt technisch funktioniert.
-
-Insbesondere wenn der Kunde beanstandet, dass Schrift oder Motiv am oberen Rand nicht sichtbar werden, ist ein Test mit geringer Füllhöhe nicht aussagekräftig.
-
-Für die Funktionsprüfung nach PROCESS-004 muss die Tasse mit mindestens 80 °C heißem Wasser bis ungefähr 1 bis 1,5 cm unterhalb des Tassenrands gefüllt werden.
-
-# Pflege
-
-Die Thermobeschichtung ist empfindlich. Die Tasse darf nicht in die Spülmaschine und muss von Hand gereinigt werden. Darauf weisen die Produkthinweise und der Aufkleber mit Pflege-Icons hin.
+Diese Datei ist der Wissensbereich, dem die Regeln zur Zaubertasse zugeordnet sind. Die Produktfakten (Funktion der Thermobeschichtung, Deckung, Füllhöhe, Pflege, Varianten innen weiß und innen schwarz) stehen im Produktkatalog ProductForge und werden dort gepflegt. Im Katalog heißt das Produkt „Zaubertasse“.
 
 # Typische Anfragen
 
@@ -69,4 +51,6 @@ Die Thermobeschichtung ist empfindlich. Die Tasse darf nicht in die Spülmaschin
 - „Der Thermoeffekt funktioniert nicht“: PLAYBOOK-004; Test nach PROCESS-004.
 - „Die Beschichtung löst sich“: PLAYBOOK-005.
 
-Die Beschichtung löst sich bei solchen Reklamationen überwiegend am oberen Rand, seltener unten an der Aufstandsfläche. Der Ort allein beweist keine falsche Pflege.
+# Konsequenz für den Kundenservice
+
+Bei Beanstandungen zur Zaubertasse die Produktfakten aus ProductForge heranziehen und die Bewertung nach den genannten Playbooks und dem Prüfablauf vornehmen. Die Funktionsprüfung selbst steht in PROCESS-004.
