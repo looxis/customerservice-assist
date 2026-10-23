@@ -2,7 +2,7 @@
 id: PLAYBOOK-037
 title: Anfrage nach früheren Aura-Namen (Nano, Kelo, Mega, Giga, Big Block)
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:
@@ -28,13 +28,14 @@ when:
 actions:
 related_knowledge:
 - PRODUCT-003
+- GLOSSARY-005
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle bei 3D-Glasfotos im Quader (Aura).
 
 # Fallmuster
 
-Ein Kunde nennt einen früheren Modellnamen (Nano, Kelo, Mega, Giga, Big Block) oder vermisst ein Modell, das es unter diesem Namen nicht mehr gibt. Die Quader wurden am 13. Januar 2026 umbenannt; physische Produkte und Abmessungen blieben unverändert (Zuordnung der Namen: Produktkatalog ProductForge, Master „Aura (Quader)“).
+Ein Kunde nennt einen früheren Modellnamen (Nano, Kelo, Mega, Giga, Big Block) oder vermisst ein Modell, das es unter diesem Namen nicht mehr gibt. Die Quader wurden am 13. Januar 2026 umbenannt; physische Produkte und Abmessungen blieben unverändert (Zuordnung der Namen: Produktkatalog ProductForge, Master „Aura (Quader)“). Auf Amazon gilt für zwei Größen noch die alte Bezeichnung (GLOSSARY-005).
 
 # Empfohlene Maßnahme
 
