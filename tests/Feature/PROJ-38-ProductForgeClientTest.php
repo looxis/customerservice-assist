@@ -43,6 +43,17 @@ function forgeProductWith(array $content, int $id = 2002, array $overrides = [])
     return ForgeProduct::fromResponse($data);
 }
 
+it('reads the shared and the product-only part of the service knowledge', function () {
+    $knowledge = ['combined' => 'A', 'origin_text' => 'O', 'own_text' => "S\n\nP", 'own_text_shared' => 'S', 'own_text_product_only' => 'P', 'origin' => null, 'holder' => null];
+    $product = forgeProductWith(['customer_service_knowledge' => $knowledge]);
+
+    expect($product->serviceKnowledge())
+        ->own_text_shared->toBe('S')
+        ->own_text_product_only->toBe('P')
+        ->own_text->toBe("S\n\nP");
+    expect(forgeProductWith(['customer_service_knowledge' => ['combined' => 'x']])->serviceKnowledge()['own_text_product_only'])->toBeNull();
+});
+
 describe('client', function () {
     test('the SKU goes out unchanged and the token only in the header', function () {
         fakeForge(bySku: ['007-aB/c d' => forgeFixture('variant-with-origin')]);

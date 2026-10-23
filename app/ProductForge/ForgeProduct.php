@@ -172,7 +172,7 @@ final readonly class ForgeProduct
     }
 
     /**
-     * @return array{combined: ?string, origin_text: ?string, own_text: ?string, origin: ?array<string, mixed>, holder: ?array<string, mixed>}
+     * @return array{combined: ?string, origin_text: ?string, own_text: ?string, own_text_shared: ?string, own_text_product_only: ?string, origin: ?array<string, mixed>, holder: ?array<string, mixed>}
      */
     public function serviceKnowledge(): array
     {
@@ -182,6 +182,8 @@ final readonly class ForgeProduct
             'combined' => self::clean($knowledge['combined'] ?? null),
             'origin_text' => self::clean($knowledge['origin_text'] ?? null),
             'own_text' => self::clean($knowledge['own_text'] ?? null),
+            'own_text_shared' => self::clean($knowledge['own_text_shared'] ?? null),
+            'own_text_product_only' => self::clean($knowledge['own_text_product_only'] ?? null),
             'origin' => is_array($knowledge['origin'] ?? null) ? $knowledge['origin'] : null,
             'holder' => is_array($knowledge['holder'] ?? null) ? $knowledge['holder'] : null,
         ];

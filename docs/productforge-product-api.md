@@ -1,4 +1,4 @@
-> **Vertragsreferenz (PROJ-38).** Kopie von `looxis-productforge/docs/product-information-api.md`, erneuert am 2026-10-20 um den Schlüssel `content.user_manual` (Bedienungsanleitung). Maßgeblich bleibt das ProductForge-Repository; bei Änderungen dort diese Kopie erneuern. Einrichtung in der Service-App: `PRODUCTFORGE_URL`, `PRODUCTFORGE_TOKEN`, `PRODUCTFORGE_TIMEOUT` (siehe Spec PROJ-38).
+> **Vertragsreferenz (PROJ-38).** Kopie von `looxis-productforge/docs/product-information-api.md`, erneuert am 2026-10-22 um die Felder `own_text_shared` und `own_text_product_only` (Wissen und Bedienungsanleitung); davor am 2026-10-20 um den Schlüssel `content.user_manual` (Bedienungsanleitung). Maßgeblich bleibt das ProductForge-Repository; bei Änderungen dort diese Kopie erneuern. Einrichtung in der Service-App: `PRODUCTFORGE_URL`, `PRODUCTFORGE_TOKEN`, `PRODUCTFORGE_TIMEOUT` (siehe Spec PROJ-38).
 
 # Produktinformations-API (v1)
 
@@ -144,9 +144,11 @@ bullet_points: { format: { shop: "text; only <b></b> markup allowed", amazon: "p
 
 | Feld | Typ | Bedeutung |
 |---|---|---|
-| `combined` | string\|null | Ursprungstext, Leerzeile, eigener Text (leere Teile entfallen) |
-| `origin_text` | string\|null | vollständig übernommener Text des Wissensursprungs (nur wenn der Halter von einem anderen Produkt übernimmt) |
-| `own_text` | string\|null | eigener Text bzw. **Ergänzung** des Halters (ersetzt den Ursprungstext nie) |
+| `combined` | string\|null | Ursprungstext, Leerzeile, gemeinsamer eigener Text, Leerzeile, Text nur für dieses Produkt (leere Teile entfallen) |
+| `origin_text` | string\|null | vollständig übernommener **gemeinsamer** Text des Wissensursprungs (nur wenn der Halter von einem anderen Produkt übernimmt; dessen `own_text_product_only` ist nie enthalten) |
+| `own_text` | string\|null | gesamter eigener Text bzw. **Ergänzung** des Halters = `own_text_shared` + Leerzeile + `own_text_product_only` (ersetzt den Ursprungstext nie) |
+| `own_text_shared` | string\|null | *gemeinsamer* Teil des eigenen Textes — genau dieser Teil wird von Produkten übernommen, die den Halter als Ursprung nutzen |
+| `own_text_product_only` | string\|null | Text **nur für dieses Produkt** (und seine Varianten); wird nie an Produkte weitergegeben, die den Halter als Ursprung nutzen |
 | `origin` | object\|null | Ursprungsprodukt `{id, name, sku, type, status}` |
 | `holder` | object\|null | Produkt, an dem das Wissen gepflegt wird `{id, name, sku, type, status}` |
 | `inherited_from_master` | boolean | `true` bei Varianten (erben das gesamte Wissen ihres Masters) |
@@ -154,7 +156,7 @@ bullet_points: { format: { shop: "text; only <b></b> markup allowed", amazon: "p
 
 Regeln: Varianten haben kein eigenes Wissen. Ein Master/eigenständiges Produkt hat optional eigenen Text und höchstens einen Ursprung; Ursprungsketten gibt es nicht. Der Verweis wird bei jedem Abruf live aufgelöst (keine Kopien) — Änderungen am Ursprung sind im nächsten Abruf sichtbar. Fehlendes Wissen: alle Texte `null`, `origin` `null` — die übrigen Produktdaten bleiben vollständig nutzbar.
 
-**`user_manual`** — wirksame Bedienungsanleitung (PROJ-38): identische Struktur und Regeln wie `customer_service_knowledge` (`combined`, `origin_text`, `own_text`, `origin`, `holder`, `inherited_from_master`, `holder_is_successor`), jedoch mit eigener Pflege und eigenem Ursprung. Fehlende Bedienungsanleitung: alle Texte `null`.
+**`user_manual`** — wirksame Bedienungsanleitung (PROJ-38): identische Struktur und Regeln wie `customer_service_knowledge` (`combined`, `origin_text`, `own_text`, `own_text_shared`, `own_text_product_only`, `origin`, `holder`, `inherited_from_master`, `holder_is_successor`), jedoch mit eigener Pflege und eigenem Ursprung. Fehlende Bedienungsanleitung: alle Texte `null`.
 
 ### Leere Werte
 Textfelder sind **`null`**, nie `""` (nur Leerzeichen zählt als leer). Listen (`positions`) sind `[]`. Objekte (`master`, `origin`, `holder`) sind `null`.
@@ -231,6 +233,8 @@ curl -s -H "Authorization: Bearer $TOKEN" \
         "combined": "Beispieltext des Ursprungs (fiktiv).\n\nErgänzung zum eckigen Produkt (fiktiv).",
         "origin_text": "Beispieltext des Ursprungs (fiktiv).",
         "own_text": "Ergänzung zum eckigen Produkt (fiktiv).",
+        "own_text_shared": "Ergänzung zum eckigen Produkt (fiktiv).",
+        "own_text_product_only": null,
         "origin": { "id": 2010, "name": "Demo Tortenaufleger rund", "sku": "DEMO-ROUND", "type": "master", "status": "active" },
         "holder": { "id": 2001, "name": "Demo Tortenaufleger eckig", "sku": "DEMO-SQUARE", "type": "master", "status": "active" },
         "inherited_from_master": true,
@@ -240,6 +244,8 @@ curl -s -H "Authorization: Bearer $TOKEN" \
         "combined": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
         "origin_text": null,
         "own_text": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
+        "own_text_shared": "Schritt 1: Aufleger mittig platzieren (fiktiv).",
+        "own_text_product_only": null,
         "origin": null,
         "holder": { "id": 2001, "name": "Demo Tortenaufleger eckig", "sku": "DEMO-SQUARE", "type": "master", "status": "active" },
         "inherited_from_master": true,
@@ -271,12 +277,12 @@ curl -s -H "Authorization: Bearer $TOKEN" \
       },
       "bullet_points": { "format": { "shop": "text; only <b></b> markup allowed", "amazon": "plain_text" }, "positions": [] },
       "customer_service_knowledge": {
-        "combined": null, "origin_text": null, "own_text": null, "origin": null,
+        "combined": null, "origin_text": null, "own_text": null, "own_text_shared": null, "own_text_product_only": null, "origin": null,
         "holder": { "id": 3001, "name": "Demo Artikel leer", "sku": "DEMO-EMPTY", "type": "standalone", "status": "active" },
         "inherited_from_master": false, "holder_is_successor": false
       },
       "user_manual": {
-        "combined": null, "origin_text": null, "own_text": null, "origin": null,
+        "combined": null, "origin_text": null, "own_text": null, "own_text_shared": null, "own_text_product_only": null, "origin": null,
         "holder": { "id": 3001, "name": "Demo Artikel leer", "sku": "DEMO-EMPTY", "type": "standalone", "status": "active" },
         "inherited_from_master": false, "holder_is_successor": false
       }
