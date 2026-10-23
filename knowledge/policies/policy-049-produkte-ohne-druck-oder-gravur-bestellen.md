@@ -47,6 +47,7 @@ related_knowledge:
   - POLICY-043
   - PROCESS-010
   - POLICY-001
+  - POLICY-056
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle; für Amazon-Nachrichten gilt der Abschnitt „Amazon“.
