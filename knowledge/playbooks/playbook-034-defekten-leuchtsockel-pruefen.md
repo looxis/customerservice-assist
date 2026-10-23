@@ -3,7 +3,7 @@ id: PLAYBOOK-034
 title: Defekten Leuchtsockel prüfen
 type: playbook
 status: active
-last_reviewed: 2026-10-21
+last_reviewed: 2026-10-23
 customer_types:
 sales_channels:
 products:
@@ -56,7 +56,8 @@ Ein Kunde oder Händler meldet einen Defekt am Leuchtsockel.
 - **Falsches Netzteil (zum Beispiel 12 Volt am Basic-Sockel, der mit 4,5 Volt läuft):** Kundenfehler. Die Spannung steht auf dem Netzteil, die benötigte Spannung ist auf dem Sockel aufgedruckt. Die Reklamation wird nicht anerkannt. Das gilt auch für Händler, die ein falsches Netzteil mitverkauft haben. Der Kunde und gegebenenfalls der Händler erfahren, dass das Netzteil nicht passte.
 - **Ausgelaufene Batterien:** Kundenfehler, wenn der Kunde die Batterien selbst eingesetzt hat. Bei mitgelieferten Batterien oder bei Beschädigung und Sicherheitsrisiko intern klären.
 - **Steuerung friert ein (Opera):** Ein bekannter, vereinzelt auftretender Fehler. Ein Neustart (Stecker ziehen, kurz warten, wieder einstecken) hilft, die Steuerung friert später aber wieder ein. Wir vermuten, dass es meist die Version V3 betrifft; bestätigt ist das nicht und wird dem Kunden nicht als Tatsache genannt. Zuerst den Neustart empfehlen. Hat der Kunde ihn schon probiert oder friert die Steuerung wieder ein, gilt innerhalb von 24 Monaten die Staffel nach POLICY-054.
-- **Abgebrochene Rückwand oder defekte Fernbedienung (Opera):** Bekannte Reklamationsgründe; Staffel nach POLICY-054.
+- **Abgebrochene Rückwand (Opera):** Bekannter Reklamationsgrund; Staffel nach POLICY-054.
+- **Fernbedienung scheint defekt (Opera):** Nicht sofort als defekte Fernbedienung werten. Die Fernbedienung kann defekt sein, es kann aber auch an der Programmierung des Leuchtsockels liegen. Zuerst bitten, den Sockel stromlos zu machen (Stecker ziehen), kurz zu warten und ihn wieder einzustecken. Funktioniert die Fernbedienung danach wieder, liegt es an der V3-Problematik des Opera-Sockels (siehe „Steuerung friert ein“), nicht an der Fernbedienung. Funktioniert sie danach weiterhin nicht, gilt die Staffel nach POLICY-054.
 - **Einzelne LED ausgefallen:** Nicht als Verschleiß abtun; Staffel nach POLICY-054 (geringfügiger Defekt).
 
 # Noch nicht entscheidbar wenn
@@ -80,6 +81,7 @@ PERMISSION-007.
 # No-Gos
 
 - Eine Erstattung zusagen.
+- Eine Fernbedienung als defekt behandeln, bevor der Neustart (Sockel stromlos machen) versucht wurde.
 - Dem Kunden als Tatsache nennen, der Fehler betreffe nur die V3.
 - Einen Defekt pauschal als Verschleiß abtun.
 - Von „Garantie“ sprechen.

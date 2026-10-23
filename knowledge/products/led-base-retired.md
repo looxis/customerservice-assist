@@ -3,7 +3,7 @@ id: PRODUCT-009
 title: "Ausgelaufene Leuchtsockel und Leuchtstelen: Opera, Opera für Glasfotos in Farbe, Leuchtstelen"
 type: product
 status: active
-last_reviewed: 2026-10-21
+last_reviewed: 2026-10-23
 trial_until: 2027-12-31
 trial_goal: "Prüfen, ob die Restbestände der Leuchtstelen-Lampen aufgebraucht sind; Dokument anpassen oder auf deprecated setzen."
 customer_types:
@@ -112,7 +112,7 @@ Ausgelaufen, teilweise noch verfügbar. Leuchtsockel mit Wifi-Anbindung und Fern
 
 Modellnamen: Adagio, Aria, Arpeggio, Capriccio, Concerto, Kantate, Virtuoso, Sonata, Maestro, Maggiore, Ouverture, Serenata, Sinfonia, Scala, Prelude, Belcanto, Presto, Diva, Libretto.
 
-**Bekannte Probleme:** auf dem Versandweg abgebrochene Rückwände, nicht funktionierende Sockel, nicht mehr funktionierende Fernbedienungen und, vermutlich nur bei der dritten Charge (V3), eine Steuerung, die sich nach einer Zeit aufhängt (siehe PLAYBOOK-034). Diese Probleme führten zur Einstellung der Reihe und zur Neuentwicklung der modularen Leuchtsockel.
+**Bekannte Probleme:** auf dem Versandweg abgebrochene Rückwände, nicht funktionierende Sockel, eine Fernbedienung, die scheinbar nicht mehr funktioniert (oft liegt es an der Programmierung des Sockels und nicht an der Fernbedienung, siehe PLAYBOOK-034), und, vermutlich nur bei der dritten Charge (V3), eine Steuerung, die sich nach einer Zeit aufhängt (siehe PLAYBOOK-034). Diese Probleme führten zur Einstellung der Reihe und zur Neuentwicklung der modularen Leuchtsockel.
 
 **Ersatz:** Ist das Modell nicht mehr verfügbar, wird ein modularer Leuchtsockel in passender Größe angeboten, gegebenenfalls im Paket mit Rückwand.
 
