@@ -114,6 +114,8 @@ Modellnamen: Adagio, Aria, Arpeggio, Capriccio, Concerto, Kantate, Virtuoso, Son
 
 **Bekannte Probleme:** auf dem Versandweg abgebrochene Rückwände, nicht funktionierende Sockel, eine Fernbedienung, die scheinbar nicht mehr funktioniert (oft liegt es an der Programmierung des Sockels und nicht an der Fernbedienung, siehe PLAYBOOK-034), und, vermutlich nur bei der dritten Charge (V3), eine Steuerung, die sich nach einer Zeit aufhängt (siehe PLAYBOOK-034). Diese Probleme führten zur Einstellung der Reihe und zur Neuentwicklung der modularen Leuchtsockel.
 
+**Fernbedienung nachbestellen:** Eine Fernbedienung für die Opera Leuchtsockel (zum Beispiel bei Verlust oder Defekt) kann ganz einfach im Onlineshop nachbestellt werden: Privatkunden unter www.looxis.de, Fachhändler im Shop für Fachhändler unter fachhaendler.looxis.de.
+
 **Ersatz:** Ist das Modell nicht mehr verfügbar, wird ein modularer Leuchtsockel in passender Größe angeboten, gegebenenfalls im Paket mit Rückwand.
 
 # Opera Leuchtsockel für Glasfotos in Farbe
