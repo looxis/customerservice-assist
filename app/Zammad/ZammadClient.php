@@ -383,6 +383,25 @@ class ZammadClient
     }
 
     /**
+     * The content of one attachment (PROJ-60), loaded with the app's own token. The caller has checked that
+     * the attachment belongs to the ticket.
+     *
+     * @throws ZammadException
+     */
+    public function attachmentContent(int $ticketId, int $articleId, int $attachmentId): string
+    {
+        try {
+            $response = $this->request()->withHeaders(['Accept' => '*/*'])->timeout(max(1, (int) ($this->config['attachment_timeout'] ?? 30)))->get("ticket_attachment/{$ticketId}/{$articleId}/{$attachmentId}");
+        } catch (ConnectionException) {
+            throw new ZammadException(ZammadProblem::Unavailable);
+        }
+
+        $this->guard($response);
+
+        return $response->body();
+    }
+
+    /**
      * Real attachments only: without images embedded in the mail text (e.g.
      * signature logos) and without Zammad's copy of the original mail.
      *
@@ -403,7 +422,7 @@ class ZammadClient
                 continue;
             }
 
-            $result[] = new TicketAttachment((string) ($attachment['filename'] ?? 'Anhang'), $contentType, (int) ($attachment['size'] ?? 0));
+            $result[] = new TicketAttachment((string) ($attachment['filename'] ?? 'Anhang'), $contentType, (int) ($attachment['size'] ?? 0), isset($attachment['id']) ? (int) $attachment['id'] : null);
         }
 
         return $result;

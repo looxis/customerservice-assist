@@ -54,7 +54,7 @@
                              :unloaded-orders="collect($suggestions ?? [])->reject(fn ($order) => $order->isEocsId() || in_array($order->value, $selected ?? [], true))->pluck('value')->values()->all()" />
         @endisset
 
-        <x-ticket.thread :articles="$ticket->articles" :translations="$translations ?? []" :untranslated="$untranslated ?? 0" :can-retranslate="$testModeAvailable"
+        <x-ticket.thread :ticket-number="$number" :articles="$ticket->articles" :translations="$translations ?? []" :untranslated="$untranslated ?? 0" :can-retranslate="$testModeAvailable"
                          :translate="['action' => route('tickets.translation.store', ['number' => $number]), 'fields' => array_filter(['bestellungen' => $selected ?? [], 'stand' => $ticket->rewoundTo])]"
                          :later="$later ?? []" :rewound="$ticket->rewoundTo !== null" :rewind-url="($testMode ?? false) ? fn (int $id): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selected ?? [], 'stand' => $id]).'#analyse' : null">
             @isset($analysis)
@@ -65,5 +65,7 @@
         </x-ticket.thread>
 
         <x-ticket.related-threads :tickets="$relatedThreads ?? []" />
+
+        <x-ticket.image-viewer />
     @endif
 </x-layouts.app>

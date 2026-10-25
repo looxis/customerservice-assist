@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // PROJ-11: empty customer content after the retention period.
 Schedule::command('analysis:purge')->dailyAt('03:15');
+
+// PROJ-60: delete cached ticket attachments after the retention period.
+Schedule::command('attachments:purge')->dailyAt('03:30');

@@ -8,7 +8,18 @@ final readonly class TicketAttachment
         public string $filename,
         public string $contentType,
         public int $size,
+        public ?int $id = null,
     ) {}
+
+    /**
+     * Image types the browser can show in the viewer (PROJ-60); everything else is only offered as a download.
+     */
+    public const array VIEWABLE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    public function isViewable(): bool
+    {
+        return $this->id !== null && in_array($this->contentType, self::VIEWABLE_TYPES, true);
+    }
 
     /**
      * Kind of file in plain words, e.g. "Bild" or "PDF".

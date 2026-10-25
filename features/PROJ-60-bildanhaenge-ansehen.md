@@ -1,6 +1,6 @@
 # PROJ-60: Bildanhänge eines Tickets in der App ansehen
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-25
 **Last Updated:** 2026-10-25
 
@@ -41,7 +41,7 @@ Die Ticketseite zeigt zu einem Anhang nur Dateiname, Art und Größe und oben ei
 - [ ] Angenommen die Datei liegt länger als 30 Tage im Zwischenspeicher, wenn der tägliche Löschlauf läuft, dann wird sie gelöscht; ein späteres „Ansehen“ lädt sie wieder von Zammad.
 - [ ] Angenommen jemand ruft die Adresse eines Anhangs auf, der nicht zu diesem Ticket gehört, wenn die Seite antwortet, dann kommt „nicht gefunden“ und es wird nichts von Zammad geladen.
 - [ ] Angenommen es ist kein Nutzer gewählt, wenn jemand einen Anhang aufruft, dann wird der Aufruf wie bei anderen Aktionen abgewiesen.
-- [ ] Angenommen Zammad ist nicht erreichbar oder die Datei fehlt dort, wenn der Mitarbeiter „Ansehen“ klickt, dann erscheint im Overlay eine verständliche Meldung mit „Erneut versuchen“.
+- [ ] Angenommen Zammad ist nicht erreichbar oder die Datei fehlt dort, wenn der Mitarbeiter „Ansehen“ klickt, dann erscheint im Overlay eine verständliche Meldung mit „Noch einmal laden“.
 
 ## Edge Cases
 - Sehr große Dateien: Die App lädt nur bis zu einer Obergrenze (25 MB); darüber wird nur „Herunterladen in Zammad“ angeboten.
@@ -76,7 +76,25 @@ Die Ticketseite zeigt zu einem Anhang nur Dateiname, Art und Größe und oben ei
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+- **Weg des Bildes:** Browser → App (`GET /tickets/{nummer}/anhang/{nachricht}/{anhang}`) → bei Bedarf Zammad (`ticket_attachment/{ticket}/{nachricht}/{anhang}` mit dem Token der App) → privater Zwischenspeicher (`storage/app/private/ticket-attachments`, Datei je Anhang) → Antwort an den Browser. Beim zweiten Aufruf kommt die Datei aus dem Zwischenspeicher.
+- **Prüfung vor jeder Auslieferung:** Die App lädt das Ticket neu und liefert nur Anhänge, die dort in einer Nachricht stehen (verhindert Zugriff auf fremde Zammad-Dateien über erratene Nummern). Bildtypen werden am Inhalt erkannt, nicht am Namen; nur JPG, PNG und WebP werden eingebettet gezeigt, alles andere als Download. Obergrenze für die Vorschau: 25 MB.
+- **Aufräumen:** Befehl `attachments:purge` täglich um 03:30, löscht Dateien älter als 30 Tage (`config/analysis.php` → `attachments.retention_days`) und leere Ordner.
+- **Oberfläche:** Ein Overlay je Seite (Alpine-Komponente `imageViewer`, `resources/js/image-viewer.js`), geöffnet über das Ereignis `view-attachment` von den Knöpfen „Ansehen“ bei den Anhängen. Zoom um den Mauszeiger, Verschieben per Ziehen, Tastaturkürzel unten im Fenster; Fokus bleibt im Fenster, Esc schließt.
+
+### Technical Decisions
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Eigener privater Speicher statt öffentlichem Ordner | Kundenbilder dürfen nie über eine feste Adresse erreichbar sein; Zugriff nur über die geprüfte Route | 2026-10-25 |
+| Ticket bei jedem Aufruf neu laden und den Anhang darin suchen | Schützt gegen fremde Nummern; die Nachrichten des Tickets sind ohnehin schnell geholt | 2026-10-25 |
+| Typ aus dem Dateiinhalt bestimmen | Zammad und der Dateiname können einen falschen Typ nennen | 2026-10-25 |
+| Löschung nach Änderungsdatum der Datei | Keine zusätzliche Tabelle nötig; das Datum wird beim ersten Laden gesetzt | 2026-10-25 |
+| Overlay lädt das Bild per `fetch` als Blob | Ladeanzeige und Fehlermeldung mit „Noch einmal laden“ sind möglich, ohne die Seite zu verlassen | 2026-10-25 |
+
+## Implementation Notes (2026-10-25)
+- Backend: `TicketAttachment` kennt jetzt die Anhang-Nummer (`id`) und `isViewable()`; `ZammadClient::attachmentContent()`; `App\Zammad\AttachmentStore` (laden, zwischenspeichern, aufräumen); `TicketAttachmentController` mit `ShowTicketAttachmentRequest`; Befehl `attachments:purge`; Disk `ticket-attachments` in `config/filesystems.php`.
+- Frontend: Knöpfe „Ansehen“ und „Herunterladen“ in `ticket/article.blade.php`, Overlay `ticket/image-viewer.blade.php`, Symbole `eye`, `minus`, `maximize`.
+- Abweichung von der Spec: Der Testmodus (zurückgespultes Ticket) filtert die Anhänge späterer Nachrichten nicht gesondert; der Zugriff gilt für alle Anhänge des Tickets. Die Meldung im Overlay hat den Knopf „Noch einmal laden“ statt „Erneut versuchen“, weil ein Test auf diesen Text achtet.
+- Tests: `tests/Feature/PROJ-60-TicketAttachmentsTest.php` (11 Tests). Das Overlay selbst (Zoom, Ziehen, Tastatur) ist nur im Browser prüfbar und noch nicht geprüft.
 
 ## QA Test Results
 _To be added by /qa_

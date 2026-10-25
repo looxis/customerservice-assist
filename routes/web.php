@@ -17,6 +17,7 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
+use App\Http\Controllers\TicketAttachmentController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketOverviewController;
 use App\Http\Controllers\TranslationController;
@@ -86,6 +87,10 @@ Route::get('/tickets', [TicketController::class, 'lookup'])->name('tickets.looku
 Route::get('/tickets/{number}', [TicketController::class, 'show'])
     ->where('number', '[0-9]{1,20}')
     ->name('tickets.show');
+Route::get('/tickets/{number}/anhang/{article}/{attachment}', [TicketAttachmentController::class, 'show'])
+    ->where(['number' => '[0-9]{1,20}', 'article' => '[0-9]{1,12}', 'attachment' => '[0-9]{1,12}'])
+    ->middleware(['staff.selected', 'throttle:60,1'])
+    ->name('tickets.attachments.show');
 Route::get('/tickets/{number}/bestellungen', [TicketController::class, 'addOrder'])
     ->where('number', '[0-9]{1,20}')
     ->name('tickets.orders.add');

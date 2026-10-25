@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import scopeFields from './scope-fields';
+import imageViewer from './image-viewer';
 
 window.Alpine = Alpine;
 
@@ -88,6 +89,7 @@ Alpine.data('ticketLookup', (initial = '', initialError = '') => ({
 }));
 
 Alpine.data('scopeFields', scopeFields);
+Alpine.data('imageViewer', imageViewer);
 
 // Records (key, name, …) of the knowledge values on the settings page (PROJ-50).
 Alpine.data('recordList', (config) => ({

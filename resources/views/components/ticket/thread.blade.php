@@ -1,4 +1,4 @@
-@props(['articles', 'later' => [], 'rewound' => false, 'rewindUrl' => null, 'translations' => [], 'untranslated' => 0, 'translate' => null, 'canRetranslate' => false])
+@props(['articles', 'later' => [], 'rewound' => false, 'rewindUrl' => null, 'translations' => [], 'untranslated' => 0, 'translate' => null, 'canRetranslate' => false, 'ticketNumber' => null])
 
 @php
     $count = count($articles);
@@ -56,7 +56,7 @@
                     </summary>
                     <div class="space-y-4">
                         @foreach ($hidden as $hiddenIndex)
-                            <x-ticket.article :article="$articles[$hiddenIndex]" :translation="$translationOf($articles[$hiddenIndex])" :retranslate="$retranslate" />
+                            <x-ticket.article :ticket-number="$ticketNumber" :article="$articles[$hiddenIndex]" :translation="$translationOf($articles[$hiddenIndex])" :retranslate="$retranslate" />
                         @endforeach
                     </div>
                 </details>
@@ -68,7 +68,7 @@
                 {{ $summary }}
             @endif
 
-            <x-ticket.article :article="$article" :translation="$translationOf($article)" :retranslate="$retranslate" :latest="$index === $count - 1" :latest-label="$rewound ? 'Stand des Testlaufs' : 'Neueste Nachricht'" :rewind-url="$rewindUrl && $article->kind === \App\Zammad\ArticleKind::Customer && $article->id !== null ? $rewindUrl($article->id) : null" />
+            <x-ticket.article :ticket-number="$ticketNumber" :article="$article" :translation="$translationOf($article)" :retranslate="$retranslate" :latest="$index === $count - 1" :latest-label="$rewound ? 'Stand des Testlaufs' : 'Neueste Nachricht'" :rewind-url="$rewindUrl && $article->kind === \App\Zammad\ArticleKind::Customer && $article->id !== null ? $rewindUrl($article->id) : null" />
         @endforeach
     @endif
 
@@ -80,7 +80,7 @@
             </summary>
             <div class="space-y-4 opacity-60">
                 @foreach ($later as $article)
-                    <x-ticket.article :article="$article" :translation="$translationOf($article)" />
+                    <x-ticket.article :ticket-number="$ticketNumber" :article="$article" :translation="$translationOf($article)" />
                 @endforeach
             </div>
         </details>

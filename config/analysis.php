@@ -78,6 +78,14 @@ return [
     // emptied after this many months; the figures of an analysis stay.
     'content_retention_months' => 12,
 
+    // Attachments of tickets (PROJ-60): looked at once, kept in a private
+    // cache for this many days, then deleted. max_bytes is the largest file
+    // the app fetches for viewing.
+    'attachments' => [
+        'retention_days' => 30,
+        'max_bytes' => 25 * 1024 * 1024,
+    ],
+
     // Translation of messages (PROJ-28): texts shorter than min_length are
     // not flagged as foreign; one call carries at most batch_characters.
     'translation' => [

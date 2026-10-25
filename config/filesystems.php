@@ -38,6 +38,16 @@ return [
             'report' => false,
         ],
 
+        // Attachments of Zammad tickets that were looked at (PROJ-60): private, deleted after
+        // analysis.attachments.retention_days by the command attachments:purge.
+        'ticket-attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/ticket-attachments'),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

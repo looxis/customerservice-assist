@@ -16,7 +16,7 @@
             @endif
         </div>
         <div class="mt-3 max-h-[28rem] overflow-y-auto">
-            <x-ticket.article :article="$article" :translation="$article->id !== null ? ($translations[$article->id] ?? null) : null" :full="true" />
+            <x-ticket.article :ticket-number="$ticket->number" :article="$article" :translation="$article->id !== null ? ($translations[$article->id] ?? null) : null" :full="true" />
         </div>
     </section>
 @endif
