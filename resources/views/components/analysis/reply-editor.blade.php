@@ -256,7 +256,7 @@
                         <div class="mt-2 flex flex-wrap items-center gap-3">
                             <input type="file" x-ref="files" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" class="sr-only" tabindex="-1" aria-hidden="true" x-on:change="addFiles($event.target.files); $event.target.value = ''">
                             <x-button variant="secondary" x-on:click="$refs.files.click()"><x-icon name="upload" size="16" /> Datei anhängen</x-button>
-                            <span class="text-xs text-slate-600">Einen Screenshot aus der Zwischenablage fügst du mit Strg+V ein.</span>
+                            <span class="text-xs text-slate-600">Einen Screenshot aus der Zwischenablage fügst du mit Strg+V ein oder mit der rechten Maustaste → Einfügen. Der Cursor muss dazu im Antworttext, im Betreff oder in der Signatur stehen.</span>
                         </div>
                         <p x-show="send.fileError !== ''" x-cloak role="alert" class="mt-1 text-sm font-medium text-danger-700" x-text="send.fileError"></p>
                     </div>

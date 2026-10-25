@@ -134,7 +134,7 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 - [x] Dateien liegen nur während des Aufrufs im Arbeitsspeicher beziehungsweise in PHPs temporärem Upload-Ordner.
 
 ### Hinweis
-Strg+V wirkt nur, wenn der Cursor im Bereich der Antwort steht (Antworttext, Betreff oder Signatur); liegt der Fokus außerhalb, geschieht nichts. Ob das Einfügen auf der ganzen Seite gelten soll, ist offen.
+Strg+V wirkt nur, wenn der Cursor im Bereich der Antwort steht (Antworttext, Betreff oder Signatur); liegt der Fokus außerhalb, geschieht nichts. Entscheidung des Auftraggebers (2026-10-25): Das ist akzeptabel; der Hinweis steht neben „Datei anhängen“ im Editor und in „Über die App“, zusammen mit dem Weg „rechte Maustaste → Einfügen“.
 
 ### Bugs Found
 Keine neuen Fehler in PROJ-61 gefunden. Zwei Tests schlugen anfangs fehl, weil die lokale `.env` Zammad-Token enthielt; `phpunit.xml` setzt diese für Tests auf leer.
