@@ -413,7 +413,8 @@ class ZammadClient
 
         foreach (is_array($attachments) ? $attachments : [] as $attachment) {
             $preferences = array_change_key_case((array) ($attachment['preferences'] ?? []), CASE_LOWER);
-            $contentType = strtolower((string) ($preferences['content-type'] ?? $preferences['mime-type'] ?? 'application/octet-stream'));
+            // Zammad often keeps the header parameters, e.g. "image/jpeg; name=foto.jpeg": only the type counts.
+            $contentType = trim(explode(';', strtolower((string) ($preferences['content-type'] ?? $preferences['mime-type'] ?? 'application/octet-stream')))[0]);
             $embedded = ! empty($preferences['content-id']) || str_starts_with(strtolower((string) ($preferences['content-disposition'] ?? '')), 'inline');
 
             $originalMail = ! empty($preferences['content-alternative']) || ! empty($preferences['original-format']);

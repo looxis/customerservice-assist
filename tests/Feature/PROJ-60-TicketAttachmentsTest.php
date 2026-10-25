@@ -1,6 +1,7 @@
 <?php
 
 use App\Zammad\AttachmentStore;
+use App\Zammad\ZammadClient;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -20,6 +21,7 @@ function attachmentTicket(array $extra = []): void
         ['id' => 31, 'filename' => 'tasse.png', 'size' => 70, 'preferences' => ['Content-Type' => 'image/png']],
         ['id' => 32, 'filename' => 'foto.heic', 'size' => 5000, 'preferences' => ['Content-Type' => 'image/heic']],
         ['id' => 33, 'filename' => 'rechnung.pdf', 'size' => 51200, 'preferences' => ['Content-Type' => 'application/pdf']],
+        ['id' => 35, 'filename' => 'IMG_3700.jpeg', 'size' => 70, 'preferences' => ['Content-Type' => 'image/jpeg; name=img_3700.jpeg']],
         ['id' => 34, 'filename' => 'riesig.png', 'size' => 30 * 1024 * 1024, 'preferences' => ['Content-Type' => 'image/png']],
     ]])], extra: array_merge([
         'zammad.test/api/v1/ticket_attachment/51234/900/31' => Http::response(base64_decode(PROJ60_PNG), 200, ['Content-Type' => 'image/png']),
@@ -45,6 +47,18 @@ describe('ticket page', function () {
             ->toContain('x-data="imageViewer"');
         expect(substr_count($html, 'x-data="imageViewer"'))->toBe(1);
         $this->get('/tickets/2137942')->assertSeeTextInOrder(['tasse.png', 'Ansehen', 'Herunterladen', 'foto.heic', 'Herunterladen', 'rechnung.pdf', 'Herunterladen']);
+    });
+});
+
+describe('content type from Zammad', function () {
+    test('a content type with parameters is still a viewable image', function () {
+        attachmentTicket();
+
+        $ticket = app(ZammadClient::class)->ticket('2137942');
+        $file = collect($ticket->articles[0]->attachments)->firstWhere('id', 35);
+
+        expect($file->contentType)->toBe('image/jpeg')->and($file->isViewable())->toBeTrue();
+        $this->get('/tickets/2137942')->assertOk()->assertSee('IMG_3700.jpeg');
     });
 });
 
