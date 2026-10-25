@@ -32,6 +32,7 @@ use App\ProductForge\ProductResolver;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\OrderMentionItem;
+use App\Zammad\OutgoingAttachment;
 use App\Zammad\OutgoingReply;
 use App\Zammad\ReplyException;
 use App\Zammad\ReplyProblem;
@@ -368,8 +369,10 @@ class AnalysisController extends Controller
         $body = trim((string) $request->validated('text'));
         $signature = trim((string) $request->validated('signature', ''));
 
+        $files = $this->outgoingFiles($request);
+
         try {
-            $sent = $sender->send($token, new OutgoingReply($ticket->id, $target->to, $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'close' ? null : ReplyDelivery::reminderDate($days)));
+            $sent = $sender->send($token, new OutgoingReply($ticket->id, $target->to, $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'close' ? null : ReplyDelivery::reminderDate($days), $files));
         } catch (ReplyException $exception) {
             if ($exception->problem->notSent()) {
                 $store->releaseReplySend($analysis);
@@ -378,9 +381,38 @@ class AnalysisController extends Controller
             return response()->json(['message' => $exception->problem->message($name), 'code' => $exception->problem->value], 502);
         }
 
-        $store->markReplySent($analysis, $name, $sent->zammadUser, $subject, $after === 'close' ? 'closed' : "pending reminder +{$days}d", $sent->articleId, $this->replyChanged($request, $panel, $stored));
+        $store->markReplySent($analysis, $name, $sent->zammadUser, $subject, $after === 'close' ? 'closed' : "pending reminder +{$days}d", $sent->articleId, $this->replyChanged($request, $panel, $stored), $files === [] ? null : implode(', ', array_map(fn (OutgoingAttachment $file): string => $file->label(), $files)));
 
         return response()->json(['sent' => true, 'by' => $name, 'at' => now('Europe/Berlin')->format('d.m.Y \\u\\m H:i'), 'ticket_url' => $ticket->zammadUrl]);
+    }
+
+    /**
+     * The files that go with the reply (PROJ-61), read from the upload: the type comes from the content, the name is
+     * cleaned and made unique. The files are not stored.
+     *
+     * @return list<OutgoingAttachment>
+     */
+    private function outgoingFiles(SendReplyRequest $request): array
+    {
+        $files = [];
+        $used = [];
+
+        foreach ($request->file('files', []) as $file) {
+            $name = trim((string) preg_replace('/[\x00-\x1F\x7F\/\\\\"<>:*?|]+/u', '_', basename(str_replace('\\', '/', $file->getClientOriginalName()))));
+            $name = $name === '' ? 'Anhang' : $name;
+            $base = pathinfo($name, PATHINFO_FILENAME);
+            $extension = pathinfo($name, PATHINFO_EXTENSION);
+            $candidate = $name;
+
+            for ($number = 2; in_array(mb_strtolower($candidate), $used, true); $number++) {
+                $candidate = $base.'-'.$number.($extension === '' ? '' : '.'.$extension);
+            }
+
+            $used[] = mb_strtolower($candidate);
+            $files[] = new OutgoingAttachment($candidate, (string) $file->getMimeType(), (string) file_get_contents($file->getRealPath()));
+        }
+
+        return $files;
     }
 
     /**

@@ -31,6 +31,12 @@
         <env name="KNOWLEDGE_ROUTER_CLEAR_ONLY" value="false" force="true"/>
         <env name="PRODUCTFORGE_URL" value="" force="true"/>
         <env name="PRODUCTFORGE_TOKEN" value="" force="true"/>
+        <env name="ZAMMAD_TOKEN_CARA" value="" force="true"/>
+        <env name="ZAMMAD_TOKEN_ETIENNE" value="" force="true"/>
+        <env name="ZAMMAD_TOKEN_JOHANNES" value="" force="true"/>
+        <env name="ZAMMAD_TOKEN_KERSTIN" value="" force="true"/>
+        <env name="ZAMMAD_TOKEN_NELE" value="" force="true"/>
+        <env name="ZAMMAD_TOKEN_THOMAS" value="" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

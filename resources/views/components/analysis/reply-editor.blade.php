@@ -48,6 +48,31 @@
             newer: '',
             sent: @js($send['state'] === 'sent' ? $send['sent'] : null),
             ticketUrl: @js($send['ticket_url'] ?? null),
+            files: [],
+            fileError: '',
+        },
+        sendReady: @js($send['state'] === 'ready'),
+        sizeLabel(bytes) { return bytes >= 1048576 ? (bytes / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB' },
+        get filesSize() { return this.send.files.reduce((sum, file) => sum + file.size, 0) },
+        addFiles(list) {
+            this.send.fileError = '';
+            for (const file of list) {
+                if (! ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'].includes(file.type)) { this.send.fileError = `„${file.name}“ hat kein erlaubtes Format. Erlaubt sind PDF, PNG, JPG, JPEG und WebP.`; continue }
+                if (this.send.files.length >= 5) { this.send.fileError = 'Es sind höchstens 5 Anhänge möglich.'; break }
+                if (this.filesSize + file.size > 5242880) { this.send.fileError = `„${file.name}“ passt nicht mehr dazu: Die Anhänge dürfen zusammen höchstens 5 MB groß sein.`; continue }
+                this.send.files.push(file);
+            }
+        },
+        removeFile(index) { this.send.files.splice(index, 1); this.send.fileError = '' },
+        paste(event) {
+            if (! this.sendReady || this.send.sent) { return }
+            const images = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith('image/'));
+            if (images.length === 0 || event.clipboardData.getData('text/plain') !== '') { return }
+            event.preventDefault();
+            const now = new Date();
+            const pad = (value) => String(value).padStart(2, '0');
+            const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+            this.addFiles(images.map((file, index) => new File([file], `Screenshot-${stamp}${images.length > 1 ? '-' + (index + 1) : ''}.${file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1]}`, { type: file.type })));
         },
         get message() { return this.text.trim() + (this.send.signature.trim() !== '' ? '\n\n' + this.send.signature.trim() : '') },
         async sendReply(confirmNewer) {
@@ -57,14 +82,23 @@
             this.send.error = '';
             if (! confirmNewer) { this.send.newer = '' }
             try {
+                const form = new FormData();
+                form.append('subject', this.send.subject);
+                form.append('text', this.text);
+                form.append('signature', this.send.signature);
+                form.append('after', this.send.after);
+                if (this.send.after === 'reminder') { form.append('days', this.send.days) }
+                form.append('confirm_newer', confirmNewer === true ? '1' : '0');
+                this.send.files.forEach((file) => form.append('files[]', file, file.name));
                 const response = await fetch(@js(route('tickets.analysis.send', ['number' => $number, 'analysis' => $result['id']])), {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-                    body: JSON.stringify({ subject: this.send.subject, text: this.text, signature: this.send.signature, after: this.send.after, days: this.send.after === 'reminder' ? this.send.days : null, confirm_newer: confirmNewer === true }),
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: form,
                 });
                 const data = await response.json().catch(() => ({}));
                 if (response.ok && data.sent) {
                     this.send.sent = { by: data.by, at: data.at };
+                    this.send.files = [];
                     this.send.ticketUrl = data.ticket_url || this.send.ticketUrl;
                     this.$dispatch('reply-copied');
                 } else if (data.code === 'newer') {
@@ -72,7 +106,7 @@
                 } else if (data.code === 'sent') {
                     this.send.error = data.message + ' Bitte die Seite neu laden.';
                 } else {
-                    this.send.error = data.message || (response.status === 422 ? 'Bitte Betreff und Text prüfen.' : 'Das Senden ist fehlgeschlagen.');
+                    this.send.error = response.status === 422 ? (Object.values(data.errors || {}).flat()[0] || 'Bitte Betreff, Text und Anhänge prüfen.') : (data.message || 'Das Senden ist fehlgeschlagen.');
                 }
             } catch (error) {
                 this.send.error = 'Keine Verbindung zur App. Die Antwort wurde nicht gesendet; bitte erneut versuchen.';
@@ -136,6 +170,7 @@
         },
     }"
     class="mt-6"
+    x-on:paste="paste($event)"
 >
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 class="text-sm font-semibold text-slate-900">Antwortentwurf @if ($language)<span class="font-normal text-slate-600">({{ $language }})</span>@endif</h3>
@@ -207,9 +242,28 @@
                         <label for="send-signature" class="block text-sm font-medium text-slate-900">Signatur <span class="font-normal text-slate-600">(wird unter den Antworttext gesetzt)</span></label>
                         <textarea id="send-signature" x-model="send.signature" rows="4" maxlength="600" class="mt-1 field-sizing-content block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
                     </div>
+                    <div>
+                        <p class="block text-sm font-medium text-slate-900">Anhänge <span class="font-normal text-slate-600">(PDF, PNG, JPG, WebP · bis zu 5 Dateien, zusammen höchstens 5 MB)</span></p>
+                        <ul x-show="send.files.length > 0" x-cloak class="mt-1 space-y-1 text-sm" aria-label="Anhänge der Antwort">
+                            <template x-for="(file, index) in send.files" :key="file.name + index">
+                                <li class="flex flex-wrap items-center gap-x-3 text-slate-900">
+                                    <span class="font-mono" x-text="file.name"></span>
+                                    <span class="text-slate-600" x-text="sizeLabel(file.size)"></span>
+                                    <button type="button" x-on:click="removeFile(index)" class="font-semibold text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand" x-bind:aria-label="'Anhang ' + file.name + ' entfernen'">Entfernen</button>
+                                </li>
+                            </template>
+                        </ul>
+                        <div class="mt-2 flex flex-wrap items-center gap-3">
+                            <input type="file" x-ref="files" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" class="sr-only" tabindex="-1" aria-hidden="true" x-on:change="addFiles($event.target.files); $event.target.value = ''">
+                            <x-button variant="secondary" x-on:click="$refs.files.click()"><x-icon name="upload" size="16" /> Datei anhängen</x-button>
+                            <span class="text-xs text-slate-600">Einen Screenshot aus der Zwischenablage fügst du mit Strg+V ein.</span>
+                        </div>
+                        <p x-show="send.fileError !== ''" x-cloak role="alert" class="mt-1 text-sm font-medium text-danger-700" x-text="send.fileError"></p>
+                    </div>
                     <details class="text-sm">
                         <summary class="cursor-pointer font-medium text-slate-700">Vorschau der Nachricht</summary>
                         <p class="mt-2 whitespace-pre-line rounded-md bg-white p-3 text-slate-900 ring-1 ring-slate-200 ring-inset" x-text="message"></p>
+                        <p x-show="send.files.length > 0" x-cloak class="mt-2 text-slate-900"><span class="font-medium">Anhänge:</span> <span x-text="send.files.map((file) => file.name).join(', ')"></span></p>
                     </details>
                     <fieldset>
                         <legend class="text-sm font-medium text-slate-900">Danach</legend>
@@ -230,7 +284,7 @@
                     <div class="flex flex-wrap items-center gap-3">
                         <x-button x-on:click="sendReply(false)" x-bind:disabled="send.busy || text.trim() === '' || send.subject.trim() === ''"><x-icon name="chat" size="16" /> <span x-text="send.busy ? 'Wird gesendet …' : 'Antwort versenden'">Antwort versenden</span></x-button>
                     </div>
-                    <p class="text-xs text-slate-600">Die Antwort wird über Zammad versendet und erscheint dort im Ticketverlauf. Gesendet wird der Antwortentwurf oben (änderbar) mit der Signatur.</p>
+                    <p class="text-xs text-slate-600">Die Antwort wird über Zammad versendet und erscheint dort im Ticketverlauf. Gesendet wird der Antwortentwurf oben (änderbar) mit der Signatur. Anhänge werden mitgesendet und nicht in der App gespeichert.</p>
                 </div>
             @endif
         </section>

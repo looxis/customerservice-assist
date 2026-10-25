@@ -55,6 +55,11 @@ class ZammadReplySender
                 'subject' => $reply->subject,
                 'body' => $reply->body,
                 ...($reply->inReplyTo === null ? [] : ['in_reply_to' => $reply->inReplyTo]),
+                ...($reply->attachments === [] ? [] : ['attachments' => array_map(fn (OutgoingAttachment $file): array => [
+                    'filename' => $file->filename,
+                    'data' => base64_encode($file->content),
+                    'mime-type' => $file->mimeType,
+                ], $reply->attachments)]),
             ],
         ];
 
@@ -62,7 +67,7 @@ class ZammadReplySender
             $payload['pending_time'] = $reply->pendingUntil->utc()->toIso8601String();
         }
 
-        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$reply->ticketId}", $payload), certain: false);
+        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$reply->ticketId}", $payload), certain: false, timeout: $reply->attachments === [] ? null : (int) ($this->config['attachment_timeout'] ?? 30));
 
         return new SentReply($this->newestArticleBy($token, $reply->ticketId, $me['id'], $started->subMinute()), $me['name']);
     }
@@ -101,16 +106,17 @@ class ZammadReplySender
     /**
      * @param  callable(PendingRequest): Response  $call
      * @param  bool  $certain  Whether a failure proves that nothing changed in Zammad (reads, and the check before sending).
+     * @param  int|null  $timeout  Seconds; longer when the call carries attachments.
      *
      * @throws ReplyException
      */
-    private function call(string $token, callable $call, bool $certain): Response
+    private function call(string $token, callable $call, bool $certain, ?int $timeout = null): Response
     {
         if (blank($this->config['url'])) {
             throw new ReplyException(ReplyProblem::Unavailable);
         }
 
-        $timeout = max(1, (int) $this->config['timeout']);
+        $timeout = max(1, $timeout ?? (int) $this->config['timeout']);
 
         $request = Http::baseUrl(rtrim((string) $this->config['url'], '/').'/api/v1/')
             ->withHeaders(['Authorization' => 'Token token='.$token])

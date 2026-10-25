@@ -11,7 +11,9 @@ use App\Zammad\ZammadClient;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
@@ -437,5 +439,117 @@ describe('QA: edges and attacks', function () {
 
         sendReply($id, ['subject' => 'Re: Ärger mit „Umlauten“ – ok'])->assertOk();
         expect(putRequests())->toHaveCount(1)->and(putRequests()[0]['article']['subject'])->toBe('Re: Ärger mit „Umlauten“ – ok');
+    });
+});
+
+// PROJ-61: files that go with the reply.
+const PROJ61_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+function sendWithFiles(string $id, array $files, array $fields = []): TestResponse
+{
+    return test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => $id]), [
+        'subject' => 'Re: Motiv erscheint nicht', 'text' => 'Guten Tag, wir prüfen das.', 'signature' => 'Mit freundlichen Grüßen', 'after' => 'close', 'files' => $files, ...$fields,
+    ], ['Accept' => 'application/json']);
+}
+
+function pngFile(string $name = 'screenshot.png'): UploadedFile
+{
+    return UploadedFile::fake()->createWithContent($name, base64_decode(PROJ61_PNG));
+}
+
+describe('attachments (PROJ-61)', function () {
+    test('a PDF and an image go to Zammad with the reply and are logged by name, but not stored', function () {
+        $id = sendAnalysis();
+        $pdf = UploadedFile::fake()->createWithContent('angebot.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
+
+        sendWithFiles($id, [$pdf, pngFile()])->assertOk()->assertJsonPath('sent', true);
+
+        $attachments = putRequests()[0]['article']['attachments'];
+        expect($attachments)->toHaveCount(2);
+        expect($attachments[0])->toMatchArray(['filename' => 'angebot.pdf', 'mime-type' => 'application/pdf']);
+        expect($attachments[1])->toMatchArray(['filename' => 'screenshot.png', 'mime-type' => 'image/png', 'data' => PROJ61_PNG]);
+        expect(Analysis::query()->where('uuid', $id)->value('reply_sent_attachments'))->toContain('angebot.pdf (')->toContain('screenshot.png (');
+        expect(collect(Storage::disk('local')->allFiles())->reject(fn (string $file): bool => str_ends_with($file, '.gitignore'))->all())->toBe([]);
+    });
+
+    test('without files the payload has no attachments', function () {
+        $id = sendAnalysis();
+
+        sendWithFiles($id, [])->assertOk();
+
+        expect(putRequests()[0]['article'])->not->toHaveKey('attachments');
+        expect(Analysis::query()->where('uuid', $id)->value('reply_sent_attachments'))->toBeNull();
+    });
+
+    test('two files with the same name both go along, the second one numbered', function () {
+        $id = sendAnalysis();
+
+        sendWithFiles($id, [pngFile('bild.png'), pngFile('bild.png')])->assertOk();
+
+        expect(array_column(putRequests()[0]['article']['attachments'], 'filename'))->toBe(['bild.png', 'bild-2.png']);
+    });
+
+    test('file names are cleaned of path parts and control characters', function () {
+        $id = sendAnalysis();
+
+        sendWithFiles($id, [pngFile('..\\..\\geheim"<x>.png')])->assertOk();
+
+        expect(putRequests()[0]['article']['attachments'][0]['filename'])->not->toContain('\\')->not->toContain('/')->not->toContain('"')->not->toContain('<')->toEndWith('.png');
+    });
+
+    test('together more than 5 MB is refused and nothing is sent', function () {
+        $id = sendAnalysis();
+        $big = fn (string $name): UploadedFile => UploadedFile::fake()->createWithContent($name, base64_decode(PROJ61_PNG).str_repeat('0', 3 * 1024 * 1024));
+
+        sendWithFiles($id, [$big('a.png'), $big('b.png')])->assertStatus(422)->assertJsonPath('errors.files.0', 'Die Anhänge sind zusammen größer als 5 MB.');
+
+        expect(putRequests())->toBe([]);
+    });
+
+    test('more than five files are refused', function () {
+        $id = sendAnalysis();
+
+        sendWithFiles($id, array_map(fn (int $number): UploadedFile => pngFile("bild-{$number}.png"), range(1, 6)))->assertStatus(422)->assertJsonPath('errors.files.0', 'Es sind höchstens 5 Anhänge möglich.');
+
+        expect(putRequests())->toBe([]);
+    });
+
+    test('other formats and renamed programs are refused by their content', function () {
+        $id = sendAnalysis();
+
+        // Real uploads (the type comes from the content), because the test fake takes the type from the name.
+        $upload = function (string $name, string $content): UploadedFile {
+            $path = tempnam(sys_get_temp_dir(), 'proj61');
+            file_put_contents($path, $content);
+
+            return new UploadedFile($path, $name, null, null, true);
+        };
+
+        sendWithFiles($id, [$upload('tabelle.xlsx', 'PK-fake')])->assertStatus(422);
+        sendWithFiles($id, [$upload('programm.png', "MZ\x90\x00 kein Bild")])->assertStatus(422);
+
+        expect(putRequests())->toBe([]);
+    });
+
+    test('a failed send keeps nothing: the reply can be sent again with the files', function () {
+        $id = sendAnalysis();
+        $this->putStatus = 422;
+
+        sendWithFiles($id, [pngFile()])->assertStatus(502);
+
+        $this->putStatus = 200;
+        sendWithFiles($id, [pngFile()])->assertOk();
+
+        expect(putRequests())->toHaveCount(2);
+    });
+
+    test('the send block offers files and the paste hint', function () {
+        $id = sendAnalysis();
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()
+            ->assertSeeText('Datei anhängen')
+            ->assertSeeText('Strg+V')
+            ->assertSeeText('zusammen höchstens 5 MB')
+            ->assertSee('files[]', false);
     });
 });

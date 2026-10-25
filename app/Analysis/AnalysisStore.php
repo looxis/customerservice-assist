@@ -276,11 +276,11 @@ class AnalysisStore
     /**
      * The reply was handed to Zammad. Counts for the statistics like a copy (PROJ-35) and is marked as sent.
      */
-    public function markReplySent(string $id, string $staff, string $zammadUser, string $subject, string $state, ?int $articleId, bool $changed): void
+    public function markReplySent(string $id, string $staff, string $zammadUser, string $subject, string $state, ?int $articleId, bool $changed, ?string $attachments = null): void
     {
         Analysis::query()->where('uuid', $id)->update([
             'reply_sent_at' => now(), 'reply_sent_by' => $staff, 'reply_sent_zammad_user' => $zammadUser, 'reply_sent_subject' => mb_substr($subject, 0, 300),
-            'reply_sent_state' => $state, 'reply_sent_article_id' => $articleId,
+            'reply_sent_state' => $state, 'reply_sent_article_id' => $articleId, 'reply_sent_attachments' => $attachments === null ? null : mb_substr($attachments, 0, 1000),
             'reply_copied_at' => now(), 'reply_copied_by' => $staff, 'reply_copied_changed' => $changed,
         ]);
     }

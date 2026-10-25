@@ -1,6 +1,6 @@
 # PROJ-61: Anhänge an die Antwort anhängen
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-10-25
 **Last Updated:** 2026-10-25
 
@@ -71,7 +71,25 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+- **Eingabe:** Der Editor schickt die Antwort jetzt als Formular mit Dateien (`multipart/form-data`) statt als reines JSON. Die Dateien liegen nur im Browser, bis der Mitarbeiter auf „Antwort versenden“ klickt.
+- **Prüfung auf dem Server** (`SendReplyRequest`): höchstens 5 Dateien, zusammen höchstens 5 MB, Typ nach Dateiinhalt (PDF, PNG, JPG, JPEG, WebP). Namen werden bereinigt und bei Doppelungen nummeriert.
+- **Versand:** Die Dateien gehen als Base64 im bestehenden Aufruf an Zammad (`article.attachments`), in einem Zug mit Antwort und Status. Das Zeitlimit für diesen Aufruf ist bei Anhängen länger (30 statt 10 Sekunden). Der Schutz vor Doppelversand bleibt unverändert.
+- **Protokoll:** Namen und Größen stehen in der neuen Spalte `reply_sent_attachments` der Analyse; die Dateien selbst werden nicht gespeichert.
+- **Oberfläche:** Anhangsliste mit „Entfernen“, Knopf „Datei anhängen“, Strg+V im Antwortbereich (nur Bilder, wenn kein Text in der Zwischenablage ist), Hinweis in der Vorschau.
+
+### Technical Decisions
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Formular mit Dateien statt Base64 im JSON | Weniger Speicher im Browser, normale Dateiprüfung von Laravel | 2026-10-25 |
+| Typ aus dem Inhalt prüfen (`mimetypes`) zusätzlich zur Endung | Eine umbenannte Programmdatei darf nicht als Bild durchgehen | 2026-10-25 |
+| Keine Speicherung der Dateien | Kein zweiter Ort für Kundendaten; Zammad ist die Ablage | 2026-10-25 |
+| Längeres Zeitlimit nur bei Anhängen | Große Base64-Aufrufe brauchen länger, normale Antworten bleiben schnell | 2026-10-25 |
+
+## Implementation Notes (2026-10-25)
+- Backend: `OutgoingAttachment`, `OutgoingReply::$attachments`, `ZammadReplySender::send()` (Nutzlast und Zeitlimit), `SendReplyRequest` (Regeln, Gesamtgröße), `AnalysisController::outgoingFiles()`, Migration `reply_sent_attachments`.
+- Frontend: `analysis/reply-editor.blade.php` (Alpine: `addFiles`, `removeFile`, `paste`, Versand als `FormData`).
+- Tests: Block „attachments (PROJ-61)“ in `tests/Feature/PROJ-19-SendReplyTest.php` (8 Tests). Strg+V und die Dateiauswahl im Browser sind noch nicht geprüft.
+- Nebenbei: `phpunit.xml` setzt die Zammad-Token der Mitarbeiter (`ZAMMAD_TOKEN_*`) für Tests auf leer, damit die lokale `.env` die Tests nicht beeinflusst (zwei Tests schlugen deswegen fehl).
 
 ## QA Test Results
 _To be added by /qa_
