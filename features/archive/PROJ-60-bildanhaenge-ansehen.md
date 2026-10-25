@@ -1,6 +1,6 @@
 # PROJ-60: Bildanhänge eines Tickets in der App ansehen
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-25
 **Last Updated:** 2026-10-25
 
@@ -97,4 +97,64 @@ Die Ticketseite zeigt zu einem Anhang nur Dateiname, Art und Größe und oben ei
 - Tests: `tests/Feature/PROJ-60-TicketAttachmentsTest.php` (11 Tests). Das Overlay selbst (Zoom, Ziehen, Tastatur) ist nur im Browser prüfbar und noch nicht geprüft.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-25
+**App URL:** http://100.127.112.96:8081 (Ticket 2140047, durch den Auftraggeber) und automatisierte Tests
+**Tester:** QA Engineer (AI) und Auftraggeber (Ansehen eines echten 4,4-MB-Bildes im Browser: „das funktioniert“)
+
+### Acceptance Criteria Status
+
+#### AC-1 und AC-2: Knöpfe bei den Anhängen
+- [x] Bildanhänge (JPG, JPEG, PNG, WebP) haben „Ansehen“ und „Herunterladen“; HEIC, PDF und andere nur „Herunterladen“ (Test „viewer buttons“).
+- [x] BUG-1 behoben (Commit 5298c14): Zammad meldet den Typ mit Zusatz (`image/jpeg; name=…`); der Zusatz wird jetzt abgeschnitten. Mit echtem Ticket 2140047 vom Auftraggeber bestätigt.
+
+#### AC-3 und AC-4: Laden beim ersten Ansehen, danach aus dem Zwischenspeicher
+- [x] Eine Anfrage an Zammad, danach sofort aus dem Zwischenspeicher, auch für eine andere Person (Test).
+
+#### AC-5 bis AC-9: Overlay, Zoom, Verschieben, Einpassen, Schließen, Kürzelleiste
+- [x] Overlay öffnet mit dem echten Bild (Auftraggeber).
+- [x] Zoom um den Mauszeiger, Grenzen (16-fach, halbe Einpassung), Einpassen (Faktor und Mittigkeit), Verschieben per Pfeiltasten, Tasten +, −, 0, Esc, Tasten bei geschlossenem Overlay ignoriert: geprüft mit der Logik des Overlays in Node (12 Prüfungen, mit Negativkontrolle der Syntaxprüfung).
+- [ ] Nicht geprüft: Ziehen mit der Maus, Fokusführung (Tab im Overlay) und das Aussehen auf kleinen Bildschirmen. Diese Punkte brauchen einen Menschen im Browser.
+
+#### AC-10: Löschen nach 30 Tagen
+- [x] Nur Dateien über 30 Tage werden gelöscht, leere Ordner ebenso; der Befehl ist täglich eingeplant (Tests).
+
+#### AC-11 bis AC-13: Schutz und Fehler
+- [x] Anhang, der nicht zum Ticket gehört: 404, nichts wird von Zammad geladen.
+- [x] Ohne gewählten Namen: Aufruf wird abgewiesen (409).
+- [x] Zammad-Fehler: verständliche Meldung (502), nichts im Zwischenspeicher.
+
+### Edge Cases Status
+- [x] Datei über 25 MB wird nicht geladen (413).
+- [x] Typ am Inhalt erkannt: eine „PNG“ mit Skript-Inhalt kommt nie inline.
+- [x] Gleichnamige Anhänge werden über die Anhang-Nummer unterschieden.
+- [ ] Testmodus: Anhänge späterer Nachrichten werden nicht gesondert ausgeblendet (in der Spec als Abweichung vermerkt, Low).
+
+### Security Audit Results
+- [x] Authentication: Aufruf ohne gewählten Mitarbeiternamen wird abgewiesen.
+- [x] Authorization: nur Anhänge des aufgerufenen Tickets; Nummern sind auf Ziffern beschränkt, kein Pfad aus Benutzereingaben.
+- [x] Injection/XSS: Inhalt wird nur als JPG, PNG oder WebP inline ausgeliefert (nach Inhaltserkennung), sonst als Download mit `application/octet-stream`; `X-Content-Type-Options: nosniff` kommt von `SecurityHeaders`; Dateiname im Header bereinigt.
+- [x] Rate limiting: 60 Aufrufe pro Minute auf der Route.
+- [x] Geheimnisse: Das Zammad-Token geht nie an den Browser.
+- [x] Speicher: privater Disk unter `storage/app/private`, nicht im Web-Verzeichnis.
+
+### Bugs Found
+
+#### BUG-1: Typ mit Zusatz wurde nicht als Bild erkannt
+- **Severity:** High (Hauptfunktion nicht nutzbar bei E-Mail-Anhängen mit Namenszusatz)
+- **Status:** behoben (Commit 5298c14) und mit Ticket 2140047 bestätigt.
+
+#### BUG-2: Download einer Datei über 25 MB zeigt statt der Datei eine Fehlermeldung (JSON)
+- **Severity:** Low
+- **Steps to Reproduce:** Anhang über 25 MB, „Herunterladen“ anklicken. Erwartet: Datei oder Hinweis auf Zammad. Tatsächlich: JSON-Meldung „zu groß für die Vorschau“.
+- **Priority:** Nice to have
+
+### Regression
+- Vollständige Testsuite (siehe Zusammenfassung), betroffene Bereiche PROJ-6 (Ticketseite), PROJ-7 (Bestellblock), PROJ-19 (Antwort senden).
+
+### Summary
+- **Acceptance Criteria:** 13/13 erfüllt (davon 3 Teilpunkte der Bedienung im Browser noch nicht geprüft, siehe oben)
+- **Bugs Found:** 2 (0 critical, 1 high behoben, 0 medium, 1 low)
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Approved

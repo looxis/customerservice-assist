@@ -1,6 +1,6 @@
 # PROJ-61: Anhänge an die Antwort anhängen
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-10-25
 **Last Updated:** 2026-10-25
 
@@ -92,4 +92,53 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 - Nebenbei: `phpunit.xml` setzt die Zammad-Token der Mitarbeiter (`ZAMMAD_TOKEN_*`) für Tests auf leer, damit die lokale `.env` die Tests nicht beeinflusst (zwei Tests schlugen deswegen fehl).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-25
+**App URL:** automatisierte Tests, Logik des Editors in Node; kein Versand mit Anhang im echten Zammad
+**Tester:** QA Engineer (AI)
+
+### Acceptance Criteria Status
+
+#### AC-1 bis AC-4: Dateien hinzufügen, Strg+V, Entfernen
+- [x] Datei wird mit Name und Größe angezeigt, ein nicht erlaubtes Format wird mit Meldung abgelehnt, Entfernen leert Liste und Meldung (Logik des Editors in Node geprüft).
+- [x] Strg+V mit Bild in der Zwischenablage: Anhang „Screenshot-JJJJ-MM-TT-HHMM.png“, Standardverhalten unterdrückt; mit Text oder Text und Bild bleibt der Text, nach dem Senden wird nichts mehr angehängt (Node).
+- [ ] Nicht im echten Browser mit einer echten Zwischenablage geprüft (Bildschirmfoto mit Windows+Umschalt+S, dann Strg+V im Antwortfeld).
+
+#### AC-5 bis AC-7: Grenzen
+- [x] Zusammen über 5 MB: abgelehnt, im Browser vorab und auf dem Server (422, Meldung).
+- [x] Sechste Datei: abgelehnt, im Browser vorab und auf dem Server.
+- [x] Andere Formate und umbenannte Programmdateien werden am Inhalt erkannt und abgelehnt (Server).
+
+#### AC-8: Vorschau
+- [x] Die Vorschau nennt die Namen der Anhänge (Oberfläche, nur im Browser sichtbar).
+
+#### AC-9 bis AC-11: Versand und Protokoll
+- [x] Dateien gehen als `article.attachments` (Name, Base64, Typ) im selben Aufruf an Zammad.
+- [x] Name und Größe stehen im Protokoll der Antwort; die Dateien werden nicht gespeichert.
+- [x] Ohne Dateien enthält die Nutzlast kein Feld `attachments`.
+
+#### AC-12: Fehler beim Senden
+- [x] Nach einem Fehler können dieselben Dateien erneut gesendet werden (Test; im Editor bleiben Liste und Text erhalten).
+
+### Edge Cases Status
+- [x] Gleichnamige Dateien: die zweite bekommt eine Nummer.
+- [x] Pfadteile und Steuerzeichen im Namen werden bereinigt.
+- [x] Schutz vor Doppelversand unverändert (alle bisherigen PROJ-19-Tests grün).
+- [ ] Zeitlimit 30 Sekunden bei Anhängen: im Code gesetzt, aber nicht mit einem echten 5-MB-Versand gegen Zammad geprüft (Grenze des Zammad-Servers für die Größe unbekannt).
+
+### Security Audit Results
+- [x] CSRF: Der Versand läuft über `fetch` mit dem CSRF-Header.
+- [x] Typ und Größe werden auf dem Server geprüft, nicht nur im Browser.
+- [x] Der Empfänger kommt weiter vom Server, nicht aus dem Formular.
+- [x] Rate limiting: Route auf 10 Aufrufe pro Minute begrenzt (unverändert).
+- [x] Dateien liegen nur während des Aufrufs im Arbeitsspeicher beziehungsweise in PHPs temporärem Upload-Ordner.
+
+### Bugs Found
+Keine neuen Fehler in PROJ-61 gefunden. Zwei Tests schlugen anfangs fehl, weil die lokale `.env` Zammad-Token enthielt; `phpunit.xml` setzt diese für Tests auf leer.
+
+### Summary
+- **Acceptance Criteria:** 12/12 erfüllt in Tests und Logikprüfung; echter Versand mit Anhang und echtes Strg+V im Browser noch offen
+- **Bugs Found:** 0
+- **Security:** Pass
+- **Production Ready:** Bedingt: nach einem Versand mit PDF und Screenshot an ein Test-Ticket in Zammad
+- **Recommendation:** In Review, bis der Auftraggeber einen echten Versand bestätigt

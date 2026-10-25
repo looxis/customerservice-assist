@@ -62,6 +62,20 @@ describe('content type from Zammad', function () {
     });
 });
 
+describe('viewer buttons', function () {
+    test('only the images that a browser can show get a view button, HEIC and PDF do not', function () {
+        attachmentTicket();
+
+        $html = $this->get('/tickets/2137942')->assertOk()->getContent();
+
+        // Viewable: tasse.png (31), riesig.png (34, too large only when fetched) and IMG_3700.jpeg (35). The message is shown twice
+        // on the page (the message to read first and the thread), so each button appears twice; the viewer has one listener.
+        expect(substr_count($html, "\$dispatch('view-attachment'"))->toBe(6);
+        expect(substr_count($html, 'x-on:view-attachment.window'))->toBe(1);
+        expect($html)->toContain(e(attachmentUrl(900, 32, '?download=1')))->toContain(e(attachmentUrl(900, 33, '?download=1')));
+    });
+});
+
 describe('download', function () {
     test('an image comes inline with its own type and is fetched from Zammad only once', function () {
         attachmentTicket();

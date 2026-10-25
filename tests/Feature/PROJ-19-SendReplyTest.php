@@ -459,6 +459,7 @@ function pngFile(string $name = 'screenshot.png'): UploadedFile
 
 describe('attachments (PROJ-61)', function () {
     test('a PDF and an image go to Zammad with the reply and are logged by name, but not stored', function () {
+        Storage::fake('local');
         $id = sendAnalysis();
         $pdf = UploadedFile::fake()->createWithContent('angebot.pdf', "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
 
@@ -469,7 +470,7 @@ describe('attachments (PROJ-61)', function () {
         expect($attachments[0])->toMatchArray(['filename' => 'angebot.pdf', 'mime-type' => 'application/pdf']);
         expect($attachments[1])->toMatchArray(['filename' => 'screenshot.png', 'mime-type' => 'image/png', 'data' => PROJ61_PNG]);
         expect(Analysis::query()->where('uuid', $id)->value('reply_sent_attachments'))->toContain('angebot.pdf (')->toContain('screenshot.png (');
-        expect(collect(Storage::disk('local')->allFiles())->reject(fn (string $file): bool => str_ends_with($file, '.gitignore'))->all())->toBe([]);
+        expect(Storage::disk('local')->allFiles())->toBe([]);
     });
 
     test('without files the payload has no attachments', function () {
