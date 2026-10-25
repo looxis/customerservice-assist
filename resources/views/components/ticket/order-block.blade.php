@@ -64,8 +64,8 @@
         </div>
     @endif
 
-    <div class="mt-3 flex flex-wrap gap-3 border-t border-slate-200 pt-3 text-sm">
-        <a href="{{ $order->url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-brand hover:text-brand-hover">In EOCS öffnen</a>
+    <div class="mt-3 flex flex-wrap items-center gap-3 border-t border-slate-200 pt-3 text-sm">
+        <x-button :href="$order->url" target="_blank" rel="noopener noreferrer">In EOCS öffnen</x-button>
         <a href="{{ $removeUrl }}" class="font-semibold text-slate-600 hover:text-slate-900">Entfernen</a>
     </div>
 </article>

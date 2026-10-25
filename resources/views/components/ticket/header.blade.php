@@ -69,10 +69,10 @@
     {{ $orders ?? '' }}
 
     <div class="mt-6 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
-        <x-button :href="$ticket->zammadUrl" variant="secondary" target="_blank" rel="noopener noreferrer">
+        <x-button :href="$ticket->zammadUrl" target="_blank" rel="noopener noreferrer">
             In Zammad öffnen <x-icon name="chevron-right" size="16" />
         </x-button>
-        <x-button :href="route('tickets.show', array_filter(['number' => $ticket->number, 'bestellungen' => request()->query('bestellungen')]))" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
+        <x-button :href="route('tickets.show', array_filter(['number' => $ticket->number, 'bestellungen' => request()->query('bestellungen')]))" variant="secondary" title="Lädt das Ticket und die Bestellungen neu aus Zammad und EOCS, zum Beispiel wenn der Kunde inzwischen geantwortet hat." x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
             <x-icon name="refresh" size="16" /> Aktualisieren
         </x-button>
         @if ($canDelete)

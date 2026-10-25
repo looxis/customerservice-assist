@@ -171,7 +171,8 @@ describe('loading orders', function () {
                 'Versand', 'DHL', 'TRACK123456DE', '10.09.2026',
                 'In EOCS öffnen', 'Entfernen',
             ])
-            ->assertSee('href="https://eocs.test/orders/700001" target="_blank"', false)
+            ->assertSee('href="https://eocs.test/orders/700001"', false)
+            ->assertSee('bg-brand text-white', false)
             ->assertSee('bg-success-500/10', false);
     });
 
