@@ -73,7 +73,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Direkte Links zu internen Tools in Arbeitsabläufen (EOCS-Auftrag, Zammad-Ticket, Vanilo, Mailcoach, EOCS-Kundenliste) | Approved |
 | Hilfe für das Feld „Zusätzliche Informationen“: lageabhängige Beispiele, Hinweis zum Formulieren, Prompt-Regel für Fakten, Entscheidungen und Wünsche an die Antwort | Approved |
 | Bildanhänge eines Tickets in der App ansehen (Zwischenspeicher 30 Tage, Overlay mit Zoom) | Approved |
-| Anhänge (PDF, Bilder, Screenshot per Strg+V) an die Antwort anhängen | In Review |
+| Anhänge (PDF, Bilder, Screenshot per Strg+V) an die Antwort anhängen | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

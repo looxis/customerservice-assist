@@ -1,6 +1,6 @@
 # PROJ-61: Anhänge an die Antwort anhängen
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-25
 **Last Updated:** 2026-10-25
 
@@ -102,7 +102,7 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 #### AC-1 bis AC-4: Dateien hinzufügen, Strg+V, Entfernen
 - [x] Datei wird mit Name und Größe angezeigt, ein nicht erlaubtes Format wird mit Meldung abgelehnt, Entfernen leert Liste und Meldung (Logik des Editors in Node geprüft).
 - [x] Strg+V mit Bild in der Zwischenablage: Anhang „Screenshot-JJJJ-MM-TT-HHMM.png“, Standardverhalten unterdrückt; mit Text oder Text und Bild bleibt der Text, nach dem Senden wird nichts mehr angehängt (Node).
-- [ ] Nicht im echten Browser mit einer echten Zwischenablage geprüft (Bildschirmfoto mit Windows+Umschalt+S, dann Strg+V im Antwortfeld).
+- [x] Im echten Browser mit einem Screenshot aus der Zwischenablage geprüft (Auftraggeber, 2026-10-25): Strg+V im Antwortentwurf fügt den Anhang ein.
 
 #### AC-5 bis AC-7: Grenzen
 - [x] Zusammen über 5 MB: abgelehnt, im Browser vorab und auf dem Server (422, Meldung).
@@ -133,6 +133,9 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 - [x] Rate limiting: Route auf 10 Aufrufe pro Minute begrenzt (unverändert).
 - [x] Dateien liegen nur während des Aufrufs im Arbeitsspeicher beziehungsweise in PHPs temporärem Upload-Ordner.
 
+### Hinweis
+Strg+V wirkt nur, wenn der Cursor im Bereich der Antwort steht (Antworttext, Betreff oder Signatur); liegt der Fokus außerhalb, geschieht nichts. Ob das Einfügen auf der ganzen Seite gelten soll, ist offen.
+
 ### Bugs Found
 Keine neuen Fehler in PROJ-61 gefunden. Zwei Tests schlugen anfangs fehl, weil die lokale `.env` Zammad-Token enthielt; `phpunit.xml` setzt diese für Tests auf leer.
 
@@ -140,5 +143,5 @@ Keine neuen Fehler in PROJ-61 gefunden. Zwei Tests schlugen anfangs fehl, weil d
 - **Acceptance Criteria:** 12/12 erfüllt in Tests und Logikprüfung; echter Versand mit Anhang und echtes Strg+V im Browser noch offen
 - **Bugs Found:** 0
 - **Security:** Pass
-- **Production Ready:** Bedingt: nach einem Versand mit PDF und Screenshot an ein Test-Ticket in Zammad
-- **Recommendation:** In Review, bis der Auftraggeber einen echten Versand bestätigt
+- **Production Ready:** YES (Auftraggeber hat Strg+V im Browser bestätigt und die Freigabe erteilt)
+- **Recommendation:** Approved
