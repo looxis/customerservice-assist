@@ -22,6 +22,7 @@ function attachmentTicket(array $extra = []): void
         ['id' => 32, 'filename' => 'foto.heic', 'size' => 5000, 'preferences' => ['Content-Type' => 'image/heic']],
         ['id' => 33, 'filename' => 'rechnung.pdf', 'size' => 51200, 'preferences' => ['Content-Type' => 'application/pdf']],
         ['id' => 35, 'filename' => 'IMG_3700.jpeg', 'size' => 70, 'preferences' => ['Content-Type' => 'image/jpeg; name=img_3700.jpeg']],
+        ['id' => 36, 'filename' => '20261024_103508.jpg', 'size' => 70, 'preferences' => ['Content-Type' => 'image/jpg']],
         ['id' => 34, 'filename' => 'riesig.png', 'size' => 30 * 1024 * 1024, 'preferences' => ['Content-Type' => 'image/png']],
     ]])], extra: array_merge([
         'zammad.test/api/v1/ticket_attachment/51234/900/31' => Http::response(base64_decode(PROJ60_PNG), 200, ['Content-Type' => 'image/png']),
@@ -60,6 +61,14 @@ describe('content type from Zammad', function () {
         expect($file->contentType)->toBe('image/jpeg')->and($file->isViewable())->toBeTrue();
         $this->get('/tickets/2137942')->assertOk()->assertSee('IMG_3700.jpeg');
     });
+
+    test('the non-standard type image/jpg is treated as JPEG and viewable', function () {
+        attachmentTicket();
+
+        $file = collect(app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments)->firstWhere('id', 36);
+
+        expect($file->contentType)->toBe('image/jpeg')->and($file->isViewable())->toBeTrue();
+    });
 });
 
 describe('viewer buttons', function () {
@@ -68,9 +77,9 @@ describe('viewer buttons', function () {
 
         $html = $this->get('/tickets/2137942')->assertOk()->getContent();
 
-        // Viewable: tasse.png (31), riesig.png (34, too large only when fetched) and IMG_3700.jpeg (35). The message is shown twice
+        // Viewable: tasse.png (31), riesig.png (34, too large only when fetched), IMG_3700.jpeg (35) and the image/jpg file (36). The message is shown twice
         // on the page (the message to read first and the thread), so each button appears twice; the viewer has one listener.
-        expect(substr_count($html, "\$dispatch('view-attachment'"))->toBe(6);
+        expect(substr_count($html, "\$dispatch('view-attachment'"))->toBe(8);
         expect(substr_count($html, 'x-on:view-attachment.window'))->toBe(1);
         expect($html)->toContain(e(attachmentUrl(900, 32, '?download=1')))->toContain(e(attachmentUrl(900, 33, '?download=1')));
     });
