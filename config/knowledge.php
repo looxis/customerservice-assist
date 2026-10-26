@@ -131,6 +131,8 @@ return [
         'order-confirmation' => 'Auftrag bestätigen',
         'pickup' => 'Selbstabholung',
         'account-closure' => 'Kundenkonto schließen',
+        'account-reactivation' => 'Kundenkonto reaktivieren',
+        'account-verification' => 'Kundenkonto verifizieren',
     ],
 
     /*
@@ -176,6 +178,8 @@ return [
         'goodwill-reproduction' => 'kostenpflichtige oder vergünstigte Neuanfertigung aus Kulanz, weil der Fehler beim Kunden lag (Kundenfehler, Dateifehler, Tippfehler) oder die Reklamation unberechtigt ist und der Kunde eine andere Ausführung wünscht; nie bei berechtigter Reklamation',
         'partial-refund' => 'Teilerstattung oder Preisnachlass ohne Neuanfertigung',
         'account-closure' => 'Kundenkonto eines Fachhändlers schließen, nachdem er die Geschäftsbeziehung schriftlich beendet hat (Mailcoach, Vanilo, EOCS)',
+        'account-reactivation' => 'deaktiviertes Kundenkonto eines Fachhändlers nach Rücksprache wieder aktivieren und die Zahlungsart in EOCS und Vanilo setzen',
+        'account-verification' => 'unverifiziertes Kundenkonto eines Fachhändlers für den Kunden in Vanilo bestätigen, damit „Passwort vergessen“ funktioniert (nur bis 2. November 2026)',
     ],
 
     /*
