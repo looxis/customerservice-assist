@@ -55,7 +55,7 @@ Personalisierte Produkte werden individuell für den Besteller gefertigt. Ein re
 
 - Ein Mangel oder eine Abweichung von der bestellten Personalisierung beanstandet wird. Dann gilt POLICY-002.
 - Eine Lieferverzögerung der Anlass ist. Dann gilt POLICY-003.
-- Eine Änderung oder Stornierung vor Fertigstellung verlangt wird. Dieser Fall benötigt eine gesonderte Prüfung und ist nicht Gegenstand dieser Policy.
+- Eine Änderung oder Stornierung vor Fertigstellung verlangt wird. Dafür gilt POLICY-057; diese Policy regelt ihn nicht.
 
 # Vorgehen
 

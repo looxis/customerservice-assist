@@ -44,6 +44,8 @@ related_knowledge:
   - POLICY-042
   - POLICY-044
   - PLAYBOOK-028
+  - POLICY-057
+  - PLAYBOOK-041
 ---
 
 Gilt für Bestellungen im Online-Shop (looxis-de, fachhaendler, looxis-pro), deren Zahlung über Mollie abgewickelt wird.
