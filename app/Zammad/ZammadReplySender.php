@@ -67,7 +67,7 @@ class ZammadReplySender
             $payload['pending_time'] = $reply->pendingUntil->utc()->toIso8601String();
         }
 
-        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$reply->ticketId}", $payload), certain: false, timeout: $reply->attachments === [] ? null : (int) ($this->config['attachment_timeout'] ?? 30));
+        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$reply->ticketId}", $payload), certain: false, timeout: $reply->attachments === [] ? null : (int) ($this->config['reply_attachment_timeout'] ?? 120));
 
         return new SentReply($this->newestArticleBy($token, $reply->ticketId, $me['id'], $started->subMinute()), $me['name']);
     }

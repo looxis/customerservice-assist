@@ -51,6 +51,8 @@ return [
         'timeout' => env('ZAMMAD_TIMEOUT', 10),
         // Seconds for loading one attachment (PROJ-60); attachments are larger than the JSON answers.
         'attachment_timeout' => 30,
+        // Seconds for sending a reply with attachments: Zammad decodes and stores them before it answers.
+        'reply_attachment_timeout' => 120,
         'timezone' => 'Europe/Berlin',
 
         // Our own signatures without Zammad's signature marker (e.g. on Amazon),

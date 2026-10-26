@@ -212,12 +212,23 @@
         <x-button variant="secondary" x-show="text !== original" x-cloak x-on:click="restore()"><x-icon name="refresh" size="16" /> Original der KI wiederherstellen</x-button>
         @endunless
         @if ($result['reply_foreign'] ?? false)
-            <x-button variant="secondary" x-on:click="check()" x-bind:disabled="backStatus === 'loading' || text.trim() === ''"><x-icon name="text" size="16" /> Auf Deutsch gegenlesen</x-button>
+            <x-button variant="secondary" x-on:click="check()" x-bind:disabled="backStatus === 'loading' || text.trim() === ''"><x-icon name="text" size="16" /> <span x-text="backStatus === 'loading' ? 'Wird übersetzt …' : 'Auf Deutsch gegenlesen'">Auf Deutsch gegenlesen</span></x-button>
         @endif
         @if ($locked)<span role="status" class="text-sm font-medium text-danger-700">Erst kopierbar, wenn die Regelprüfung bestätigt ist (siehe oben).</span>@endif
         <span x-show="copied" x-cloak role="status" class="text-sm font-medium text-success-700">Kopiert</span>
         <span x-show="fallback" x-cloak role="status" class="text-sm text-slate-600">Der Browser erlaubt das Kopieren hier nicht. Der Text ist markiert – bitte mit Strg+C kopieren.</span>
     </div>
+
+    @if ($result['reply_foreign'] ?? false)
+        {{-- German back translation for checking (PROJ-28); the original is what gets sent. --}}
+        <p x-show="backStatus === 'loading'" x-cloak class="mt-3 text-sm text-slate-600" role="status">Der Entwurf wird übersetzt …</p>
+        <p x-show="backStatus === 'error'" x-cloak class="mt-3 text-sm text-danger-700" role="alert">Die Übersetzung ist gerade nicht möglich. Bitte erneut versuchen.</p>
+        <div x-show="back !== ''" @if (($result['reply_backtranslation']['text'] ?? '') === '') x-cloak @endif class="mt-3 rounded-md bg-trust-500/10 p-3 text-sm ring-1 ring-trust-500/20 ring-inset">
+            <p class="text-xs font-semibold text-trust-500">Rückübersetzung zur Kontrolle – verschickt wird das Original · KI-Übersetzung</p>
+            <p x-show="backFor !== text" @if (! ($result['reply_backtranslation']['stale'] ?? false)) x-cloak @endif class="mt-1 text-xs font-semibold text-warning-700">Entwurf seither geändert – erneut gegenlesen.</p>
+            <p class="mt-2 whitespace-pre-line text-slate-900" x-text="back">{{ $result['reply_backtranslation']['text'] ?? '' }}</p>
+        </div>
+    @endif
 
     @if ($send['state'] === 'no_token')
         <p class="mt-3 rounded-md bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200 ring-inset">Bitte Token hinterlegen, dann ist ein Direktversand möglich. Bis dahin: „Kopieren“ und in Zammad senden.</p>
@@ -288,16 +299,5 @@
                 </div>
             @endif
         </section>
-    @endif
-
-    @if ($result['reply_foreign'] ?? false)
-        {{-- German back translation for checking (PROJ-28); the original is what gets sent. --}}
-        <p x-show="backStatus === 'loading'" x-cloak class="mt-3 text-sm text-slate-600" role="status">Der Entwurf wird übersetzt …</p>
-        <p x-show="backStatus === 'error'" x-cloak class="mt-3 text-sm text-danger-700" role="alert">Die Übersetzung ist gerade nicht möglich. Bitte erneut versuchen.</p>
-        <div x-show="back !== ''" @if (($result['reply_backtranslation']['text'] ?? '') === '') x-cloak @endif class="mt-3 rounded-md bg-trust-500/10 p-3 text-sm ring-1 ring-trust-500/20 ring-inset">
-            <p class="text-xs font-semibold text-trust-500">Rückübersetzung zur Kontrolle – verschickt wird das Original · KI-Übersetzung</p>
-            <p x-show="backFor !== text" @if (! ($result['reply_backtranslation']['stale'] ?? false)) x-cloak @endif class="mt-1 text-xs font-semibold text-warning-700">Entwurf seither geändert – erneut gegenlesen.</p>
-            <p class="mt-2 whitespace-pre-line text-slate-900" x-text="back">{{ $result['reply_backtranslation']['text'] ?? '' }}</p>
-        </div>
     @endif
 </div>
