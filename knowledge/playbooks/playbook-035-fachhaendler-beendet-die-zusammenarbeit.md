@@ -14,7 +14,7 @@ categories:
 topics:
   - loaned-demo-material
   - customer-account
-summary: "Ein Foto-Fachhändler teilt schriftlich mit, dass er die Zusammenarbeit beendet, weil er keinen Sinn mehr im Verkauf sieht, sich neu orientiert oder sein Geschäft schließt. Beschreibt, was mit Leihmustern und Präsentationsdisplays geschieht, wie die Antwort lautet und dass das Kundenkonto geschlossen wird. Gilt nicht für Beschwerden über ein einzelnes Produkt oder eine Bestellung."
+summary: "Ein Foto-Fachhändler teilt schriftlich mit, dass er die Zusammenarbeit beendet, weil er keinen Sinn mehr im Verkauf sieht, sich neu orientiert oder sein Geschäft schließt. Beschreibt, was mit Leihmustern und Präsentationsdisplays geschieht, wie die Antwort lautet und dass das Kundenkonto geschlossen und die Löschung bestätigt wird. Gilt nicht für Beschwerden über ein einzelnes Produkt oder eine Bestellung."
 retrieval: triggered
 triggers:
   - Geschäftsbeziehung beenden
@@ -37,6 +37,9 @@ triggers:
   - Altersgründen
   - neu orientieren
   - Kundenkonto löschen
+  - Kundenkonto schließen
+  - Konto löschen
+  - Löschung meines Kontos
   - Konto kündigen
 exclude_triggers:
 when:
@@ -45,6 +48,8 @@ related_knowledge:
   - POLICY-027
   - PROCESS-012
   - PROCEDURE-004
+  - POLICY-058
+  - PLAYBOOK-042
 ---
 
 Gilt nur für Foto-Fachhändler im Vertriebskanal `fachhaendler`, die die Geschäftsbeziehung von sich aus und schriftlich beenden.
@@ -62,7 +67,8 @@ Ein Fachhändler teilt in Textform mit, dass er die Zusammenarbeit mit LOOXIS be
 
 1. **Leihmaterial klären** nach POLICY-027 und PROCESS-012: Zuerst fragt der Kundenservice die Produktionsleitung, ob die leihweise überlassenen Präsentationsdisplays und Glasfoto-Muster noch benötigt werden. Bei Bedarf und brauchbarem Zustand wird die Rücksendung vereinbart. Sonst muss der Händler nichts zurückschicken.
 2. **Antworten** wie unter „Kommunikation“, falls LOOXIS auf die Rücksendung der Muster verzichtet.
-3. **Kundenkonto schließen** nach PROCEDURE-004 (Mailcoach, Vanilo, EOCS).
+3. **Kundenkonto schließen** nach PROCEDURE-004 (Mailcoach, Vanilo, EOCS). Der Kundenservice erledigt das umgehend und selbst. Weitere Fristen werden dem Händler nicht genannt.
+4. **Die Löschung bestätigen** (siehe „Kommunikation“).
 
 # Kommunikation
 
@@ -74,8 +80,11 @@ Bitte beachten Sie, dass die Muster ausschließlich zur Präsentation unserer Pr
 
 Mit der Entsorgung vor Ort verzichten wir auf die Rücksendung der Muster.“
 
+Bestätigung der Kontolöschung: „Wir bestätigen Ihnen hiermit die Löschung Ihres Kundenkontos.“ Auf die Aufbewahrung von Rechnungen und Bestelldaten nur hinweisen, wenn der Händler ausdrücklich danach fragt (POLICY-058).
+
 # No-Gos
 
 - Die Muster nicht als Geschenk oder zum Behalten freigeben und nicht sagen, dass der Händler sie weiterverwenden darf. Das Eigentum geht nicht über.
 - Nicht zur Rücksendung auffordern, bevor die Produktionsleitung den Bedarf bestätigt hat (PROCESS-012).
 - Gekaufte Leuchtsockel, Leuchtstelen und Werbematerial nie zurückfordern (POLICY-027).
+- Nicht ungefragt auf die Aufbewahrung von Rechnungen und Bestelldaten hinweisen und nicht bestätigen, dass alle Daten gelöscht sind (POLICY-058).
