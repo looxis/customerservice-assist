@@ -167,12 +167,13 @@ describe('reporting a knowledge gap', function () {
 });
 
 describe('list of gaps for admins', function () {
-    test('admins see the sidebar entry with the open count; others neither entry nor page', function () {
+    test('everyone sees the sidebar entry and the page; only admins get the buttons to resolve', function () {
         KnowledgeGap::factory()->count(2)->create();
 
         $this->withCookie('staff_name', 'Etienne')->get('/')->assertSee('href="'.route('knowledge-gaps.index').'"', false)->assertSeeTextInOrder(['Wissenslücken', '2']);
-        $this->withCookie('staff_name', 'Nele')->get('/')->assertDontSee('href="'.route('knowledge-gaps.index').'"', false);
-        $this->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index'))->assertForbidden();
+        $this->withCookie('staff_name', 'Nele')->get('/')->assertSee('href="'.route('knowledge-gaps.index').'"', false);
+        $this->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index'))->assertOk()->assertDontSee('name="status" value="done"', false)->assertDontSee('name="status" value="discarded"', false);
+        $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->assertSee('name="status" value="done"', false)->assertSee('name="status" value="discarded"', false);
     });
 
     test('open reports are listed newest first with all details and a text block for the ai chat', function () {

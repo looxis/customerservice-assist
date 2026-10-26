@@ -79,7 +79,7 @@ class AppServiceProvider extends ServiceProvider
                 'testModeActive' => $testMode->isActive(request()),
                 'ticketOverviewAvailable' => $testMode->isAvailable(request()),
                 'stats' => app(AppStats::class)->all(),
-                'openGapCount' => $testMode->isAvailable(request()) ? app(KnowledgeGapLog::class)->openCount() : null,
+                'openGapCount' => app(KnowledgeGapLog::class)->openCount(),
             ]);
         });
     }

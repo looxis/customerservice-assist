@@ -39,10 +39,8 @@
                 <x-nav-item :href="route('ticket-overview.index')" icon="doc" :active="request()->routeIs('ticket-overview.*')">Ticket-Übersicht</x-nav-item>
                 <x-nav-item :href="route('analysis-overview.index')" icon="text" :active="request()->routeIs('analysis-overview.*')">Vorschläge</x-nav-item>
             @endif
-            @if ($openGapCount !== null)
-                <x-nav-item :href="route('knowledge-gaps.index')" icon="warning" :active="request()->routeIs('knowledge-gaps.*')">Wissenslücken @if ($openGapCount > 0)<span class="ml-2 rounded-full bg-warning-500/15 px-2 text-xs font-semibold text-warning-700">{{ $openGapCount }}</span>@endif</x-nav-item>
-            @endif
-            @if ($openGapCount !== null)
+            <x-nav-item :href="route('knowledge-gaps.index')" icon="warning" :active="request()->routeIs('knowledge-gaps.*')">Wissenslücken @if ($openGapCount > 0)<span class="ml-2 rounded-full bg-warning-500/15 px-2 text-xs font-semibold text-warning-700">{{ $openGapCount }}</span>@endif</x-nav-item>
+            @if ($testModeAvailable)
                 <x-nav-item :href="route('product-questions.index')" icon="chat" :active="request()->routeIs('product-questions.*')">Häufige Produktfragen</x-nav-item>
             @endif
         </nav>

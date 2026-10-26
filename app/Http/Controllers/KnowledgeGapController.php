@@ -36,17 +36,16 @@ class KnowledgeGapController extends Controller
     }
 
     /**
-     * The reported gaps for admins, with the success figure of the feedback.
+     * The reported gaps, with the success figure of the feedback.
      */
     public function index(Request $request, KnowledgeGapLog $gaps, AnalysisStore $store, KnowledgeSelector $selector, TestMode $testMode, KnowledgeReviewLog $reviews, DocumentEvidence $evidence): View
     {
-        abort_unless($testMode->isAvailable($request), 403);
-
         $status = array_key_exists((string) $request->query('status'), KnowledgeGapLog::STATUSES) || $request->query('status') === 'review' ? (string) $request->query('status') : 'open';
         $groups = collect($selector->customerGroups())->mapWithKeys(fn (CustomerGroup $group): array => [$group->key => $group->label])->all();
 
         return view('knowledge-gaps.index', [
             'status' => $status,
+            'isAdmin' => $testMode->isAvailable($request),
             'gaps' => $status === 'review' ? collect() : $gaps->list($status),
             'reviews' => $status === 'review' ? $reviews->openByDocument() : collect(),
             'reviewCount' => $reviews->openDocumentCount(),

@@ -154,6 +154,7 @@
                     </details>
                 @endif
 
+                @if ($isAdmin)
                 <div class="flex flex-wrap items-center gap-3">
                     @if ($gap->status === 'open')
                         <form method="POST" action="{{ route('knowledge-gaps.update', ['gap' => $gap->id]) }}">
@@ -177,6 +178,7 @@
                         </form>
                     @endif
                 </div>
+                @endif
             </div>
         </x-card>
     @empty

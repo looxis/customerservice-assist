@@ -115,11 +115,9 @@ describe('automatic gap for a product without knowledge', function () {
 });
 
 describe('QA probes (PROJ-45)', function () {
-    test('the admin page is closed for others and escapes the product name and the notes', function () {
+    test('the page escapes the product name and the notes', function () {
         CaseAgent::fake([unknownAnswer()]);
         runWithUnknown(['produkt_ohne_wissen' => '<b>Sockel</b>', 'kontext' => '<script>alert(1)</script>']);
-
-        $this->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index'))->assertForbidden();
 
         $html = $this->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index'))->getContent();
         expect($html)->not->toContain('<script>alert(1)</script>')->and($html)->not->toContain('<b>Sockel</b>');
