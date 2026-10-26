@@ -33,12 +33,17 @@ triggers:
   - Konto wurde gesperrt
   - Kontosperrung
   - Konto gelöscht
+  - Konto deaktiviert
+  - Konto reaktivieren
   - Zugangsdaten
 related_knowledge:
   - PLAYBOOK-032
   - POLICY-051
   - POLICY-043
   - POLICY-041
+  - POLICY-042
+  - PROCEDURE-007
+  - PROCEDURE-008
 ---
 
 Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler. **Die Hinweise zur Aktivierung und zur Frist gelten bis 2. November 2026**; danach gilt die Kontosperrung (Abschnitt „Erinnerung vom 19. Oktober 2026 und Kontosperrung ab 3. November 2026“).
@@ -56,8 +61,21 @@ Der Fachhändler-Shop läuft auf derselben Software-Plattform wie der Endverbrau
 
 - Übernommen wurden alle zu diesem Zeitpunkt aktiven Kundenkonten. Aktiv bedeutet: mindestens eine Bestellung in den letzten 12 Monaten. Die E-Mail-Adresse und das Passwort (verschlüsselt übernommen) gelten weiter.
 - Inaktive Kunden wurden per Newsletter informiert, dass ihr Konto ebenfalls übernommen wird, wenn sie das durch eine Antwort auf den Newsletter wünschen.
-- Wurde ein Konto nicht übernommen oder ist es gesperrt, legt LOOXIS es neu an (siehe unten). Benötigt werden die Kundennummer oder die zuvor verwendete E-Mail-Adresse; als Zahlungsart steht ausschließlich Mollie zur Verfügung, eine Rückkehr zur Lastschrift braucht ein neues Mandat.
+- Wurde ein Konto nicht übernommen, legt LOOXIS es neu an (siehe unten). Benötigt werden die Kundennummer oder die zuvor verwendete E-Mail-Adresse; als Zahlungsart steht ausschließlich Mollie zur Verfügung, eine Rückkehr zur Lastschrift braucht ein neues Mandat.
+- Ein gesperrtes (deaktiviertes) Konto schaltet LOOXIS nach Rücksprache mit dem Kunden wieder frei, es wird nicht neu angelegt (siehe „Reaktivierung deaktivierter Konten und Zahlungsarten“).
 - Ein uns bisher unbekannter Fachhändler kann sich kein Kundenkonto selbst anlegen. Das läuft über LOOXIS.
+
+# Kontostatus im Shop
+
+Im Vanilo-Backend hat ein Kundenkonto einen von drei Status:
+
+| Status | Anmeldung | Bestellung | „Passwort vergessen“ |
+|---|---|---|---|
+| Aktiv | ja | ja | ja |
+| Unverifiziert (Bestätigungslink nie angeklickt) | ja | ja | nein |
+| Deaktiviert | nein | nein | nein |
+
+„Deaktiviert“ entsteht nur durch einen Mitarbeiter des Kundenservice oder durch die Umstellung ab dem 3. November 2026. Dass bei unverifizierten Konten Anmeldung und Bestellung gehen, ist eine Besonderheit der Shopsoftware; „Passwort vergessen“ geht trotzdem nicht. Der Kundenservice kann ein unverifiziertes Konto für den Händler bestätigen (PROCEDURE-008), danach funktioniert „Passwort vergessen“. Am 2. November 2026 werden alle noch unverifizierten Konten von Hand auf „deaktiviert“ gesetzt; danach hat „unverifiziert“ für Fachhändler praktisch keine Bedeutung mehr.
 
 # Aktivierung
 
@@ -79,7 +97,17 @@ Ab dem 3. November 2026 gilt: Ein Fachhändler, der sich nicht mehr einloggen ka
 - **Nicht übernommen:** Er hat zuletzt vor Mai 2025 bestellt und auf Rückfragen zum Status (ob er noch aktiv ist) nicht reagiert.
 - **Gesperrt:** Er hat sein übernommenes Konto trotz zweifacher Bitte per E-Mail nicht aktiviert.
 
-In jedem Fall kann LOOXIS das Konto neu anlegen. Dafür werden die Kundennummer oder die zuvor verwendete E-Mail-Adresse benötigt. Als Zahlungsart steht danach ausschließlich Mollie zur Verfügung. Eine Rückkehr zur Lastschrift braucht nach der Neuanlage ein neues Lastschriftmandat (POLICY-041, PROCESS-015).
+Ein nicht übernommenes Konto legt LOOXIS neu an. Dafür werden die Kundennummer oder die zuvor verwendete E-Mail-Adresse benötigt. Als Zahlungsart steht danach ausschließlich Mollie zur Verfügung. Eine Rückkehr zur Lastschrift braucht nach der Neuanlage ein neues Lastschriftmandat (POLICY-041, PROCESS-015). Ein gesperrtes (deaktiviertes) Konto wird nicht neu angelegt, sondern nach Rücksprache mit dem Kunden wieder freigeschaltet (nächster Abschnitt).
+
+# Reaktivierung deaktivierter Konten und Zahlungsarten
+
+Ein deaktiviertes Konto wird nur nach Rücksprache mit dem Kunden wieder aktiviert (Arbeitsschritte: PROCEDURE-007). Die Reaktivierung bedeutet nicht, dass frühere Zahlungsvereinbarungen weitergelten.
+
+- Standard nach der Reaktivierung: ausschließlich Mollie.
+- Lastschrift nur, wenn der Kunde sie ausdrücklich verlangt, und dann nur nach Freigabe durch die Geschäftsleitung (POLICY-041, PROCESS-015).
+- Rechnung wird reaktivierten Kunden nicht mehr angeboten.
+- Eine Zahlungsart gilt erst, wenn sie in EOCS (Standard und Vertriebskanal fachhaendler.looxis.de) geändert und mit dem Shop synchronisiert ist (POLICY-042).
+- Der Kunde wird informiert, dass das Konto wieder aktiv ist, welche Zahlungsart ab der nächsten Bestellung gilt und dass frühere Vereinbarungen nicht automatisch gelten.
 
 # Hinweise aus der Mail vom 19. Mai 2026
 
@@ -98,4 +126,4 @@ In jedem Fall kann LOOXIS das Konto neu anlegen. Dafür werden die Kundennummer 
 
 # Noch zu klären
 
-- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto neu anlegt, freischaltet oder löscht. Welche Angaben ein bisher unbekannter Händler zusätzlich braucht, ist nicht festgelegt.
+- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto neu anlegt oder löscht (die Reaktivierung steht in PROCEDURE-007, die Verifizierung in PROCEDURE-008). Welche Angaben ein bisher unbekannter Händler zusätzlich braucht, ist nicht festgelegt.
