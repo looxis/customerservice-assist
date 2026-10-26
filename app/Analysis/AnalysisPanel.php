@@ -388,6 +388,15 @@ class AnalysisPanel
         }
 
         foreach (array_map('intval', (array) ($inputs['eocs_produkte'] ?? [])) as $number) {
+            // Chosen from EOCS because ProductForge did not know the product then; if it knows it now, the same SKU is offered once, from ProductForge.
+            $inForge = collect($candidates)->first(fn (array $candidate): bool => $candidate['origin'] === 'forge' && $candidate['sku_used'] === (string) $number);
+
+            if ($inForge !== null) {
+                $selected[] = $inForge['key'];
+
+                continue;
+            }
+
             $selected[] = "eocs:{$number}";
 
             if (! isset($candidates["eocs:{$number}"])) {

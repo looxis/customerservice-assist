@@ -32,6 +32,11 @@ export default (config) => ({
     variantInfo: {},
 
     init() {
+        // A restored "no product" never stands next to a product (the checkbox is hidden once a catalog product is chosen).
+        if (this.none && (this.selected.length > 0 || this.unknown !== '' || this.forgeSelected.length > 0)) {
+            this.none = false;
+        }
+
         if (this.forge.enabled) {
             this.forgeSelected.forEach((key) => {
                 if (this.forgeList.some((product) => product.key === key)) {

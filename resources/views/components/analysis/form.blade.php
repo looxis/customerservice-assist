@@ -22,7 +22,7 @@
     };
     $oldInput = session()->hasOldInput();
     $unknownName = (string) ($oldInput ? old('produkt_ohne_wissen', '') : ($inputs['produkt_ohne_wissen'] ?? ''));
-    $noProduct = $oldInput ? (bool) old('kein_produktbezug') : (bool) ($inputs['kein_produktbezug'] ?? ($inputs !== [] && ($inputs['produkte'] ?? []) === [] && $unknownName === ''));
+    $noProduct = $oldInput ? (bool) old('kein_produktbezug') : (bool) ($inputs['kein_produktbezug'] ?? ($inputs !== [] && ($inputs['produkte'] ?? []) === [] && $unknownName === '' && ($inputs['forge_produkte'] ?? []) === [] && ($inputs['eocs_produkte'] ?? []) === []));
     $usedVariant = \App\Analysis\ContextVariant::tryFrom((string) ($inputs['variante'] ?? ''))?->label();
 @endphp
 

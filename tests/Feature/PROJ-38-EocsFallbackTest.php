@@ -209,3 +209,31 @@ describe('the analysis with an item only in EOCS', function () {
         expect(eocsItemRequests())->toBe($requests)->and($content['product_data']['eocs_reused'])->toBe([12006])->and($content['sent_input'])->toContain('LED Leuchtsockel XL');
     });
 });
+
+describe('the form of a new analysis after an EOCS-only choice', function () {
+    test('a product chosen from EOCS is not restored as "no product"', function () {
+        CaseAgent::fake([eocsAnswer()]);
+        $location = (string) eocsRun(['produkte' => []])->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+        $this->flushSession();
+        $config = scopeConfig($this->get(route('tickets.show', ['number' => '2137942', 'analyse' => $query['analyse']]))->assertOk()->getContent());
+
+        expect($config['none'])->toBeFalse()->and($config['forge']['selected'])->toBe(['eocs:12006']);
+    });
+
+    test('once ProductForge knows the product, it is offered once and the choice moves to it', function () {
+        CaseAgent::fake([eocsAnswer()]);
+        $location = (string) eocsRun(['produkte' => []])->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+        fakeForge(bySku: ['12006' => forgeFixture('variant-with-origin')]);
+        $this->flushSession();
+        $config = scopeConfig($this->get(route('tickets.show', ['number' => '2137942', 'analyse' => $query['analyse']]))->assertOk()->getContent());
+
+        expect($config['forge']['candidates'])->toHaveCount(1)
+            ->and($config['forge']['candidates'][0]['origin'])->toBe('forge')
+            ->and($config['forge']['selected'])->toBe([$config['forge']['candidates'][0]['key']])
+            ->and($config['none'])->toBeFalse();
+    });
+});
