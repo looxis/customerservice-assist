@@ -74,6 +74,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Hilfe für das Feld „Zusätzliche Informationen“: lageabhängige Beispiele, Hinweis zum Formulieren, Prompt-Regel für Fakten, Entscheidungen und Wünsche an die Antwort | Approved |
 | Bildanhänge eines Tickets in der App ansehen (Zwischenspeicher 30 Tage, Overlay mit Zoom) | Approved |
 | Anhänge (PDF, Bilder, Screenshot per Strg+V) an die Antwort anhängen | Approved |
+| Produkte ohne Kundenservice-Wissen auswerten: Reklamationen und Fragen zu ProductForge-Produkten, für die das Wissen nicht reicht, je Produkt und Thema zählen und Admins auflisten (Reklamation ab dem ersten Fall) | Planned |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
