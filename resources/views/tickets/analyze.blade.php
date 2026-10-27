@@ -9,16 +9,18 @@
         <div class="mt-3 space-y-4 text-sm text-slate-700">
             <div>
                 <p class="font-medium text-slate-900">27. Oktober '26</p>
-                <p class="mt-1">
-                    Dieses Info-Fenster &amp; DHL Retouren-Label erstellen in Vorbereitung.
-                    <strong class="font-semibold">ACHTUNG: Noch ohne Funktion.</strong>
-                </p>
+                  <ul class="mt-1 list-disc space-y-1 pl-5">
+                    <li>DHL Retourenlabel können direkt aus einem Ticket, oder über die Navigation links erstellt werden.</li>
+                    <li>Der von Thomas entwickelte Rabatt- & Angebots-Rechner ist aus passenden Tickets heraus und links über die Navigationsleiste erreichbar.</li>
+                    <li>Dieses Info-Fenster :-)</li>
+                </ul>
             </div>
 
             <div>
                 <p class="font-medium text-slate-900">26. Oktober '26</p>
                 <ul class="mt-1 list-disc space-y-1 pl-5">
                     <li>Es können jetzt angehängte Kundenbilder direkt angeschaut werden.</li>
+                    <li>Screenshots und Anhänge (z.B. PDF Dateien) können jetzt an eine Antwort angehangen werden.</li>
                     <li>Viel neues Wissen, u. a. rund um Stornierungen, Leuchtsockel, Fotokissen, Erinnerungsbox.</li>
                     <li>Gemeldete Wissenslücken sichtbar.</li>
                 </ul>

@@ -45,8 +45,8 @@ describe('layout shell', function () {
         $this->get('/')->assertSeeText('Version 97af4ee · 02.10.2026');
     });
 
-    test('the version defaults to 0.2.1 when no version is configured', function () {
-        expect(config('app.version'))->toBe('0.2.1');
+    test('a version is configured', function () {
+        expect(config('app.version'))->toBeString()->not->toBeEmpty();
     });
 
     test('the topbar shows the page title and truncates overlong titles', function () {

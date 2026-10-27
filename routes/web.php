@@ -92,6 +92,7 @@ Route::middleware('staff.selected')->group(function (): void {
     Route::post('/angebot/angebote', [QuoteController::class, 'store'])->middleware('throttle:30,1')->name('quote.offers.store');
     Route::put('/angebot/angebote/{offer}', [QuoteController::class, 'update'])->whereUuid('offer')->name('quote.offers.update');
     Route::delete('/angebot/angebote/{offer}', [QuoteController::class, 'destroy'])->whereUuid('offer')->name('quote.offers.destroy');
+    Route::post('/angebot/import', [QuoteController::class, 'import'])->middleware('throttle:10,1')->name('quote.import');
     Route::put('/angebot/artikel/{article}/kosten', [QuoteController::class, 'updateCosts'])->whereNumber('article')->name('quote.articles.costs');
 });
 
@@ -127,8 +128,8 @@ Route::middleware('staff.selected')->where(['number' => QuestionNumber::TICKET_O
     Route::post('/tickets/{number}/analyse/{analysis}/gegenlesen', [TranslationController::class, 'backTranslate'])->middleware('throttle:language-model')->whereUuid('analysis')->name('tickets.analysis.back-translation');
     Route::put('/tickets/{number}/analyse/{analysis}/feedback', FeedbackController::class)->whereUuid('analysis')->name('tickets.analysis.feedback');
     Route::post('/tickets/{number}/analyse/{analysis}/wissensluecken', [KnowledgeGapController::class, 'store'])->whereUuid('analysis')->name('tickets.analysis.gaps.store');
-    Route::put('/tickets/{number}/analyse/{analysis}/entwurf', [AnalysisController::class, 'updateReply'])->whereUuid('analysis')->name('tickets.analysis.reply');
     Route::put('/tickets/{number}/analyse/{analysis}/retourenlabel', [AnalysisController::class, 'linkReturnLabel'])->whereUuid('analysis')->name('tickets.analysis.return-label');
+    Route::put('/tickets/{number}/analyse/{analysis}/entwurf', [AnalysisController::class, 'updateReply'])->whereUuid('analysis')->name('tickets.analysis.reply');
     Route::post('/tickets/{number}/analyse/{analysis}/regelpruefung', [AnalysisController::class, 'acknowledgeRuleCheck'])->whereUuid('analysis')->name('tickets.analysis.rule-check');
     Route::post('/tickets/{number}/analyse/{analysis}/senden', [AnalysisController::class, 'sendReply'])->whereUuid('analysis')->middleware('throttle:10,1')->name('tickets.analysis.send');
     Route::post('/tickets/{number}/analyse/{analysis}/kopiert', [AnalysisController::class, 'markCopied'])->whereUuid('analysis')->name('tickets.analysis.copied');

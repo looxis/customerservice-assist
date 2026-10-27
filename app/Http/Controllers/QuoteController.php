@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImportQuoteBackupRequest;
 use App\Http\Requests\SaveQuoteOfferRequest;
 use App\Http\Requests\UpdateQuoteArticleCostsRequest;
 use App\Models\QuoteArticle;
 use App\Models\QuoteOffer;
+use App\Quotes\QuoteBackupImporter;
 use App\Quotes\QuoteCalculator;
 use App\Staff\StaffDirectory;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use InvalidArgumentException;
 
 /**
  * The page "Angebot berechnen" (PROJ-34): discount calculator on the shop price and offers. Everyone sees
@@ -88,6 +92,17 @@ class QuoteController extends Controller
         ]);
 
         return response()->json($article->payload());
+    }
+
+    public function import(ImportQuoteBackupRequest $request, QuoteBackupImporter $importer, StaffDirectory $staff): RedirectResponse
+    {
+        try {
+            $counts = $importer->import((string) file_get_contents($request->file('backup')->getRealPath()), (string) $staff->current($request));
+        } catch (InvalidArgumentException $e) {
+            return redirect()->route('quote.index')->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('quote.index')->with('success', "Sicherung eingespielt: {$counts['articles']} Artikel (davon {$counts['with_costs']} mit vollständigen Kosten), {$counts['offers']} Angebote.");
     }
 
     /**

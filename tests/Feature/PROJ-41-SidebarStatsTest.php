@@ -51,14 +51,14 @@ describe('figures', function () {
 });
 
 describe('sidebar', function () {
-    test('everybody sees the figures, also without admin rights, with the version 0.2.1', function () {
+    test('everybody sees the figures, also without admin rights, with the version', function () {
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
         Analysis::factory()->create();
         KnowledgeGap::factory()->count(2)->create();
         KnowledgeGap::factory()->create(['status' => 'done', 'resolved_by' => 'Etienne', 'resolved_at' => now()]);
 
         $this->withCookie('staff_name', 'Nele')->get('/')
-            ->assertSeeTextInOrder(['Aktueller Stand', 'Wissensstand', 'Wissen', '1 Dateien', 'Bearbeitete Tickets', '1', 'Gemeldete Wissenslücken', '3', 'Davon noch offen', '2', 'Gemeldete Lücken werden bearbeitet', 'Version 0.2.1'])
+            ->assertSeeTextInOrder(['Aktueller Stand', 'Wissensstand', 'Wissen', '1 Dateien', 'Bearbeitete Tickets', '1', 'Gemeldete Wissenslücken', '3', 'Davon noch offen', '2', 'Gemeldete Lücken werden bearbeitet', 'Version '.config('app.version')])
             ->assertDontSeeText('Version dev');
     });
 

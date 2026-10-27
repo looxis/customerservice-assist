@@ -4,6 +4,8 @@ use App\Knowledge\CaseLinks;
 use App\Models\QuoteArticle;
 use App\Models\QuoteOffer;
 use App\Quotes\QuoteBackupImporter;
+use Illuminate\Http\Testing\File;
+use Illuminate\Http\UploadedFile;
 
 beforeEach(function () {
     $this->withoutVite();
@@ -145,5 +147,48 @@ describe('the link in internal procedures', function () {
         expect(CaseLinks::isKnown('angebotsrechner'))->toBeTrue()
             ->and((new CaseLinks)->targets('angebotsrechner')[0]['url'])->toBe(route('quote.index'))
             ->and((new CaseLinks(ticketNumber: '2140026'))->targets('angebotsrechner')[0]['url'])->toBe(route('quote.index', ['ticket' => '2140026']));
+    });
+});
+
+describe('the upload of the backup', function () {
+    function backupFile(?string $content = null, string $name = 'rabattdata.json'): File
+    {
+        return UploadedFile::fake()->createWithContent($name, $content ?? backupJson());
+    }
+
+    test('only admins see the upload area', function () {
+        $this->withCredentials()->withCookie('staff_name', 'Etienne')->get(route('quote.index'))->assertSee('Sicherung einspielen');
+        $this->withCredentials()->withCookie('staff_name', 'Nele')->get(route('quote.index'))->assertDontSee('Sicherung einspielen');
+        $this->get(route('quote.index'))->assertDontSee('Sicherung einspielen');
+    });
+
+    test('an admin uploads the file and the articles are imported', function () {
+        $this->withCredentials()->withCookie('staff_name', 'Etienne')->post(route('quote.import'), ['backup' => backupFile()])
+            ->assertRedirect(route('quote.index'))->assertSessionHas('success');
+
+        expect(QuoteArticle::count())->toBe(2)
+            ->and(QuoteArticle::where('sku', '11244')->first()->costs_updated_by)->toBe('Etienne');
+    });
+
+    test('others are refused and nothing is imported', function () {
+        $this->withCredentials()->withCookie('staff_name', 'Nele')->post(route('quote.import'), ['backup' => backupFile()])->assertForbidden();
+
+        expect(QuoteArticle::count())->toBe(0);
+    });
+
+    test('without a chosen name nothing is imported either', function () {
+        $this->post(route('quote.import'), ['backup' => backupFile()])->assertRedirect();
+
+        expect(QuoteArticle::count())->toBe(0);
+    });
+
+    test('a wrong file gives a message and imports nothing', function () {
+        $admin = fn () => $this->withCredentials()->withCookie('staff_name', 'Etienne');
+
+        $admin()->post(route('quote.import'), ['backup' => backupFile('{"app":"other"}')])->assertRedirect(route('quote.index'))->assertSessionHas('error');
+        $admin()->post(route('quote.import'), ['backup' => backupFile('x', 'daten.txt')])->assertSessionHasErrors('backup');
+        $admin()->post(route('quote.import'), [])->assertSessionHasErrors('backup');
+
+        expect(QuoteArticle::count())->toBe(0);
     });
 });

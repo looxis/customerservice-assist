@@ -219,4 +219,21 @@
             </template>
         </x-card>
     </div>
+    @if ($isAdmin)
+        <x-card class="mt-6">
+            <h2 class="text-base font-semibold text-slate-900">Sicherung einspielen (nur Admins)</h2>
+            <p class="mt-1 text-sm text-slate-600">Liest die Sicherungsdatei des alten Browser-Rechners (z. B. <span class="font-mono">rabattdata.json</span>) ein. Artikel werden über die Artikelnummer, Angebote über die Angebotsnummer zugeordnet; bereits vorhandene Einträge werden mit dem Stand der Datei überschrieben, auch Kosten, die jemand hier geändert hat. Die Datei enthält Einstandspreise und gehört nicht ins Repository.</p>
+            <form method="POST" action="{{ route('quote.import') }}" enctype="multipart/form-data" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
+                x-on:submit="if (! confirm('Sicherung einspielen? Vorhandene Artikel, Kosten und Angebote mit gleicher Nummer werden überschrieben.')) { $event.preventDefault() }">
+                @csrf
+                <div class="min-w-0 flex-1">
+                    <label for="backup" class="block text-sm font-medium text-slate-900">Sicherungsdatei (JSON)</label>
+                    <input id="backup" name="backup" type="file" accept=".json,application/json" required
+                        class="mt-1 block w-full text-sm text-slate-900 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-slate-900 hover:file:bg-slate-200">
+                    @error('backup')<p class="mt-1 text-sm text-danger-500" role="alert">{{ $message }}</p>@enderror
+                </div>
+                <x-button type="submit" class="min-h-11">Sicherung einspielen</x-button>
+            </form>
+        </x-card>
+    @endif
 </x-layouts.app>
