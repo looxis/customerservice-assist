@@ -1,6 +1,6 @@
 ---
 id: POLICY-059
-title: Lieferangaben sind voraussichtlich, kein Zustelltermin wird garantiert
+title: Versand- und Lieferangaben sind voraussichtlich, kein Zustelltermin wird garantiert
 type: policy
 status: draft
 customer_types:
@@ -12,10 +12,12 @@ categories:
 topics:
   - delivery-delay
   - delivery-options
-summary: "Ein Kunde bezieht sich auf einen angekündigten Liefertermin, ärgert sich über eine verschobene Zustellung oder braucht die Ware zu einem festen Tag. Grundsatz für alle Kanäle: Liefer- und Zustellangaben sind Prognosen, ein bestimmter Zustelltag wird nicht garantiert und nicht zugesagt. Regelt nicht, ob eine Verzögerung ausgleichspflichtig ist (POLICY-003)."
+summary: "Ein Kunde bezieht sich auf einen angekündigten Liefertermin, ärgert sich über eine verschobene Zustellung oder braucht die Ware zu einem festen Tag. Grundsatz für alle Kanäle: Versand-, Liefer- und Zustellangaben sind Prognosen, ein bestimmter Versand- oder Zustelltag wird nicht garantiert und nicht zugesagt. Regelt nicht, ob eine Verzögerung ausgleichspflichtig ist (POLICY-003)."
 retrieval: triggered
 triggers:
   - Lieferdatum
+  - Versanddatum
+  - Versandtermin
   - Liefertermin
   - Zustelltermin
   - Zustelldatum
@@ -39,7 +41,7 @@ Gilt für alle Kundenarten und alle Vertriebskanäle, produktübergreifend.
 
 # Regel
 
-Angekündigte Liefer- und Zustelltermine sind Prognosen. Mit einer Verzögerung ist immer zu rechnen. LOOXIS garantiert keinen Zustelltag und sagt keinen bestimmten Zustelltag zu. Eine auf den Tag genau garantierte Zustellung können wir nicht anbieten.
+Angekündigte Versand-, Liefer- und Zustelltermine sind grundsätzlich voraussichtlicher Natur, also Prognosen. Mit einer Verzögerung ist immer zu rechnen. LOOXIS garantiert keinen Versand- oder Zustelltag und sagt keinen bestimmten Versand- oder Zustelltag zu. Eine auf den Tag genau garantierte Zustellung können wir nicht anbieten.
 
 # Hintergrund
 
@@ -55,5 +57,5 @@ Ein Kunde sich auf einen angekündigten Liefertermin beruft, sich über eine ver
 
 # No-Gos
 
-- Einen bestimmten Zustelltag zusagen oder bestätigen.
+- Einen bestimmten Versand- oder Zustelltag zusagen oder bestätigen.
 - Dem Kunden eine Garantie für einen Zustelltermin nennen.
