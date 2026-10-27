@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Returns\ReturnInstructions;
 use Database\Factories\ReturnLabelFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -43,5 +44,24 @@ class ReturnLabel extends Model
     public function hasFile(): bool
     {
         return $this->status === self::CREATED && $this->file_path !== null;
+    }
+
+    /**
+     * What the page needs to show the label and to continue with it.
+     *
+     * @return array<string, mixed>
+     */
+    public function payload(bool $reused = false): array
+    {
+        return [
+            'id' => $this->id,
+            'status' => $this->status,
+            'reused' => $reused,
+            'shipment_no' => $this->shipment_no,
+            'message' => $this->error,
+            'download_url' => $this->hasFile() ? route('dhl-return.download', ['label' => $this->id, 'ticket' => $this->ticket_number]) : null,
+            'instructions' => $this->hasFile() ? ReturnInstructions::mail((string) $this->shipment_no, $this->order_number) : null,
+            'sent' => $this->sent_at === null ? null : ['by' => $this->sent_by, 'ticket_number' => $this->sent_ticket_number, 'new_ticket' => $this->sent_as_new_ticket],
+        ];
     }
 }

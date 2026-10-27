@@ -77,7 +77,7 @@ class DhlClient
     /**
      * The return receivers set up for the contract; proves that login and permissions work.
      *
-     * @return list<array{receiverId: string, billingNumber: ?string, name: ?string}>
+     * @return list<array{receiverId: string, billingNumber: ?string, name: ?string, address: ?string}>
      *
      * @throws DhlException
      */
@@ -104,7 +104,44 @@ class DhlClient
             'receiverId' => (string) ($row['receiverId'] ?? ''),
             'billingNumber' => isset($row['billingNumber']) ? (string) $row['billingNumber'] : null,
             'name' => isset($row['receiverAddress']['name1']) ? (string) $row['receiverAddress']['name1'] : null,
+            'address' => $this->addressLine((array) ($row['receiverAddress'] ?? [])),
         ], array_filter($rows, 'is_array')));
+    }
+
+    /**
+     * The configured return receiver as one line ("Name, Straße Nr, PLZ Ort"), for the employee to check; null when
+     * unknown or DHL cannot be asked. Cached for an hour.
+     */
+    public function receiverLine(): ?string
+    {
+        if (! $this->isConfigured()) {
+            return null;
+        }
+
+        return Cache::remember('dhl.receiver.'.sha1((string) $this->config['receiver_id']), now()->addHour(), function (): ?string {
+            try {
+                $row = collect($this->locations())->firstWhere('receiverId', (string) $this->config['receiver_id']);
+            } catch (DhlException) {
+                return null;
+            }
+
+            return is_array($row) && filled($row['address'] ?? null) ? $row['address'] : null;
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $address
+     */
+    private function addressLine(array $address): ?string
+    {
+        $text = fn (string $key): string => trim((string) ($address[$key] ?? ''));
+        $line = implode(', ', array_filter([
+            $text('name1'),
+            trim($text('addressStreet').' '.$text('addressHouse')),
+            trim($text('postalCode').' '.$text('city')),
+        ]));
+
+        return $line === '' ? null : $line;
     }
 
     /**

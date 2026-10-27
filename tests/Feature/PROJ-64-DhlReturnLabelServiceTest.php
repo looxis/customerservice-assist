@@ -13,11 +13,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-function miniPdf(): string
-{
-    return "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n";
-}
-
 function dhlInput(array $override = []): ReturnLabelInput
 {
     $data = [
@@ -33,15 +28,6 @@ function dhlInput(array $override = []): ReturnLabelInput
     ];
 
     return new ReturnLabelInput(...$data);
-}
-
-function fakeDhl(mixed $orders = null): void
-{
-    Http::fake([
-        'dhl.test/token' => Http::response(['access_token' => 'tok-secret', 'token_type' => 'Bearer', 'expires_in' => 1799]),
-        'dhl.test/returns/orders*' => $orders ?? Http::response(['sstatus' => ['status' => 201], 'shipmentNo' => '999991587211', 'label' => ['b64' => base64_encode(miniPdf())]], 201),
-        'dhl.test/returns/locations*' => Http::response([['receiverId' => 'deu', 'billingNumber' => '33333333330701', 'receiverAddress' => ['name1' => 'LOOXIS Retoure']]]),
-    ]);
 }
 
 beforeEach(function () {

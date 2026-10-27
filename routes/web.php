@@ -5,6 +5,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AdvancedModeController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AnalysisOverviewController;
+use App\Http\Controllers\DhlReturnController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
@@ -75,6 +76,13 @@ Route::patch('/produktfragen', [ProductQuestionController::class, 'update'])->mi
 
 Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
+
+Route::get('/dhl-retoure', [DhlReturnController::class, 'index'])->name('dhl-return.index');
+Route::middleware('staff.selected')->group(function (): void {
+    Route::post('/dhl-retoure/labels', [DhlReturnController::class, 'store'])->middleware('throttle:10,1')->name('dhl-return.store');
+    Route::get('/dhl-retoure/labels/{label}/download', [DhlReturnController::class, 'download'])->whereUuid('label')->name('dhl-return.download');
+    Route::post('/dhl-retoure/labels/{label}/senden', [DhlReturnController::class, 'send'])->whereUuid('label')->middleware('throttle:10,1')->name('dhl-return.send');
+});
 
 Route::get('/frage', [QuestionController::class, 'create'])->name('questions.create');
 Route::get('/frage/{number}', [QuestionController::class, 'show'])->where('number', 'F[0-9]{8}')->name('questions.show');
