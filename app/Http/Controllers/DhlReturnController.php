@@ -31,6 +31,7 @@ use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
 use App\Zammad\ZammadReplySender;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -253,6 +254,65 @@ class DhlReturnController extends Controller
         $until = $after === 'close' ? null : ReplyDelivery::reminderDate((int) $request->validated('days'));
         $file = [new OutgoingAttachment(ReturnInstructions::filename($label->order_number), 'application/pdf', $pdf)];
         $asNew = $request->validated('mode') === 'new';
+        $ticket = null;
+        $target = null;
+
+        if (! $asNew) {
+            $ticket = $this->replyTicket((string) $request->validated('ticket_number'), $zammad);
+
+            if ($ticket instanceof JsonResponse) {
+                return $ticket;
+            }
+        }
+
+        // An earlier attempt with an unclear outcome: look into Zammad before anything is sent again.
+        if ($label->send_started_at !== null) {
+            if ($label->send_started_at->diffInSeconds(now()) < 90) {
+                return response()->json(['message' => 'Der Versand läuft gerade. Bitte kurz warten.', 'code' => 'busy'], 409);
+            }
+
+            if (! $asNew && $label->send_started_target === $ticket->number) {
+                try {
+                    $earlier = $sender->sentSince($token, $ticket->id, CarbonImmutable::instance($label->send_started_at));
+                } catch (ReplyException $exception) {
+                    return response()->json(['message' => $exception->problem->message($name), 'code' => $exception->problem->value], 502);
+                }
+
+                if ($earlier !== null) {
+                    $label->update(['sent_at' => now(), 'sent_by' => $name, 'sent_ticket_number' => $ticket->number, 'sent_as_new_ticket' => false]);
+
+                    return response()->json(['message' => 'Die Nachricht war bereits in Zammad angekommen. Sie wurde nicht noch einmal gesendet.', 'code' => 'sent'], 409);
+                }
+            } elseif (! $request->boolean('confirm_resend')) {
+                return response()->json([
+                    'message' => $asNew || $label->send_started_target === 'new'
+                        ? 'Der letzte Versand hatte einen unklaren Ausgang. Bitte in Zammad nachsehen, ob schon ein Ticket „'.ReturnInstructions::subject($label->order_number).'“ mit dem Label existiert. Nur wenn nicht, erneut senden.'
+                        : 'Der letzte Versand an Ticket '.$label->send_started_target.' hatte einen unklaren Ausgang. Bitte dort nachsehen, ob die Nachricht angekommen ist. Nur wenn nicht, erneut senden.',
+                    'code' => 'unclear_resend',
+                ], 409);
+            }
+        }
+
+        if (! $asNew) {
+            $newer = ReplyTarget::newerThan($ticket, $request->integer('seen_article') > 0 ? $request->integer('seen_article') : null);
+
+            if ($newer !== [] && ! $request->boolean('confirm_newer')) {
+                $latest = $newer[array_key_last($newer)];
+
+                return response()->json([
+                    'message' => 'Seit dem Laden der Seite gibt es eine neue Nachricht von '.$latest->senderName.' ('.$latest->createdAt->format('d.m.Y, H:i').' Uhr). Bitte lesen und entscheiden, ob das Label noch passt.',
+                    'code' => 'newer',
+                ], 409);
+            }
+
+            $target = ReplyTarget::for($ticket);
+
+            if ($target === null) {
+                return response()->json(['message' => 'Zu diesem Ticket gibt es keine eindeutige Antwortadresse. Bitte „Neues Ticket erstellen“ wählen oder in Zammad antworten.'], 409);
+            }
+        }
+
+        $label->update(['send_started_at' => now(), 'send_started_target' => $asNew ? 'new' : $ticket->number]);
 
         try {
             if ($asNew) {
@@ -260,38 +320,24 @@ class DhlReturnController extends Controller
                 $ticketNumber = $created->number;
                 $url = $created->url;
             } else {
-                $ticket = $this->replyTicket((string) $request->validated('ticket_number'), $zammad);
-
-                if ($ticket instanceof JsonResponse) {
-                    return $ticket;
-                }
-
-                $newer = ReplyTarget::newerThan($ticket, $request->integer('seen_article') > 0 ? $request->integer('seen_article') : null);
-
-                if ($newer !== [] && ! $request->boolean('confirm_newer')) {
-                    $latest = $newer[array_key_last($newer)];
-
-                    return response()->json([
-                        'message' => 'Seit dem Laden der Seite gibt es eine neue Nachricht von '.$latest->senderName.' ('.$latest->createdAt->format('d.m.Y, H:i').' Uhr). Bitte lesen und entscheiden, ob das Label noch passt.',
-                        'code' => 'newer',
-                    ], 409);
-                }
-
-                $target = ReplyTarget::for($ticket);
-
-                if ($target === null) {
-                    return response()->json(['message' => 'Zu diesem Ticket gibt es keine eindeutige Antwortadresse. Bitte „Neues Ticket erstellen“ wählen oder in Zammad antworten.'], 409);
-                }
-
                 $sender->send($token, new OutgoingReply($ticket->id, $target->to, $target->subject, $body, $target->inReplyTo, $state, $until, $file));
                 $ticketNumber = $ticket->number;
                 $url = $ticket->zammadUrl;
             }
         } catch (ReplyException $exception) {
-            return response()->json(['message' => $exception->problem->message($name), 'code' => $exception->problem->value], 502);
+            if ($exception->problem->notSent()) {
+                $label->update(['send_started_at' => null, 'send_started_target' => null]);
+            }
+
+            return response()->json([
+                'message' => $asNew && ! $exception->problem->notSent()
+                    ? 'Zammad hat nicht rechtzeitig geantwortet. Es ist unklar, ob das Ticket angelegt wurde. Bitte in Zammad nach „'.ReturnInstructions::subject($label->order_number).'“ suchen, bevor erneut gesendet wird.'
+                    : $exception->problem->message($name),
+                'code' => $exception->problem->value,
+            ], 502);
         }
 
-        $label->update(['sent_at' => now(), 'sent_by' => $name, 'sent_ticket_number' => $ticketNumber, 'sent_as_new_ticket' => $asNew]);
+        $label->update(['sent_at' => now(), 'sent_by' => $name, 'sent_ticket_number' => $ticketNumber, 'sent_as_new_ticket' => $asNew, 'send_started_at' => null, 'send_started_target' => null]);
 
         return response()->json(['sent' => true, 'by' => $name, 'ticket_number' => $ticketNumber, 'ticket_url' => $url, 'new_ticket' => $asNew]);
     }

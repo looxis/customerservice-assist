@@ -29,6 +29,7 @@ export default (config) => ({
     busy: false,
     error: '',
     detail: '',
+    additionalNext: false,
     label: config.label ?? null,
     send: {
         mode: config.ticketNumber ? 'reply' : 'new',
@@ -41,6 +42,7 @@ export default (config) => ({
         busy: false,
         error: '',
         newer: '',
+        resend: '',
         done: config.label?.sent ?? null,
         doneUrl: '',
     },
@@ -98,7 +100,7 @@ export default (config) => ({
                 city: this.form.city,
                 country: this.form.country,
                 confirmed: this.confirmed,
-                additional,
+                additional: additional || this.additionalNext,
             });
 
             if (ok) {
@@ -106,9 +108,10 @@ export default (config) => ({
                 this.send.done = data.sent;
                 this.send.text = data.instructions || '';
                 this.confirmed = false;
+                this.additionalNext = false;
 
                 if (config.attach && data.status === 'created') {
-                    this.$dispatch('return-label-ready', { label: data });
+                    this.$dispatch('return-label-ready', { label: data, target: config.target });
                 }
             } else {
                 this.error = firstError(data, 'Das Label konnte nicht erzeugt werden.');
@@ -121,17 +124,25 @@ export default (config) => ({
         this.busy = false;
     },
 
+    /**
+     * Back to the address for one more label (second parcel, lost label, replacement after an unclear outcome): ordered
+     * on purpose, so the label that exists for the same request is not simply returned again.
+     */
     newLabel() {
+        if (! confirm('Wirklich ein weiteres Label bestellen? Jedes eingelieferte Label wird berechnet.')) { return }
         this.label = null;
         this.send.done = null;
+        this.send.resend = '';
         this.confirmed = false;
+        this.additionalNext = true;
     },
 
-    async submit(confirmNewer = false) {
+    async submit(confirmNewer = false, confirmResend = false) {
         if (this.send.busy || ! this.ready) { return }
         this.send.busy = true;
         this.send.error = '';
         if (! confirmNewer) { this.send.newer = '' }
+        if (! confirmResend) { this.send.resend = '' }
 
         try {
             const { ok, data } = await post(config.sendUrl.replace('__LABEL__', this.label.id), {
@@ -144,6 +155,7 @@ export default (config) => ({
                 days: this.send.after === 'reminder' ? this.send.days : null,
                 seen_article: this.send.mode === 'reply' && this.send.ticket === (config.ticketNumber ?? '') ? this.seenArticle : 0,
                 confirm_newer: confirmNewer,
+                confirm_resend: confirmResend,
             });
 
             if (ok && data.sent) {
@@ -151,6 +163,8 @@ export default (config) => ({
                 this.send.doneUrl = data.ticket_url;
             } else if (data.code === 'newer') {
                 this.send.newer = data.message;
+            } else if (data.code === 'unclear_resend') {
+                this.send.resend = data.message;
             } else if (data.code === 'sent') {
                 this.send.error = data.message + ' Bitte die Seite neu laden.';
             } else {

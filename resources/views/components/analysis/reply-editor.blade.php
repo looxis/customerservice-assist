@@ -53,6 +53,17 @@
         },
         sendReady: @js($send['state'] === 'ready'),
         returnLabel: @js($result['return_label'] ?? null),
+        async linkLabel(label) {
+            if (! label || (this.returnLabel && this.returnLabel.id === label.id)) { return }
+            this.returnLabel = label;
+            try {
+                await fetch(@js(route('tickets.analysis.return-label', ['number' => $number, 'analysis' => $result['id']])), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                    body: JSON.stringify({ label: label.id }),
+                });
+            } catch (error) {}
+        },
         async attachLabel(label) {
             if (! label || ! label.download_url || ! this.sendReady || this.send.sent) { return }
             if (label.block && ! this.text.includes(label.block)) {
@@ -188,7 +199,7 @@
     }"
     class="mt-6"
     x-on:paste="paste($event)"
-    x-on:return-label-ready.window="attachLabel($event.detail.label)"
+    x-on:return-label-ready.window="if ($event.detail.target === 'draft') { linkLabel($event.detail.label); attachLabel($event.detail.label) }"
 >
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 class="text-sm font-semibold text-slate-900">Antwortentwurf @if ($language)<span class="font-normal text-slate-600">({{ $language }})</span>@endif</h3>
@@ -216,6 +227,14 @@
         aria-label="Antwortentwurf"
         class="mt-2 field-sizing-content block min-h-48 w-full rounded-md border-0 bg-white px-3 py-2 text-sm leading-relaxed text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"
     >{{ $result['reply_text'] }}</textarea>
+
+    {{-- DHL return label of this proposal (PROJ-64): always reachable; the PDF is also an attachment when sending from the app is possible. --}}
+    <p x-show="returnLabel" x-cloak class="mt-2 text-sm text-slate-900">
+        <span class="font-medium">DHL-Retourenlabel</span> (Sendungsnummer <span class="font-mono" x-text="returnLabel ? returnLabel.shipment_no : ''"></span>):
+        <a x-bind:href="returnLabel ? returnLabel.download_url : '#'" class="font-semibold text-brand underline">Herunterladen</a>
+        <span x-show="! sendReady || send.sent" class="text-slate-700">– Das PDF wird nicht automatisch angehängt, bitte herunterladen und von Hand an die Antwort hängen.</span>
+        <span x-show="sendReady && ! send.sent" class="text-slate-700">– als Anhang der Antwort vorgemerkt.</span>
+    </p>
 
     <div class="mt-3 flex flex-wrap items-center gap-3">
         {{-- With a Zammad token the reply is sent from the app; "Kopieren" stays only where sending is not offered. --}}

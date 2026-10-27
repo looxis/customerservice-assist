@@ -134,3 +134,41 @@ test('the internal procedures offer the label for a proposal that exists already
 
     proposalPage(proposalRun())->assertSee('DHL-Retourenlabel erstellen')->assertSee('Absender der Rücksendung');
 });
+
+test('a label ordered after the proposal is tied to it and comes back with the steps and the link', function () {
+    CaseAgent::fake([proposalAnswer()]);
+    $response = proposalRun();
+    parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
+    $label = proposalLabel();
+
+    $this->withCredentials()->withCookie('staff_name', 'Nele')
+        ->putJson(route('tickets.analysis.return-label', ['number' => '2137942', 'analysis' => $query['analyse']]), ['label' => $label->id])
+        ->assertOk()->assertJsonPath('linked', true);
+
+    proposalPage($response)->assertOk()
+        ->assertSee('Retouren-Sendungsnummer: 999991587211')
+        ->assertSee('als Anhang der Antwort vorgemerkt')
+        ->assertSee('Herunterladen');
+});
+
+test('a label of another ticket or without a file cannot be tied to a proposal', function (callable $label) {
+    CaseAgent::fake([proposalAnswer()]);
+    $response = proposalRun();
+    parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
+
+    $this->withCredentials()->withCookie('staff_name', 'Nele')
+        ->putJson(route('tickets.analysis.return-label', ['number' => '2137942', 'analysis' => $query['analyse']]), ['label' => $label()])
+        ->assertNotFound();
+})->with([
+    'other ticket' => [fn () => proposalLabel(['ticket_number' => '1111111'])->id],
+    'file gone' => [fn () => proposalLabel(['file_path' => null])->id],
+    'unknown' => [fn () => '2d6c1b0e-4b1c-4a4b-9a67-5e0f2e5a7a11'],
+]);
+
+test('the draft shows the download link of the label also without sending from the app', function () {
+    config(['staff.zammad_tokens' => ['Nele' => null]]);
+    $label = proposalLabel();
+    CaseAgent::fake([proposalAnswer()]);
+
+    proposalPage(proposalRun(['return_label' => $label->id]))->assertOk()->assertSee('DHL-Retourenlabel')->assertSee('Herunterladen')->assertSee('nicht automatisch angehängt');
+});

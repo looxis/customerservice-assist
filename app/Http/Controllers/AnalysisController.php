@@ -21,6 +21,7 @@ use App\Eocs\EocsException;
 use App\Eocs\EocsOrder;
 use App\Http\Requests\AnalyzeTicketRequest;
 use App\Http\Requests\DeleteAnalysesRequest;
+use App\Http\Requests\LinkReturnLabelRequest;
 use App\Http\Requests\MarkReplyCopiedRequest;
 use App\Http\Requests\SendReplyRequest;
 use App\Http\Requests\UpdateReplyRequest;
@@ -284,6 +285,24 @@ class AnalysisController extends Controller
             'saved' => true,
             'edited' => $stored['reply_edit'] === null ? null : 'bearbeitet von '.$stored['reply_edit']['staff'].' am '.$now->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',
         ]);
+    }
+
+    /**
+     * Ties a return label that was ordered after the proposal to it (PROJ-64): the steps for the customer and the PDF
+     * then come back whenever the proposal is opened.
+     */
+    public function linkReturnLabel(string $number, string $analysis, LinkReturnLabelRequest $request, AnalysisStore $store): JsonResponse
+    {
+        $stored = $store->result($analysis);
+        $label = ReturnLabel::query()->find($request->validated('label'));
+
+        if ($stored === null || ($stored['ticket'] ?? null) !== $number || $label === null || ! $label->hasFile() || $label->ticket_number !== $number) {
+            return response()->json(['message' => 'Dieses Label gehört nicht zu diesem Vorschlag.'], 404);
+        }
+
+        $store->changeResult($analysis, fn (array $content): array => [...$content, 'inputs' => [...(array) ($content['inputs'] ?? []), 'return_label' => $label->id]]);
+
+        return response()->json(['linked' => true]);
     }
 
     /**

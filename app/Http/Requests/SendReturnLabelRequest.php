@@ -32,6 +32,7 @@ class SendReturnLabelRequest extends FormRequest
             'days' => ['required_if:after,reminder', 'nullable', 'integer', Rule::in([1, 3, 7])],
             'seen_article' => ['nullable', 'integer', 'min:0'],
             'confirm_newer' => ['sometimes', 'boolean'],
+            'confirm_resend' => ['sometimes', 'boolean'],
         ];
     }
 

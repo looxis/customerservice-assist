@@ -8,6 +8,8 @@
         'sendUrl' => route('dhl-return.send', ['label' => '__LABEL__']),
         'ticketNumber' => $ticketNumber ?? $ticket?->number,
         'attach' => $mode === 'attach',
+        // A label ordered in the form belongs to the proposal that is created next; one from the internal procedures, to the draft shown.
+        'target' => $field ? 'form' : 'draft',
         'orderNumber' => $order->externalNumber,
         'eocsOrderId' => $order->id,
         'seenArticle' => $seenArticle,
@@ -32,7 +34,7 @@
 <div x-data="returnLabel(@js($config))" x-on:dhl-load-address.window="loadAddress()">
     @if ($field)
         {{-- Sent with the form of the proposal (PROJ-64): only a label that exists is part of the request. --}}
-        <input type="hidden" x-bind:name="label && label.status === 'created' ? 'return_label' : null" x-bind:value="label ? label.id : ''">
+        <input type="hidden" x-bind:name="labelOn && label && label.status === 'created' ? 'return_label' : null" x-bind:value="label ? label.id : ''">
     @endif
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h2 class="text-base font-semibold text-slate-900">Bestellung <span class="font-mono">{{ $order->externalNumber }}</span></h2>
@@ -105,7 +107,7 @@
     {{-- 2. Unclear outcome --}}
     <section x-show="unclear" x-cloak class="mt-4 space-y-2" aria-label="Unklarer Ausgang">
         <x-alert type="warning"><span x-text="label && label.message ? label.message : 'Der Ausgang ist unklar.'"></span> Sendungsnummer: <span class="font-mono" x-text="label ? (label.shipment_no || 'unbekannt') : ''"></span></x-alert>
-        <x-button variant="secondary" x-on:click="newLabel()">Zurück zur Adresse</x-button>
+        <x-button variant="secondary" x-on:click="newLabel()">Weiteres Label bestellen</x-button>
     </section>
 
     {{-- 3. The label exists: download and send --}}
@@ -115,7 +117,7 @@
             <span class="text-sm text-slate-900">Sendungsnummer <span class="font-mono" x-text="label ? label.shipment_no : ''"></span></span>
             <span x-show="label && label.reused" class="text-sm text-slate-600">(bereits vorhanden, es wurde nichts neu bestellt)</span>
             <a x-bind:href="label ? label.download_url : '#'" class="inline-flex items-center gap-1 text-sm font-semibold text-brand underline"><x-icon name="upload" size="16" /> Herunterladen</a>
-            <button type="button" x-on:click="if (confirm('Wirklich ein weiteres Label bestellen? Jedes eingelieferte Label wird berechnet.')) { create(true) }" x-show="! send.done" class="text-sm font-medium text-slate-600 underline hover:text-slate-900">Weiteres Label erstellen</button>
+            <button type="button" x-on:click="newLabel()" class="text-sm font-medium text-slate-600 underline hover:text-slate-900">Weiteres Label erstellen</button>
         </div>
 
         @if ($mode === 'attach')
@@ -167,6 +169,10 @@
                 <div x-show="send.newer !== ''" x-cloak role="alert" class="rounded-md bg-warning-500/10 p-3 text-sm text-slate-900 ring-1 ring-warning-500/30 ring-inset">
                     <p class="font-semibold text-warning-700" x-text="send.newer"></p>
                     <x-button variant="secondary" class="mt-2" x-on:click="submit(true)" x-bind:disabled="send.busy">Trotzdem senden</x-button>
+                </div>
+                <div x-show="send.resend !== ''" x-cloak role="alert" class="rounded-md bg-warning-500/10 p-3 text-sm text-slate-900 ring-1 ring-warning-500/30 ring-inset">
+                    <p class="font-semibold text-warning-700" x-text="send.resend"></p>
+                    <x-button variant="secondary" class="mt-2" x-on:click="submit(false, true)" x-bind:disabled="send.busy">Trotzdem erneut senden</x-button>
                 </div>
                 <p x-show="send.error !== ''" x-cloak role="alert" class="text-sm font-medium text-danger-700" x-text="send.error"></p>
                 <x-button x-on:click="submit(false)" x-bind:disabled="send.busy || send.text.trim() === '' || (send.mode === 'reply' && send.ticket.trim() === '') || (send.mode === 'new' && send.email.trim() === '')"><x-icon name="chat" size="16" /> <span x-text="send.busy ? 'Wird gesendet …' : 'Senden'">Senden</span></x-button>

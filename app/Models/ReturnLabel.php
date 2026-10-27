@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * A DHL return label (PROJ-64): who ordered it for which order and ticket, the shipment number DHL gave it,
  * where its PDF lies and whether it was sent to the customer. Holds no address and no e-mail address.
  */
-#[Fillable(['ticket_number', 'order_number', 'eocs_order_id', 'shipment_no', 'status', 'fingerprint', 'created_by', 'file_path', 'file_sha256', 'error', 'sent_at', 'sent_by', 'sent_ticket_number', 'sent_as_new_ticket'])]
+#[Fillable(['ticket_number', 'order_number', 'eocs_order_id', 'shipment_no', 'status', 'fingerprint', 'created_by', 'file_path', 'file_sha256', 'error', 'send_started_at', 'send_started_target', 'sent_at', 'sent_by', 'sent_ticket_number', 'sent_as_new_ticket'])]
 class ReturnLabel extends Model
 {
     /** @use HasFactory<ReturnLabelFactory> */
@@ -36,6 +36,7 @@ class ReturnLabel extends Model
     {
         return [
             'eocs_order_id' => 'integer',
+            'send_started_at' => 'datetime',
             'sent_at' => 'datetime',
             'sent_as_new_ticket' => 'boolean',
         ];

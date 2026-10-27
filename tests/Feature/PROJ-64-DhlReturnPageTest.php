@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ReturnLabel;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -47,10 +48,18 @@ beforeEach(function () {
         'zammad.test/api/v1/tickets/51234' => function (Request $request) {
             $this->puts[] = $request->data();
 
+            if ($this->timeout) {
+                throw new ConnectionException('cURL error 28: Operation timed out');
+            }
+
             return $this->putResponse ?? Http::response(['id' => 51234, 'number' => '2137942']);
         },
         'zammad.test/api/v1/tickets' => function (Request $request) {
             $this->posts[] = $request->data();
+
+            if ($this->timeout) {
+                throw new ConnectionException('cURL error 28: Operation timed out');
+            }
 
             return Http::response(['id' => 60001, 'number' => '2140099']);
         },
@@ -58,6 +67,7 @@ beforeEach(function () {
     $this->eocsOrders = [returnEocsOrder()];
     $this->dhlOrder = null;
     $this->putResponse = null;
+    $this->timeout = false;
     Http::fake([
         'eocs.test/api/v1/orders*' => function (Request $request) {
             parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
@@ -339,5 +349,86 @@ describe('the address for the option on a ticket page', function () {
 
     test('needs a chosen name', function () {
         $this->getJson(route('dhl-return.address', ['bestellung' => '7JQ-18SU-DVA4']))->assertStatus(409);
+    });
+});
+
+describe('after an unclear answer of Zammad', function () {
+    test('a reply is not sent again once it arrived, and the label counts as sent', function () {
+        $id = storeLabel()->json('id');
+        $this->timeout = true;
+        sendLabel($id)->assertStatus(502)->assertJsonPath('code', 'unclear');
+        expect(ReturnLabel::first()->send_started_at)->not->toBeNull()->and(ReturnLabel::first()->sent_at)->toBeNull();
+
+        $this->travel(2)->minutes();
+        $this->timeout = false;
+        $this->articles[] = zammadArticle(['id' => 9, 'sender' => 'Agent', 'created_by_id' => 501, 'from' => 'Nele Gorka', 'created_at' => now()->subMinutes(2)->toIso8601String()]);
+
+        sendLabel($id)->assertStatus(409)->assertJsonPath('code', 'sent');
+
+        expect($this->puts)->toHaveCount(1)->and(ReturnLabel::first()->sent_at)->not->toBeNull()->and(ReturnLabel::first()->sent_ticket_number)->toBe('2137942');
+    });
+
+    test('a reply that did not arrive is sent again after the wait', function () {
+        $id = storeLabel()->json('id');
+        $this->timeout = true;
+        sendLabel($id)->assertStatus(502);
+
+        sendLabel($id)->assertStatus(409)->assertJsonPath('code', 'busy');
+
+        $this->travel(2)->minutes();
+        $this->timeout = false;
+        sendLabel($id)->assertOk();
+
+        expect($this->puts)->toHaveCount(2)->and(ReturnLabel::first()->send_started_at)->toBeNull()->and(ReturnLabel::first()->sent_at)->not->toBeNull();
+    });
+
+    test('a new ticket needs a confirmation before it is sent again, and the message says what to look for', function () {
+        $id = storeLabel(['ticket_number' => null])->json('id');
+        $this->timeout = true;
+        $first = sendLabel($id, ['mode' => 'new', 'ticket_number' => null, 'email' => 'kundin@example.org'])->assertStatus(502);
+        expect($first->json('message'))->toContain('DHL Retoure – Bestellung 7JQ-18SU-DVA4')->not->toContain('prüft die App zuerst');
+
+        $this->travel(2)->minutes();
+        $this->timeout = false;
+        sendLabel($id, ['mode' => 'new', 'ticket_number' => null, 'email' => 'kundin@example.org'])->assertStatus(409)->assertJsonPath('code', 'unclear_resend');
+        expect($this->posts)->toHaveCount(1);
+
+        sendLabel($id, ['mode' => 'new', 'ticket_number' => null, 'email' => 'kundin@example.org', 'confirm_resend' => true])->assertOk();
+        expect($this->posts)->toHaveCount(2);
+    });
+
+    test('a refusal that proves nothing was sent leaves the label free to send', function () {
+        $id = storeLabel()->json('id');
+        $this->putResponse = Http::response(['error' => 'x'], 422);
+        sendLabel($id)->assertStatus(502);
+
+        expect(ReturnLabel::first()->send_started_at)->toBeNull();
+
+        $this->putResponse = null;
+        sendLabel($id)->assertOk();
+    });
+});
+
+describe('the page of a ticket with the label option', function () {
+    test('blocks the proposal without a label, and a label only counts while the option is on', function () {
+        $html = $this->withCookie('staff_name', 'Nele')->get(route('tickets.show', ['number' => '2137942']))->assertOk()->getContent();
+
+        expect($html)->toContain('Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.')
+            ->and($html)->toContain('input[name=return_label]')
+            ->and($html)->toContain("labelOn && label && label.status === 'created'");
+    });
+});
+
+describe('another label after sending', function () {
+    test('stays offered on the page after the label was sent', function () {
+        $id = storeLabel()->json('id');
+        sendLabel($id)->assertOk();
+
+        $html = $this->withCookie('staff_name', 'Nele')->get(route('dhl-return.index', ['suche' => 'Ticket#2137942']))->assertOk()->getContent();
+
+        expect($html)->toContain('Weiteres Label erstellen')
+            ->and($html)->not->toContain('x-show="! send.done" class="text-sm font-medium text-slate-600');
+        storeLabel(['additional' => true])->assertOk()->assertJsonPath('reused', false);
+        expect(ReturnLabel::count())->toBe(2);
     });
 });

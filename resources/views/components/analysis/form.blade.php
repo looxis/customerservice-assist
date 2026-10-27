@@ -59,8 +59,9 @@
         @endif
 
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
-              x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))) }"
-              x-on:submit="if (busy) { $event.preventDefault(); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
+              x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '' }"
+              x-on:return-label-ready="labelNote = ''"
+              x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
             @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
@@ -148,12 +149,13 @@
             @php($labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values())
             @if ($labelOrders->isNotEmpty())
                 {{-- DHL return label before the proposal (PROJ-64): the model learns that a label goes with the reply, the app adds the steps. --}}
-                <div x-data="{ labelOn: false }" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                <div id="dhl-option" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
                     <label class="flex items-start gap-2 text-sm font-medium text-slate-900">
                         <input type="checkbox" x-model="labelOn" x-on:change="if (labelOn) { $dispatch('dhl-load-address') }" class="mt-0.5 rounded text-brand focus:ring-brand">
                         <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>
                     </label>
                     <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Nur für Rücksendungen aus Deutschland.</p>
+                    <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 pl-6 text-sm font-medium text-danger-700" x-text="labelNote"></p>
                     <div x-show="labelOn" x-cloak class="mt-3 space-y-4">
                         @foreach ($labelOrders as $labelOrder)
                             <x-dhl.return-label :order="$labelOrder" :ticket-number="$number" mode="attach" :field="true" :configured="app(\App\Dhl\DhlClient::class)->isConfigured()" />

@@ -1,6 +1,6 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-27
 **Last Updated:** 2026-10-27
 
@@ -267,18 +267,18 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
 
 #### Versand an den Kunden (9)
 - [x] Antwort auf Ticket, neues Ticket (Gruppe, Betreff, Pflicht-E-Mail), Ticketnummer mit Link, keine Wahl ergibt keinen Versand, fehlender Zammad-Zugang, gesendeter Stand
-- [ ] BUG-1: „Der Versand schlägt fehl oder der Ausgang ist unklar … ein erneuter Versand wird nicht blind doppelt ausgelöst“: Nach einer Zeitüberschreitung ist ein zweiter Versand möglich (siehe BUG-1)
+- [x] (BUG-1 behoben) „Der Versand schlägt fehl oder der Ausgang ist unklar … ein erneuter Versand wird nicht blind doppelt ausgelöst“: Nach einer Zeitüberschreitung ist ein zweiter Versand möglich (siehe BUG-1)
 
 #### Einstieg über den Antwortvorschlag (8)
 - [x] Option mit Adressbereich, KI erfährt nur „Label liegt bei“, feste Schritte im Entwurf, Anhang vorgemerkt, Versand über den bestehenden Weg, Knopf bei „Interne Abläufe“, Schritte nicht doppelt, fremdes Label wird abgelehnt
-- [ ] BUG-2: „Option ohne Label … wird aufgefordert, zuerst das Label zu erzeugen oder die Option abzuwählen“ ist nicht umgesetzt
+- [x] (BUG-2 behoben) „Option ohne Label … wird aufgefordert, zuerst das Label zu erzeugen oder die Option abzuwählen“ ist nicht umgesetzt
 
 #### Fehler und Sicherheit (7)
 - [x] DHL lehnt ab, fehlende Zugangsdaten, unklarer Ausgang, ungültiges PDF, Download nur mit Namen und Ticketnummer, Löschen nach Frist, keine Geheimnisse, Adressen oder Labeldaten im Log
 
 ### Edge Cases Status
 - [x] Zusatz in der Hausnummer, Umlaute, PLZ mit führender Null, Firmenadresse, Ticket ohne Bestellung und Bestellung ohne Ticket, unbekannte Ticketnummer, neuere Kundennachricht (Hinweis auf der Seite), Label gespeichert aber Dateifehler, Sandbox und Produktion nur über die Konfiguration, Anleitungsplatzhalter ersetzt
-- [ ] BUG-3: „Mehrere Pakete: jedes Paket ist ein eigenes Label über ‚Weiteres Label erstellen‘“ geht nach dem Versand nicht mehr
+- [x] (BUG-3 behoben) „Mehrere Pakete: jedes Paket ist ein eigenes Label über ‚Weiteres Label erstellen‘“ geht nach dem Versand nicht mehr
 
 ### Security Audit Results
 - [x] Zugriff: Alle Aktionen laufen hinter der Namenswahl (wie die übrige App, ohne Login). Das Label lässt sich nur mit der UUID (nicht erratbar) und der passenden Ticketnummer herunterladen
@@ -291,7 +291,7 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
 
 ### Bugs Found
 
-#### BUG-1: Nach einer Zeitüberschreitung kann das Label doppelt gesendet werden
+#### BUG-1: Nach einer Zeitüberschreitung kann das Label doppelt gesendet werden (behoben 2026-10-27)
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Seite „DHL Retoure“, Label erzeugen, „Senden“ (Antwort oder neues Ticket).
@@ -300,7 +300,7 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
   4. Tatsächlich: Die Meldung verspricht „Beim nächsten Versuch prüft die App zuerst das Ticket“, tut es aber nicht. Ein zweiter Klick sendet erneut (im Test: zwei Zammad-Aufrufe, `sent_at` leer). Der Kunde bekommt die Mail doppelt oder es entstehen zwei Tickets.
 - **Priority:** Fix before deployment
 
-#### BUG-2: Option im Vorschlagsformular ohne Label und Wirkung beim Abwählen
+#### BUG-2: Option im Vorschlagsformular ohne Label und Wirkung beim Abwählen (behoben 2026-10-27)
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Ticket mit Bestellung öffnen, im Vorschlagsformular die Option anhaken, aber „Label erzeugen“ nicht drücken, „Vorschlag erstellen“.
@@ -309,7 +309,7 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
   4. Zusätzlich: Wer nach dem Erzeugen die Option wieder abwählt, schickt das Label trotzdem mit (verstecktes Feld bleibt im Formular).
 - **Priority:** Fix before deployment
 
-#### BUG-3: Zweites Paket nach dem Versand nicht möglich
+#### BUG-3: Zweites Paket nach dem Versand nicht möglich (behoben 2026-10-27)
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Label erzeugen und senden.
@@ -317,7 +317,7 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
   3. Tatsächlich: Der Knopf ist nach dem Versand ausgeblendet, auch nach Neuladen der Seite (das gesendete Label wird als aktuelles gezeigt). Nur der Umweg über eine andere Adresse (anderer Fingerabdruck) bestellt ein neues Label.
 - **Priority:** Fix before deployment
 
-#### BUG-4: Im Antwortvorschlag fehlt ein Hinweis oder Link zum PDF, wenn der Anhang nicht vorgemerkt werden kann
+#### BUG-4: Im Antwortvorschlag fehlt ein Hinweis oder Link zum PDF, wenn der Anhang nicht vorgemerkt werden kann (behoben 2026-10-27)
 - **Severity:** Medium
 - **Steps to Reproduce:**
   1. Mitarbeiter ohne Zammad-Token (oder nach Neuladen bei einem Label, das erst nach der Analyse erzeugt wurde) öffnet einen Vorschlag mit Label.
@@ -326,12 +326,19 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
 - **Priority:** Fix in next sprint
 
 ### Summary
-- **Acceptance Criteria:** 40/42 bestanden (BUG-1, BUG-2)
+- **Acceptance Criteria:** 42/42 bestanden (nach Behebung von BUG-1 und BUG-2; zuerst 40/42)
 - **Bugs Found:** 4 gesamt (0 critical, 0 high, 4 medium, 0 low gezählt; kleinere Schönheitsfehler sind nicht aufgeführt)
 - **Security:** Pass
 - **Regression:** Gesamtlauf 1992 Tests, 1988 grün. Die 4 Fehlschläge (Version 0.2.1 gegen 0.2.4 aus der `.env`, Admin-Berichte PROJ-56) hängen an der lokalen `.env` und nicht an PROJ-64.
-- **Production Ready:** YES (keine Critical oder High Bugs)
-- **Recommendation:** BUG-1 bis BUG-3 vor der Freigabe beheben (alle klein), BUG-4 kann folgen. Danach Status Approved.
+- **Production Ready:** YES
+- **Recommendation:** Alle vier mittleren Fehler sind behoben und mit Tests abgesichert; Freigabe erteilt.
+
+### Behebung der QA-Fehler (2026-10-27)
+- **BUG-1:** Vor dem Senden wird „Versand gestartet“ (mit Ziel) gespeichert. Nach einem unklaren Ausgang prüft die App bei einer Antwort auf dasselbe Ticket zuerst in Zammad, ob die Nachricht angekommen ist (dann gilt das Label als gesendet, nichts geht doppelt raus). Bei einem neuen Ticket oder einem anderen Ziel muss der Mitarbeiter den erneuten Versand ausdrücklich bestätigen („Trotzdem erneut senden“); die Meldung nennt, wonach er in Zammad suchen soll. Innerhalb von 90 Sekunden gilt „läuft gerade“. Neue Spalten `send_started_at` und `send_started_target`.
+- **BUG-2:** Ist die Option an, aber kein Label erzeugt, verhindert das Formular das Absenden mit Hinweis. Das Label wird nur mitgeschickt, solange die Option an ist.
+- **BUG-3:** „Weiteres Label erstellen“ bleibt nach dem Versand sichtbar und öffnet wieder die Adresse; das neue Label wird bewusst bestellt (auch nach einem unklaren Ausgang). Zugleich ist behoben, dass ein im Formular erzeugtes Label sonst an den Entwurf eines früheren Vorschlags auf derselben Seite gehangen hätte.
+- **BUG-4:** Im Antwortfeld steht immer „DHL-Retourenlabel (Sendungsnummer …): Herunterladen“, mit Hinweis, ob das PDF vorgemerkt ist oder von Hand angehängt werden muss. Ein bei „Interne Abläufe“ erzeugtes Label wird dem Vorschlag zugeordnet (`PUT …/retourenlabel`) und kommt nach dem Neuladen wieder.
+- Tests dazu in `tests/Feature/PROJ-64-*`; Gesamtlauf 2008 Tests, 2004 grün (die 4 anderen hängen an der lokalen `.env`, siehe oben). Die Oberfläche wurde auch nach den Korrekturen nicht in einem Browser bedient.
 
 ## Deployment
 _To be added by /deploy_
