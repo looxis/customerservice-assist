@@ -238,7 +238,7 @@ class DhlClient
             $problem = in_array($response->status(), [400, 401, 403], true) ? DhlProblem::Unauthorized : $this->problem($response);
             $this->log($problem, $response->status());
 
-            throw new DhlException($problem, $response->status());
+            throw new DhlException($problem, $response->status(), $problem === DhlProblem::Unauthorized ? $this->reason($response) : null);
         }
 
         $token = $response->json('access_token');
@@ -313,6 +313,22 @@ class DhlClient
         }
 
         return is_string($detail) && trim($detail) !== '' ? mb_substr(trim((string) preg_replace('/\s+/', ' ', $detail)), 0, 300) : null;
+    }
+
+    /**
+     * The reason DHL gives for refusing the login ("invalid_client", "invalid_grant" …); it names no credentials.
+     */
+    private function reason(Response $response): ?string
+    {
+        try {
+            $json = $response->json();
+        } catch (Throwable) {
+            return null;
+        }
+
+        $parts = array_filter([$json['error'] ?? null, $json['error_description'] ?? $json['detail'] ?? $json['title'] ?? null], 'is_string');
+
+        return $parts === [] ? null : mb_substr(trim((string) preg_replace('/\s+/', ' ', implode(': ', $parts))), 0, 200);
     }
 
     private function prepare(PendingRequest $request): PendingRequest

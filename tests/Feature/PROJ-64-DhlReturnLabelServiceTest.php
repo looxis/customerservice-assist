@@ -276,3 +276,9 @@ test('dhl:check names the missing login data', function () {
 
     $this->artisan('dhl:check')->expectsOutputToContain('DHL_PASSWORD')->assertFailed();
 });
+
+test('dhl:check shows the reason DHL gives for refusing the login and which system it asked', function () {
+    Http::fake(['dhl.test/token' => Http::response(['error' => 'invalid_client', 'error_description' => 'Client authentication failed'], 401)]);
+
+    $this->artisan('dhl:check')->expectsOutputToContain('invalid_client')->expectsOutputToContain('dhl.test')->assertFailed();
+});
