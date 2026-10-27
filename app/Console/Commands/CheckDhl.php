@@ -25,9 +25,8 @@ class CheckDhl extends Command
         } catch (DhlException $exception) {
             $this->error($exception->problem->message());
 
-            if ($exception->detail !== null) {
-                $this->line('Antwort von DHL: '.$exception->detail);
-            }
+            $this->line('HTTP-Status: '.($exception->httpStatus ?? 'keine Antwort'));
+            $this->line('Antwort von DHL: '.($exception->detail ?? '(leer)'));
 
             $this->line('Angefragt wird: '.parse_url((string) config('services.dhl.token_url'), PHP_URL_HOST).(str_contains((string) config('services.dhl.token_url'), 'sandbox') ? ' (Sandbox)' : ' (Produktion)'));
 

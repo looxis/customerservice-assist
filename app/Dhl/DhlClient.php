@@ -326,9 +326,11 @@ class DhlClient
             return null;
         }
 
-        $parts = array_filter([$json['error'] ?? null, $json['error_description'] ?? $json['detail'] ?? $json['title'] ?? null], 'is_string');
+        $parts = is_array($json) ? array_filter([$json['error'] ?? null, $json['error_description'] ?? $json['detail'] ?? $json['title'] ?? null], 'is_string') : [];
+        $text = $parts === [] ? strip_tags($response->body()) : implode(': ', $parts);
+        $text = mb_substr(trim((string) preg_replace('/\s+/', ' ', $text)), 0, 200);
 
-        return $parts === [] ? null : mb_substr(trim((string) preg_replace('/\s+/', ' ', implode(': ', $parts))), 0, 200);
+        return $text === '' ? null : $text;
     }
 
     private function prepare(PendingRequest $request): PendingRequest
