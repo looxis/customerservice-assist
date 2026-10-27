@@ -13,3 +13,6 @@ Schedule::command('analysis:purge')->dailyAt('03:15');
 
 // PROJ-60: delete cached ticket attachments after the retention period.
 Schedule::command('attachments:purge')->dailyAt('03:30');
+
+// PROJ-64: delete the PDF files of DHL return labels after the retention period.
+Schedule::command('return-labels:purge')->dailyAt('03:45');

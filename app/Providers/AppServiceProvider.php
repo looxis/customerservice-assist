@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Analysis\AppStats;
 use App\Analysis\KnowledgeGapLog;
+use App\Dhl\DhlClient;
 use App\Eocs\EocsClient;
 use App\Http\LocalRedirect;
 use App\Knowledge\KnowledgeLibrary;
@@ -44,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(EocsClient::class, fn (): EocsClient => new EocsClient(config('services.eocs'), array_change_key_case(config('knowledge.order_channels', []), CASE_LOWER)));
         $this->app->bind(ProductForgeClient::class, fn (): ProductForgeClient => new ProductForgeClient(config('services.productforge')));
         $this->app->bind(ZammadClient::class, fn (Application $app): ZammadClient => new ZammadClient(config('services.zammad'), $app->make(MessageBody::class)));
+        $this->app->bind(DhlClient::class, fn (): DhlClient => new DhlClient(config('services.dhl')));
         $this->app->bind(ZammadReplySender::class, fn (): ZammadReplySender => new ZammadReplySender(config('services.zammad')));
         $this->app->bind(StaffDirectory::class, fn (): StaffDirectory => new StaffDirectory(config('staff')));
         $this->app->bind(KnowledgeSuggester::class, fn (Application $app): KnowledgeSuggester => new KnowledgeSuggester($app->make(KnowledgeLibrary::class), $app->make(KnowledgeSelector::class), config('knowledge')));

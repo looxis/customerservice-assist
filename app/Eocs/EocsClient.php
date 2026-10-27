@@ -346,6 +346,7 @@ class EocsClient
             claims: [],
             url: $this->orderUrl((int) $order['id']),
             deliveryAddress: $this->deliveryAddress((array) ($order['shipping'] ?? [])),
+            shippingAddress: EocsShippingAddress::fromShipping((array) ($order['shipping'] ?? [])),
         );
     }
 

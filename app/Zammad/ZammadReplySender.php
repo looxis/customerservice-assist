@@ -73,6 +73,53 @@ class ZammadReplySender
     }
 
     /**
+     * Create a new ticket for the customer with the e-mail as its first article, in the name of the employee
+     * (PROJ-64). The customer is found or created by the address.
+     *
+     * @throws ReplyException
+     */
+    public function createTicket(string $token, OutgoingTicket $ticket): CreatedTicket
+    {
+        $this->whoAmI($token);
+
+        $payload = [
+            'title' => $ticket->subject,
+            'group' => $ticket->group,
+            'customer_id' => 'guess:'.$ticket->to,
+            'state' => $ticket->state,
+            'article' => [
+                'type' => 'email',
+                'sender' => 'Agent',
+                'internal' => false,
+                'content_type' => 'text/plain',
+                'to' => $ticket->to,
+                'subject' => $ticket->subject,
+                'body' => $ticket->body,
+                ...($ticket->attachments === [] ? [] : ['attachments' => array_map(fn (OutgoingAttachment $file): array => [
+                    'filename' => $file->filename,
+                    'data' => base64_encode($file->content),
+                    'mime-type' => $file->mimeType,
+                ], $ticket->attachments)]),
+            ],
+        ];
+
+        if ($ticket->pendingUntil !== null) {
+            $payload['pending_time'] = $ticket->pendingUntil->utc()->toIso8601String();
+        }
+
+        $response = $this->call($token, fn (PendingRequest $request): Response => $request->post('tickets', $payload), certain: false, timeout: $ticket->attachments === [] ? null : (int) ($this->config['reply_attachment_timeout'] ?? 120));
+
+        $id = (int) $response->json('id');
+        $number = (string) $response->json('number');
+
+        if ($id <= 0 || $number === '') {
+            throw new ReplyException(ReplyProblem::Unclear);
+        }
+
+        return new CreatedTicket($id, $number, rtrim((string) $this->config['url'], '/').'/#ticket/zoom/'.$id);
+    }
+
+    /**
      * Whether this user already wrote a public reply to the ticket since the given time: after an unclear
      * outcome this decides whether sending again is safe.
      *

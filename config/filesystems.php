@@ -48,6 +48,15 @@ return [
             'report' => false,
         ],
 
+        // DHL return labels (PROJ-64): private, deleted after services.dhl.retention_days by return-labels:purge.
+        'return-labels' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/return-labels'),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

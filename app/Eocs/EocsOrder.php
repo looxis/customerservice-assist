@@ -17,6 +17,7 @@ final readonly class EocsOrder
      * @param  list<EocsOrderItem>  $items
      * @param  list<EocsClaim>  $claims
      * @param  list<string>  $deliveryAddress  Lines of the delivery address (name, street, postcode and city, country).
+     * @param  ?EocsShippingAddress  $shippingAddress  The same address in separate fields, only for the return label (PROJ-64).
      */
     public function __construct(
         public int $id,
@@ -32,11 +33,12 @@ final readonly class EocsOrder
         public array $claims,
         public string $url,
         public array $deliveryAddress = [],
+        public ?EocsShippingAddress $shippingAddress = null,
     ) {}
 
     public function withClaims(array $claims): self
     {
-        return new self($this->id, $this->externalNumber, $this->channelName, $this->channel, $this->orderedAt, $this->statusName, $this->statusColor, $this->invoiceNumber, $this->shipments, $this->items, $claims, $this->url, $this->deliveryAddress);
+        return new self($this->id, $this->externalNumber, $this->channelName, $this->channel, $this->orderedAt, $this->statusName, $this->statusColor, $this->invoiceNumber, $this->shipments, $this->items, $claims, $this->url, $this->deliveryAddress, $this->shippingAddress);
     }
 
     /**

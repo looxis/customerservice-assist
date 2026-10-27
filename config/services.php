@@ -54,6 +54,8 @@ return [
         // Seconds for sending a reply with attachments: Zammad decodes and stores them before it answers.
         'reply_attachment_timeout' => 120,
         'timezone' => 'Europe/Berlin',
+        // Group of new tickets that carry a return label (PROJ-64): the group "allgemeine Kunden".
+        'return_group' => env('ZAMMAD_RETURN_GROUP', 'allg. Kunden'),
 
         // Our own signatures without Zammad's signature marker (e.g. on Amazon),
         // hidden at the end of our messages. Line breaks and case do not matter.
@@ -113,6 +115,33 @@ return [
         'timeout' => env('PRODUCTFORGE_TIMEOUT', 10),
         'retries' => env('PRODUCTFORGE_RETRIES', 2),
         'order_lookup' => env('PRODUCTFORGE_ORDER_LOOKUP', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | DHL Parcel DE Returns (PROJ-64)
+    |--------------------------------------------------------------------------
+    |
+    | Return labels over the Returns API v1 (OAuth2 password grant of a business
+    | customer system user). The defaults point to the sandbox; production URLs:
+    | https://api-eu.dhl.com/parcel/de/shipping/returns/v1 and
+    | https://api-eu.dhl.com/parcel/de/account/auth/ropc/v1/token. "receiver_id"
+    | is the return receiver set up in the business customer portal (see
+    | `dhl:check`). Label files are deleted after "retention_days"; the shipment
+    | numbers stay. "timeout" is in seconds.
+    |
+    */
+
+    'dhl' => [
+        'url' => env('DHL_URL', 'https://api-sandbox.dhl.com/parcel/de/shipping/returns/v1'),
+        'token_url' => env('DHL_TOKEN_URL', 'https://api-sandbox.dhl.com/parcel/de/account/auth/ropc/v1/token'),
+        'client_id' => env('DHL_CLIENT_ID'),
+        'client_secret' => env('DHL_CLIENT_SECRET'),
+        'username' => env('DHL_USERNAME'),
+        'password' => env('DHL_PASSWORD'),
+        'receiver_id' => env('DHL_RECEIVER_ID'),
+        'timeout' => env('DHL_TIMEOUT', 15),
+        'retention_days' => env('DHL_RETENTION_DAYS', 30),
     ],
 
 ];
