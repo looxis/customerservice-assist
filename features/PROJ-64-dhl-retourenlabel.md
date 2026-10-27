@@ -1,6 +1,6 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-10-27
 **Last Updated:** 2026-10-27
 
@@ -113,9 +113,9 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - Die Umsetzung benötigt kein neues Composer-Paket.
 
 ## Open Questions
-- [ ] Wie heißt die Zammad-Gruppe, in der neue Retouren-Tickets angelegt werden (`ZAMMAD_RETURN_GROUP`), und dürfen die persönlichen Zammad-Tokens der Mitarbeiter dort Tickets anlegen?
-- [ ] Ist der Vertrag „DHL Retoure Online“ für die API freigeschaltet (Systembenutzer, produktive `receiverId` mit Abrechnungsnummer, Freigabe für „nur Deutschland“)?
-- [ ] Wortlaut des Anleitungstextes (Verpacken, Label aufkleben, Abgabe in Filiale/Paketshop, keine Abholung); Standardtext schlägt der Entwickler vor, der Auftraggeber gibt frei.
+- [x] Zammad-Gruppe für neue Retouren-Tickets: „allg. Kunden“ (allgemeine Kunden; die zweite Gruppe ist „amazon“). Die persönlichen Zammad-Tokens der Mitarbeiter dürfen dort Tickets anlegen (geklärt 2026-10-27). Der genaue Gruppenname wird beim Bau gegen Zammad geprüft.
+- [ ] Ist der Vertrag „DHL Retoure Online“ für die API freigeschaltet? Benötigt: Systembenutzer, API-Key und -Secret, produktive Empfänger-ID mit Abrechnungsnummer, Freigabe für „nur Deutschland“. Der Auftraggeber sucht die Angaben im Geschäftskundenportal (Liste im Antwortbericht vom 2026-10-27).
+- [ ] Wortlaut des Anleitungstextes (Verpacken, Label aufkleben, Abgabe in Filiale/Paketshop, keine Abholung): Der Entwickler schlägt einen Standardtext vor, der Auftraggeber sucht die DHL-Textvorschläge heraus und gibt frei.
 - [ ] Nach dem Erzeugen im Formular: Soll das Ticket nach dem Versand ebenfalls „schließen“ oder „Erinnerung“ als Standard vorschlagen? Vorschlag: wie PROJ-19.
 
 ## Decision Log
@@ -138,12 +138,97 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Eigener DHL-Baustein im Stil der bestehenden Anbindungen (EOCS, ProductForge, Zammad) | Gleiche Struktur für Konfiguration, Fehler und Protokoll; leicht zu testen mit gefälschten Antworten | 2026-10-27 |
+| Zugangsdaten, Empfänger-ID und Zammad-Gruppe in `.env`/Konfiguration, nicht in den Einstellungen | Geheimnisse gehören nicht in die Datenbank; die Empfänger-ID ändert sich praktisch nie. Bei Bedarf später als Einstellung nachrüstbar | 2026-10-27 |
+| DHL-Anmeldetoken wird kurz zwischengespeichert (rund 30 Minuten) | Nicht bei jedem Label neu anmelden; Sperre verhindert parallele Anmeldungen | 2026-10-27 |
+| Eigene Tabelle `return_labels` statt Spalten an `analyses` | Ein Label gehört zu Bestellung und Ticket, nicht zwingend zu einer Analyse; Grundlage für PROJ-65 (Tracking, Zählung) | 2026-10-27 |
+| Label-PDF auf eigener privater Ablage mit Aufbewahrungsfrist, Sendungsnummer bleibt dauerhaft | DHL liefert das PDF nicht erneut aus; die Sendungsnummer braucht PROJ-65 für das Tracking | 2026-10-27 |
+| Label wird zuerst gespeichert, dann erst weiterverarbeitet | Fehler bei Anhang oder Versand führen nie zu einer zweiten (kostenpflichtigen) Beauftragung | 2026-10-27 |
+| Sperre je Ticket/Bestellung/Adresse plus Prüfung auf vorhandenes Label | Doppelklick und Parallelzugriff beauftragen nur einmal; DHL bietet keinen eigenen Schutz | 2026-10-27 |
+| Label-Beauftragung wird nie automatisch wiederholt | Bei unklarem Ausgang könnte DHL bereits ein Label angelegt haben | 2026-10-27 |
+| Neue Zammad-Funktion „Ticket anlegen“ im bestehenden Versandbaustein | Gleicher Zugang (persönlicher Token), gleiche Anhangsbehandlung wie bei Antworten (PROJ-19) | 2026-10-27 |
+| Strukturierte Adresse als zusätzliches Feld der Bestellung, bisherige Adresszeilen bleiben | Analyse und Pseudonymisierung bleiben unverändert; die Adresse geht nur an die Retouren-Funktion | 2026-10-27 |
+| Einstieg im Formular: Label wird vor der Analyse erzeugt, nur die ID wandert mit | Die KI sieht nur den Fakt „Label liegt bei“; der Anleitungstext wird von der App angehängt, nicht von der KI geschrieben | 2026-10-27 |
+| Nutzung des vorhandenen Anhangs-Versandwegs im Antwortvorschlag | Das PDF wird im Browser als Anhang vorgemerkt; der Server-Versand (PROJ-19, PROJ-61) bleibt unverändert | 2026-10-27 |
+| Web-Routen mit Blade, kleine Abrufe über JSON | Seite und Formular sind Blade; Erzeugen und Versenden brauchen Rückmeldung ohne Neuladen (wie das Senden in PROJ-19) | 2026-10-27 |
+| Keine neuen Pakete | Das PDF wird unverändert angehängt, es muss nur auf Gültigkeit geprüft werden | 2026-10-27 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Backend und Datenhaltung
+Ja, Backend und Datenbank sind nötig: Die DHL-Zugangsdaten dürfen nie in den Browser, und ein erzeugtes Label muss gespeichert werden, weil DHL es nicht ein zweites Mal ausgibt.
+
+### A) Bausteine der Oberfläche
+```
+Seitenleiste
++-- Eintrag „DHL Retoure“ (neu)
+
+Seite „DHL Retoure“ (neu)
++-- 1. Suche (Ticketnummer oder Bestellnummer)
+|   +-- Auswahl der Bestellung, falls mehrere gefunden
++-- 2. Adressbereich (wiederverwendbare Komponente)
+|   +-- Felder Name, Straße, Hausnummer, PLZ, Ort (vorbefüllt, änderbar)
+|   +-- Feste Empfängeradresse (nur Anzeige)
+|   +-- Hinweis bei Amazon / fehlender Adresse
+|   +-- Haken „Adresse geprüft“ und Knopf „Label erzeugen“
+|   +-- Ergebnis: Sendungsnummer, „Herunterladen“, „Weiteres Label erstellen“
++-- 3. Versand an den Kunden (optional)
+    +-- Wahl: „Antwort auf Ticket“ oder „Neues Ticket erstellen“
+    +-- Kundenmail (nur bei neuem Ticket), Betreff (nur Anzeige bei neuem Ticket)
+    +-- Anleitungstext (änderbar), Label als Anhang
+    +-- Status nach Versand (schließen / Erinnerung), Knopf „Senden“
+    +-- Ergebnis: Ticketnummer mit Link
+
+Vorschlagsformular (besteht)
++-- Option „DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen“ (neu)
+    +-- Adressbereich (dieselbe Komponente wie oben)
+
+Antwortvorschlag (besteht)
++-- „Interne Abläufe“: Knopf „DHL-Retourenlabel erstellen“ (neu)
+|   +-- Adressbereich (dieselbe Komponente)
++-- Antwortentwurf: Anleitungstext am Ende, Label als vorgemerkter Anhang
+```
+Die bestehenden Bausteine (Knöpfe, Karten, Hinweise, Einklapp-Bereiche, Kopierfelder) werden wiederverwendet. Neu sind der Adressbereich, die Seite und kleine Erweiterungen in Formular, Abläufen und Antwortfeld.
+
+### B) Datenmodell (in einfachen Worten)
+Jedes Retourenlabel speichert:
+- eine eindeutige Kennung
+- Ticketnummer (kann fehlen, wenn die Seite nur mit Bestellnummer genutzt wird)
+- Bestellnummer, EOCS-Auftragsnummer
+- Sendungsnummer von DHL (für das spätere Tracking, PROJ-65)
+- Stand: wird erzeugt, erzeugt, abgelehnt, Ausgang unklar
+- eine Kurzfassung der Anfrage (Fingerprint, ohne Klartext), um doppeltes Beauftragen zu erkennen
+- wer es erzeugt hat und wann
+- die PDF-Datei (Ablage, Prüfsumme, Löschdatum)
+- Versandstand: wann, durch wen, an welches Ticket (oder neues Ticket) gesendet
+- eine bereinigte Fehlermeldung, falls etwas schiefging
+
+Nicht gespeichert: Zugangsdaten, Klartext der Adresse, Mailadresse des Kunden.
+
+Das Vorschlagsformular merkt sich zusätzlich, welches Label zu einem Antwortvorschlag gehört, damit die Anleitung nach dem Neuladen noch angezeigt wird.
+
+Gespeichert wird in: MySQL (Label-Angaben) und einer privaten Dateiablage ohne Web-Zugang (PDF). Das PDF wird nach der Aufbewahrungsfrist gelöscht, die Angaben bleiben.
+
+### C) Technische Entscheidungen
+- **Eigene DHL-Anbindung** nach dem Vorbild der bestehenden: Konfiguration, verständliche Fehlerarten (nicht konfiguriert, abgelehnt, nicht angemeldet, keine Berechtigung, zu viele Anfragen, nicht erreichbar, Ausgang unklar) und ein Protokoll ohne Kundendaten.
+- **Anmeldung bei DHL**: Mit Benutzername und Passwort des Systembenutzers wird ein kurzlebiges Token geholt und für etwa 30 Minuten zwischengespeichert. Ist es abgelaufen, wird einmal neu angemeldet.
+- **Schutz vor doppelten Labels**: Vor jedem Aufruf prüft die App, ob es für Ticket, Bestellung und Adresse schon ein Label gibt, und sperrt parallele Aufrufe. Erst danach geht eine Anfrage an DHL. Ein Timeout wird nie blind wiederholt.
+- **Reihenfolge nach dem Erzeugen**: Zuerst wird das PDF gesichert und geprüft, dann folgen Anhang und Versand. Schlägt ein späterer Schritt fehl, wird das gespeicherte Label wiederverwendet.
+- **Referenzen im Label**: Bestellnummer plus Ticketnummer in der gedruckten Referenz (30 Zeichen), die Ticketnummer zusätzlich in der nicht gedruckten Sendungsreferenz.
+- **Versand an Zammad**: Antworten laufen über den bestehenden Weg (PROJ-19). Für „Neues Ticket“ kommt eine neue Funktion hinzu: Ticket in der Gruppe „allg. Kunden“ mit dem Kunden per Mailadresse, E-Mail-Artikel im Namen des Mitarbeiters, Anhang wie bei Antworten.
+- **Antwortvorschlag**: Das PDF wird im Browser als Anhang vorgemerkt und geht über den vorhandenen Versandknopf mit. Der Anleitungstext wird von der App eingefügt, nicht von der KI. Der Prompt erhält nur den Hinweis, dass ein Label beiliegt.
+- **Berechtigung**: Wie die übrigen Funktionen für alle Mitarbeiter mit gewähltem Namen; kein Admin nötig. Aufrufe haben ein Limit pro Minute.
+- **Routen**: Seite und Download als Web-Routen, Suchen, Erzeugen und Senden als kleine JSON-Aufrufe aus der Seite (wie das Senden in PROJ-19).
+- **Prüfungen**: Alle Eingaben werden serverseitig mit eigenen Prüfklassen kontrolliert (Länge, Postleitzahl, Land Deutschland, E-Mail-Format, Bestätigungshaken). Die Empfänger-ID kommt nie aus dem Formular.
+- **Zusatz**: Ein Prüfbefehl testet die DHL-Verbindung (Anmeldung und Empfängerliste) und ein Aufräumbefehl löscht abgelaufene PDF-Dateien.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API-Secret, Benutzername und Passwort des Systembenutzers, Retourenempfänger-ID, Zeitlimit und der Gruppenname für neue Tickets. Die Sandbox ist die Voreinstellung.
 
 ## QA Test Results
 _To be added by /qa_
