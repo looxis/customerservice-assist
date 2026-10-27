@@ -79,7 +79,7 @@ class DhlClient
             $problem = $this->problem($response);
             $this->log($problem, $response->status());
 
-            throw new DhlException($problem, $response->status(), $problem === DhlProblem::Rejected ? $this->detail($response) : null);
+            throw new DhlException($problem, $response->status(), $this->explanation($problem, $response));
         }
 
         return $this->result($response);
@@ -104,7 +104,7 @@ class DhlClient
             $problem = $this->problem($response);
             $this->log($problem, $response->status());
 
-            throw new DhlException($problem, $response->status());
+            throw new DhlException($problem, $response->status(), $this->explanation($problem, $response));
         }
 
         $rows = $response->json();
@@ -313,6 +313,18 @@ class DhlClient
         }
 
         return is_string($detail) && trim($detail) !== '' ? mb_substr(trim((string) preg_replace('/\s+/', ' ', $detail)), 0, 300) : null;
+    }
+
+    /**
+     * DHL's own words for a refusal, so that the employee (and the developer) can see what is wrong.
+     */
+    private function explanation(DhlProblem $problem, Response $response): ?string
+    {
+        return match ($problem) {
+            DhlProblem::Rejected => $this->detail($response),
+            DhlProblem::Unauthorized, DhlProblem::Forbidden => $this->reason($response),
+            default => null,
+        };
     }
 
     /**

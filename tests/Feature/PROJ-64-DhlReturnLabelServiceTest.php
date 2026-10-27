@@ -282,3 +282,12 @@ test('dhl:check shows the reason DHL gives for refusing the login and which syst
 
     $this->artisan('dhl:check')->expectsOutputToContain('invalid_client')->expectsOutputToContain('dhl.test')->assertFailed();
 });
+
+test('dhl:check shows what DHL says when the app has no access to the Returns API', function () {
+    Http::fake([
+        'dhl.test/token' => Http::response(['access_token' => 'tok', 'expires_in' => 1799]),
+        'dhl.test/returns/locations*' => Http::response(['status' => 401, 'title' => 'Unauthorized', 'detail' => 'Access token validation: Invalid API call as no apiproduct match found'], 401),
+    ]);
+
+    $this->artisan('dhl:check')->expectsOutputToContain('no apiproduct match found')->assertFailed();
+});
