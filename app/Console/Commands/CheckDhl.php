@@ -14,6 +14,12 @@ class CheckDhl extends Command
 {
     public function handle(DhlClient $dhl): int
     {
+        if (! $dhl->hasLogin()) {
+            $this->error('Es fehlen Zugangsdaten: DHL_CLIENT_ID, DHL_CLIENT_SECRET, DHL_USERNAME und DHL_PASSWORD müssen in der .env stehen (danach „sail artisan config:clear“, falls die Konfiguration zwischengespeichert ist).');
+
+            return self::FAILURE;
+        }
+
         try {
             $locations = $dhl->locations();
         } catch (DhlException $exception) {
@@ -31,6 +37,8 @@ class CheckDhl extends Command
         }
 
         $this->table(['Empfänger-ID', 'Abrechnungsnummer', 'Name'], array_map(fn (array $row): array => [$row['receiverId'], $row['billingNumber'] ?? '–', $row['name'] ?? '–'], $locations));
+
+        $this->line($dhl->isConfigured() ? 'DHL_RECEIVER_ID ist gesetzt.' : 'Trage die gewünschte Empfänger-ID als DHL_RECEIVER_ID in die .env ein.');
 
         return self::SUCCESS;
     }

@@ -263,3 +263,16 @@ test('the client reports whether it is configured', function () {
 
     expect(app(DhlClient::class)->isConfigured())->toBeFalse();
 });
+
+test('dhl:check works without the receiver ID, because it is there to find it', function () {
+    fakeDhl();
+    config(['services.dhl.receiver_id' => null]);
+
+    $this->artisan('dhl:check')->expectsOutputToContain('deu')->expectsOutputToContain('DHL_RECEIVER_ID')->assertSuccessful();
+});
+
+test('dhl:check names the missing login data', function () {
+    config(['services.dhl.password' => null]);
+
+    $this->artisan('dhl:check')->expectsOutputToContain('DHL_PASSWORD')->assertFailed();
+});

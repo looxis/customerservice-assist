@@ -25,9 +25,20 @@ class DhlClient
      */
     public function __construct(private readonly array $config) {}
 
+    /**
+     * Whether labels can be ordered: login data and the return receiver are set.
+     */
     public function isConfigured(): bool
     {
-        foreach (['url', 'token_url', 'client_id', 'client_secret', 'username', 'password', 'receiver_id'] as $key) {
+        return $this->hasLogin() && filled($this->config['receiver_id'] ?? null);
+    }
+
+    /**
+     * Whether the login data is set; enough to list the return receivers and find the receiver ID.
+     */
+    public function hasLogin(): bool
+    {
+        foreach (['url', 'token_url', 'client_id', 'client_secret', 'username', 'password'] as $key) {
             if (blank($this->config[$key] ?? null)) {
                 return false;
             }
@@ -83,7 +94,9 @@ class DhlClient
      */
     public function locations(): array
     {
-        $this->ensureConfigured();
+        if (! $this->hasLogin()) {
+            throw new DhlException(DhlProblem::Misconfigured);
+        }
 
         $response = $this->send(fn (PendingRequest $request): Response => $request->get($this->url('locations'), ['countryCode' => 'deu']), $this->token(), certain: true);
 
