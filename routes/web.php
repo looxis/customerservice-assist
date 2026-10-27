@@ -15,6 +15,7 @@ use App\Http\Controllers\ProductQuestionController;
 use App\Http\Controllers\ProductSearchController;
 use App\Http\Controllers\ProductVariantsController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\TestModeController;
@@ -83,6 +84,15 @@ Route::middleware('staff.selected')->group(function (): void {
     Route::post('/dhl-retoure/labels', [DhlReturnController::class, 'store'])->middleware('throttle:10,1')->name('dhl-return.store');
     Route::get('/dhl-retoure/labels/{label}/download', [DhlReturnController::class, 'download'])->whereUuid('label')->name('dhl-return.download');
     Route::post('/dhl-retoure/labels/{label}/senden', [DhlReturnController::class, 'send'])->whereUuid('label')->middleware('throttle:10,1')->name('dhl-return.send');
+});
+
+Route::get('/angebot', [QuoteController::class, 'index'])->name('quote.index');
+Route::get('/angebot/angebote/{offer}/druck', [QuoteController::class, 'print'])->whereUuid('offer')->name('quote.offers.print');
+Route::middleware('staff.selected')->group(function (): void {
+    Route::post('/angebot/angebote', [QuoteController::class, 'store'])->middleware('throttle:30,1')->name('quote.offers.store');
+    Route::put('/angebot/angebote/{offer}', [QuoteController::class, 'update'])->whereUuid('offer')->name('quote.offers.update');
+    Route::delete('/angebot/angebote/{offer}', [QuoteController::class, 'destroy'])->whereUuid('offer')->name('quote.offers.destroy');
+    Route::put('/angebot/artikel/{article}/kosten', [QuoteController::class, 'updateCosts'])->whereNumber('article')->name('quote.articles.costs');
 });
 
 Route::get('/frage', [QuestionController::class, 'create'])->name('questions.create');

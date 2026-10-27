@@ -339,6 +339,7 @@ Fehlt „Voraussetzungen", „Arbeitsschritte" oder „Abschlusskontrolle", warn
 | `eocs-kunden` | Kundenliste in EOCS (ohne Suchbegriff) |
 | `vanilo-kunden` | Vanilo-Backend, Seite „Shopper“; die E-Mail-Adresse des Kunden aus dem Ticket ist als Suchbegriff vorbelegt, sonst die Seite ohne Suchbegriff |
 | `mailcoach-listen` | Mailcoach, E-Mail-Listen (ohne Suchbegriff) |
+| `angebotsrechner` | die Seite „Angebot berechnen“ in der App (PROJ-34); mit Ticketnummer, wenn der Fall ein Ticket hat |
 
 Regeln: Die Beschriftung ist frei, das Kürzel muss genau stimmen (die Prüfung meldet ein unbekanntes Kürzel als Fehler). Gibt es im Fall kein Ziel (zum Beispiel keine Bestellung geladen), steht nur der Text ohne Knopf; der Satz muss also auch ohne Knopf verständlich sein. Adressen schreibst du nicht in den Ablauf. Ein weiteres Werkzeug ist ein neues Kürzel; es nicht selbst erfinden, sondern vorschlagen.
 

@@ -35,6 +35,7 @@
             <x-nav-item :href="route('tickets.analyze')" icon="sparkle" :active="request()->routeIs('tickets.*')">Ticket analysieren</x-nav-item>
             <x-nav-item :href="route('questions.create')" icon="chat" :active="request()->routeIs('questions.*')">Frage stellen</x-nav-item>
             <x-nav-item :href="route('dhl-return.index')" icon="doc" :active="request()->routeIs('dhl-return.*')">DHL Retoure</x-nav-item>
+            <x-nav-item :href="route('quote.index')" icon="calculator" :active="request()->routeIs('quote.*')">Angebot berechnen</x-nav-item>
             <x-nav-item :href="route('knowledge.index')" icon="layers" :active="request()->routeIs('knowledge.index', 'knowledge.show')">Knowledge</x-nav-item>
             @if ($ticketOverviewAvailable)
                 <x-nav-item :href="route('ticket-overview.index')" icon="doc" :active="request()->routeIs('ticket-overview.*')">Ticket-Übersicht</x-nav-item>

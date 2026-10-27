@@ -16,6 +16,9 @@ final readonly class CaseLinks
     /** Keys whose target depends on the case. */
     public const array CASE_KEYS = ['eocs-auftrag', 'zammad-ticket'];
 
+    /** Keys that lead to a page of this app (PROJ-34). */
+    public const array APP_KEYS = ['angebotsrechner'];
+
     /**
      * @param  list<EocsOrder>  $orders
      */
@@ -23,6 +26,7 @@ final readonly class CaseLinks
         public array $orders = [],
         public ?string $ticketUrl = null,
         public ?string $customerEmail = null,
+        public ?string $ticketNumber = null,
     ) {}
 
     public static function none(): self
@@ -44,7 +48,9 @@ final readonly class CaseLinks
 
         $email = trim((string) $ticket->customerEmail);
 
-        return new self($orders, $ticket->zammadUrl !== '' ? $ticket->zammadUrl : null, $email !== '' ? $email : ReplyTarget::for($ticket)?->to);
+        $number = preg_match('/^[0-9]{1,20}$/', (string) $ticket->number) === 1 ? (string) $ticket->number : null;
+
+        return new self($orders, $ticket->zammadUrl !== '' ? $ticket->zammadUrl : null, $email !== '' ? $email : ReplyTarget::for($ticket)?->to, $number);
     }
 
     /**
@@ -54,7 +60,7 @@ final readonly class CaseLinks
      */
     public static function keys(): array
     {
-        return [...self::CASE_KEYS, ...array_keys(config('knowledge.order_links', [])), ...array_keys(config('knowledge.tool_links', []))];
+        return [...self::CASE_KEYS, ...self::APP_KEYS, ...array_keys(config('knowledge.order_links', [])), ...array_keys(config('knowledge.tool_links', []))];
     }
 
     public static function isKnown(string $key): bool
@@ -71,6 +77,7 @@ final readonly class CaseLinks
     {
         return match ($key) {
             'eocs-auftrag' => $this->orderTargets(),
+            'angebotsrechner' => [['url' => route('quote.index', $this->ticketNumber === null ? [] : ['ticket' => $this->ticketNumber]), 'label' => null]],
             'zammad-ticket' => $this->ticketUrl === null ? [] : [['url' => $this->ticketUrl, 'label' => null]],
             'amazon-bestellung' => $this->amazonTargets($key),
             'vanilo-kunden' => $this->fixed($key, $this->customerEmail === null ? null : ['email' => $this->customerEmail, 'order_by' => 'newest_first']),

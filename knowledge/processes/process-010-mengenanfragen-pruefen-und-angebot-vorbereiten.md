@@ -15,6 +15,7 @@ customer_types: []
 sales_channels:
   - looxis-de
 related_knowledge:
+  - PROCEDURE-009
   - POLICY-004
   - POLICY-023
   - POLICY-024
@@ -76,7 +77,7 @@ Gilt für die strukturierten Mengenanfragen, die über die Produktseiten von loo
 
 # Konditionen und Umsetzbarkeit klären
 
-1. Preis beziehungsweise Rabatt, Versandkosten und gegebenenfalls Dateiaufwand nach POLICY-026 behandeln. Ohne Mitarbeiterangabe keine Beträge festsetzen.
+1. Preis beziehungsweise Rabatt, Versandkosten und gegebenenfalls Dateiaufwand nach POLICY-026 behandeln. Ohne Mitarbeiterangabe keine Beträge festsetzen. Marge und Rabattgrenzen prüft der Mitarbeiter im Angebotsrechner der App (PROCEDURE-009).
 2. Zahlungsweg nach POLICY-024 klären. Rechnungskauf nur nach Freigabe durch die Geschäftsleitung anbieten.
 3. Lieferzeit nach POLICY-025 beurteilen. Bei größeren Mengen oder teureren Produkten die Produktion vor einer konkreten Zusage einbeziehen.
 4. Bei Terminen ab beziehungsweise nahe Mitte November saisonale Auslastung und Angebotsgültigkeit nach POLICY-023 beachten.
