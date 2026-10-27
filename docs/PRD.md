@@ -75,7 +75,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Bildanhänge eines Tickets in der App ansehen (Zwischenspeicher 30 Tage, Overlay mit Zoom) | Approved |
 | Anhänge (PDF, Bilder, Screenshot per Strg+V) an die Antwort anhängen | Approved |
 | Produkte ohne Kundenservice-Wissen auswerten: Reklamationen und Fragen zu ProductForge-Produkten, für die das Wissen nicht reicht, je Produkt und Thema zählen und Admins auflisten (Reklamation ab dem ersten Fall) | Planned |
-| DHL-Retourenlabel erstellen und versenden: Label über die DHL-Schnittstelle aus der App erzeugen (Adresse aus der Bestellung, Seite „DHL Retoure“ und Option im Vorschlagsformular), herunterladen oder per Klick als Antwort bzw. neues Ticket an den Kunden senden | Architected |
+| DHL-Retourenlabel erstellen und versenden: Label über die DHL-Schnittstelle aus der App erzeugen (Adresse aus der Bestellung, Seite „DHL Retoure“ und Option im Vorschlagsformular), herunterladen oder per Klick als Antwort bzw. neues Ticket an den Kunden senden | In Progress |
 | Retouren-Tracking und Zählung: Rücksendung über das DHL-Label verfolgen, Retouren zählen und auswerten | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.

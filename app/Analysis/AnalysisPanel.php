@@ -18,6 +18,7 @@ use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Knowledge\ProcedureFinder;
 use App\Knowledge\ProcedureRenderer;
+use App\Models\ReturnLabel;
 use App\Orders\OrderNumberDetector;
 use App\ProductForge\ForgeProduct;
 use App\ProductForge\KnowledgeAreaSuggester;
@@ -25,12 +26,14 @@ use App\ProductForge\ProductForgeClient;
 use App\ProductForge\ProductForgeException;
 use App\ProductForge\ProductForgeProblem;
 use App\ProductForge\SkuDetector;
+use App\Returns\ReturnInstructions;
 use App\Zammad\ArticleKind;
 use App\Zammad\RelatedTicketFinder;
 use App\Zammad\Ticket;
 use App\Zammad\TicketArticle;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 /**
  * Everything the ticket page needs for the analysis area: suggestions,
@@ -229,6 +232,13 @@ class AnalysisPanel
         $reply = (string) ($stored['result']['reply']['text'] ?? '');
         $original = $this->originalReply($stored);
         $edit = $stored['reply_edit'] ?? null;
+        $label = $this->returnLabel($stored, $ticket);
+        $shown = is_array($edit) ? (string) $edit['text'] : $original;
+
+        // The steps for the customer (PROJ-64) stand under the draft, unless they are in it already.
+        if ($label !== null && is_array($stored['result']['reply'] ?? null) && ! str_contains($shown, 'Retouren-Sendungsnummer: '.$label->shipment_no)) {
+            $shown = rtrim($shown)."\n\n".ReturnInstructions::block((string) $label->shipment_no);
+        }
         $last = $ticket->articles === [] ? null : $ticket->articles[array_key_last($ticket->articles)];
         $lastSeen = $stored['thread']['last_article_id'] ?? null;
 
@@ -236,7 +246,8 @@ class AnalysisPanel
             ...$stored,
             'id' => $id,
             'reply_original' => $original,
-            'reply_text' => is_array($edit) ? (string) $edit['text'] : $original,
+            'reply_text' => $shown,
+            'return_label' => $label?->payload(true),
             'reply_edited' => is_array($edit) ? 'bearbeitet von '.$edit['staff'].' am '.CarbonImmutable::parse($edit['at'])->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr' : null,
             'inserted' => $this->inserted($reply, $stored['placeholders'] ?? []),
             'reply_foreign' => ! str_starts_with(mb_strtolower(trim((string) ($stored['result']['reply']['language'] ?? 'Deutsch'))), 'deutsch'),
@@ -249,6 +260,24 @@ class AnalysisPanel
             'sources' => $this->sources($stored),
             'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen && ((new TicketContext($ticket))->lastConsidered()?->id !== $lastSeen),
         ];
+    }
+
+    /**
+     * The return label ordered with the form of this suggestion, if it still exists and belongs to the ticket (PROJ-64).
+     *
+     * @param  array<string, mixed>  $stored
+     */
+    private function returnLabel(array $stored, Ticket $ticket): ?ReturnLabel
+    {
+        $id = $stored['inputs']['return_label'] ?? null;
+
+        if (! is_string($id) || ! Str::isUuid($id)) {
+            return null;
+        }
+
+        $label = ReturnLabel::query()->find($id);
+
+        return $label !== null && $label->hasFile() && $label->ticket_number === $ticket->number ? $label : null;
     }
 
     /**

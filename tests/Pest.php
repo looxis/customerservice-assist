@@ -377,3 +377,27 @@ function fakeDhl(mixed $orders = null): void
         'dhl.test/returns/locations*' => Http::response([['receiverId' => 'deu', 'billingNumber' => '33333333330701', 'receiverAddress' => ['name1' => 'LOOXIS Retoure']]]),
     ]);
 }
+
+/**
+ * A fictitious EOCS order with a delivery address (PROJ-64).
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function returnEocsOrder(array $overrides = []): array
+{
+    return array_replace_recursive([
+        'id' => 700555,
+        'external_order_id' => '7JQ-18SU-DVA4',
+        'order_date' => '2026-09-09T13:06:53.000000Z',
+        'status_name' => 'Vollständig und verschickt',
+        'state' => ['name' => 'Complete', 'color' => 'green'],
+        'ordered_at' => 'looxis.de',
+        'client' => ['id' => 1, 'name' => 'looxis.de Vanilo', 'sales_platform' => ['id' => 7, 'name' => 'Looxis Vanilo Cloud']],
+        'name' => 'Erika Beispiel',
+        'customer_email' => 'geheim@example.org',
+        'shipping' => ['first_name' => 'Erika', 'last_name' => 'Beispiel', 'street' => 'Hauptstraße', 'street_no' => '12a', 'zipcode' => '01099', 'city' => 'Dresden', 'country_code' => 'DE'],
+        'shipments' => ['data' => []],
+        'order_items' => ['data' => []],
+    ], $overrides);
+}

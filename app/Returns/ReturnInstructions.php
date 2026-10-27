@@ -33,6 +33,15 @@ final class ReturnInstructions
         return "Guten Tag,\n\nanbei erhalten Sie das vorfrankierte DHL-Retourenlabel für die Rücksendung zu Ihrer Bestellung {$orderNumber}.\n\n".self::block($shipmentNo)."\n\nBei Fragen melden Sie sich gern bei uns.";
     }
 
+    /**
+     * What the language model is told when a label goes with the reply: only that it exists, never the address or the
+     * number. The steps for the customer are added by the app, not written by the model.
+     */
+    public static function fact(): string
+    {
+        return 'Ein vorfrankiertes DHL-Retourenlabel wird der Antwort als PDF angehängt; der Kunde schickt die Ware selbst zurück (keine Abholung). Die Schritte zur Rücksendung fügt die App fest unter den Entwurf ein: Schreibe sie nicht selbst, sondern erwähne nur kurz, dass das Label anhängt.';
+    }
+
     public static function subject(string $orderNumber): string
     {
         return 'DHL Retoure – Bestellung '.$orderNumber;

@@ -109,6 +109,39 @@ class DhlReturnController extends Controller
     }
 
     /**
+     * The delivery address of one order, fetched when the employee opens the label option on a ticket page: the
+     * address is not part of the ticket page itself.
+     */
+    public function address(Request $request, EocsClient $eocs, OrderNumberDetector $detector): JsonResponse
+    {
+        $number = $detector->normalize((string) $request->query('bestellung'));
+
+        if ($number === null) {
+            return response()->json(['message' => 'Die Bestellnummer ist ungültig.'], 422);
+        }
+
+        try {
+            $order = collect($eocs->lookup([$number]))->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->first();
+        } catch (EocsException $exception) {
+            return response()->json(['message' => $exception->problem->message()], 502);
+        }
+
+        $address = $order?->shippingAddress;
+
+        return response()->json([
+            'found' => $address !== null,
+            'address' => $address === null ? null : [
+                'name' => $address->name(),
+                'street' => $address->street,
+                'house_number' => $address->streetNumber,
+                'postal_code' => $address->postalCode,
+                'city' => $address->city,
+                'country' => $address->countryCode !== '' ? $address->countryCode : 'DE',
+            ],
+        ], 200, ['Cache-Control' => 'private, no-store']);
+    }
+
+    /**
      * Orders the label (or returns the one that exists for the same request).
      */
     public function store(CreateReturnLabelRequest $request, ReturnLabelService $labels, StaffDirectory $staff): JsonResponse

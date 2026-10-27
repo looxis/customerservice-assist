@@ -60,7 +60,9 @@ class ReturnLabel extends Model
             'shipment_no' => $this->shipment_no,
             'message' => $this->error,
             'download_url' => $this->hasFile() ? route('dhl-return.download', ['label' => $this->id, 'ticket' => $this->ticket_number]) : null,
+            'filename' => ReturnInstructions::filename($this->order_number),
             'instructions' => $this->hasFile() ? ReturnInstructions::mail((string) $this->shipment_no, $this->order_number) : null,
+            'block' => $this->hasFile() ? ReturnInstructions::block((string) $this->shipment_no) : null,
             'sent' => $this->sent_at === null ? null : ['by' => $this->sent_by, 'ticket_number' => $this->sent_ticket_number, 'new_ticket' => $this->sent_as_new_ticket],
         ];
     }

@@ -1,4 +1,4 @@
-@props(['order', 'ticket' => null, 'seenArticle' => 0, 'label' => null, 'signature' => '', 'hasToken' => false, 'configured' => true, 'returnGroup' => '', 'receiver' => null])
+@props(['order', 'ticket' => null, 'ticketNumber' => null, 'mode' => 'page', 'field' => false, 'seenArticle' => 0, 'label' => null, 'signature' => '', 'hasToken' => false, 'configured' => true, 'returnGroup' => '', 'receiver' => null])
 
 @php
     $address = $order->shippingAddress;
@@ -6,13 +6,17 @@
     $config = [
         'storeUrl' => route('dhl-return.store'),
         'sendUrl' => route('dhl-return.send', ['label' => '__LABEL__']),
-        'ticketNumber' => $ticket?->number,
+        'ticketNumber' => $ticketNumber ?? $ticket?->number,
+        'attach' => $mode === 'attach',
         'orderNumber' => $order->externalNumber,
         'eocsOrderId' => $order->id,
         'seenArticle' => $seenArticle,
         'signature' => $signature,
         'label' => $label?->payload(true),
-        'address' => [
+        // On the page of a ticket the address is not in the HTML: it is fetched when the option is opened.
+        'addressUrl' => $mode === 'attach' ? route('dhl-return.address', ['bestellung' => $order->externalNumber]) : null,
+        'addressMissing' => $mode === 'page' && $address === null,
+        'address' => $mode === 'attach' ? ['name' => '', 'street' => '', 'house_number' => '', 'postal_code' => '', 'city' => '', 'country' => 'DE'] : [
             'name' => $address?->name() ?? '',
             'street' => $address?->street ?? '',
             'house_number' => $address?->streetNumber ?? '',
@@ -25,7 +29,11 @@
 @endphp
 
 <x-card aria-label="Retourenlabel zur Bestellung {{ $order->externalNumber }}">
-<div x-data="returnLabel(@js($config))">
+<div x-data="returnLabel(@js($config))" x-on:dhl-load-address.window="loadAddress()">
+    @if ($field)
+        {{-- Sent with the form of the proposal (PROJ-64): only a label that exists is part of the request. --}}
+        <input type="hidden" x-bind:name="label && label.status === 'created' ? 'return_label' : null" x-bind:value="label ? label.id : ''">
+    @endif
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h2 class="text-base font-semibold text-slate-900">Bestellung <span class="font-mono">{{ $order->externalNumber }}</span></h2>
         @if ($order->channelName)<x-badge>{{ $order->channelName }}</x-badge>@endif
@@ -35,15 +43,16 @@
 
     {{-- 1. Check the address and order the label --}}
     <section x-show="! label || label.status === 'failed'" class="mt-4 space-y-3" aria-label="Adresse prüfen">
-        @if ($address === null)
+        <div x-show="addressMissing" @if (! ($mode === 'page' && $address === null)) x-cloak @endif>
             <x-alert type="warning">
-                @if ($isAmazon)
-                    Bei Amazon-Bestellungen liegt in EOCS keine Kundenadresse vor. Bitte die Adresse aus dem Ticket von Hand eintragen.
-                @else
-                    In EOCS ist für diese Bestellung keine Lieferadresse hinterlegt. Bitte die Adresse von Hand eintragen.
-                @endif
-            </x-alert>
-        @endif
+            @if ($isAmazon)
+                Bei Amazon-Bestellungen liegt in EOCS keine Kundenadresse vor. Bitte die Adresse aus dem Ticket von Hand eintragen.
+            @else
+                In EOCS ist für diese Bestellung keine Lieferadresse hinterlegt. Bitte die Adresse von Hand eintragen.
+            @endif
+        </x-alert>
+        </div>
+        <p x-show="addressLoading" x-cloak class="text-sm text-slate-600" role="status">Adresse wird aus EOCS geladen …</p>
 
         <p class="text-sm font-medium text-slate-900">Absender der Rücksendung (Kunde)</p>
         <div class="grid gap-3 sm:grid-cols-6">
@@ -74,7 +83,7 @@
         </div>
         <p x-show="form.country !== 'DE'" x-cloak role="alert" class="text-sm font-medium text-danger-700">Retourenlabel gibt es nur für Rücksendungen aus Deutschland.</p>
 
-        @if ($ticket === null)
+        @if ($ticket === null && $ticketNumber === null)
             <div class="sm:max-w-xs">
                 <label for="t-{{ $order->id }}" class="block text-sm font-medium text-slate-900">Ticketnummer <span class="font-normal text-slate-600">(optional, kommt auf das Label)</span></label>
                 <input id="t-{{ $order->id }}" type="text" x-model="ticketNumber" maxlength="20" inputmode="numeric" autocomplete="off" class="{{ $inputClass }} font-mono">
@@ -109,6 +118,9 @@
             <button type="button" x-on:click="if (confirm('Wirklich ein weiteres Label bestellen? Jedes eingelieferte Label wird berechnet.')) { create(true) }" x-show="! send.done" class="text-sm font-medium text-slate-600 underline hover:text-slate-900">Weiteres Label erstellen</button>
         </div>
 
+        @if ($mode === 'attach')
+            <p class="text-sm text-slate-700">Das Label hängt an der Antwort, die Schritte für den Kunden stehen unter dem Entwurf.</p>
+        @else
         <div x-show="send.done" x-cloak role="status" class="text-sm text-success-700">
             <p class="font-semibold">Gesendet von <span x-text="send.done ? send.done.by : ''"></span> an Ticket <span x-text="send.done ? send.done.ticket_number : ''"></span><span x-show="send.done && send.done.new_ticket"> (neues Ticket)</span>.</p>
             <p class="mt-1" x-show="send.doneUrl"><a x-bind:href="send.doneUrl" target="_blank" rel="noopener" class="font-medium underline">Ticket in Zammad öffnen</a></p>
@@ -161,6 +173,7 @@
                 <p class="text-xs text-slate-600">Die Nachricht geht über Zammad im Namen des gewählten Mitarbeiters raus, erst nach diesem Klick.</p>
             @endunless
         </div>
+        @endif
     </section>
 </div>
 </x-card>

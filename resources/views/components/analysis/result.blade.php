@@ -1,4 +1,4 @@
-@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null, 'question' => false, 'advanced' => false, 'orders' => []])
+@props(['result', 'number', 'history' => [], 'admin' => false, 'stand' => null, 'question' => false, 'advanced' => false, 'orders' => [], 'lookups' => []])
 
 @php
     $r = $result['result'];
@@ -233,7 +233,7 @@
         @endif
 
         <div class="mt-4">
-            <x-analysis.procedures :result="$result" :number="$number" :stand="$stand" :question="$question" :orders="$orders" />
+            <x-analysis.procedures :result="$result" :number="$number" :stand="$stand" :question="$question" :orders="$orders" :lookups="$lookups" />
         </div>
 
         @if ($hasReply)

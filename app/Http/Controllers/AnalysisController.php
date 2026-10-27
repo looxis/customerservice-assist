@@ -26,9 +26,11 @@ use App\Http\Requests\SendReplyRequest;
 use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
+use App\Models\ReturnLabel;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\ProductForge\ProductResolver;
+use App\Returns\ReturnInstructions;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\OrderMentionItem;
@@ -150,6 +152,13 @@ class AnalysisController extends Controller
             $unknownProduct = $package->displayName();
         }
 
+        // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
+        $returnLabel = filled($request->validated('return_label')) ? ReturnLabel::query()->find($request->validated('return_label')) : null;
+
+        if (filled($request->validated('return_label')) && ($returnLabel === null || ! $returnLabel->hasFile() || $returnLabel->ticket_number !== $number)) {
+            return $back('Das Retourenlabel gehört nicht zu diesem Ticket oder ist nicht mehr verfügbar. Bitte das Label neu erzeugen oder die Option abwählen.');
+        }
+
         try {
             if ($variant === ContextVariant::LastWithSummary && ($summary === null || $summary->isStale($context->earlierFingerprint()))) {
                 if ($summary?->edited) {
@@ -166,10 +175,10 @@ class AnalysisController extends Controller
                 products: array_values($request->validated('produkte', [])),
                 orders: $orders,
                 manualOrder: $orders === [] ? $request->manualOrder() : [],
-                employeeContext: (string) $request->validated('kontext', ''),
+                employeeContext: trim((string) $request->validated('kontext', '').($returnLabel === null ? '' : "\n".ReturnInstructions::fact())),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'return_label', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),

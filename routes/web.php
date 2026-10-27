@@ -79,6 +79,7 @@ Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->na
 
 Route::get('/dhl-retoure', [DhlReturnController::class, 'index'])->name('dhl-return.index');
 Route::middleware('staff.selected')->group(function (): void {
+    Route::get('/dhl-retoure/adresse', [DhlReturnController::class, 'address'])->middleware('throttle:30,1')->name('dhl-return.address');
     Route::post('/dhl-retoure/labels', [DhlReturnController::class, 'store'])->middleware('throttle:10,1')->name('dhl-return.store');
     Route::get('/dhl-retoure/labels/{label}/download', [DhlReturnController::class, 'download'])->whereUuid('label')->name('dhl-return.download');
     Route::post('/dhl-retoure/labels/{label}/senden', [DhlReturnController::class, 'send'])->whereUuid('label')->middleware('throttle:10,1')->name('dhl-return.send');

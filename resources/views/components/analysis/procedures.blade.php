@@ -1,4 +1,4 @@
-@props(['result', 'number', 'stand' => null, 'question' => false, 'orders' => []])
+@props(['result', 'number', 'stand' => null, 'question' => false, 'orders' => [], 'lookups' => []])
 
 @php
     $procedures = $result['procedures'] ?? ['suggested' => [], 'catalogue' => []];
@@ -10,6 +10,7 @@
     $awaiting = ($result['result']['next_step'] ?? 'reply') === 'internal_first';
     $canContinue = $awaiting && ($result['is_latest'] ?? true);
     $caseWork = $decision !== null || $steps !== [] || $awaiting;
+    $labelOrders = $question ? collect() : collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
     $missingActions = implode(', ', array_map(fn ($action) => $actionLabels[$action] ?? $action, $result['result']['actions'] ?? []));
 @endphp
 
@@ -54,6 +55,20 @@
     x-on:click="if ($event.target.dataset.closeProcedure) { $event.preventDefault(); close($event.target.dataset.closeProcedure) }">
     <div class="rounded-lg bg-slate-800/[0.03] p-5 ring-1 ring-slate-300 ring-inset md:p-6">
         <h2 id="procedures-heading" class="text-base font-semibold text-slate-900">Interne Abläufe <span class="font-normal text-slate-600">– intern, nicht an den Kunden</span></h2>
+
+        @if ($labelOrders->isNotEmpty() && ($result['has_reply'] ?? false))
+            {{-- DHL return label for a proposal that is already there (PROJ-64): the steps go under the draft, the PDF becomes an attachment. --}}
+            <div class="mt-3" x-data="{ labelOpen: false }">
+                <button type="button" x-on:click="labelOpen = ! labelOpen; if (labelOpen) { $dispatch('dhl-load-address') }" x-bind:aria-expanded="labelOpen ? 'true' : 'false'" aria-controls="dhl-label-{{ $result['id'] }}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand focus-visible:outline-2 focus-visible:outline-brand">
+                    <x-icon name="doc" size="16" /> DHL-Retourenlabel erstellen
+                </button>
+                <div id="dhl-label-{{ $result['id'] }}" x-show="labelOpen" x-cloak class="mt-3 space-y-4">
+                    @foreach ($labelOrders as $labelOrder)
+                        <x-dhl.return-label :order="$labelOrder" :ticket-number="$number" mode="attach" :configured="app(\App\Dhl\DhlClient::class)->isConfigured()" />
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         @if ($caseWork)
             <div class="mt-4 space-y-4">

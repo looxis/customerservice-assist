@@ -22,6 +22,9 @@ export default (config) => ({
     eocsOrderId: config.eocsOrderId,
     seenArticle: config.seenArticle ?? 0,
     form: { ...config.address },
+    addressMissing: config.addressMissing ?? false,
+    addressLoading: false,
+    addressLoaded: false,
     confirmed: false,
     busy: false,
     error: '',
@@ -46,6 +49,27 @@ export default (config) => ({
         if (this.label?.instructions) {
             this.send.text = this.label.instructions;
         }
+    },
+
+    async loadAddress() {
+        if (! config.addressUrl || this.addressLoaded || this.addressLoading) { return }
+        this.addressLoading = true;
+
+        try {
+            const response = await fetch(config.addressUrl, { headers: { Accept: 'application/json' } });
+            const data = await response.json().catch(() => ({}));
+
+            if (! response.ok) { throw new Error(data.message || response.status) }
+
+            if (data.found) { this.form = { ...data.address } }
+            this.addressMissing = ! data.found;
+            this.addressLoaded = true;
+        } catch (exception) {
+            this.error = 'Die Adresse konnte nicht aus EOCS geladen werden. Bitte von Hand eintragen.';
+            this.addressMissing = true;
+        }
+
+        this.addressLoading = false;
     },
 
     get unclear() {
@@ -82,6 +106,10 @@ export default (config) => ({
                 this.send.done = data.sent;
                 this.send.text = data.instructions || '';
                 this.confirmed = false;
+
+                if (config.attach && data.status === 'created') {
+                    this.$dispatch('return-label-ready', { label: data });
+                }
             } else {
                 this.error = firstError(data, 'Das Label konnte nicht erzeugt werden.');
                 this.detail = data.detail || '';

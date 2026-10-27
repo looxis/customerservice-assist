@@ -47,10 +47,10 @@
             @endif
 
             @if ($analysis['result'])
-                <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" :advanced="$advancedModeActive ?? false" :orders="$selected" />
+                <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" :advanced="$advancedModeActive ?? false" :orders="$selected" :lookups="$lookups ?? []" />
             @endif
 
-            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false"
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []"
                              :unloaded-orders="collect($suggestions ?? [])->reject(fn ($order) => $order->isEocsId() || in_array($order->value, $selected ?? [], true))->pluck('value')->values()->all()" />
         @endisset
 

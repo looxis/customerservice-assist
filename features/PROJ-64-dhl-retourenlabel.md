@@ -1,6 +1,6 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-27
 **Last Updated:** 2026-10-27
 
@@ -117,6 +117,7 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - [ ] Ist der Vertrag „DHL Retoure Online“ für die API freigeschaltet? Benötigt: Systembenutzer, API-Key und -Secret, produktive Empfänger-ID mit Abrechnungsnummer, Freigabe für „nur Deutschland“. Der Auftraggeber sucht die Angaben im Geschäftskundenportal (Liste im Antwortbericht vom 2026-10-27).
 - [ ] Wortlaut des Anleitungstextes (Verpacken, Label aufkleben, Abgabe in Filiale/Paketshop, keine Abholung): Der Entwickler schlägt einen Standardtext vor, der Auftraggeber sucht die DHL-Textvorschläge heraus und gibt frei.
 - [ ] Nach dem Erzeugen im Formular: Soll das Ticket nach dem Versand ebenfalls „schließen“ oder „Erinnerung“ als Standard vorschlagen? Vorschlag: wie PROJ-19.
+- [ ] Die Schritte für den Kunden sind deutsch. Schreibt ein Kunde in einer anderen Sprache, bleibt der Block deutsch. Soll er übersetzt oder mehrsprachig vorgehalten werden?
 
 ## Decision Log
 
@@ -229,6 +230,24 @@ Gespeichert wird in: MySQL (Label-Angaben) und einer privaten Dateiablage ohne W
 Keine neuen Pakete.
 
 Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API-Secret, Benutzername und Passwort des Systembenutzers, Retourenempfänger-ID, Zeitlimit und der Gruppenname für neue Tickets. Die Sandbox ist die Voreinstellung.
+
+## Implementation Notes (Backend/Frontend)
+**Gebaut (2026-10-27):**
+- DHL-Baustein `app/Dhl/` (Anmeldung per Password Grant mit Token-Cache, Label bestellen, Empfängerliste, Fehlerarten), `dhl:check` zum Prüfen der Verbindung und der Empfänger-ID, `return-labels:purge` (täglich 03:45).
+- Tabelle `return_labels`, Modell `ReturnLabel`, private Ablage `return-labels`, `ReturnLabelService` (Sperre je Anfrage, vorhandenes Label wird zurückgegeben, Ausgang unklar wird nie automatisch wiederholt, PDF wird vor allem anderen gespeichert).
+- Strukturierte Lieferadresse in `EocsOrder::$shippingAddress` (`deliveryAddress` unverändert).
+- Seite „DHL Retoure“ (`/dhl-retoure`, Seitenleiste): Suche per Ticket- oder Bestellnummer, Adressbereich, Download, Versand als Antwort (`ZammadReplySender::send`) oder neues Ticket (neu: `ZammadReplySender::createTicket`, Gruppe aus `ZAMMAD_RETURN_GROUP`).
+- Vorschlagsformular: Option „DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen“ (Feld `return_label` im Formular, in den Formulareingaben des Vorschlags gespeichert). Die KI erhält nur den Satz aus `ReturnInstructions::fact()`. Die Schritte für den Kunden hängt `AnalysisPanel` fest an den Entwurf, das PDF wird im Antwortfeld als Anhang vorgemerkt. Knopf „DHL-Retourenlabel erstellen“ bei „Interne Abläufe“ für ein Label nach der Analyse.
+- Tests: `tests/Feature/PROJ-64-*` (Dienst, Seite, Vorschlag).
+
+**Abweichungen von Spec und Entwurf:**
+- Die feste Empfängeradresse (Rücksendeziel) wird nur auf der Seite „DHL Retoure“ angezeigt (aus der DHL-Empfängerliste, eine Stunde zwischengespeichert), nicht im Vorschlagsformular; so löst die Ticketseite keinen DHL-Aufruf aus.
+- Auf der Ticketseite steht die Lieferadresse nicht im HTML (bestehende Regel aus PROJ-7: Kundendaten aus EOCS erscheinen dort nie). Sie wird erst geladen, wenn die Option geöffnet wird (`GET /dhl-retoure/adresse`).
+- Beim Erzeugen wird nicht geprüft, ob die Bestellung wirklich zum Ticket gehört; geprüft werden Format und Eingaben. Die Adresse bestätigt der Mitarbeiter.
+- Der Hinweis „neue Nachricht seit dem Laden“ gilt auf der Seite „DHL Retoure“ über die zuletzt gesehene Nachricht (`seen_article`); beim Vorschlag gilt unverändert die Prüfung aus PROJ-19.
+- Löscht der Mitarbeiter die Schritte aus dem Entwurf und speichert, erscheinen sie beim nächsten Laden des Vorschlags wieder.
+
+**Noch nicht geprüft:** Die Oberfläche (Alpine-Teil) wurde in keinem Browser ausprobiert, nur die Server-Seite per Test. Gegen die echte DHL-Sandbox lief noch kein Aufruf.
 
 ## QA Test Results
 _To be added by /qa_

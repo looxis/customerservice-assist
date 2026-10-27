@@ -52,6 +52,23 @@
             fileError: '',
         },
         sendReady: @js($send['state'] === 'ready'),
+        returnLabel: @js($result['return_label'] ?? null),
+        async attachLabel(label) {
+            if (! label || ! label.download_url || ! this.sendReady || this.send.sent) { return }
+            if (label.block && ! this.text.includes(label.block)) {
+                this.text = this.text.replace(/\s+$/, '') + '\n\n' + label.block;
+                this.changed();
+            }
+            if (this.send.files.some((file) => file.name === label.filename)) { return }
+            try {
+                const response = await fetch(label.download_url, { headers: { 'Accept': 'application/pdf' } });
+                if (! response.ok) { throw new Error(response.status) }
+                this.addFiles([new File([await response.blob()], label.filename, { type: 'application/pdf' })]);
+            } catch (error) {
+                this.send.fileError = 'Das Retourenlabel konnte nicht als Anhang geladen werden. Bitte über „Herunterladen“ speichern und von Hand anhängen.';
+            }
+        },
+        init() { this.attachLabel(this.returnLabel) },
         sizeLabel(bytes) { return bytes >= 1048576 ? (bytes / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB' },
         get filesSize() { return this.send.files.reduce((sum, file) => sum + file.size, 0) },
         addFiles(list) {
@@ -171,6 +188,7 @@
     }"
     class="mt-6"
     x-on:paste="paste($event)"
+    x-on:return-label-ready.window="attachLabel($event.detail.label)"
 >
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 class="text-sm font-semibold text-slate-900">Antwortentwurf @if ($language)<span class="font-normal text-slate-600">({{ $language }})</span>@endif</h3>

@@ -7,24 +7,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-function returnEocsOrder(array $overrides = []): array
-{
-    return array_replace_recursive([
-        'id' => 700555,
-        'external_order_id' => '7JQ-18SU-DVA4',
-        'order_date' => '2026-09-09T13:06:53.000000Z',
-        'status_name' => 'Vollständig und verschickt',
-        'state' => ['name' => 'Complete', 'color' => 'green'],
-        'ordered_at' => 'looxis.de',
-        'client' => ['id' => 1, 'name' => 'looxis.de Vanilo', 'sales_platform' => ['id' => 7, 'name' => 'Looxis Vanilo Cloud']],
-        'name' => 'Erika Beispiel',
-        'customer_email' => 'geheim@example.org',
-        'shipping' => ['first_name' => 'Erika', 'last_name' => 'Beispiel', 'street' => 'Hauptstraße', 'street_no' => '12a', 'zipcode' => '01099', 'city' => 'Dresden', 'country_code' => 'DE'],
-        'shipments' => ['data' => []],
-        'order_items' => ['data' => []],
-    ], $overrides);
-}
-
 function returnPayload(array $overrides = []): array
 {
     return [
@@ -331,5 +313,31 @@ describe('sending', function () {
         $id = storeLabel()->json('id');
 
         sendLabel($id, ['text' => '', 'ticket_number' => '', 'after' => 'reminder', 'days' => null])->assertStatus(422)->assertJsonValidationErrors(['text', 'ticket_number', 'days']);
+    });
+});
+
+describe('the address for the option on a ticket page', function () {
+    test('is fetched on demand and never stored in the ticket page', function () {
+        $this->withCredentials()->withCookie('staff_name', 'Nele')->getJson(route('dhl-return.address', ['bestellung' => '7JQ-18SU-DVA4']))
+            ->assertOk()->assertJsonPath('found', true)->assertJsonPath('address.street', 'Hauptstraße')->assertJsonPath('address.postal_code', '01099')
+            ->assertJsonPath('address.name', 'Erika Beispiel')->assertHeader('Cache-Control', 'no-store, private');
+
+        $this->withCookie('staff_name', 'Nele')->get(route('tickets.show', ['number' => '2137942']))->assertOk()
+            ->assertDontSee('Hauptstraße')->assertDontSee('01099')->assertDontSee('Dresden');
+    });
+
+    test('an order without an address says so', function () {
+        $this->eocsOrders = [[...returnEocsOrder(), 'shipping' => []]];
+
+        $this->withCredentials()->withCookie('staff_name', 'Nele')->getJson(route('dhl-return.address', ['bestellung' => '7JQ-18SU-DVA4']))
+            ->assertOk()->assertJsonPath('found', false)->assertJsonPath('address', null);
+    });
+
+    test('rejects an invalid number', function () {
+        $this->withCredentials()->withCookie('staff_name', 'Nele')->getJson(route('dhl-return.address', ['bestellung' => 'quatsch']))->assertStatus(422);
+    });
+
+    test('needs a chosen name', function () {
+        $this->getJson(route('dhl-return.address', ['bestellung' => '7JQ-18SU-DVA4']))->assertStatus(409);
     });
 });
