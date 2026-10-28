@@ -21,7 +21,7 @@
                 <ul class="mt-1 list-disc space-y-1 pl-5">
                     <li>Es können jetzt angehängte Kundenbilder direkt angeschaut werden.</li>
                     <li>Screenshots und Anhänge (z.B. PDF Dateien) können jetzt an eine Antwort angehangen werden.</li>
-                    <li>Viel neues Wissen, u. a. rund um Stornierungen, Leuchtsockel, Fotokissen, Erinnerungsbox.</li>
+                    <li>Viel neues Wissen, u. a. rund um Stornierungen, Leuchtsockel, Fotokissen, Erinnerungsbox, Namensänderung Aura Quader, Broschüre f. Fachhändler, Rechnungsadresse-Änderung</li>
                     <li>Gemeldete Wissenslücken sichtbar.</li>
                 </ul>
             </div>
