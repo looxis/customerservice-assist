@@ -14,7 +14,7 @@ categories:
 topics:
   - payment-processing
   - order-release
-summary: "Ein Kunde bekommt eine Zahlungserinnerung oder Mahnung für eine Bestellung, die er nicht mehr will, weil die erste Zahlung fehlschlug und er danach neu bestellt und bezahlt hat, oder er möchte eine Bestellung stornieren. Die Antwort beantwortet zuerst seine Frage, sagt dann verbindlich, dass die unbezahlte Bestellung nicht produziert und automatisch storniert wird, ohne Kosten, und dass er die Erinnerung ignorieren kann; sind beide Bestellungen bezahlt, gilt die Storno-Regel für freigegebene Bestellungen."
+summary: "Ein Kunde bekommt eine Zahlungserinnerung oder Mahnung für eine Bestellung, die er nicht mehr will, weil die erste Zahlung fehlschlug und er danach neu bestellt und bezahlt hat, oder er möchte eine Bestellung stornieren. Die Antwort beantwortet zuerst seine Frage, sagt dann verbindlich, dass die unbezahlte Bestellung nicht produziert und automatisch storniert wird, ohne Kosten, und dass er die Erinnerung ignorieren kann; sind beide Bestellungen bezahlt, gilt die Storno-Regel für freigegebene Bestellungen. Bittet ein Endverbraucher auf looxis.de nur um Stornierung, ohne einen Grund zu nennen, wird er freundlich nach dem Grund gefragt, statt ihm die automatische Stornierung zu erklären."
 retrieval: triggered
 triggers:
   - Zahlungserinnerung
@@ -24,6 +24,8 @@ triggers:
   - doppelt bestellt
   - erste Bestellung stornieren
   - Bestellung stornieren
+  - Bitte stornieren
+  - bezahle deine Bestellung
   - Bestellung nicht bezahlt
   - Zahlung fehlgeschlagen
   - Zahlung abgebrochen
@@ -58,6 +60,15 @@ Der Kunde wollte bestellen, die Zahlung schlug fehl oder wurde abgebrochen, und 
 3. **Bezahlte Bestellung:** Sie läuft normal weiter.
 4. **Beide Bestellungen bezahlt:** Regel für freigegebene Bestellungen nach POLICY-057 anwenden: in der Regel nicht stornierbar; bei Auftragswert ab 150 € auf Wunsch eine Prüfung mit der Produktionsleitung anbieten.
 
+# Sonderfall: Endverbraucher bittet ohne Begründung um Stornierung
+
+Gilt nur für Endverbraucher auf looxis.de, die auf die Zahlungserinnerung (Betreff „… Bitte bezahle deine Bestellung …“) nur mit der Bitte um Stornierung antworten und keinen weiteren Hinweis geben, zum Beispiel keine zweite, bezahlte Bestellung.
+
+1. Die Stornierung läuft wie üblich automatisch (POLICY-057). Der Kundenservice muss dafür nichts veranlassen.
+2. Die Antwort erklärt die automatische Stornierung **nicht**. Sie sagt, dass wir das gern machen, dass für die nicht bezahlte Bestellung keine Kosten entstehen, und fragt freundlich nach dem Grund, damit wir mögliche Probleme für künftige Kunden beseitigen können.
+3. Nennt der Kunde einen Grund, zum Beispiel eine zweite, bezahlte Bestellung, oder zeigen die Bestelldaten eine solche, gilt wie bisher die empfohlene Maßnahme oben.
+4. Für Fachhändler gilt der Sonderfall nicht (PLAYBOOK-028).
+
 # Befugnis
 
 Der Kundenservice sagt die automatische Stornierung der unbezahlten Bestellung zu. Eine Stornierung freigegebener Bestellungen sagt er nicht zu; die Prüfung ab 150 € läuft nur nach Rücksprache mit der Produktionsleitung (POLICY-057).
@@ -66,6 +77,12 @@ Der Kundenservice sagt die automatische Stornierung der unbezahlten Bestellung z
 
 Siehe POLICY-057: Text für die nicht bezahlte Bestellung, für die freigegebene Bestellung und für die Prüfung ab 150 €.
 
+Sonderfall (Endverbraucher bittet ohne Begründung um Stornierung): Das Beispiel stammt aus dem Kundenservice und wird sinngemäß verwendet.
+
+„Das machen wir gerne. Für die nicht bezahlte Bestellung entstehen Ihnen keine Kosten. Dürfen wir nachfragen, warum? Sie haben ein Produkt gewählt, es konfiguriert, in den Warenkorb gelegt, Ihre Bestelldaten eingegeben und auf ‚Bestätigen‘ geklickt. Was ist passiert, dass Sie die Bestellung nun doch nicht haben möchten? Wir würden für zukünftige Kunden gerne etwaige Probleme aus dem Weg räumen.“
+
 # No-Gos
 
 Nicht behaupten, die unbezahlte Bestellung werde produziert oder müsse bezahlt werden. Keine Stornierung einer bezahlten oder freigegebenen Bestellung zusagen. Den Zeitpunkt der automatischen Stornierung nicht beziffern.
+
+Beim Sonderfall: Einem Endverbraucher ohne Begründung die automatische Stornierung erklären, statt nach dem Grund zu fragen. Die Nachfrage nicht als Vorwurf oder als Hürde für die Stornierung formulieren.

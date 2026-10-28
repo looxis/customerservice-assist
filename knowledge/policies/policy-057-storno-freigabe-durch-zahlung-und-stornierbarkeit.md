@@ -79,6 +79,8 @@ Nicht bezahlte Bestellung: „Für die nicht bezahlte Bestellung entstehen Ihnen
 
 Bezahlte oder auf Rechnung oder Lastschrift freigegebene Bestellung: „Ihre Bestellung ist bestätigt und für die Produktion freigegeben. Eine Stornierung oder Änderung ist deshalb in der Regel nicht mehr möglich.“
 
+Antwortet ein Endverbraucher auf die Zahlungserinnerung nur mit der Bitte um Stornierung und ohne weiteren Hinweis, gilt für die Antwort PLAYBOOK-041: Es wird nach dem Grund gefragt.
+
 Bei Auftrag ab 150 €, wenn der Kunde bei der Stornierung bleibt (zusätzlich zum vorigen Text): „Da Ihre Bestellung einen größeren Umfang hat, prüfen wir gerne intern, ob ein Abbruch der Bearbeitung noch möglich ist und nur die bis dahin entstandenen Kosten berechnet werden. Das ist keine Zusage; wir melden uns mit dem Ergebnis.“
 
 # Grenzen
