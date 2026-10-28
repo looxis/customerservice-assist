@@ -81,4 +81,4 @@ Die externe Buchhaltung verbucht; sie ist keine Entscheidungs- oder Freigabeinst
 
 # Abgrenzung
 
-Die abweichende Amazon-Regel steht in POLICY-022.
+Die abweichende Amazon-Regel steht in POLICY-022. Die Änderung der Rechnungsadresse im Konto eines Fachhändlers für künftige Bestellungen steht in PLAYBOOK-046.

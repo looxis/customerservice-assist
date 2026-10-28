@@ -20,7 +20,8 @@ related_knowledge:
 - POLICY-020
 - PROCESS-009
 - TONE-002
-summary: "Kunde verlangt Änderung der Rechnungsadresse oder des Rechnungsempfängers. Gilt außerhalb von Amazon; gilt nicht für das bloße Anfordern einer Rechnung."
+- PLAYBOOK-046
+summary: "Kunde verlangt Änderung der Rechnungsadresse oder des Rechnungsempfängers. Gilt außerhalb von Amazon; gilt nicht für das bloße Anfordern einer Rechnung und nicht für die Änderung der Rechnungsadresse im Händlerkonto für künftige Bestellungen (PLAYBOOK-046)."
 retrieval: triggered
 triggers:
 - Rechnungsadresse
@@ -53,7 +54,7 @@ when:
 actions:
 ---
 
-Gilt für alle Produkte und Kundenarten in den Kanälen looxis-de, fachhaendler, looxis-pro und masterpics.
+Gilt für alle Produkte und Kundenarten in den Kanälen looxis-de, fachhaendler, looxis-pro und masterpics. Wünscht ein Fachhändler nur eine andere Rechnungsadresse in seinem Konto für künftige Bestellungen, gilt PLAYBOOK-046.
 
 # Fallmuster
 
