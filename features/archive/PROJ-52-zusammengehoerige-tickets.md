@@ -122,3 +122,6 @@ Keine neuen Pakete.
 - **Regression:** Gesamtsuite 1659 Tests, 1657 grün, 2 übersprungen.
 - **Nicht durchgeführt:** eigener Browser-Durchgang (Chrome/Firefox/Safari, 375/768/1440 px). Es gab keinen Browser in der QA-Umgebung; ein schneller Sichttest der Oberfläche liegt vom Anwender vor (2026-10-17).
 - **Beobachtungen (Low):** Die Ticketseite braucht mit den neuen Zammad-Abfragen für zusammengehörige Tickets rund 4 Sekunden (Ticket 2139944, mehrere Zammad-Aufrufe nacheinander); bei Bedarf später parallelisieren oder Teile nachladen. Ohne gewählten Namen sind Ticketseiten und Einstellungen ansehbar; das entspricht dem bestehenden Verhalten (Auswahl erzwingt nur Aktionen).
+
+## Nachtrag 2026-10-31: Angehakte Tickets rufen auch Wissen ab
+Anlass: Ticket 2140162 (Fachhändler-Login). Die aktuelle Nachricht nannte den Login nicht mehr, das Thema stand nur in den angehakten Tickets. Diese gingen zwar an die KI, aber weder die Auslöser noch der Router lasen sie, deshalb fehlte `PLAYBOOK-032`. Jetzt zählen Betreff und die drei neuesten Kundennachrichten je angehaktem Ticket als früherer Verlauf (Stufe B, schwacher Treffer); unsere eigenen Antworten bleiben außen vor. Das gilt auch für die Fortsetzung einer Analyse. Der Testmodus nutzt weiterhin keine angehakten Tickets.

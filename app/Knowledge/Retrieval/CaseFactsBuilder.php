@@ -40,8 +40,9 @@ class CaseFactsBuilder
      * @param  array<int, array{text: string|null}>  $translations  German translations by Zammad message ID (the Translator's result).
      * @param  string|null  $summary  The summary of the earlier thread, if one is used.
      * @param  string  $employeeContext  What the employee noted about the case (for example what an uploaded picture shows); counts as the current concern.
+     * @param  list<string>  $relatedTexts  What the customer wrote in the chosen related tickets (PROJ-52); counts as the recent course.
      */
-    public function build(Ticket $ticket, CustomerGroup $group, array $products, array $orders, array $mentionedOrders = [], array $translations = [], ?string $summary = null, ?CarbonImmutable $now = null, string $employeeContext = ''): CaseFacts
+    public function build(Ticket $ticket, CustomerGroup $group, array $products, array $orders, array $mentionedOrders = [], array $translations = [], ?string $summary = null, ?CarbonImmutable $now = null, string $employeeContext = '', array $relatedTexts = []): CaseFacts
     {
         $now ??= CarbonImmutable::now();
         $customer = array_values(array_filter($ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer));
@@ -56,6 +57,11 @@ class CaseFactsBuilder
         foreach ($candidates as $candidate) {
             array_push($tiers['B'], ...$candidate->texts);
             array_push($parts['B'], ...array_map(fn (string $text): array => [$text, null], $candidate->texts));
+        }
+
+        foreach ($relatedTexts as $text) {
+            $tiers['B'][] = $text;
+            $parts['B'][] = [$text, null];
         }
 
         $last = $customer === [] ? null : $customer[array_key_last($customer)];

@@ -2,8 +2,10 @@
 
 namespace App\Analysis;
 
+use App\Zammad\ArticleKind;
 use App\Zammad\RelatedTicket;
 use App\Zammad\Ticket;
+use App\Zammad\TicketArticle;
 
 /**
  * Builds the section "Früherer Verlauf" from the chosen tickets (PROJ-52): every message with sender and date,
@@ -19,6 +21,9 @@ class RelatedContextBuilder
         RelatedTicket::MANUAL => 'von Hand ergänzt',
     ];
 
+    /** How many of the newest customer messages of a ticket the knowledge retrieval reads. */
+    private const int RETRIEVAL_MESSAGES = 3;
+
     /**
      * @param  list<array{ticket: Ticket, source: string}>  $tickets
      */
@@ -33,8 +38,10 @@ class RelatedContextBuilder
         $blocks = [];
         $meta = [];
         $notes = [];
+        $customerTexts = [];
 
         foreach ($tickets as ['ticket' => $ticket, 'source' => $source]) {
+            $customerTexts = [...$customerTexts, ...$this->customerTexts($ticket)];
             $messages = (new TicketContext($ticket))->everyMessage();
             $head = "## Ticket {$ticket->number} – {$ticket->title}";
             $kept = [];
@@ -66,6 +73,20 @@ class RelatedContextBuilder
 
         $text = "# Früherer Verlauf (zusammengehörige Tickets)\nDiese Tickets gehören zum selben Fall; die aktuelle Anfrage steht im Abschnitt „Ticket“.\n\n".implode("\n\n", $blocks);
 
-        return new RelatedSection($text, $meta, ['Früherer Verlauf aus '.count($tickets).' '.(count($tickets) === 1 ? 'Ticket' : 'Tickets').' ist in den Vorschlag eingeflossen.', ...$notes]);
+        return new RelatedSection($text, $meta, ['Früherer Verlauf aus '.count($tickets).' '.(count($tickets) === 1 ? 'Ticket' : 'Tickets').' ist in den Vorschlag eingeflossen.', ...$notes], $customerTexts);
+    }
+
+    /**
+     * The subject and the newest customer messages: the chosen tickets belong to the case, so what the
+     * customer wrote there can call up knowledge even when the current message no longer names the concern.
+     *
+     * @return list<string>
+     */
+    private function customerTexts(Ticket $ticket): array
+    {
+        $messages = array_filter($ticket->articles, fn (TicketArticle $article): bool => $article->kind === ArticleKind::Customer && $article->hasText());
+        $texts = array_map(fn (TicketArticle $article): string => TicketContext::plainText($article), array_slice(array_values($messages), -self::RETRIEVAL_MESSAGES));
+
+        return array_values(array_filter([$ticket->title, ...$texts], fn (string $text): bool => trim($text) !== ''));
     }
 }

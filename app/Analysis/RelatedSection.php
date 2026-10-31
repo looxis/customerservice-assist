@@ -11,8 +11,9 @@ final readonly class RelatedSection
     /**
      * @param  list<array<string, mixed>>  $tickets  Number, title, state, source, how many messages, how many left out, period.
      * @param  list<string>  $notes  Hints for the employee, shown with the result.
+     * @param  list<string>  $customerTexts  Subjects and customer messages, so the knowledge retrieval can read them too.
      */
-    public function __construct(public string $text, public array $tickets, public array $notes) {}
+    public function __construct(public string $text, public array $tickets, public array $notes, public array $customerTexts = []) {}
 
     public function isEmpty(): bool
     {
@@ -20,11 +21,11 @@ final readonly class RelatedSection
     }
 
     /**
-     * @return array{text: string, tickets: list<array<string, mixed>>, notes: list<string>}
+     * @return array{text: string, tickets: list<array<string, mixed>>, notes: list<string>, customer_texts: list<string>}
      */
     public function toStored(): array
     {
-        return ['text' => $this->text, 'tickets' => $this->tickets, 'notes' => $this->notes];
+        return ['text' => $this->text, 'tickets' => $this->tickets, 'notes' => $this->notes, 'customer_texts' => $this->customerTexts];
     }
 
     /**
@@ -36,6 +37,6 @@ final readonly class RelatedSection
             return null;
         }
 
-        return new self((string) ($stored['text'] ?? ''), array_values($stored['tickets']), array_values(array_map('strval', (array) ($stored['notes'] ?? []))));
+        return new self((string) ($stored['text'] ?? ''), array_values($stored['tickets']), array_values(array_map('strval', (array) ($stored['notes'] ?? []))), array_values(array_map('strval', (array) ($stored['customer_texts'] ?? []))));
     }
 }

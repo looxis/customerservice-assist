@@ -152,6 +152,39 @@ describe('the offers on the ticket page', function () {
 });
 
 describe('the earlier course in the analysis', function () {
+    test('what the customer wrote in a chosen ticket calls up knowledge, even when the current message does not name it', function () {
+        config(['knowledge.retrieval.active' => true, 'knowledge.router.active' => false]);
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel', 'retrieval' => 'core']),
+            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'Regel aus der Kundennachricht', 'retrieval' => 'triggered', 'triggers' => ['Kaputt']]),
+            'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'title' => 'Regel aus dem Betreff', 'retrieval' => 'triggered', 'triggers' => ['defective']]),
+            'policies/policy-004-d.md' => knowledgeDoc(['id' => 'POLICY-004', 'title' => 'Regel aus unserer Antwort', 'retrieval' => 'triggered', 'triggers' => ['kostenlos']]),
+        ]);
+        zammadWorld(theCase());
+        CaseAgent::fake([relatedAnswer()]);
+
+        analyzeCase(['related_set' => '1', 'related' => ['2138745'], 'related_source' => ['2138745' => 'linked']])->assertRedirect();
+
+        $content = Analysis::query()->latest('id')->firstOrFail()->content;
+        expect($content['sent_input'])->toContain('Regel aus der Kundennachricht')->toContain('Regel aus dem Betreff')
+            ->and(array_column($content['retrieval']['not_retrieved'], 'id'))->toContain('POLICY-004')
+            ->and($content['related']['customer_texts'])->toContain('Kaputt, ich möchte Ersatz.');
+    });
+
+    test('without a chosen ticket that knowledge stays out', function () {
+        config(['knowledge.retrieval.active' => true, 'knowledge.router.active' => false]);
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel', 'retrieval' => 'core']),
+            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'Regel aus der Kundennachricht', 'retrieval' => 'triggered', 'triggers' => ['Kaputt']]),
+        ]);
+        zammadWorld(theCase());
+        CaseAgent::fake([relatedAnswer()]);
+
+        analyzeCase()->assertRedirect();
+
+        expect(Analysis::query()->latest('id')->firstOrFail()->content['sent_input'])->not->toContain('Regel aus der Kundennachricht');
+    });
+
     test('the chosen tickets go in with all messages, our replies included, with their source', function () {
         zammadWorld(theCase());
         CaseAgent::fake([relatedAnswer()]);
