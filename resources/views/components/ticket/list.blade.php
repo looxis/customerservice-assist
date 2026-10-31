@@ -128,7 +128,7 @@
                         <tbody class="divide-y divide-slate-100">
                             @foreach ($rows as $row)
                                 <tr class="hover:bg-slate-50">
-                                    <td class="px-4 py-3 align-top whitespace-nowrap"><a href="{{ route('tickets.show', $row->number) }}" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $row->number }}</a></td>
+                                    <td class="px-4 py-3 align-top whitespace-nowrap"><a href="{{ route('tickets.show', $row->number) }}" class="font-mono text-brand hover:text-brand-hover">{{ $row->number }}</a></td>
                                     <td class="px-4 py-3 align-top text-slate-900 wrap-anywhere">
                                         <a href="{{ route('tickets.show', $row->number) }}" class="hover:text-brand">{{ $row->title }}</a>
                                         @if ($row->sync_status === \App\Zammad\SyncStatus::SyncFailed)
@@ -140,7 +140,13 @@
                                     <td class="px-4 py-3 align-top text-slate-900">{{ ucfirst($states[$row->state] ?? $row->state) }}</td>
                                     <td class="px-4 py-3 align-top text-slate-900">{{ $row->owner_zammad_id === null ? '–' : ($row->owner_name ?? "Zammad-Benutzer {$row->owner_zammad_id}") }}</td>
                                     <td class="px-4 py-3 align-top text-slate-900">{{ $row->channel ?? '–' }}</td>
-                                    <td class="px-4 py-3 align-top text-slate-900">{{ $row->category ? ($categories[$row->category] ?? $row->category) : 'Nicht klassifiziert' }}</td>
+                                    <td class="px-4 py-3 align-top text-slate-900">
+                                        @if ($row->category)
+                                            {{ $categories[$row->category] ?? $row->category }}
+                                        @else
+                                            <span title="Nicht klassifiziert"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Nicht klassifiziert</span></span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 align-top"><x-badge compact :tone="$row->processing_state->tone()">{{ $row->processing_state->label() }}</x-badge></td>
                                     <td class="px-4 py-3 align-top whitespace-nowrap text-slate-900">{{ $row->last_activity_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }}</td>
                                     <td class="px-4 py-3 align-top whitespace-nowrap text-slate-600">{{ $row->zammad_created_at?->setTimezone('Europe/Berlin')->format('d.m.Y') ?? '–' }}</td>

@@ -79,7 +79,7 @@ describe('„Meine“ goes by the owner ID only', function () {
         app()->forgetInstance(StaffDirectory::class);
 
         $this->get('/?ansicht=meine')->assertOk()->assertSee('kein Zammad-Benutzer hinterlegt');
-        $this->withCookie('staff_name', 'Nele')->get('/?ansicht=meine')->assertOk()->assertSee('kein Zammad-Benutzer hinterlegt')->assertDontSee('Ticket#10');
+        $this->withCookie('staff_name', 'Nele')->get('/?ansicht=meine')->assertOk()->assertSee('kein Zammad-Benutzer hinterlegt')->assertDontSee(route('tickets.show', '10'), false);
     });
 });
 
@@ -123,7 +123,7 @@ describe('filters', function () {
     ]);
 
     test('a page beyond the last shows the last page', function () {
-        $this->get('/?page=999')->assertOk()->assertSee('Ticket#3');
+        $this->get('/?page=999')->assertOk()->assertSee(route('tickets.show', '3'), false);
     });
 });
 
@@ -154,7 +154,19 @@ describe('a row', function () {
         $this->get('/?ansicht=offen')->assertOk()
             ->assertSee(route('tickets.show', '2140500'), false)
             ->assertSee('Tasse kaputt')->assertSee('Warten auf Erinnerung')->assertSee('Nele Gorka')
-            ->assertSee('Nicht klassifiziert')->assertSee('Noch nicht analysiert');
+            ->assertSee('<span class="sr-only">Nicht klassifiziert</span>', false)->assertSee('Noch nicht analysiert');
+    });
+
+    test('shows the plain ticket number, without the prefix', function () {
+        TrackedTicket::factory()->create(['number' => '2140500']);
+
+        $this->get('/')->assertOk()->assertSee('>2140500</a>', false)->assertDontSee('Ticket#2140500');
+    });
+
+    test('a classified ticket shows its category instead of the icon', function () {
+        TrackedTicket::factory()->create(['category' => 'complaint']);
+
+        $this->get('/')->assertOk()->assertSee(config('knowledge.category_labels.complaint'))->assertDontSee('<span class="sr-only">Nicht klassifiziert</span>', false);
     });
 
     test('escapes the subject', function () {
@@ -187,7 +199,7 @@ describe('sync state', function () {
     test('a failed sync stays visible with a hint', function () {
         TrackedTicket::factory()->create(['number' => '1', 'sync_status' => SyncStatus::SyncFailed, 'sync_problem_since' => now()]);
 
-        $this->get('/')->assertSee('Ticket#1')->assertSee('Stand evtl. veraltet');
+        $this->get('/')->assertSee(route('tickets.show', '1'), false)->assertSee('Stand evtl. veraltet');
     });
 
     test('says when no sync has run yet', function () {
