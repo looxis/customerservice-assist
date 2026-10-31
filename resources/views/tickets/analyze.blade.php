@@ -1,4 +1,4 @@
-<x-layouts.app title="Ticket analysieren" width="6xl">
+<x-layouts.app title="Tickets" width="6xl">
     <div class="mx-auto w-full max-w-3xl space-y-6">
     <x-staff.hint :names="$staffNames" :current="$currentStaff" />
 
@@ -8,6 +8,14 @@
         <h3 class="mt-4 text-sm font-semibold text-slate-900">Neue Funktionen</h3>
 
         <div class="mt-3 space-y-4 text-sm text-slate-700">
+            <div>
+                <p class="font-medium text-slate-900">31. Oktober '26</p>
+                <ul class="mt-1 list-disc space-y-1 pl-5">
+                    <li>Neue Ticketliste auf der Startseite: Neue und wieder geöffnete Tickets erscheinen automatisch, mit Ansichten und Filtern.</li>
+                    <li>Tickets können jetzt direkt aus der Liste geöffnet werden.</li>
+                </ul>
+            </div>
+
             <div>
                 <p class="font-medium text-slate-900">27. Oktober '26</p>
                   <ul class="mt-1 list-disc space-y-1 pl-5">

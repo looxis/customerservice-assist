@@ -12,12 +12,12 @@ function useLocalEnvironment(): void
 }
 
 describe('layout shell', function () {
-    test('the start page shows "Ticket analysieren" in the app layout instead of the Laravel welcome page', function () {
+    test('the start page shows "Tickets" in the app layout instead of the Laravel welcome page', function () {
         $this->get('/')
             ->assertOk()
             ->assertViewIs('tickets.analyze')
             ->assertSee('<html lang="de">', false)
-            ->assertSee('<title>Ticket analysieren – Customer Service Assist</title>', false)
+            ->assertSee('<title>Tickets – Customer Service Assist</title>', false)
             ->assertSeeText('Customer Service Assist')
             ->assertSeeText('Ticket aus Zammad')
             ->assertDontSeeText('Laravel');
