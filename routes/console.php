@@ -17,8 +17,9 @@ Schedule::command('attachments:purge')->dailyAt('03:30');
 // PROJ-64: delete the PDF files of DHL return labels after the retention period.
 Schedule::command('return-labels:purge')->dailyAt('03:45');
 
-// PROJ-66: keep the tracked tickets complete, with or without webhook.
-Schedule::command('zammad:sync-recent')->everyMinute()->withoutOverlapping();
-Schedule::command('zammad:reconcile-open')->hourly()->withoutOverlapping();
-Schedule::command('zammad:reconcile-open --all')->dailyAt('02:30')->withoutOverlapping();
+// PROJ-66: keep the tracked tickets complete, with or without webhook. The overlap locks expire soon:
+// after a crash the default of 24 hours would stop the sync for a whole day.
+Schedule::command('zammad:sync-recent')->everyMinute()->withoutOverlapping(30);
+Schedule::command('zammad:reconcile-open')->hourly()->withoutOverlapping(60);
+Schedule::command('zammad:reconcile-open --all')->dailyAt('02:30')->withoutOverlapping(60);
 Schedule::command('tickets:purge')->dailyAt('04:00');

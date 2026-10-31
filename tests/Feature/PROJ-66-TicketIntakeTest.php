@@ -128,6 +128,19 @@ describe('webhook signature', function () {
         expect(ZammadWebhookDelivery::query()->where('delivery_id', 'delivery-1')->value('zammad_ticket_id'))->toBe(500);
     });
 
+    test('a call as Zammad really sends it is accepted: custom payload with the ID as text, JSON with charset', function () {
+        $body = '{"ticket_id":"500"}';
+
+        test()->call('POST', '/api/webhooks/zammad', [], [], [], [
+            'CONTENT_TYPE' => 'application/json; charset=utf-8',
+            'HTTP_X_HUB_SIGNATURE' => 'sha1='.hash_hmac('sha1', $body, 'geheim'),
+            'HTTP_X_ZAMMAD_DELIVERY' => 'job-id',
+            'HTTP_X_ZAMMAD_TRIGGER' => 'CSA Sync',
+        ], $body)->assertStatus(202);
+
+        Queue::assertPushed(SyncZammadTicket::class, fn (SyncZammadTicket $job): bool => $job->zammadId === 500);
+    });
+
     test('requests without a valid signature are refused without job or log', function (array $headers) {
         intakeWebhook(headers: $headers)->assertForbidden();
 
@@ -831,6 +844,13 @@ describe('purging', function () {
         expect(ZammadSyncRun::marker()->toDateTimeString())->toBe(now()->subDays(100)->toDateTimeString());
         expect(ZammadWebhookDelivery::query()->count())->toBe(0);
     });
+});
+
+test('a crashed sync blocks the next runs for an hour at most', function () {
+    $events = collect(app(Schedule::class)->events())->filter(fn ($event): bool => str_contains((string) $event->command, 'zammad:'));
+
+    expect($events)->toHaveCount(3);
+    $events->each(fn ($event) => expect($event->withoutOverlapping)->toBeTrue()->and($event->expiresAt)->toBeLessThanOrEqual(60));
 });
 
 test('all sync commands are scheduled', function () {
