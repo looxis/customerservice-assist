@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class StaffDirectory
 {
     /**
-     * @param  array{names: list<string>, cookie: string, cookie_minutes: int, admins?: list<string>, test_mode_cookie?: string, full_names?: array<string, string>, zammad_tokens?: array<string, string|null>}  $config
+     * @param  array{names: list<string>, cookie: string, cookie_minutes: int, admins?: list<string>, test_mode_cookie?: string, full_names?: array<string, string>, zammad_tokens?: array<string, string|null>, zammad_user_ids?: array<string, int>}  $config
      */
     public function __construct(private readonly array $config) {}
 
@@ -71,6 +71,17 @@ class StaffDirectory
         $token = $name !== null && $this->isListed($name) ? ($this->config['zammad_tokens'][$name] ?? null) : null;
 
         return is_string($token) && trim($token) !== '' ? trim($token) : null;
+    }
+
+    /**
+     * The Zammad user of a listed name (PROJ-67), or null. The ID is the only link: names
+     * occur several times in Zammad and can change.
+     */
+    public function zammadUserId(?string $name): ?int
+    {
+        $id = $name !== null && $this->isListed($name) ? ($this->config['zammad_user_ids'][$name] ?? null) : null;
+
+        return is_int($id) && $id > 1 ? $id : null;
     }
 
     public function testModeCookieName(): string

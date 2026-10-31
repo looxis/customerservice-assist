@@ -1,4 +1,5 @@
-<x-layouts.app title="Ticket analysieren">
+<x-layouts.app title="Ticket analysieren" width="6xl">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
     <x-staff.hint :names="$staffNames" :current="$currentStaff" />
 
     <section aria-labelledby="recent-changes-heading" class="rounded-lg bg-notice-50 p-6 shadow-1 ring-1 ring-notice-200 wrap-anywhere">
@@ -28,16 +29,7 @@
         </div>
     </section>
     <x-ticket.lookup />
+    </div>
 
-    <x-card>
-        <div class="flex items-start gap-3">
-            <x-icon name="sparkle" class="mt-0.5 text-brand" />
-            <div>
-                <h2 class="text-base font-semibold text-slate-900">So geht es weiter</h2>
-                <p class="mt-1 text-sm text-slate-600">
-                    Nach dem Laden siehst du den ganzen Verlauf des Tickets. Der Vorschlag mit Bewertung, Empfehlung und Antwortentwurf folgt in einem nächsten Schritt.
-                </p>
-            </div>
-        </div>
-    </x-card>
+    <x-ticket.list :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" />
 </x-layouts.app>

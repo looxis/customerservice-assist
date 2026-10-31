@@ -18,6 +18,7 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffSelectionController;
+use App\Http\Controllers\StartPageController;
 use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketAttachmentController;
 use App\Http\Controllers\TicketController;
@@ -26,7 +27,7 @@ use App\Http\Controllers\TranslationController;
 use App\Zammad\SampleTicket;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'tickets.analyze')->name('tickets.analyze');
+Route::get('/', StartPageController::class)->name('tickets.analyze');
 
 Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge.index');
 Route::post('/knowledge/dokument/{path}/status', [KnowledgeController::class, 'changeStatus'])

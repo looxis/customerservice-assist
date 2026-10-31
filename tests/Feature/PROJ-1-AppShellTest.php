@@ -32,7 +32,7 @@ describe('layout shell', function () {
             ->and(substr_count($nav[0], '<a'))->toBe(6)
             ->and(substr_count($nav[0], 'aria-current="page"'))->toBe(1)
             ->and($nav[0])->toContain('Knowledge')
-            ->and($nav[0])->toContain('Ticket analysieren')->toContain('Frage stellen')->toContain('DHL Retoure')->toContain('Angebot berechnen')
+            ->and($nav[0])->toContain('Tickets')->toContain('Frage stellen')->toContain('DHL Retoure')->toContain('Angebot berechnen')
             ->toContain('aria-current="page"')
             ->toContain('bg-brand-tint')
             ->toContain('text-brand-700')

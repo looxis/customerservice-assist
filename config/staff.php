@@ -56,6 +56,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Zammad Users
+    |--------------------------------------------------------------------------
+    |
+    | Each employee's user ID in Zammad, the only link for "my tickets"
+    | (PROJ-67). Names occur several times in Zammad (customer accounts with the
+    | same name) and can change, so they are never compared. Moves to the
+    | database with the user administration (SSO).
+    |
+    */
+
+    'zammad_user_ids' => [
+        'Cara' => 7247,
+        'Etienne' => 3,
+        'Johannes' => 5,
+        'Kerstin' => 59,
+        'Nele' => 99,
+        'Thomas' => 101,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Remembered Choice
     |--------------------------------------------------------------------------
     |

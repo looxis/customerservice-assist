@@ -32,7 +32,7 @@
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Hauptnavigation">
-            <x-nav-item :href="route('tickets.analyze')" icon="sparkle" :active="request()->routeIs('tickets.*')">Ticket analysieren</x-nav-item>
+            <x-nav-item :href="route('tickets.analyze')" icon="sparkle" :active="request()->routeIs('tickets.*')">Tickets</x-nav-item>
             <x-nav-item :href="route('questions.create')" icon="chat" :active="request()->routeIs('questions.*')">Frage stellen</x-nav-item>
             <x-nav-item :href="route('dhl-return.index')" icon="doc" :active="request()->routeIs('dhl-return.*')">DHL Retoure</x-nav-item>
             <x-nav-item :href="route('quote.index')" icon="calculator" :active="request()->routeIs('quote.*')">Angebot berechnen</x-nav-item>

@@ -22,9 +22,9 @@ function documentUrl(string $path): string
 }
 
 describe('navigation', function () {
-    test('the sidebar has a second item "Knowledge" below "Ticket analysieren"', function () {
+    test('the sidebar has a second item "Knowledge" below "Tickets"', function () {
         $this->get('/')
-            ->assertSeeInOrder(['<nav', 'Ticket analysieren', 'Knowledge', '</nav>'], false);
+            ->assertSeeInOrder(['<nav', 'Tickets', 'Knowledge', '</nav>'], false);
     });
 
     test('"Knowledge" is the active item on the overview and in a document', function (string $url) {
