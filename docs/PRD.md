@@ -77,6 +77,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Produkte ohne Kundenservice-Wissen auswerten: Reklamationen und Fragen zu ProductForge-Produkten, für die das Wissen nicht reicht, je Produkt und Thema zählen und Admins auflisten (Reklamation ab dem ersten Fall) | Planned |
 | DHL-Retourenlabel erstellen und versenden: Label über die DHL-Schnittstelle aus der App erzeugen (Adresse aus der Bestellung, Seite „DHL Retoure“ und Option im Vorschlagsformular), herunterladen oder per Klick als Antwort bzw. neues Ticket an den Kunden senden | Approved |
 | Retouren-Tracking und Zählung: Rücksendung über das DHL-Label verfolgen, Retouren zählen und auswerten | Roadmap |
+| Automatischer Ticket-Eingang: neue und wieder geöffnete Zammad-Tickets ohne Eingabe erfassen, Datenmodell für spätere Klassifikation und Automatisierung | In Progress |
+| Ticketübersicht auf der Startseite: Ansichten, kombinierbare Filter, Klick öffnet die vorhandene Bearbeitung | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
@@ -106,7 +108,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
 ## Non-Goals
 - automatisches Versenden von Kundenantworten (Versand nur durch ausdrücklichen Klick des Mitarbeiters, PROJ-19)
-- Ersatz von Zammad oder eine eigene gemeinsame Inbox
+- Ersatz von Zammad oder eine eigene gemeinsame Inbox (die Ticketübersicht aus PROJ-67 ist nur eine Sicht: Zammad bleibt führend für Tickets, Status, Zuständigkeit, Kommunikation und Anhänge)
 - automatische Bearbeitung beim E-Mail-Eingang
 - automatische Änderungen an Bestellungen, Gutschriften, Erstattungen oder Ersatzaufträge
 - visuelle KI-Analyse von Reklamationsfotos (der Mitarbeiter beschreibt das Ergebnis im Kontextfeld)

@@ -99,7 +99,7 @@ class CaseAnalyzer
             try {
                 [$selection, $retrieval, $hints, $router] = $this->retrieve($request, $context, $selection, $prompt, $parts, $pseudonymizer, $products);
             } catch (KnowledgeTooLarge) {
-                $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, AnalysisProblem::KnowledgeTooLarge->name, intdiv(hrtime(true) - $started, 1_000_000));
+                $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, AnalysisProblem::KnowledgeTooLarge->name, intdiv(hrtime(true) - $started, 1_000_000), $request->ticket->lastCustomerArticleId());
 
                 throw new AnalysisException(AnalysisProblem::KnowledgeTooLarge);
             }
@@ -159,6 +159,7 @@ class CaseAnalyzer
             ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
             'meta' => [
                 'staff' => $request->staffName,
+                'based_on_article_id' => $request->ticket->lastCustomerArticleId(),
                 'test_until' => $request->ticket->rewoundAt()?->toIso8601String(),
                 'created_at' => CarbonImmutable::now()->toIso8601String(),
                 'provider' => config('analysis.provider'),
@@ -238,7 +239,7 @@ class CaseAnalyzer
 
                 if ($exception->problem !== AnalysisProblem::InvalidResult || $attempts >= 2) {
                     if ($logFailure) {
-                        $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, $exception->problem->name, intdiv(hrtime(true) - $started, 1_000_000));
+                        $this->store->putFailure($request->ticket->number, $request->ticket->summaryKey(), $request->staffName, $model, $exception->problem->name, intdiv(hrtime(true) - $started, 1_000_000), $request->ticket->lastCustomerArticleId());
                     }
 
                     throw $exception;

@@ -56,6 +56,17 @@ return [
         'timezone' => 'Europe/Berlin',
         // Group of new tickets that carry a return label (PROJ-64): the group "allgemeine Kunden".
         'return_group' => env('ZAMMAD_RETURN_GROUP', 'allg. Kunden'),
+        // Signature token of the Zammad webhook (PROJ-66). Without it every webhook call is refused.
+        'webhook_secret' => env('ZAMMAD_WEBHOOK_SECRET'),
+        // Comma-separated Zammad groups the ticket sync leaves alone.
+        'sync_excluded_groups' => env('ZAMMAD_SYNC_EXCLUDED_GROUPS', ''),
+        // Seconds to wait for a ticket another sync path is working on.
+        'sync_lock_wait' => 5,
+        // Days until closed or long unreadable tickets, and the sync logs, are deleted (tickets:purge).
+        'ticket_retention_days' => 365,
+        'sync_log_retention_days' => 30,
+        // Minutes after which the ticket list warns that its data may be out of date (PROJ-67).
+        'sync_stale_minutes' => 15,
 
         // Our own signatures without Zammad's signature marker (e.g. on Amazon),
         // hidden at the end of our messages. Line breaks and case do not matter.

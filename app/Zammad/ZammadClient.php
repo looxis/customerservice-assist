@@ -20,7 +20,17 @@ class ZammadClient
     /** Shortest text of ours (letters and digits only) that counts as quoted when it shows up again in a customer's message. */
     private const int ECHO_MIN_LENGTH = 60;
 
-    private const array STATE_LABELS = [
+    /** The search stops delivering results here (Zammad's hard limit; PROJ-66). */
+    public const int SEARCH_RESULT_LIMIT = 10000;
+
+    public const array CLOSED_STATES = ['closed', 'merged'];
+
+    private const int SYNC_PAGE_SIZE = 100;
+
+    private const array OPEN_STATES = ['new', 'open', 'pending reminder', 'pending close'];
+
+    /** The label of a state, shared with the ticket list (PROJ-67). */
+    public const array STATE_LABELS = [
         'new' => 'neu',
         'open' => 'offen',
         'pending reminder' => 'warten auf Erinnerung',
@@ -72,7 +82,7 @@ class ZammadClient
                 id: (int) $data['id'],
                 title: trim((string) ($data['title'] ?? '')) ?: '(ohne Betreff)',
                 state: self::STATE_LABELS[$state] ?? ($state ?: 'unbekannt'),
-                closed: in_array($state, ['closed', 'merged'], true),
+                closed: in_array($state, self::CLOSED_STATES, true),
                 mergedIntoNumber: $state === 'merged' ? $this->mergeTarget((int) $data['id']) : null,
                 group: is_string($data['group'] ?? null) ? $data['group'] : null,
                 customerName: $customer['name'] ?? null,
@@ -188,6 +198,128 @@ class ZammadClient
         Cache::put("zammad.ticket-id.{$number}", $id, now()->addDays(90));
 
         return $number;
+    }
+
+    /**
+     * The header data of a ticket by its ID, past the search index (PROJ-66).
+     *
+     * @throws ZammadException
+     */
+    public function ticketHead(int $id): TicketHead
+    {
+        $data = $this->get("tickets/{$id}", ['expand' => 'true']);
+
+        if (! isset($data['number'], $data['updated_at'])) {
+            throw new ZammadException(ZammadProblem::Unavailable);
+        }
+
+        $state = strtolower((string) ($data['state'] ?? ''));
+        $moment = fn (mixed $value): ?CarbonImmutable => is_string($value) && $value !== '' ? CarbonImmutable::parse($value)->setTimezone(config('app.timezone')) : null;
+        $ownerId = (int) ($data['owner_id'] ?? 1);
+        $createdAt = $moment($data['created_at'] ?? null);
+
+        return new TicketHead(
+            id: (int) $data['id'],
+            number: (string) $data['number'],
+            title: trim((string) ($data['title'] ?? '')) ?: '(ohne Betreff)',
+            state: $state,
+            closed: in_array($state, self::CLOSED_STATES, true),
+            pendingUntil: $moment($data['pending_time'] ?? null),
+            group: is_string($data['group'] ?? null) ? $data['group'] : null,
+            ownerId: $ownerId > 1 ? $ownerId : null,
+            customerId: isset($data['customer_id']) ? (int) $data['customer_id'] : null,
+            organizationId: isset($data['organization_id']) ? (int) $data['organization_id'] : null,
+            createdAt: $createdAt,
+            updatedAt: $moment($data['updated_at']),
+            lastActivityAt: $moment($data['last_contact_at'] ?? null) ?? $createdAt ?? $moment($data['updated_at']),
+            lastContactCustomerAt: $moment($data['last_contact_customer_at'] ?? null),
+        );
+    }
+
+    /**
+     * The current customer message, prepared exactly like the thread of the ticket page,
+     * so an analysis and the sync agree on which message is the current one (PROJ-66).
+     *
+     * @throws ZammadException
+     */
+    public function lastCustomerArticle(int $ticketId, ?int $customerId): ?TicketArticle
+    {
+        $articles = $this->get("ticket_articles/by_ticket/{$ticketId}", ['expand' => 'true']);
+        $customer = $customerId !== null ? $this->customer($customerId) : null;
+        $this->orders = [];
+
+        return Ticket::lastCustomerArticleOf($this->articles($articles, $customerId, $customer['email'] ?? null));
+    }
+
+    /**
+     * The name of a Zammad user, only for display (PROJ-66).
+     *
+     * @throws ZammadException
+     */
+    public function userName(int $id): ?string
+    {
+        return Cache::remember("zammad.user-name.{$id}", now()->addDay(), fn (): ?string => $this->customer($id)['name'] ?? null);
+    }
+
+    /**
+     * One page of the tickets changed in a period, oldest change first (PROJ-66).
+     *
+     * @return array{records: list<array{id: int, updated_at: ?string}>, total: int}
+     *
+     * @throws ZammadException
+     */
+    public function updatedTicketsPage(CarbonImmutable $from, CarbonImmutable $to, int $page): array
+    {
+        return $this->syncPage("updated_at:[{$from->toIso8601ZuluString()} TO {$to->toIso8601ZuluString()}]", 'updated_at', $page);
+    }
+
+    /**
+     * One page of all open tickets in the stable order of their IDs (PROJ-66).
+     *
+     * @return array{records: list<array{id: int, updated_at: ?string}>, total: int}
+     *
+     * @throws ZammadException
+     */
+    public function openTicketsPage(int $page): array
+    {
+        $states = implode(' OR ', array_map(fn (string $state): string => "\"{$state}\"", self::OPEN_STATES));
+
+        return $this->syncPage("state.name:({$states})", 'id', $page);
+    }
+
+    /**
+     * Groups the sync leaves alone.
+     *
+     * @return list<string>
+     */
+    public function excludedGroups(): array
+    {
+        return array_values(array_filter(array_map(trim(...), explode(',', (string) ($this->config['sync_excluded_groups'] ?? '')))));
+    }
+
+    /**
+     * @return array{records: list<array{id: int, updated_at: ?string}>, total: int}
+     *
+     * @throws ZammadException
+     */
+    private function syncPage(string $query, string $sortBy, int $page): array
+    {
+        foreach ($this->excludedGroups() as $group) {
+            $query .= ' AND NOT group.name:"'.str_replace('"', '', $group).'"';
+        }
+
+        $result = $this->get('tickets/search', ['query' => $query, 'page' => $page, 'per_page' => self::SYNC_PAGE_SIZE, 'sort_by' => $sortBy, 'order_by' => 'asc', 'with_total_count' => 'true']);
+
+        if (! is_array($result['records'] ?? null) || ! isset($result['total_count'])) {
+            throw new ZammadException(ZammadProblem::Unavailable);
+        }
+
+        $records = array_map(
+            fn (array $record): array => ['id' => (int) $record['id'], 'updated_at' => is_string($record['updated_at'] ?? null) ? $record['updated_at'] : null],
+            array_values(array_filter($result['records'], fn (mixed $record): bool => is_array($record) && isset($record['id']))),
+        );
+
+        return ['records' => $records, 'total' => (int) $result['total_count']];
     }
 
     /**

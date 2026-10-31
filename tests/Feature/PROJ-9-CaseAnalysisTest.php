@@ -3,8 +3,10 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Analysis\Agents\SummaryAgent;
 use App\Analysis\AnalysisStore;
+use App\Analysis\ProcessingState;
 use App\Analysis\Pseudonymizer;
 use App\Models\Analysis;
+use App\Models\TrackedTicket;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
@@ -215,6 +217,28 @@ describe('running an analysis', function () {
             ->assertSessionHasInput('kontext', 'Foto geprüft');
 
         CaseAgent::assertNeverPrompted();
+    });
+
+    test('an analysis notes the customer message it is based on and updates the tracked ticket (PROJ-66)', function () {
+        TrackedTicket::factory()->create(['number' => '2137942', 'last_customer_article_id' => 1]);
+        CaseAgent::fake([caseAnswer()]);
+        analysisTicket();
+
+        analyze(['kein_produktbezug' => '1'])->assertRedirect();
+
+        expect(Analysis::query()->where('status', 'completed')->sole()->based_on_article_id)->toBe(1);
+        expect(TrackedTicket::query()->sole()->processing_state)->toBe(ProcessingState::Analyzed);
+    });
+
+    test('a failed analysis notes the customer message too and shows as failed in the list (PROJ-66)', function () {
+        TrackedTicket::factory()->create(['number' => '2137942', 'last_customer_article_id' => 1]);
+        CaseAgent::fake(fn () => throw new ConnectionException('down'));
+        analysisTicket();
+
+        analyze(['kein_produktbezug' => '1']);
+
+        expect(Analysis::query()->where('status', 'failed')->sole()->based_on_article_id)->toBe(1);
+        expect(TrackedTicket::query()->sole()->processing_state)->toBe(ProcessingState::Failed);
     });
 
     test('an analysis sends context, order data and knowledge without contact data and shows the result', function () {

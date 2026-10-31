@@ -100,15 +100,31 @@ final readonly class Ticket
      */
     public function focusArticle(): ?TicketArticle
     {
+        return self::lastCustomerArticleOf($this->articles) ?? ($this->articles === [] ? null : $this->articles[array_key_last($this->articles)]);
+    }
+
+    /**
+     * The ID of the customer message an analysis of this ticket is based on (PROJ-66).
+     */
+    public function lastCustomerArticleId(): ?int
+    {
+        return self::lastCustomerArticleOf($this->articles)?->id;
+    }
+
+    /**
+     * @param  list<TicketArticle>  $articles  Oldest first.
+     */
+    public static function lastCustomerArticleOf(array $articles): ?TicketArticle
+    {
         $last = null;
 
-        foreach ($this->articles as $article) {
+        foreach ($articles as $article) {
             if ($article->kind === ArticleKind::Customer) {
                 $last = $article;
             }
         }
 
-        return $last ?? ($this->articles === [] ? null : $this->articles[array_key_last($this->articles)]);
+        return $last;
     }
 
     public function lastArticleAt(): ?CarbonImmutable

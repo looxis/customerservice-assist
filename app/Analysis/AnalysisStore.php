@@ -128,6 +128,7 @@ class AnalysisStore
             'uuid' => $id,
             'ticket_number' => (string) $result['ticket'],
             'scope_key' => (string) ($result['scope'] ?? $result['ticket']),
+            'based_on_article_id' => $meta['based_on_article_id'] ?? null,
             'status' => 'completed',
             'staff_name' => (string) ($meta['staff'] ?? ''),
             'test_until' => $meta['test_until'] ?? null,
@@ -164,18 +165,21 @@ class AnalysisStore
             'content' => $result,
         ]);
 
+        $this->updateProcessingState((string) $result['ticket'], (string) ($result['scope'] ?? $result['ticket']), $meta['based_on_article_id'] ?? null, $meta['test_until'] ?? null);
+
         return $id;
     }
 
     /**
      * Log a failed analysis without any content.
      */
-    public function putFailure(string $ticketNumber, string $scopeKey, string $staff, string $model, string $error, int $durationMs): void
+    public function putFailure(string $ticketNumber, string $scopeKey, string $staff, string $model, string $error, int $durationMs, ?int $basedOnArticleId = null): void
     {
         Analysis::query()->create([
             'uuid' => (string) Str::uuid(),
             'ticket_number' => $ticketNumber,
             'scope_key' => $scopeKey,
+            'based_on_article_id' => $basedOnArticleId,
             'status' => 'failed',
             'error' => $error,
             'staff_name' => $staff,
@@ -183,6 +187,16 @@ class AnalysisStore
             'model' => $model,
             'duration_ms' => $durationMs,
         ]);
+
+        $this->updateProcessingState($ticketNumber, $scopeKey, $basedOnArticleId);
+    }
+
+    /**
+     * Keep the ticket list current (PROJ-66). A problem here is only reported: it must never stop an analysis.
+     */
+    private function updateProcessingState(string $ticketNumber, string $scopeKey, ?int $basedOnArticleId, mixed $testUntil = null): void
+    {
+        rescue(fn () => app(TicketProcessingState::class)->recordAnalysis($ticketNumber, $scopeKey, $basedOnArticleId, $testUntil));
     }
 
     /**
