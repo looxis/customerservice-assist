@@ -18,6 +18,13 @@ topics:
 summary: "Ein Fachhändler oder Reseller fragt zum Login im Fachhändler-Shop, zum alten Shop reseller.looxis.de, zu seinem Kundenkonto oder zur Umstellung im Mai 2026. Erklärt: Anmeldung nur unter fachhaendler.looxis.de, aktive Konten (Bestellung in den letzten 12 Monaten) wurden samt Passwort übernommen, das Konto muss per E-Mail-Verifizierung aktiviert werden, inaktive und unbekannte Händler laufen über LOOXIS."
 retrieval: triggered
 triggers:
+  - einloggen
+  - einzuloggen
+  - eingeloggt
+  - Login
+  - anmelden
+  - anzumelden
+  - Anmeldung
   - fachhaendler.looxis.de
   - reseller.looxis.de
   - Fachhändler-Shop
@@ -92,7 +99,7 @@ Am 19. Mai 2026 wurden die Händler über den neuen Shop informiert. Händler, d
 - Wer nicht mehr als Fachhändler aktiv ist, meldet das kurz per E-Mail, damit das nicht mehr benötigte Konto aus Sicherheitsgründen gelöscht werden kann.
 - Alle bis zum 2. November 2026 nicht aktivierten Konten werden aus Sicherheitsgründen ab dem 3. November gesperrt. Damit verfallen auch bisher vereinbarte Zahlungsmodalitäten. Eine spätere Freischaltung ist ausschließlich über den Kundenservice möglich.
 
-Ab dem 3. November 2026 gilt: Ein Fachhändler, der sich nicht mehr einloggen kann und per E-Mail nachfragt, bekommt gesagt, dass sein Konto entweder nicht übernommen oder gesperrt wurde:
+Ab dem 3. November 2026 gilt: Ein Login-Problem allein ist kein Grund, von einem gesperrten oder nicht übernommenen Konto zu sprechen. Zuerst gilt die Shop-Prüfung aus PLAYBOOK-032. Nicht übernommene oder gesperrte Konten betreffen nur Händler, die zuvor lange nicht aktiv waren, und das wird dem Händler nur gesagt, wenn die Prüfung in Vanilo es bestätigt (PLAYBOOK-032):
 
 - **Nicht übernommen:** Er hat zuletzt vor Mai 2025 bestellt und auf Rückfragen zum Status (ob er noch aktiv ist) nicht reagiert.
 - **Gesperrt:** Er hat sein übernommenes Konto trotz zweifacher Bitte per E-Mail nicht aktiviert.
