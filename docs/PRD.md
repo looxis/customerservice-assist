@@ -53,7 +53,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Automatische Analyse bei Ticket-Eingang | Roadmap |
 | Bildanalyse von Reklamationsfotos | Roadmap |
 | Semantisches Retrieval (RAG / Vektordatenbank), erst ab mehreren Hundert Wissensdokumenten sinnvoll | Zurückgestellt |
-| Angebotsrechner „Angebot berechnen“: Rabatt, Marge und Rabattgrenzen aus hinterlegten Kosten, Angebote erstellen und drucken, Verweis aus Mengen-/Angebotsanfragen (Preislisten und Staffeln je Kundengruppe folgen später) | In Progress |
+| Angebotsrechner „Angebot berechnen“: Rabatt, Marge und Rabattgrenzen aus hinterlegten Kosten, Angebote erstellen und drucken, Verweis aus Mengen-/Angebotsanfragen (Preislisten und Staffeln je Kundengruppe folgen später) | Approved |
 | Ticket-Übersicht für Admins: abgerufene Tickets mit Stand (übersetzt, analysiert, Entwurf kopiert) | Approved |
 | Gezielter Wissensabruf: Wissen vor der Analyse nach Anliegen und Bedingungen abrufen (statt alles Passende mitzusenden) | Approved |
 | Router für den Wissensabruf (KI-Router ergänzt den gezielten Abruf um sinngleiche Formulierungen; Vorauswahl aus Katalogzeilen, abschaltbar) | Approved |
@@ -77,8 +77,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Produkte ohne Kundenservice-Wissen auswerten: Reklamationen und Fragen zu ProductForge-Produkten, für die das Wissen nicht reicht, je Produkt und Thema zählen und Admins auflisten (Reklamation ab dem ersten Fall) | Planned |
 | DHL-Retourenlabel erstellen und versenden: Label über die DHL-Schnittstelle aus der App erzeugen (Adresse aus der Bestellung, Seite „DHL Retoure“ und Option im Vorschlagsformular), herunterladen oder per Klick als Antwort bzw. neues Ticket an den Kunden senden | Approved |
 | Retouren-Tracking und Zählung: Rücksendung über das DHL-Label verfolgen, Retouren zählen und auswerten | Roadmap |
-| Automatischer Ticket-Eingang: neue und wieder geöffnete Zammad-Tickets ohne Eingabe erfassen, Datenmodell für spätere Klassifikation und Automatisierung | In Progress |
-| Ticketübersicht auf der Startseite: Ansichten, kombinierbare Filter, Klick öffnet die vorhandene Bearbeitung | In Progress |
+| Automatischer Ticket-Eingang: neue und wieder geöffnete Zammad-Tickets ohne Eingabe erfassen, Datenmodell für spätere Klassifikation und Automatisierung | Approved |
+| Ticketübersicht auf der Startseite: Ansichten, kombinierbare Filter, Klick öffnet die vorhandene Bearbeitung | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

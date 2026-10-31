@@ -1,6 +1,6 @@
 # PROJ-66: Automatischer Ticket-Eingang und Datenmodell
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-31
 **Last Updated:** 2026-10-31
 
@@ -83,7 +83,7 @@ CSA kennt ein Ticket bisher erst, wenn jemand die Nummer eingibt. Dieses Feature
 
 ## Open Questions
 - [ ] Kann Zammad CSA per HTTP erreichen? Bis das geklärt ist, tragen die Abgleiche die Liste allein.
-- [ ] Headerformat `sha1=` an einer echten Zustellung bestätigen (die gelesene Doku nennt nur „SHA-1-Signatur“).
+- [x] Headerformat `sha1=` am Zammad-Quellcode belegt (`lib/user_agent.rb`, 2026-10-31): HMAC-SHA1 über den Request-Body. Die echte Zustellung steht noch aus.
 - [ ] Zammad-Version: Das technische Token darf `GET /version` nicht lesen (403). Felder und Suche sind gegen das echte System geprüft (2026-10-31).
 
 ## Decision Log
@@ -166,7 +166,39 @@ Gebaut: drei Migrationen, Modelle `TrackedTicket`, `ZammadSyncRun`, `ZammadWebho
 **Offen:** `.env.example` ist für den Assistenten gesperrt; `ZAMMAD_WEBHOOK_SECRET` und `ZAMMAD_SYNC_EXCLUDED_GROUPS` müssen dort noch von Hand ergänzt werden.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-31 · **App:** Live-Installation (Port 8081) · **Tester:** QA Engineer (AI)
+
+### Acceptance Criteria
+- [x] Eingang: Neue Tickets erscheinen ohne Webhook nach spätestens etwa einer Minute (live: 61 Tickets erfasst); Wiedereröffnung, doppelte und vertauschte Auslöser per Test belegt.
+- [x] Webhook-Absicherung: Format `sha1=<hex>` über den Request-Body am Zammad-Quellcode (`lib/user_agent.rb`) belegt; Fälschung, leerer Schlüssel und GET live abgewiesen (403, 403, 405).
+- [x] Vollständigkeit: Erster Vollabgleich live fehlerfrei, lokal 54 offene Tickets wie in Zammad; Marker, Ausfall und Halbierung per Test belegt; 67 Minutenläufe ohne Fehler.
+- [x] Fehlerbehandlung: 403/404 behalten die Zeile, `sync_failed` und Selbstheilung per Test belegt; es löscht nur `tickets:purge`.
+- [x] Bearbeitungsstatus: Identitätsregel und alle Reihenfolgen per Test belegt, live 7 Tickets mit Vorschlag.
+- [x] Bestehende Funktionen: gesamte Testsuite, siehe Zusammenfassung.
+
+### Edge Cases
+- [x] Ticket ohne Kundennachricht, Agent-Mail vom Kunden, Agentenantwort, gelöschte Nachricht, doppelte Namen, Suchlimit: per Test belegt.
+
+### Security Audit
+- [x] Signatur vor jeder Verarbeitung, Vergleich per `hash_equals`, ohne Secret keine Annahme, Rate-Limit auf der Route.
+- [x] Keine Payload und keine Kundeninhalte im Protokoll, Betreff verschlüsselt.
+- [x] Die Synchronisierung sendet nur GET-Aufrufe (per Test belegt).
+
+### Bugs Found
+#### BUG-1: Abgestürzter Abgleich hätte die Synchronisierung bis zu 24 Stunden blockiert (behoben)
+- **Severity:** Medium
+- **Ursache:** `withoutOverlapping()` hält die Sperre standardmäßig 24 Stunden; nach einem Absturz oder Neustart mitten im Lauf wäre die Liste einen Tag lang stehen geblieben.
+- **Fix:** Sperren laufen nach 30 bzw. 60 Minuten ab; ein Test sichert das.
+
+### Nicht geprüft
+- Eine echte Webhook-Zustellung: Die Erreichbarkeit von Zammad zu CSA ist weiter offen, der Webhook ist nicht eingerichtet.
+- `.env.example` enthält die beiden neuen Variablen noch nicht (für den Assistenten gesperrt, Eintrag durch den Auftraggeber).
+
+### Summary
+- **Bugs:** 1 Medium, behoben. Keine Critical oder High.
+- **Testsuite:** nur die beiden bekannten, unabhängigen `PROJ-56`-Fehlschläge (Entscheidung zur Sichtbarkeit steht aus).
+- **Production Ready:** YES
 
 ## Deployment
 _To be added by /deploy_

@@ -1,6 +1,6 @@
 # PROJ-34: Angebotsrechner („Angebot berechnen“)
 
-**Status:** In Progress · **Zuletzt geändert:** 2026-10-27 · **Abhängigkeiten:** PROJ-9, PROJ-11, PROJ-58
+**Status:** Approved · **Zuletzt geändert:** 2026-10-31 · **Abhängigkeiten:** PROJ-9, PROJ-11, PROJ-58
 
 ## Anlass
 Ein vibe-codierter HTML-Rabattrechner (Daten nur im Browser, Austausch per Backup-JSON) soll fester Teil der App werden. Er ersetzt den Roadmap-Punkt „Angebotskalkulation“ in kleinerem Zuschnitt: Berechnung durch die App, aber noch ohne Staffeln und Preislisten je Kundengruppe.
@@ -25,3 +25,34 @@ Migrationen/Modelle `QuoteArticle`, `QuoteOffer`; `QuoteController` mit Form Req
 ## Offen
 - Hinweis: PROCESS-010 sagt „Es wird keine eigene Angebotsnummer vergeben“; der Rechner vergibt eine interne Nummer. Wissenstext bewusst nicht geändert, bitte entscheiden.
 - Folgeschritte: Preise/Preislisten aus EOCS (`items:prices`), Staffeln und Rabatte je Kundengruppe, Prüfmodus für fehlende Kosten, Zugriff auf Angebote nach Login (PROJ-15).
+
+## QA Test Results
+
+**Tested:** 2026-10-31 · **App:** Live-Installation (Port 8081) · **Tester:** QA Engineer (AI)
+
+Die Spec nennt keine formalen Akzeptanzkriterien; geprüft wurde gegen User Stories und Entscheidungen.
+
+### User Stories und Entscheidungen
+- [x] Rechner: Marge, Deckungsbeitrag, Rabattgrenzen. Browser und `QuoteCalculator` mit echten Artikeldaten verglichen: alle sieben Werte identisch.
+- [x] Angebot: Nummer `AN-YYYYMMDD-NNN`, sieben Tage gültig, Änderung, Druck und Löschung per Test belegt; der Ausdruck enthält keine internen Kosten.
+- [x] Kosten: ansehen alle, ändern nur Admins, serverseitig geprüft; ohne Name abgewiesen.
+- [x] Import: nur Admins, wiederholbar, fremde Datei abgewiesen; live 356 Artikel, davon 314 mit Einstandspreis.
+- [x] Verweis aus PROCEDURE-009 mit Ticketnummer per Test belegt.
+
+### Security Audit
+- [x] CSRF aktiv (live 419 ohne Token), Eingaben per Form Request geprüft.
+- [x] XSS: Kundendaten im Ausdruck einzeln escaped, keine `x-html`-Ausgaben.
+
+### Bugs Found
+Keine Critical oder High.
+
+### Offene Entscheidungen des Auftraggebers (kein Bug)
+- **Aufbewahrung der Angebote (Severity Medium):** `quote_offers` hält Kundendaten unverschlüsselt und ohne Löschfrist, anders als die übrigen Kundendaten (12 Monate, PROJ-11). Angebote können aber handelsrechtlich aufzubewahren sein, deshalb nicht eigenmächtig geändert. Live gibt es noch keine Angebote.
+- **PROCESS-010** sagt „Es wird keine eigene Angebotsnummer vergeben“, der Rechner vergibt eine interne Nummer (siehe „Offen“).
+
+### Nicht geprüft
+- Bedienung im echten Browser, Druckansicht als PDF, mehrere Browser und Breiten: In dieser Umgebung steht kein Browser zur Verfügung.
+
+### Summary
+- **Bugs:** keine Critical oder High.
+- **Production Ready:** YES

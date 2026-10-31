@@ -1,6 +1,6 @@
 # PROJ-67: Ticketübersicht auf der Startseite
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-10-31
 **Last Updated:** 2026-10-31
 
@@ -107,7 +107,35 @@ Ein gewählter Mitarbeiter ersetzt den Besitzer der Ansicht, damit sich Ansicht 
 Nachtrag auf Wunsch des Auftraggebers: Der Navigationspunkt der Startseite heißt jetzt „Tickets“; der veraltete Hinweisbereich „So geht es weiter“ ist entfernt.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-10-31 · **App:** Live-Installation (Port 8081) · **Tester:** QA Engineer (AI)
+
+### Acceptance Criteria
+- [x] Liste und Ansichten: Spalten, vier Ansichten, „Meine“ über die Owner-ID; live vom Auftraggeber gesehen.
+- [x] Filter und Sortierung: kombiniert, beim Blättern erhalten, manipulierte Adressen zeigen die Liste; per Test belegt.
+- [x] Klick öffnet die vorhandene Ticketseite, Eingabefeld unverändert, Startseite ohne Zammad-Verbindung nutzbar.
+- [x] Synchronisierungsstand: ausgeblendete Tickets gezählt und verlinkt, Warnhinweis, Stand; per Test belegt.
+
+### Edge Cases
+- [x] Leerzustand, noch kein Lauf, Filter ohne Daten, Betreff mit HTML: per Test belegt.
+
+### Security Audit
+- [x] XSS und SQL-Injection über die Adresse live geprüft: 200, nichts ungefiltert ausgegeben; Parameter sind gebunden, Sortierung nur aus fester Liste.
+- [x] Sicherheits-Header vorhanden. Sichtbar für alle mit Zugang zur App (bewusste Entscheidung, Schutz bis PROJ-15: VPN und gemeinsames Passwort).
+
+### Leistung
+- [x] Standardansicht und Statusfilter nutzen laut `EXPLAIN` die vorgesehenen Indizes; Seite liest nur aus der Datenbank, SQL-Paginierung.
+
+### Bugs Found
+Keine ab Severity Medium.
+
+### Nicht geprüft
+- Mehrere Browser und Handy-, Tablet- und Desktop-Breite: In dieser Umgebung steht kein Browser zur Verfügung. Nur per HTML und Code geprüft; die Tabelle scrollt wie die übrigen Übersichten seitlich.
+- „Meine“ für Nele: Sie hatte beim Test keine offenen Tickets. Die ID 99 ist ihr einziges Konto in Zammad.
+
+### Summary
+- **Bugs:** keine Critical, High oder Medium.
+- **Production Ready:** YES
 
 ## Deployment
 _To be added by /deploy_
