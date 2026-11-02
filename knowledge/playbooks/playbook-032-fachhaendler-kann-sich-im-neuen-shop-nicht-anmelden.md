@@ -68,14 +68,14 @@ Ein Fachhändler kommt nicht in den Fachhändler-Shop: Anmeldung oder Passwort w
 
 # Zu prüfen
 
-1. Ruft der Händler wirklich fachhaendler.looxis.de auf, und sieht er oben links das Logo „looxis reseller“? Das ist **immer** die erste Frage, bevor am Konto etwas geprüft wird.
+1. Ruft der Händler wirklich fachhaendler.looxis.de auf, und sieht er oben links das Logo „looxis reseller“? Das ist **immer** die erste Frage, bevor am Konto etwas geprüft wird. Sie wird nur einmal gestellt: Hat der Händler nach diesem Hinweis geschrieben, dass es trotzdem nicht geht, oder war er laut Mitarbeiter im richtigen Shop, geht es mit der Prüfung des Kontos weiter.
 2. Mit welcher E-Mail-Adresse meldet er sich an?
 3. Hat er schon im neuen Shop bestellt (Bestellung im Kanal fachhaendler.looxis.de, im Fall sichtbar oder vom Mitarbeiter genannt)? Dann war sein Konto aktiviert und wurde nicht bei der Umstellung gesperrt.
 4. Bleibt es nach dem Hinweis auf den richtigen Shop beim Problem: Kontostatus in Vanilo prüfen (aktiv, deaktiviert, kein Konto). Das macht der Kundenservice intern: im Vanilo-Backend unter CRM → Customers nach der E-Mail-Adresse des Kunden suchen oder direkt https://looxis.de/manage/shopper?email=[E-Mail-Adresse des Kunden] aufrufen. Diese Adresse nie dem Kunden nennen. Ist die E-Mail-Adresse unklar, beim Händler erfragen.
 
 # Empfohlene Maßnahme
 
-1. **Erste Antwort, immer:** Shop-Adresse und Logo nennen, die Anmeldung mit E-Mail-Adresse und Passwort oder „Passwort vergessen“ erklären und bei Fehlern um Screenshot und die verwendete E-Mail-Adresse bitten. Keine Aussage zum Kontostatus, solange er nicht geprüft ist. Das gilt auch, wenn eine frühere Antwort nur nach Fehlermeldung oder Screenshot gefragt hat und der Händler noch nicht bestätigt hat, dass er auf fachhaendler.looxis.de war: die frühere Rückfrage nicht einfach wiederholen.
+1. **Erste Antwort, immer:** Shop-Adresse und Logo nennen, die Anmeldung mit E-Mail-Adresse und Passwort oder „Passwort vergessen“ erklären und bei Fehlern um Screenshot und die verwendete E-Mail-Adresse bitten. Keine Aussage zum Kontostatus, solange er nicht geprüft ist. Das gilt auch, wenn eine frühere Antwort nur nach Fehlermeldung oder Screenshot gefragt hat und der Händler noch nicht bestätigt hat, dass er auf fachhaendler.looxis.de war: die frühere Rückfrage nicht einfach wiederholen. **Nur einmal:** Haben wir Shop-Adresse und Logo schon erklärt und schreibt der Händler, dass es trotzdem nicht geht, oder war er laut Mitarbeiter im richtigen Shop, werden sie nicht noch einmal erklärt; dann zählt, was der Mitarbeiter am Konto geprüft und geändert hat.
 2. **Kontostatus nach der Prüfung in Vanilo:**
    - **Aktiv:** Ursache beim Händler suchen (Adresse, Tippfehler, Passwort); „Passwort vergessen“ erklären.
    - **Deaktiviert:** Dem Händler sagen, dass das Konto deaktiviert ist, und klären, ob er es weiter nutzen möchte. Wenn ja, nach PROCEDURE-007 wieder aktivieren. Zahlungsarten nach POLICY-052: ab der nächsten Bestellung steht Mollie zur Verfügung, frühere Zahlungsvereinbarungen gelten nicht automatisch weiter; Rechnung wird nicht mehr angeboten; Lastschrift nur, wenn der Händler sie ausdrücklich verlangt, und dann nur nach Freigabe der Geschäftsleitung (POLICY-041).
