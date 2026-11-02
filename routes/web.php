@@ -21,6 +21,7 @@ use App\Http\Controllers\StaffSelectionController;
 use App\Http\Controllers\StartPageController;
 use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketAttachmentController;
+use App\Http\Controllers\TicketCloseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketOverviewController;
 use App\Http\Controllers\TranslationController;
@@ -121,6 +122,7 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::post('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'createSummary'])->middleware('throttle:language-model')->name('tickets.summary.create');
     Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
     Route::delete('/tickets/{number}/analysen', [AnalysisController::class, 'destroyAll'])->name('tickets.analyses.destroy');
+    Route::post('/tickets/{number}/schliessen', TicketCloseController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:20,1')->name('tickets.close');
     Route::post('/tickets/{number}/uebersetzung', [TranslationController::class, 'store'])->middleware('throttle:language-model')->name('tickets.translation.store');
 });
 

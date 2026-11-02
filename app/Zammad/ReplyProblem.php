@@ -29,6 +29,22 @@ enum ReplyProblem: string
     }
 
     /**
+     * The message when closing a ticket without a reply failed (PROJ-68).
+     */
+    public function closeMessage(string $staff): string
+    {
+        return match ($this) {
+            self::NoToken => "Für {$staff} ist kein Zammad-Token hinterlegt. Ohne Token kann die App das Ticket nicht schließen.",
+            self::TokenRejected => "Zammad lehnt das Token von {$staff} ab (ungültig oder abgelaufen). Das Ticket wurde nicht geschlossen.",
+            self::Forbidden => "Zammad erlaubt {$staff} das Schließen dieses Tickets nicht (fehlende Rechte oder Gruppe). Das Ticket wurde nicht geschlossen.",
+            self::NotFound => 'Das Ticket wurde in Zammad nicht gefunden (gelöscht oder zusammengeführt?). Es wurde nichts geändert.',
+            self::Rejected => 'Zammad hat die Änderung nicht angenommen. Das Ticket wurde nicht geschlossen.',
+            self::Unavailable => 'Zammad ist gerade nicht erreichbar. Das Ticket wurde nicht geschlossen; bitte erneut versuchen.',
+            self::Unclear => 'Zammad hat nicht rechtzeitig geantwortet. Es ist unklar, ob das Ticket geschlossen wurde; bitte „Aktualisieren“ und den Status prüfen.',
+        };
+    }
+
+    /**
      * Whether nothing was sent for sure, so a new attempt is safe.
      */
     public function notSent(): bool

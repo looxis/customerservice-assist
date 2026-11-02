@@ -73,6 +73,35 @@ class ZammadReplySender
     }
 
     /**
+     * Close a ticket without a reply to the customer, in the name of the employee (PROJ-68). A reason becomes an
+     * internal note in the same call, so status and note never get apart.
+     *
+     * @return string The name of the employee in Zammad.
+     *
+     * @throws ReplyException
+     */
+    public function close(string $token, int $ticketId, ?string $reason): string
+    {
+        $me = $this->whoAmI($token);
+        $payload = ['state' => 'closed'];
+
+        if ($reason !== null && trim($reason) !== '') {
+            $payload['article'] = [
+                'type' => 'note',
+                'sender' => 'Agent',
+                'internal' => true,
+                'content_type' => 'text/plain',
+                'subject' => 'Ohne Antwort geschlossen',
+                'body' => trim($reason),
+            ];
+        }
+
+        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$ticketId}", $payload), certain: false);
+
+        return $me['name'];
+    }
+
+    /**
      * Create a new ticket for the customer with the e-mail as its first article, in the name of the employee
      * (PROJ-64). The customer is found or created by the address.
      *

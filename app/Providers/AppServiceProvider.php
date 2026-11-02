@@ -79,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
                 'advancedModeActive' => app(AdvancedMode::class)->isActive(request()),
                 'testModeAvailable' => $testMode->isAvailable(request()),
                 'testModeActive' => $testMode->isActive(request()),
+                'canCloseTickets' => $staff->zammadToken($staff->current(request())) !== null,
                 'ticketOverviewAvailable' => $testMode->isAvailable(request()),
                 'stats' => app(AppStats::class)->all(),
                 'openGapCount' => app(KnowledgeGapLog::class)->openCount(),

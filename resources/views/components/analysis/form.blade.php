@@ -1,4 +1,4 @@
-@props(['number', 'analysis', 'selected' => [], 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false, 'lookups' => []])
+@props(['number', 'analysis', 'selected' => [], 'canClose' => false, 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false, 'lookups' => []])
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
@@ -188,8 +188,12 @@
                 </div>
             @endif
 
-            <div class="flex justify-end">
+            <div class="flex flex-wrap items-center justify-end gap-3">
                 <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Vorschlag erstellen</x-button>
+                @if ($canClose)
+                    <span class="text-sm text-slate-600">oder</span>
+                    <x-button variant="danger" class="min-h-11" x-on:click="$dispatch('close-ticket')"><x-icon name="x-circle" size="16" /> Ticket ohne Antwort schließen</x-button>
+                @endif
             </div>
         </form>
         @if ($collapsible)

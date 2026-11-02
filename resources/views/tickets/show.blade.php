@@ -31,7 +31,8 @@
             <x-alert type="warning">{{ $rewindProblem }}</x-alert>
         @endif
 
-        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
+        @php($canCloseTicket = ($canCloseTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
+        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []" :claim-references="$claimReferences ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
@@ -51,9 +52,13 @@
                 <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" :advanced="$advancedModeActive ?? false" :orders="$selected" :lookups="$lookups ?? []" />
             @endif
 
-            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []"
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :can-close="$canCloseTicket" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []"
                              :unloaded-orders="collect($suggestions ?? [])->reject(fn ($order) => $order->isEocsId() || in_array($order->value, $selected ?? [], true))->pluck('value')->values()->all()" />
         @endisset
+
+        @if ($canCloseTicket)
+            <x-ticket.close-dialog :number="$number" />
+        @endif
 
         <x-ticket.thread :ticket-number="$number" :articles="$ticket->articles" :translations="$translations ?? []" :untranslated="$untranslated ?? 0" :can-retranslate="$testModeAvailable"
                          :translate="['action' => route('tickets.translation.store', ['number' => $number]), 'fields' => array_filter(['bestellungen' => $selected ?? [], 'stand' => $ticket->rewoundTo])]"

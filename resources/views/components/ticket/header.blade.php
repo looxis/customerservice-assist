@@ -1,4 +1,4 @@
-@props(['ticket', 'canDelete' => false, 'advanced' => false])
+@props(['ticket', 'canDelete' => false, 'canClose' => false, 'advanced' => false])
 
 {{-- Header of a loaded ticket (PROJ-6). --}}
 <x-card>
@@ -75,6 +75,11 @@
         <x-button :href="route('tickets.show', array_filter(['number' => $ticket->number, 'bestellungen' => request()->query('bestellungen')]))" variant="secondary" title="Lädt das Ticket und die Bestellungen neu aus Zammad und EOCS, zum Beispiel wenn der Kunde inzwischen geantwortet hat." x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
             <x-icon name="refresh" size="16" /> Aktualisieren
         </x-button>
+        @if ($canClose)
+            <x-button variant="danger" x-data x-on:click="$dispatch('close-ticket')">
+                <x-icon name="x-circle" size="16" /> Ohne Antwort schließen
+            </x-button>
+        @endif
         @if ($canDelete)
             <form method="POST" action="{{ route('tickets.analyses.destroy', ['number' => $ticket->number]) }}" class="ml-auto"
                   x-data x-on:submit="if (! confirm('Alle Vorschläge, Entwürfe und Zusammenfassungen dieses Tickets endgültig löschen?')) $event.preventDefault()">
