@@ -42,7 +42,8 @@
                 <x-alert type="warning">Dieser Vorschlag ist nicht mehr verfügbar.</x-alert>
             @endif
 
-            @if ($analysis['deletion'])
+            {{-- Who deleted the proposals is only for admins and the advanced mode. --}}
+            @if ($analysis['deletion'] && ($testModeAvailable || ($advancedModeActive ?? false)))
                 <x-alert>Inhalte gelöscht von {{ $analysis['deletion']['staff'] }} am {{ $analysis['deletion']['at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr.</x-alert>
             @endif
 
