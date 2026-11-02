@@ -3,8 +3,6 @@ id: POLICY-052
 title: Fachhändler-Shop fachhaendler.looxis.de – Konten und Umstellung
 type: policy
 status: active
-trial_until: 2026-11-02
-trial_goal: "Nach dem 2. November 2026 die Hinweise zur Aktivierung und zur Frist bereinigen und prüfen, wie viele Konten gesperrt, neu angelegt oder gelöscht wurden."
 customer_types:
   - b2b-reseller
 sales_channels:
@@ -15,7 +13,7 @@ categories:
   - product-question
 topics:
   - customer-account
-summary: "Ein Fachhändler oder Reseller fragt zum Login im Fachhändler-Shop, zum alten Shop reseller.looxis.de, zu seinem Kundenkonto oder zur Umstellung im Mai 2026. Erklärt: Anmeldung nur unter fachhaendler.looxis.de, aktive Konten (Bestellung in den letzten 12 Monaten) wurden samt Passwort übernommen, das Konto muss per E-Mail-Verifizierung aktiviert werden, inaktive und unbekannte Händler laufen über LOOXIS."
+summary: "Ein Fachhändler oder Reseller fragt zum Login im Fachhändler-Shop, zum alten Shop reseller.looxis.de, zu seinem Kundenkonto oder zur Umstellung im Mai 2026. Erklärt: Anmeldung nur unter fachhaendler.looxis.de, aktive Konten (Bestellung in den letzten 12 Monaten) wurden samt Passwort übernommen, nicht aktivierte Konten wurden am 2. November 2026 gesperrt, inaktive und unbekannte Händler laufen über LOOXIS."
 retrieval: triggered
 triggers:
   - einloggen
@@ -50,10 +48,9 @@ related_knowledge:
   - POLICY-041
   - POLICY-042
   - PROCEDURE-007
-  - PROCEDURE-008
 ---
 
-Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler. **Die Hinweise zur Aktivierung und zur Frist gelten bis 2. November 2026**; danach gilt die Kontosperrung (Abschnitt „Erinnerung vom 19. Oktober 2026 und Kontosperrung ab 3. November 2026“).
+Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler.
 
 # Regel
 
@@ -74,32 +71,30 @@ Der Fachhändler-Shop läuft auf derselben Software-Plattform wie der Endverbrau
 
 # Kontostatus im Shop
 
-Im Vanilo-Backend hat ein Kundenkonto einen von drei Status:
+Im Vanilo-Backend ist ein Kundenkonto aktiv oder deaktiviert:
 
 | Status | Anmeldung | Bestellung | „Passwort vergessen“ |
 |---|---|---|---|
 | Aktiv | ja | ja | ja |
-| Unverifiziert (Bestätigungslink nie angeklickt) | ja | ja | nein |
 | Deaktiviert | nein | nein | nein |
 
-„Deaktiviert“ entsteht nur durch einen Mitarbeiter des Kundenservice oder durch die Umstellung ab dem 3. November 2026. Dass bei unverifizierten Konten Anmeldung und Bestellung gehen, ist eine Besonderheit der Shopsoftware; „Passwort vergessen“ geht trotzdem nicht. Der Kundenservice kann ein unverifiziertes Konto für den Händler bestätigen (PROCEDURE-008), danach funktioniert „Passwort vergessen“. Am 2. November 2026 werden alle noch unverifizierten Konten von Hand auf „deaktiviert“ gesetzt; danach hat „unverifiziert“ für Fachhändler praktisch keine Bedeutung mehr.
+„Deaktiviert“ entsteht durch einen Mitarbeiter des Kundenservice oder durch die Umstellung: Am 2. November 2026 wurden alle noch unverifizierten (nicht aktivierten) Konten auf „deaktiviert“ gesetzt.
 
 # Aktivierung
 
-Ein übernommenes Konto muss aktiviert werden: beim ersten Login in den neuen Shop mit E-Mail-Adresse und bisherigem Passwort die E-Mail-Adresse per Link in einer Verifizierungsmail bestätigen. Der Shop leitet den Kunden dabei Schritt für Schritt. „Passwort vergessen“ ist über den Link auf der Login-Seite erreichbar.
+Bis zum 2. November 2026 mussten übernommene Konten per E-Mail-Bestätigung aktiviert werden; nicht aktivierte Konten wurden am 2. November 2026 gesperrt. „Passwort vergessen“ ist über den Link auf der Login-Seite erreichbar.
 
-Ein übernommenes, aber nicht aktiviertes Konto kann noch bis einschließlich 2. November 2026 aktiviert werden. Danach wird es gesperrt (siehe unten).
+# Kontosperrung am 2. November 2026
 
-# Erinnerung vom 19. Oktober 2026 und Kontosperrung ab 3. November 2026
+Am 19. Mai 2026 wurden die Händler über den neuen Shop informiert. Händler, deren übernommenes Konto noch nicht aktiviert war, haben am 19. Oktober 2026 eine zweite Mail bekommen. Darin stand:
 
-Am 19. Mai 2026 wurden die Händler über den neuen Shop informiert. Händler, deren übernommenes Konto noch nicht aktiviert war, haben am 19. Oktober 2026 eine zweite Mail bekommen:
-
-- Wer weiterhin als Fachhändler aktiv ist, soll das Konto aktivieren (einmalig unter fachhaendler.looxis.de mit den bisherigen Zugangsdaten anmelden und die E-Mail-Adresse bestätigen) und Rechnungs- und Lieferadresse prüfen. Änderungen der Rechnungsadresse per E-Mail mitteilen.
+- Wer weiterhin als Fachhändler aktiv ist, soll das Konto aktivieren und Rechnungs- und Lieferadresse prüfen. Änderungen der Rechnungsadresse per E-Mail mitteilen.
 - Login-Probleme melden an hello@looxis.com. Während des Weihnachtsgeschäfts können solche Probleme weiterhin geklärt werden, die Bearbeitung kann dann aber deutlich länger dauern.
 - Wer nicht mehr als Fachhändler aktiv ist, meldet das kurz per E-Mail, damit das nicht mehr benötigte Konto aus Sicherheitsgründen gelöscht werden kann.
-- Alle bis zum 2. November 2026 nicht aktivierten Konten werden aus Sicherheitsgründen ab dem 3. November gesperrt. Damit verfallen auch bisher vereinbarte Zahlungsmodalitäten. Eine spätere Freischaltung ist ausschließlich über den Kundenservice möglich.
 
-Ab dem 3. November 2026 gilt: Ein Login-Problem allein ist kein Grund, von einem gesperrten oder nicht übernommenen Konto zu sprechen. Zuerst gilt die Shop-Prüfung aus PLAYBOOK-032. Nicht übernommene oder gesperrte Konten betreffen nur Händler, die zuvor lange nicht aktiv waren, und das wird dem Händler nur gesagt, wenn die Prüfung in Vanilo es bestätigt (PLAYBOOK-032):
+Alle bis zum 2. November 2026 nicht aktivierten Konten wurden an diesem Tag aus Sicherheitsgründen gesperrt. Damit sind auch bisher vereinbarte Zahlungsmodalitäten verfallen. Eine Freischaltung ist ausschließlich über den Kundenservice möglich.
+
+Seit der Sperrung gilt: Ein Login-Problem allein ist kein Grund, von einem gesperrten oder nicht übernommenen Konto zu sprechen. Zuerst gilt die Shop-Prüfung aus PLAYBOOK-032. Nicht übernommene oder gesperrte Konten betreffen nur Händler, die zuvor lange nicht aktiv waren, und das wird dem Händler nur gesagt, wenn die Prüfung in Vanilo es bestätigt (PLAYBOOK-032):
 
 - **Nicht übernommen:** Er hat zuletzt vor Mai 2025 bestellt und auf Rückfragen zum Status (ob er noch aktiv ist) nicht reagiert.
 - **Gesperrt:** Er hat sein übernommenes Konto trotz zweifacher Bitte per E-Mail nicht aktiviert.
@@ -133,4 +128,4 @@ Ein deaktiviertes Konto wird nur nach Rücksprache mit dem Kunden wieder aktivie
 
 # Noch zu klären
 
-- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto neu anlegt oder löscht (die Reaktivierung steht in PROCEDURE-007, die Verifizierung in PROCEDURE-008). Welche Angaben ein bisher unbekannter Händler zusätzlich braucht, ist nicht festgelegt.
+- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto neu anlegt oder löscht (die Reaktivierung steht in PROCEDURE-007). Welche Angaben ein bisher unbekannter Händler zusätzlich braucht, ist nicht festgelegt.

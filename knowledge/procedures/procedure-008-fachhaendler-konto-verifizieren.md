@@ -2,9 +2,7 @@
 id: PROCEDURE-008
 title: Unverifiziertes Fachhändler-Kundenkonto für den Kunden verifizieren
 type: procedure
-status: draft
-trial_until: 2026-11-02
-trial_goal: "Nach dem 2. November 2026 prüfen, ob der Ablauf noch gebraucht wird; unverifizierte Konten werden dann deaktiviert, der Ablauf kann entfallen."
+status: deprecated
 actions:
   - account-verification
 customer_types:
@@ -28,6 +26,8 @@ related_knowledge:
   - POLICY-052
   - PROCEDURE-007
 ---
+
+**Seit 2. November 2026 veraltet:** Unverifizierte Konten wurden deaktiviert; Freischaltung nach PROCEDURE-007.
 
 Gilt nur für Foto-Fachhändler im Vertriebskanal `fachhaendler`, deren Konto im Shop den Status „unverifiziert“ hat, bis zur Umstellung am 2. November 2026.
 

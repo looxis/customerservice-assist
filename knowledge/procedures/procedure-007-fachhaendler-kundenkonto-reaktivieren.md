@@ -29,7 +29,6 @@ related_knowledge:
   - POLICY-042
   - POLICY-041
   - PROCESS-015
-  - PROCEDURE-008
 ---
 
 Gilt nur für Foto-Fachhändler im Vertriebskanal `fachhaendler`, deren Konto im Shop deaktiviert ist.
