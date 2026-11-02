@@ -2,6 +2,7 @@
 
 use App\Zammad\AttachmentStore;
 use App\Zammad\ZammadClient;
+use Dom\HTMLDocument;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -49,6 +50,18 @@ describe('ticket page', function () {
         expect(substr_count($html, 'x-data="imageViewer"'))->toBe(1);
         $this->get('/tickets/2137942')->assertSeeTextInOrder(['tasse.png', 'Ansehen', 'Herunterladen', 'foto.heic', 'Herunterladen', 'rechnung.pdf', 'Herunterladen']);
     });
+});
+
+test('the latest customer message shows its attachments below its scrolling text, always in sight', function () {
+    attachmentTicket();
+
+    $document = HTMLDocument::createFromString($this->get('/tickets/2137942')->assertOk()->getContent(), LIBXML_NOERROR);
+    $focus = $document->getElementById('kundennachricht');
+    $scrolling = $focus->querySelector('div.overflow-y-auto');
+
+    expect($focus->textContent)->toContain('tasse.png')->toContain('Ansehen')
+        ->and($scrolling->textContent)->not->toContain('tasse.png')
+        ->and(substr_count($focus->textContent, 'tasse.png'))->toBe(1);
 });
 
 describe('content type from Zammad', function () {

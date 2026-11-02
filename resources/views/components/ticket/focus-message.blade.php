@@ -16,7 +16,9 @@
             @endif
         </div>
         <div class="mt-3 max-h-[28rem] overflow-y-auto">
-            <x-ticket.article :ticket-number="$ticket->number" :article="$article" :translation="$article->id !== null ? ($translations[$article->id] ?? null) : null" :full="true" />
+            <x-ticket.article :ticket-number="$ticket->number" :article="$article" :translation="$article->id !== null ? ($translations[$article->id] ?? null) : null" :full="true" :with-attachments="false" />
         </div>
+        {{-- Below the scrolling text, so the attachments of a long mail are always in sight. --}}
+        <x-ticket.attachments :article="$article" :ticket-number="$ticket->number" />
     </section>
 @endif
