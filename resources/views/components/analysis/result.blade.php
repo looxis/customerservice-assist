@@ -70,7 +70,7 @@
                             @if ($entry['feedback'] ?? null)<x-badge compact tone="info">{{ config('analysis.feedback_levels.'.$entry['feedback']) }}</x-badge>@endif
                             @if ($entry['id'] === $result['id'])<span class="text-xs font-semibold text-brand-700">angezeigt</span>@endif
                             @if ($entry['removed'] === 'purged')<span class="text-xs text-slate-600">Inhalte nach 12 Monaten gelöscht</span>@endif
-                            @if ($entry['removed'] === 'deleted')<span class="text-xs text-slate-600">Inhalte gelöscht</span>@endif
+                            @if ($entry['removed'] === 'deleted' && ($admin || $advanced))<span class="text-xs text-slate-600">Inhalte gelöscht</span>@endif
                         </li>
                     @endforeach
                 </ul>

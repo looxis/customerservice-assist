@@ -228,7 +228,7 @@ describe('retention and deletion', function () {
         $this->travelTo(now()->setTimezone('Europe/Berlin')->setDate(2026, 10, 7)->setTime(8, 30));
         $this->withCookie('staff_name', 'Etienne')->delete(route('tickets.analyses.destroy', ['number' => '2137942']));
 
-        $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '0')->get('/tickets/2137942')->assertOk()->assertDontSeeText('Inhalte gelöscht von');
+        $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '0')->get('/tickets/2137942')->assertOk()->assertDontSeeText('Inhalte gelöscht');
         $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '1')->get('/tickets/2137942')->assertSeeText('Inhalte gelöscht von Etienne am 07.10.2026, 08:30 Uhr.');
         $this->withCookie('staff_name', 'Etienne')->withCookie('advanced_mode', '0')->get('/tickets/2137942')->assertSeeText('Inhalte gelöscht von Etienne');
     });
@@ -270,6 +270,9 @@ describe('qa additions', function () {
             ->assertSeeText('Nach dem Löschen.')
             ->assertDontSeeText('Inhalte gelöscht von')
             ->assertSeeTextInOrder(['Frühere Vorschläge (1)', 'Inhalte gelöscht']);
+        $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '0')->get('/tickets/2137942')
+            ->assertSeeText('Frühere Vorschläge (1)')
+            ->assertDontSeeText('Inhalte gelöscht');
     });
 
     test('a purged or deleted analysis cannot be opened or edited', function () {
