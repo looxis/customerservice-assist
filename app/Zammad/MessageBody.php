@@ -35,6 +35,12 @@ class MessageBody
 
     private const string BARE_LINK = '/(?:\bhttps?:\/\/|\bwww\.)[^\s<>"\'\x{00A0}]+/iu';
 
+    /**
+     * Stands in for an image embedded in the mail while the text is split (PROJ-60): afterwards the marks left in
+     * the new text say which embedded images are content; those in a quote or signature are logos or old images.
+     */
+    private const string IMAGE_MARK = '/\x{27E6}csa-image:(\d+)\x{27E7}/u';
+
     private const array QUOTE_MARKERS = ['js-signatureMarker', 'gmail_quote', 'moz-cite-prefix', 'divRplyFwdMsg', 'appendonsend', 'OutlookMessageHeader', 'yahoo_quoted'];
 
     /**
@@ -99,7 +105,7 @@ class MessageBody
 
     /**
      * @param  bool  $ours  Message written by us: our signature is hidden.
-     * @return array{body: HtmlString, quote: HtmlString|null, signature: HtmlString|null, order: OrderMention|null}
+     * @return array{body: HtmlString, quote: HtmlString|null, signature: HtmlString|null, order: OrderMention|null, images: list<int>, trailing_images: list<int>}
      */
     public function parse(?string $body, ?string $contentType, bool $ours = false): array
     {
@@ -117,13 +123,22 @@ class MessageBody
         }
 
         $quote = $quote === null ? '' : $this->sanitize($quote);
-        [$main, $signature] = $ours ? [$this->sanitize($main), null] : $this->splitSignature($this->sanitize($main));
+        $clean = $this->sanitize($main);
+        [$main, $signature, $closingAt] = $ours ? [$clean, null, null] : $this->splitSignature($clean);
+        // Images from the closing phrase on belong to the signature, also in the lines still shown (a logo below the
+        // name). Mobile mail apps put photos there too, at the very end: they are told apart by size later.
+        preg_match_all(self::IMAGE_MARK, $closingAt === null ? $main : substr($clean, 0, $closingAt), $images);
+        preg_match_all(self::IMAGE_MARK, $closingAt === null ? '' : substr($clean, $closingAt), $trailing);
+        [$main, $quote, $signature] = array_map(fn (?string $part): ?string => $part === null ? null : (string) preg_replace(self::IMAGE_MARK, '', $part), [$main, $quote, $signature]);
+        $signature = $signature !== null && trim(strip_tags($signature)) === '' ? null : $signature;
 
         return [
             'body' => new HtmlString($main),
             'quote' => trim(strip_tags($quote)) === '' ? null : new HtmlString($quote),
             'signature' => $signature === null ? null : new HtmlString($signature),
             'order' => $order,
+            'images' => array_values(array_unique(array_map('intval', $images[1]))),
+            'trailing_images' => array_values(array_unique(array_map('intval', $trailing[1]))),
         ];
     }
 
@@ -132,18 +147,20 @@ class MessageBody
      * after a closing phrase the next lines (name, company) stay visible and
      * the rest is the signature; a "--" line starts the signature directly.
      * Nothing is cut without message text before it or signature text after it.
+     * The third value is where the closing phrase (or the "--" line) starts, null without one.
      *
-     * @return array{0: string, 1: string|null}
+     * @return array{0: string, 1: string|null, 2: int|null}
      */
     private function splitSignature(string $html): array
     {
         $parts = preg_split('/(<br\s*\/?>|<\/?(?:div|p|h[1-6]|ul|ol|li|blockquote|pre|table|tr)\b[^>]*>)/iu', $html, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE) ?: [];
         $lines = array_values(array_filter(
-            array_map(fn (array $part): array => [trim(html_entity_decode(strip_tags($part[0]), ENT_QUOTES | ENT_HTML5), " \t\n\r\0\x0B\u{00A0}"), $part[1]], $parts),
+            array_map(fn (array $part): array => [trim((string) preg_replace(self::IMAGE_MARK, '', html_entity_decode(strip_tags($part[0]), ENT_QUOTES | ENT_HTML5)), " \t\n\r\0\x0B\u{00A0}"), $part[1]], $parts),
             fn (array $line): bool => $line[0] !== '',
         ));
         $closing = '/^(?:'.implode('|', $this->closings).')[\s,.!]*(?:[\p{L}][\p{L} .\'-]{0,30})?$/iu';
         $cut = null;
+        $closingAt = null;
 
         foreach ($lines as $index => [$text, $offset]) {
             if ($index === 0) {
@@ -151,26 +168,27 @@ class MessageBody
             }
 
             if (preg_match('/^--\s*$/u', $text) === 1) {
-                $cut = $offset;
+                $cut = $closingAt = $offset;
 
                 break;
             }
 
             if (mb_strlen($text) <= 60 && preg_match($closing, $text) === 1) {
                 $cut = $lines[$index + $this->signatureLines + 1][1] ?? null;
+                $closingAt = $offset;
 
                 break;
             }
         }
 
         if ($cut === null) {
-            return [$html, null];
+            return [$html, null, $closingAt];
         }
 
         $main = $this->tidyBlankLines($this->sanitizer()->sanitize(substr($html, 0, $cut)));
         $signature = $this->tidyBlankLines($this->sanitizer()->sanitize(substr($html, $cut)));
 
-        return trim(strip_tags($signature)) === '' ? [$html, null] : [$main, $signature];
+        return trim(strip_tags($signature)) === '' ? [$html, null, $closingAt] : [$main, $signature, $closingAt];
     }
 
     public function sanitize(string $html): string
@@ -294,6 +312,12 @@ class MessageBody
         if ($ours) {
             foreach (iterator_to_array($document->querySelectorAll('[data-signature]')) as $signature) {
                 $signature->remove();
+            }
+        }
+
+        foreach (iterator_to_array($document->querySelectorAll('img')) as $image) {
+            if (preg_match('#/ticket_attachment/\d+/\d+/(\d+)#', (string) $image->getAttribute('src'), $match) === 1) {
+                $image->replaceWith($document->createTextNode("\u{27E6}csa-image:{$match[1]}\u{27E7}"));
             }
         }
 

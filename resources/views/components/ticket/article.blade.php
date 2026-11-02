@@ -101,7 +101,7 @@
                 <li class="flex flex-wrap items-center gap-x-2">
                     <x-icon :name="$attachment->kindLabel() === 'Bild' ? 'image' : 'file'" size="16" class="text-slate-400" />
                     <span class="font-mono text-slate-900">{{ $attachment->filename }}</span>
-                    <span class="text-slate-600">{{ $attachment->kindLabel() }}, {{ $attachment->sizeLabel() }}</span>
+                    <span class="text-slate-600">{{ $attachment->kindLabel() }}{{ $attachment->embedded ? ' im Text' : '' }}, {{ $attachment->sizeLabel() }}</span>
                     @if ($attachment->id !== null && $article->id !== null && $ticketNumber !== null)
                         @php($attachmentUrl = route('tickets.attachments.show', ['number' => $ticketNumber, 'article' => $article->id, 'attachment' => $attachment->id]))
                         <span class="flex items-center gap-3">

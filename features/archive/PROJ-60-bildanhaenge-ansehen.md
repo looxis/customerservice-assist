@@ -158,3 +158,10 @@ Die Ticketseite zeigt zu einem Anhang nur Dateiname, Art und Größe und oben ei
 - **Security:** Pass
 - **Production Ready:** YES
 - **Recommendation:** Approved
+
+## Nachtrag 2026-11-02: Bilder im Mailtext
+Anlass: Ticket 2140175, der Kunde schickte die Bestellnummer nur als eingefügten Screenshot im Text (iPhone-Mail), CSA zeigte ihn nicht. Eingebettete Bilder waren bisher pauschal ausgeblendet (wegen Signatur-Logos). Jetzt erscheinen sie wie ein Anhang, mit „Bild im Text“, „Ansehen“ im vorhandenen Overlay und „Herunterladen“:
+- im neuen Text der Nachricht ab 10 KB;
+- ab der Grußformel (Signatur) erst ab 100 KB, denn mobile Mail-Apps setzen Fotos ans Mailende, Signatur-Logos waren in einer Stichprobe aus 80 echten Tickets höchstens 61 KB groß;
+- nie aus einem Zitat.
+Die Zuordnung entsteht beim Zerlegen der Mail (`MessageBody`): Jedes Bild wird vorübergehend durch eine Marke ersetzt, die nach dem Teilen in Text, Zitat und Signatur wieder entfernt wird. Damit gilt die Ausnahme „Bilder aus dem Text einer Mail“ aus „Nicht Teil dieses Features“ nur noch für Logos, Symbole und Zitate.

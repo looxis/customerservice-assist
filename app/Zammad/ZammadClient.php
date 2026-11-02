@@ -20,6 +20,12 @@ class ZammadClient
     /** Shortest text of ours (letters and digits only) that counts as quoted when it shows up again in a customer's message. */
     private const int ECHO_MIN_LENGTH = 60;
 
+    /** Embedded images below this size are icons (social media, spacers), not content (PROJ-60). */
+    private const int MIN_EMBEDDED_IMAGE_BYTES = 10_000;
+
+    /** Below the closing phrase only photos count: signature logos seen in real mails stayed below 65 KB. */
+    private const int MIN_TRAILING_IMAGE_BYTES = 100_000;
+
     /** The search stops delivering results here (Zammad's hard limit; PROJ-66). */
     public const int SEARCH_RESULT_LIMIT = 10000;
 
@@ -433,7 +439,7 @@ class ZammadClient
                 signature: $parsed['signature'],
                 id: isset($article['id']) ? (int) $article['id'] : null,
                 order: $parsed['order'],
-                attachments: $this->attachments($article['attachments'] ?? []),
+                attachments: $this->attachments($article['attachments'] ?? [], $parsed['images'], $parsed['trailing_images']),
                 channel: $type === '' ? null : (self::CHANNEL_LABELS[$type] ?? ucfirst($type)),
                 automatic: $sender === 'system',
                 type: $type === '' ? null : $type,
@@ -534,12 +540,16 @@ class ZammadClient
     }
 
     /**
-     * Real attachments only: without images embedded in the mail text (e.g.
-     * signature logos) and without Zammad's copy of the original mail.
+     * Real attachments only: without Zammad's copy of the original mail. An image embedded in the mail counts when
+     * it stands in the new text and is not a tiny icon (a screenshot with the order number, PROJ-60), or when it
+     * stands after the closing phrase and is as large as a photo (mobile mail apps put photos at the very end).
+     * Logos in a signature and images in a quote are left out.
      *
+     * @param  list<int>  $inlineImages  IDs of the images embedded in the new text of the message.
+     * @param  list<int>  $trailingImages  IDs of the images embedded from the closing phrase on.
      * @return list<TicketAttachment>
      */
-    private function attachments(mixed $attachments): array
+    private function attachments(mixed $attachments, array $inlineImages = [], array $trailingImages = []): array
     {
         $result = [];
 
@@ -555,11 +565,16 @@ class ZammadClient
 
             $originalMail = ! empty($preferences['content-alternative']) || ! empty($preferences['original-format']);
 
-            if ($originalMail || ($embedded && str_starts_with($contentType, 'image/'))) {
+            $id = (int) ($attachment['id'] ?? 0);
+            $size = (int) ($attachment['size'] ?? 0);
+            $inText = $embedded && ((in_array($id, $inlineImages, true) && $size >= self::MIN_EMBEDDED_IMAGE_BYTES)
+                || (in_array($id, $trailingImages, true) && $size >= self::MIN_TRAILING_IMAGE_BYTES));
+
+            if ($originalMail || ($embedded && str_starts_with($contentType, 'image/') && ! $inText)) {
                 continue;
             }
 
-            $result[] = new TicketAttachment((string) ($attachment['filename'] ?? 'Anhang'), $contentType, (int) ($attachment['size'] ?? 0), isset($attachment['id']) ? (int) $attachment['id'] : null);
+            $result[] = new TicketAttachment((string) ($attachment['filename'] ?? 'Anhang'), $contentType, (int) ($attachment['size'] ?? 0), isset($attachment['id']) ? (int) $attachment['id'] : null, embedded: $inText);
         }
 
         return $result;

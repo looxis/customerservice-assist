@@ -9,6 +9,7 @@ final readonly class TicketAttachment
         public string $contentType,
         public int $size,
         public ?int $id = null,
+        public bool $embedded = false,
     ) {}
 
     /**

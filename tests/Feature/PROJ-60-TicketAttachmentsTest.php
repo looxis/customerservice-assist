@@ -179,3 +179,68 @@ describe('purge', function () {
         expect(collect(app(Schedule::class)->events())->contains(fn ($event): bool => str_contains($event->command, 'attachments:purge')))->toBeTrue();
     });
 });
+
+describe('images embedded in the mail text', function () {
+    /**
+     * A customer mail as Zammad delivers it: images in the text point to the attachment, each attachment has a Content-ID.
+     */
+    function embeddedTicket(string $body, array $attachments): void
+    {
+        fakeZammad([zammadArticle(['id' => 900, 'body' => $body, 'attachments' => array_map(fn (array $file): array => [
+            'id' => $file[0], 'filename' => $file[1], 'size' => $file[2],
+            'preferences' => ['Content-Type' => 'image/png; name='.$file[1], 'Content-ID' => "{$file[0]}@mail", 'resizable' => true],
+        ], $attachments)])], extra: [
+            'zammad.test/api/v1/ticket_attachment/51234/900/41' => Http::response(base64_decode(PROJ60_PNG), 200, ['Content-Type' => 'image/png']),
+        ]);
+    }
+
+    function embeddedImage(int $id): string
+    {
+        return '<img src="/api/v1/ticket_attachment/51234/900/'.$id.'?view=inline">';
+    }
+
+    test('a screenshot in the new text is offered like an attachment, with "Ansehen" in the viewer', function () {
+        embeddedTicket('<div>Hier meine Bestellung:</div><div>'.embeddedImage(41).'</div>', [[41, 'image0.png', 819227]]);
+
+        $this->get('/tickets/2137942')->assertOk()
+            ->assertSeeTextInOrder(['image0.png', 'Bild im Text', 'Ansehen', 'Herunterladen'])
+            ->assertSee(e(attachmentUrl(900, 41, '?download=1')), false);
+        $this->withCookie('staff_name', 'Nele')->get(attachmentUrl(900, 41))->assertOk()->assertHeader('Content-Type', 'image/png');
+    });
+
+    test('an image only in the mail, without any text, is offered too', function () {
+        embeddedTicket('<div>'.embeddedImage(41).'</div>', [[41, 'image0.png', 819227]]);
+
+        expect(app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments)->toHaveCount(1);
+    });
+
+    test('logos in the signature, images in a quote and small icons stay out', function () {
+        embeddedTicket(
+            '<div>Die Box ist kaputt.</div><div>'.embeddedImage(44).'</div><div>Mit freundlichen Grüßen</div><div>Erika Beispiel</div><div>'.embeddedImage(42).'</div>'
+            .'<div class="gmail_quote">Am 01.10.2026 schrieb LOOXIS:<blockquote>Alte Nachricht '.embeddedImage(43).'</blockquote></div>',
+            [[42, 'logo.png', 59181], [43, 'alt.png', 150666], [44, 'icon.png', 964]],
+        );
+
+        $ticket = app(ZammadClient::class)->ticket('2137942');
+
+        expect($ticket->articles[0]->attachments)->toBe([]);
+    });
+
+    test('photos a mobile mail app puts below the signature are offered, the logo there is not', function () {
+        embeddedTicket(
+            '<div>Die Box ist kaputt.</div><div>Mit freundlichen Grüßen</div><div>Erika Beispiel</div><div>Musterweg 1</div><div>'.embeddedImage(42).embeddedImage(41).'</div>',
+            [[41, 'image0.png', 819227], [42, 'logo.png', 59181]],
+        );
+
+        $attachments = app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments;
+
+        expect(array_map(fn ($file): string => $file->filename, $attachments))->toBe(['image0.png'])
+            ->and($attachments[0]->embedded)->toBeTrue();
+    });
+
+    test('the mark never shows in the text', function () {
+        embeddedTicket('<div>Hier meine Bestellung:</div><div>'.embeddedImage(41).'</div>', [[41, 'image0.png', 819227]]);
+
+        $this->get('/tickets/2137942')->assertOk()->assertDontSee('csa-image')->assertDontSee("\u{27E6}");
+    });
+});
