@@ -10,7 +10,7 @@ categories:
 topics:
   - replacement
   - clear-communication
-summary: "Sagt der Kundenservice einem Kunden eine kostenfreie Neuproduktion mit Ersatzversand zu, nennt die Antwort zusätzlich, dass das neu produzierte Produkt voraussichtlich heute noch verschickt wird und unter welcher Nummer der Auftrag bei LOOXIS läuft. Gilt nicht, wenn keine Neuproduktion zugesagt wird."
+summary: "Sagt der Kundenservice einem Kunden eine kostenfreie Neuproduktion mit Ersatzversand zu, nennt die Antwort zusätzlich, dass das neu produzierte Produkt voraussichtlich heute noch verschickt wird und unter welcher Nummer der Auftrag bei LOOXIS läuft. Gilt nicht, wenn keine Neuproduktion zugesagt wird, und nicht, wenn der Kunde das Produkt zuerst zurücksenden muss: Dann stehen Versandtermin und Nummer noch nicht fest."
 retrieval: binding
 triggers:
 exclude_triggers:
@@ -31,7 +31,7 @@ Der Kunde erfährt, dass die Neuproduktion läuft, wann sie voraussichtlich vers
 
 # Pflichtinhalt der Antwort
 
-Wird dem Kunden eine kostenfreie Neuproduktion mit Ersatzversand zugesagt, steht in der Antwort ein Satz nach diesem Muster:
+Wird dem Kunden eine kostenfreie Neuproduktion mit Ersatzversand zugesagt und ohne vorherige Rücksendung produziert, steht in der Antwort ein Satz nach diesem Muster:
 
 „Die neue Tasse wird voraussichtlich heute noch verschickt, der Auftrag läuft bei uns unter der Nummer [REKLAMATIONSNUMMER].“
 
@@ -39,7 +39,14 @@ Statt „Die neue Tasse“ den passenden Ausdruck für das Produkt einsetzen, zu
 
 Die Nummer des Reklamationsauftrags (Aufbau R1-… oder R2-… vor der Bestellnummer) steht erst fest, wenn der Mitarbeiter den Auftrag in EOCS gespeichert hat (PROCEDURE-005). Deshalb steht im Entwurf der Platzhalter [REKLAMATIONSNUMMER], den der Mitarbeiter vor dem Kopieren oder Senden ersetzt. Die Nummer wird nicht geraten.
 
+# Ausnahme: zuerst Rücksendung
+
+Muss der Kunde das Produkt zuerst zurücksenden und LOOXIS produziert oder repariert erst nach dem Eingang, entfällt der Satz mit Versandtermin und Reklamationsnummer, auch als Platzhalter. Stattdessen:
+
+„Sobald Ihre Rücksendung bei uns eingegangen ist, kümmern wir uns um den Ersatz und melden uns dann bei Ihnen.“
+
 # Vermeiden
 
 - Eine Nummer erfinden oder aus der Bestellnummer ableiten.
 - Den Satz verwenden, wenn keine Neuproduktion zugesagt wird, zum Beispiel bei einer reinen Erstattung.
+- Bei vorheriger Rücksendung einen Versandtermin, [LIEFERTERMIN] oder [REKLAMATIONSNUMMER] nennen.
