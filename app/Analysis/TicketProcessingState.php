@@ -16,11 +16,15 @@ use Illuminate\Database\Eloquent\Builder;
 class TicketProcessingState
 {
     /**
-     * The state of one customer message, from the real analyses based on exactly that message.
+     * The state of one customer message, from the real analyses based on exactly that message. Proposals an admin
+     * deleted no longer count, and neither do failures from before such a deletion: it starts the ticket afresh.
      */
     public function resolve(string $number, ?int $articleId): ProcessingState
     {
+        $deletedAt = Analysis::query()->where('ticket_number', $number)->max('content_deleted_at');
         $statuses = $this->realAnalyses($number)
+            ->whereNull('content_deleted_at')
+            ->when($deletedAt !== null, fn (Builder $query) => $query->where('created_at', '>', $deletedAt))
             ->when($articleId === null, fn (Builder $query) => $query->whereNull('based_on_article_id'), fn (Builder $query) => $query->where('based_on_article_id', $articleId))
             ->distinct()->pluck('status')->all();
 
@@ -43,7 +47,7 @@ class TicketProcessingState
             return $state;
         }
 
-        $earlier = $this->realAnalyses($number)->whereNull('based_on_article_id')->where('status', 'completed')->where('created_at', '>=', $articleAt)->exists();
+        $earlier = $this->realAnalyses($number)->whereNull('based_on_article_id')->whereNull('content_deleted_at')->where('status', 'completed')->where('created_at', '>=', $articleAt)->exists();
 
         return $earlier ? ProcessingState::Analyzed : ProcessingState::NotAnalyzed;
     }
@@ -63,6 +67,21 @@ class TicketProcessingState
             ->where('number', $number)
             ->when($basedOnArticleId === null, fn (Builder $query) => $query->whereNull('last_customer_article_id'), fn (Builder $query) => $query->where('last_customer_article_id', $basedOnArticleId))
             ->update(['processing_state' => $this->resolve($number, $basedOnArticleId)->value, 'processed_article_id' => $basedOnArticleId]);
+    }
+
+    /**
+     * Calculate the state of a ticket again for its current customer message, after its proposals were deleted.
+     */
+    public function refresh(string $number): void
+    {
+        $ticket = TrackedTicket::query()->where('number', $number)->first();
+
+        if ($ticket === null) {
+            return;
+        }
+
+        $state = $this->resolve($number, $ticket->last_customer_article_id);
+        $ticket->update(['processing_state' => $state, 'processed_article_id' => $state === ProcessingState::NotAnalyzed ? null : $ticket->last_customer_article_id]);
     }
 
     /**

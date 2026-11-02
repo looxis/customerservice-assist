@@ -755,6 +755,24 @@ describe('the processing state belongs to one customer message', function () {
         expect($ticket->last_customer_article_id)->toBe(9001)->and($ticket->processing_state)->toBe(ProcessingState::Analyzed);
     });
 
+    test('deleting the proposals of a ticket sets it back to not analysed, a new analysis counts again', function () {
+        TrackedTicket::factory()->create(['number' => '2140500', 'last_customer_article_id' => 9001]);
+        intakeAnalysis($this->store, 9001);
+        $this->store->putFailure('2140500', '2140500', 'Nele', 'model', 'Timeout', 10, 9001);
+        expect(TrackedTicket::query()->first()->processing_state)->toBe(ProcessingState::Analyzed);
+
+        $this->travel(1)->minutes();
+        $this->store->deleteTicket('2140500', 'Etienne');
+
+        $ticket = TrackedTicket::query()->first();
+        expect($ticket->processing_state)->toBe(ProcessingState::NotAnalyzed)->and($ticket->processed_article_id)->toBeNull();
+
+        $this->travel(1)->minutes();
+        intakeAnalysis($this->store, 9001);
+
+        expect(TrackedTicket::query()->first()->processing_state)->toBe(ProcessingState::Analyzed);
+    });
+
     test('test runs and questions never change the state', function () {
         TrackedTicket::factory()->create(['number' => '2140500', 'last_customer_article_id' => 9001]);
 

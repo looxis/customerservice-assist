@@ -491,6 +491,7 @@ class AnalysisStore
         TicketSummary::query()->where('ticket_number', $ticketNumber)->delete();
         TicketCaseChoice::query()->where('ticket_number', $ticketNumber)->delete();
         MessageTranslation::query()->where('ticket_number', $ticketNumber)->delete();
+        rescue(fn () => app(TicketProcessingState::class)->refresh($ticketNumber));
     }
 
     /**
