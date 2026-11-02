@@ -62,6 +62,7 @@ Ein Fachhändler kommt nicht in den Fachhändler-Shop: Anmeldung oder Passwort w
 
 - In fast allen Fällen falscher Shop: Anmeldung auf www.looxis.de oder im abgeschalteten alten Shop reseller.looxis.de statt auf fachhaendler.looxis.de. Davon zunächst immer ausgehen.
 - Passwort vergessen oder falsche E-Mail-Adresse.
+- Groß- und Kleinschreibung der E-Mail-Adresse weicht ab: Im Online-Shop (Vanilo, gilt für looxis.de und fachhaendler.looxis.de) muss die E-Mail-Adresse bei der Anmeldung und bei „Passwort vergessen“ genau so geschrieben sein wie im Kundenkonto hinterlegt, auch in Groß- und Kleinschreibung. In E-Mail-Programmen und auf Mailservern spielt die Schreibweise dagegen grundsätzlich keine Rolle, deshalb fällt der Unterschied Kunden oft nicht auf.
 - Konto deaktiviert (durch einen Mitarbeiter des Kundenservice oder bei der Umstellung am 2. November 2026 für nicht aktivierte Konten): Weder Anmeldung noch Bestellung noch „Passwort vergessen“ sind möglich. Auf „Passwort vergessen“ kann dann „E-Mail nicht bekannt“ erscheinen.
 - Konto war inaktiv (keine Bestellung in den letzten 12 Monaten) und wurde nicht übernommen.
 - Der Händler war bisher nicht Kunde.
@@ -71,7 +72,7 @@ Ein Fachhändler kommt nicht in den Fachhändler-Shop: Anmeldung oder Passwort w
 1. Ruft der Händler wirklich fachhaendler.looxis.de auf, und sieht er oben links das Logo „looxis reseller“? Das ist **immer** die erste Frage, bevor am Konto etwas geprüft wird. Sie wird nur einmal gestellt: Hat der Händler nach diesem Hinweis geschrieben, dass es trotzdem nicht geht, oder war er laut Mitarbeiter im richtigen Shop, geht es mit der Prüfung des Kontos weiter.
 2. Mit welcher E-Mail-Adresse meldet er sich an?
 3. Hat er schon im neuen Shop bestellt (Bestellung im Kanal fachhaendler.looxis.de, im Fall sichtbar oder vom Mitarbeiter genannt)? Dann war sein Konto aktiviert und wurde nicht bei der Umstellung gesperrt.
-4. Bleibt es nach dem Hinweis auf den richtigen Shop beim Problem: Kontostatus in Vanilo prüfen (aktiv, deaktiviert, kein Konto). Das macht der Kundenservice intern: im Vanilo-Backend unter CRM → Customers nach der E-Mail-Adresse des Kunden suchen oder direkt https://looxis.de/manage/shopper?email=[E-Mail-Adresse des Kunden] aufrufen. Diese Adresse nie dem Kunden nennen. Ist die E-Mail-Adresse unklar, beim Händler erfragen.
+4. Bleibt es nach dem Hinweis auf den richtigen Shop beim Problem: Kontostatus in Vanilo prüfen (aktiv, deaktiviert, kein Konto). Das macht der Kundenservice intern: im Vanilo-Backend unter CRM → Customers nach der E-Mail-Adresse des Kunden suchen oder direkt https://looxis.de/manage/shopper?email=[E-Mail-Adresse des Kunden] aufrufen. Diese Adresse nie dem Kunden nennen. Dabei die hinterlegte E-Mail-Adresse mit der verwendeten vergleichen, auch in Groß- und Kleinschreibung. Ist die E-Mail-Adresse unklar, beim Händler erfragen.
 
 # Empfohlene Maßnahme
 

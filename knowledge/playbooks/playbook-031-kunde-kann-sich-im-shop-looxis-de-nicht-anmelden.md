@@ -50,11 +50,12 @@ Der Kunde kommt nicht in sein Kundenkonto, weiß sein Passwort nicht mehr oder s
 - Das Konto stammt aus der Zeit vor dem 03.06.2024 und wurde bei der Umstellung nicht übernommen (POLICY-051).
 - Das Konto wurde nie aktiviert (weder durch eine Bestellung noch durch den Klick auf den Link in der Bestätigungsmail).
 - Falsche E-Mail-Adresse.
+- Groß- und Kleinschreibung der E-Mail-Adresse weicht ab: Im Online-Shop (Vanilo, gilt für looxis.de und fachhaendler.looxis.de) muss die E-Mail-Adresse bei der Anmeldung und bei „Passwort vergessen“ genau so geschrieben sein wie im Kundenkonto hinterlegt, auch in Groß- und Kleinschreibung. In E-Mail-Programmen und auf Mailservern spielt die Schreibweise dagegen grundsätzlich keine Rolle, deshalb fällt der Unterschied Kunden oft nicht auf.
 
 # Zu prüfen
 
 1. Mit welcher E-Mail-Adresse versucht der Kunde sich anzumelden?
-2. Gibt es zu dieser Adresse ein Kundenkonto im Backend des Online-Shops? Der Agent kann es anhand der E-Mail-Adresse dort finden.
+2. Gibt es zu dieser Adresse ein Kundenkonto im Backend des Online-Shops? Der Agent kann es anhand der E-Mail-Adresse dort finden. Dabei die hinterlegte E-Mail-Adresse mit der verwendeten vergleichen, auch in Groß- und Kleinschreibung.
 
 # Empfohlene Maßnahme
 
