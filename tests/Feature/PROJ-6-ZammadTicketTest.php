@@ -699,6 +699,28 @@ describe('attachments', function () {
             ->assertDontSeeText('message.html')
             ->assertSeeText('2 Anhänge – in Zammad ansehen');
     });
+
+    test('the analysis context names the subject and what each message has attached, without file names', function () {
+        fakeZammad([
+            zammadArticle(['id' => 1, 'body' => '<p>Anbei die Fotos.</p>', 'attachments' => [
+                ['filename' => 'IMG_0001.jpg', 'size' => '2048', 'preferences' => ['Content-Type' => 'image/jpeg']],
+                ['filename' => 'IMG_0002.jpg', 'size' => '2048', 'preferences' => ['Content-Type' => 'image/jpeg']],
+                ['filename' => 'rechnung.pdf', 'size' => '2048', 'preferences' => ['Content-Type' => 'application/pdf']],
+            ]]),
+            zammadArticle(['id' => 2, 'sender' => 'Agent', 'from' => 'LOOXIS <mail@looxis.com>', 'body' => '<p>Danke für die Fotos.</p>', 'created_at' => '2026-10-02T07:12:00.000Z']),
+            zammadArticle(['id' => 3, 'body' => '<p>Sie sehen den Schaden auf den Fotos.</p>', 'created_at' => '2026-10-03T07:12:00.000Z']),
+        ], ['title' => '[Unzustellbar] Nachricht zu groß']);
+
+        $context = new TicketContext(app(ZammadClient::class)->ticket('2137942'));
+
+        expect($context->text(ContextVariant::FullThread))
+            ->toStartWith("Betreff des Tickets: [Unzustellbar] Nachricht zu groß\n\n")
+            ->toContain("– Anhänge: 2 Bilder, 1 PDF\nAnbei die Fotos.")
+            ->toContain("– ohne Anhang\nSie sehen den Schaden auf den Fotos.")
+            ->not->toContain("ohne Anhang\nDanke für die Fotos.")
+            ->not->toContain('IMG_0001')
+            ->and($context->text(ContextVariant::LastMessage))->toMatch("/### Letzte Kundennachricht – [^\n]+ – ohne Anhang\nSie sehen/u");
+    });
 });
 
 describe('errors', function () {

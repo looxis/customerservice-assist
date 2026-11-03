@@ -2,7 +2,7 @@
 
 ## Status: Approved
 **Created:** 2026-10-17
-**Last Updated:** 2026-10-17
+**Last Updated:** 2026-11-03
 
 ## Dependencies
 - Requires: PROJ-6 (Ticketverlauf), PROJ-9 (Analyse, Zusammenfassung), PROJ-32 (Testmodus).
@@ -15,6 +15,7 @@ Auf beantworteten Tickets ging unsere Antwort mit in die Analyse; um sie wegzula
 - **Der Testmodus bleibt** für das Zurückspulen auf eine frühere Kundennachricht (Admin, „bis hierhin testen“).
 - **Zusammenfassung:** Das Angebot erscheint erst ab 5 Nachrichten (Kunde und wir) bis zur letzten Kundennachricht: „Mindestens 5 Nachrichten im Verlauf (n vorhanden)“ mit „Zusammenfassung erstellen“. Eine vorhandene Zusammenfassung wird immer angezeigt; kommen weitere Nachrichten, steht „Weitere Nachrichten sind vorhanden, die Zusammenfassung ist veraltet.“ mit „Zusammenfassung neu erstellen“. Die Empfehlung „Letzte Kundennachricht + Zusammenfassung“ gilt ab 5 Nachrichten (die Längenregel entfällt).
 - Der Hinweis „Seit diesem Vorschlag sind neue Nachrichten eingegangen“ zählt unsere Antworten nicht.
+- **Betreff und Anhänge (2026-11-03):** Der Ticketverlauf für die KI beginnt mit „Betreff des Tickets: …“. Jede Nachricht nennt im Kopf ihre Anhänge nach Art und Anzahl („Anhänge: 2 Bilder, 1 PDF“, ohne Dateinamen); Kundennachrichten ohne Anhang tragen „ohne Anhang“. So erkennt die KI, wenn ein Kunde Fotos erwähnt, die nicht angekommen sind (Anlass: Tickets mit Betreff „[Unzustellbar] Nachricht zu groß“, Wissen in PLAYBOOK-047). Der Fingerabdruck der Zusammenfassung bleibt ohne Anhänge, vorhandene Zusammenfassungen veralten dadurch nicht.
 
 ## Acceptance Criteria
 - [x] Eine Anfrage und eine Antwort: Analyse und neue Analyse enthalten nur die Anfrage, ohne Testmodus.
@@ -27,4 +28,5 @@ Auf beantworteten Tickets ging unsere Antwort mit in die Analyse; um sie wegzula
 ## Implementation Notes
 - `TicketContext` bestimmt den berücksichtigten Verlauf (`considered`), `ignoredAfterLastCustomerMessage()`, `messageCount()`, `lastConsidered()`; `config('analysis.summary_threshold.messages')` = 5 (die Längenregel wurde entfernt).
 - `AnalysisPanel` (`summaryOffered`, `ignoredReplies`, `messageCount`, Prüfung auf neue Nachrichten), `CaseAnalyzer` (letzte berücksichtigte Nachricht im Protokoll), Blade `analysis/summary` und `analysis/form`.
+- `TicketContext::text()` setzt den Betreff voran, `attachments()` ergänzt den Nachrichtenkopf; `earlierFingerprint()` rechnet ohne Anhänge. Test in `PROJ-6-ZammadTicketTest` (attachments).
 - Tests: `PROJ-48-ThreadForAnalysisTest` (14); angepasst: PROJ-9 (Schwellen, veraltete Zusammenfassung), PROJ-32 (Schnittstelle ohne Testmodus).

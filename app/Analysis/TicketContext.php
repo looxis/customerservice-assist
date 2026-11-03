@@ -5,6 +5,7 @@ namespace App\Analysis;
 use App\Zammad\ArticleKind;
 use App\Zammad\Ticket;
 use App\Zammad\TicketArticle;
+use App\Zammad\TicketAttachment;
 
 /**
  * The parts of a ticket that can go to the language model, built from the
@@ -106,7 +107,7 @@ class TicketContext
      */
     public function earlierFingerprint(): string
     {
-        return hash('sha256', implode("\n---\n", array_map(fn (TicketArticle $article): string => $this->message($article), $this->earlier)));
+        return hash('sha256', implode("\n---\n", array_map(fn (TicketArticle $article): string => $this->message($article, withAttachments: false), $this->earlier)));
     }
 
     public function earlierUntil(): ?string
@@ -129,8 +130,9 @@ class TicketContext
     {
         $all = array_map(fn (TicketArticle $article): string => $this->message($article), $this->considered);
         $last = $this->lastCustomerMessage === null ? null : $this->message($this->lastCustomerMessage, 'Letzte Kundennachricht');
+        $subject = trim($this->ticket->title) === '' ? '' : 'Betreff des Tickets: '.trim($this->ticket->title)."\n\n";
 
-        return match (true) {
+        return $subject.match (true) {
             $variant === ContextVariant::FullThread || $last === null => "## Verlauf (älteste Nachricht zuerst)\n\n".implode("\n\n", $all),
             $variant === ContextVariant::LastMessage => $last,
             default => "## Zusammenfassung des bisherigen Verlaufs\n\n".trim((string) $summary)."\n\n".$last,
@@ -151,14 +153,36 @@ class TicketContext
         ];
     }
 
-    private function message(TicketArticle $article, ?string $title = null): string
+    /**
+     * One message with its header. The fingerprint of the earlier thread leaves the attachments out, so
+     * summaries made before attachments were named stay current.
+     */
+    private function message(TicketArticle $article, ?string $title = null, bool $withAttachments = true): string
     {
         $header = ($title ?? 'Nachricht').' – '.$article->kind->label()
             .' – '.$article->createdAt->format('d.m.Y, H:i')
             .($article->kind === ArticleKind::Internal ? ' – INTERN, nicht für den Kunden' : '')
-            .($article->channel ? " – {$article->channel}" : '');
+            .($article->channel ? " – {$article->channel}" : '')
+            .($withAttachments ? self::attachments($article) : '');
 
         return "### {$header}\n".self::plainText($article);
+    }
+
+    /**
+     * What is attached, by kind ("Anhänge: 2 Bilder, 1 PDF"), so the model sees when a customer mentions photos
+     * that never arrived. Only customer messages say "ohne Anhang"; the app never sees the content.
+     */
+    private static function attachments(TicketArticle $article): string
+    {
+        if ($article->attachments === []) {
+            return $article->kind === ArticleKind::Customer ? ' – ohne Anhang' : '';
+        }
+
+        $plurals = ['Bild' => 'Bilder', 'PDF' => 'PDFs', 'Video' => 'Videos', 'Dokument' => 'Dokumente', 'Tabelle' => 'Tabellen', 'Datei' => 'Dateien'];
+        $counts = array_count_values(array_map(fn (TicketAttachment $attachment): string => $attachment->kindLabel(), $article->attachments));
+        $parts = array_map(fn (string $kind, int $count): string => $count.' '.($count === 1 ? $kind : ($plurals[$kind] ?? $kind)), array_keys($counts), $counts);
+
+        return ' – Anhänge: '.implode(', ', $parts);
     }
 
     /**
