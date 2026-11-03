@@ -400,7 +400,7 @@ class AnalysisController extends Controller
         $files = $this->outgoingFiles($request);
 
         try {
-            $sent = $sender->send($token, new OutgoingReply($ticket->id, $target->to, $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'close' ? null : ReplyDelivery::reminderDate($days), $files));
+            $sent = $sender->send($token, new OutgoingReply($ticket->id, trim((string) $request->validated('to')), $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'close' ? null : ReplyDelivery::reminderDate($days), $files));
         } catch (ReplyException $exception) {
             if ($exception->problem->notSent()) {
                 $store->releaseReplySend($analysis);

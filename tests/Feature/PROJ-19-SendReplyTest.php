@@ -79,7 +79,7 @@ function sendAnalysis(string $reply = 'Guten Tag, wir prüfen das.', string $sta
 function sendReply(string $id, array $fields = [], string $staff = 'Nele'): TestResponse
 {
     return test()->withCredentials()->withCookie('staff_name', $staff)->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => $id]), [
-        'subject' => 'Re: Motiv erscheint nicht', 'text' => 'Guten Tag, wir prüfen das.', 'signature' => "Mit freundlichen Grüßen\nNele Gorka\nLOOXIS GmbH", 'after' => 'close', ...$fields,
+        'to' => 'erika@example.org', 'subject' => 'Re: Motiv erscheint nicht', 'text' => 'Guten Tag, wir prüfen das.', 'signature' => "Mit freundlichen Grüßen\nNele Gorka\nLOOXIS GmbH", 'after' => 'close', ...$fields,
     ]);
 }
 
@@ -134,9 +134,24 @@ describe('the offer', function () {
         expect($target->to)->toBe('kontakt@xn--autoschlssel-klb.de');
 
         $id = sendAnalysis();
-        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('Antwort versenden')->assertSeeText('kontakt@xn--autoschlssel-klb.de');
-        sendReply($id, ['subject' => 'Re: Frage'])->assertOk();
+        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('Antwort versenden')->assertSee('kontakt@xn--autoschlssel-klb.de');
+        sendReply($id, ['to' => 'kontakt@xn--autoschlssel-klb.de', 'subject' => 'Re: Frage'])->assertOk();
         expect(putRequests()[0]['article']['to'])->toBe('kontakt@xn--autoschlssel-klb.de');
+    });
+
+    test('the employee can change the recipient, for example for contact forms', function () {
+        $id = sendAnalysis();
+        sendReply($id, ['to' => 'kunde@example.com'])->assertOk();
+
+        expect(putRequests()[0]['article']['to'])->toBe('kunde@example.com');
+    });
+
+    test('a missing or invalid recipient is refused', function () {
+        $id = sendAnalysis();
+
+        sendReply($id, ['to' => 'kein-mail'])->assertUnprocessable()->assertJsonValidationErrors('to');
+        sendReply($id, ['to' => ''])->assertUnprocessable()->assertJsonValidationErrors('to');
+        expect(putRequests())->toBe([]);
     });
 
     test('an address that is not valid even as Punycode is still refused', function () {
@@ -223,10 +238,10 @@ describe('sending', function () {
         expect(putRequests())->toBe([]);
     });
 
-    test('markup in the text is sent as plain text and the recipient cannot be set by the form', function () {
+    test('markup in the text is sent as plain text', function () {
         $id = sendAnalysis();
 
-        sendReply($id, ['text' => '<script>alert(1)</script> Hallo', 'to' => 'boese@example.org'])->assertOk();
+        sendReply($id, ['text' => '<script>alert(1)</script> Hallo'])->assertOk();
 
         $article = putRequests()[0]['article'];
         expect($article['to'])->toBe('erika@example.org')->and($article['content_type'])->toBe('text/plain')->and($article['body'])->toContain('<script>alert(1)</script> Hallo');
@@ -395,7 +410,7 @@ describe('QA: edges and attacks', function () {
         $id = sendAnalysis();
         $this->defaultCookies = [];
 
-        test()->withCredentials()->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => $id]), ['subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(409);
+        test()->withCredentials()->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => $id]), ['to' => 'erika@example.org', 'subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(409);
 
         expect($this->putCalls)->toBe(0);
     });
@@ -403,8 +418,8 @@ describe('QA: edges and attacks', function () {
     test('a suggestion cannot be sent through the address of another ticket or an unknown id', function () {
         $id = sendAnalysis();
 
-        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.send', ['number' => '2199999', 'analysis' => $id]), ['subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(404);
-        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => (string) Str::uuid()]), ['subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(404);
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.send', ['number' => '2199999', 'analysis' => $id]), ['to' => 'erika@example.org', 'subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(404);
+        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => (string) Str::uuid()]), ['to' => 'erika@example.org', 'subject' => 'Re: x', 'text' => 'Hallo', 'after' => 'close'])->assertStatus(404);
 
         expect($this->putCalls)->toBe(0);
     });
@@ -448,7 +463,7 @@ const PROJ61_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8
 function sendWithFiles(string $id, array $files, array $fields = []): TestResponse
 {
     return test()->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.send', ['number' => '2137942', 'analysis' => $id]), [
-        'subject' => 'Re: Motiv erscheint nicht', 'text' => 'Guten Tag, wir prüfen das.', 'signature' => 'Mit freundlichen Grüßen', 'after' => 'close', 'files' => $files, ...$fields,
+        'to' => 'erika@example.org', 'subject' => 'Re: Motiv erscheint nicht', 'text' => 'Guten Tag, wir prüfen das.', 'signature' => 'Mit freundlichen Grüßen', 'after' => 'close', 'files' => $files, ...$fields,
     ], ['Accept' => 'application/json']);
 }
 

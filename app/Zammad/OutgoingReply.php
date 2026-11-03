@@ -5,7 +5,7 @@ namespace App\Zammad;
 use Carbon\CarbonImmutable;
 
 /**
- * The reply to hand to Zammad (PROJ-19). The recipient comes from the ticket on the server, never from the form.
+ * The reply to hand to Zammad (PROJ-19). The recipient is pre-filled from the ticket and may be changed by the employee.
  */
 final readonly class OutgoingReply
 {

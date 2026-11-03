@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /**
- * "Antwort versenden" (PROJ-19). The recipient is not part of it: it is read from the ticket on the server.
+ * "Antwort versenden" (PROJ-19). The recipient is pre-filled from the ticket on the server; the employee may change it (for example contact forms, where the sender of the mail is not the customer).
  */
 class SendReplyRequest extends FormRequest
 {
@@ -24,6 +24,7 @@ class SendReplyRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'to' => ['required', 'string', 'max:254', 'email:rfc'],
             'subject' => ['required', 'string', 'max:300', 'regex:/^[^\x00-\x1F\x7F]*$/u'],
             'text' => ['required', 'string', 'max:'.config('analysis.max_reply_length')],
             'signature' => ['nullable', 'string', 'max:600'],
@@ -59,6 +60,8 @@ class SendReplyRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'to.required' => 'Bitte eine Empfängeradresse eingeben.',
+            'to.email' => 'Die Empfängeradresse ist keine gültige E-Mail-Adresse.',
             'subject.required' => 'Bitte einen Betreff eingeben.',
             'subject.regex' => 'Der Betreff darf keine Zeilenumbrüche oder Steuerzeichen enthalten.',
             'text.required' => 'Der Antworttext ist leer.',

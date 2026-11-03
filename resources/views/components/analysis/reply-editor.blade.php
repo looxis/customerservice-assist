@@ -39,6 +39,7 @@
             }
         },
         send: {
+            to: @js($send['to'] ?? ''),
             subject: @js($send['subject'] ?? ''),
             signature: @js($send['signature'] ?? ''),
             after: 'close',
@@ -111,6 +112,7 @@
             if (! confirmNewer) { this.send.newer = '' }
             try {
                 const form = new FormData();
+                form.append('to', this.send.to);
                 form.append('subject', this.send.subject);
                 form.append('text', this.text);
                 form.append('signature', this.send.signature);
@@ -281,7 +283,10 @@
             @if ($send['state'] === 'ready')
                 <div x-show="! send.sent" class="space-y-3">
                     <h3 class="text-sm font-semibold text-slate-900">Antwort versenden</h3>
-                    <p class="text-sm text-slate-700"><span class="font-medium">An:</span> {{ $send['to'] }}</p>
+                    <div>
+                        <label for="send-to" class="block text-sm font-medium text-slate-900">An <span class="font-normal text-slate-600">(aus dem Ticket vorbelegt, bei Bedarf ändern, z. B. bei Kontaktformularen)</span></label>
+                        <input id="send-to" type="email" x-model="send.to" maxlength="254" autocomplete="off" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                    </div>
                     <div>
                         <label for="send-subject" class="block text-sm font-medium text-slate-900">Betreff</label>
                         <input id="send-subject" type="text" x-model="send.subject" maxlength="300" autocomplete="off" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
@@ -330,7 +335,7 @@
                     </div>
                     <p x-show="send.error !== ''" x-cloak role="alert" class="text-sm font-medium text-danger-700" x-text="send.error"></p>
                     <div class="flex flex-wrap items-center gap-3">
-                        <x-button x-on:click="sendReply(false)" x-bind:disabled="send.busy || text.trim() === '' || send.subject.trim() === ''"><x-icon name="chat" size="16" /> <span x-text="send.busy ? 'Wird gesendet …' : 'Antwort versenden'">Antwort versenden</span></x-button>
+                        <x-button x-on:click="sendReply(false)" x-bind:disabled="send.busy || text.trim() === '' || send.subject.trim() === '' || send.to.trim() === ''"><x-icon name="chat" size="16" /> <span x-text="send.busy ? 'Wird gesendet …' : 'Antwort versenden'">Antwort versenden</span></x-button>
                     </div>
                     <p class="text-xs text-slate-600">Die Antwort wird über Zammad versendet und erscheint dort im Ticketverlauf. Gesendet wird der Antwortentwurf oben (änderbar) mit der Signatur. Anhänge werden mitgesendet und nicht in der App gespeichert.</p>
                 </div>
