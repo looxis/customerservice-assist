@@ -1,6 +1,6 @@
 ---
 id: POLICY-057
-title: Storno – Freigabe durch Zahlung und Stornierbarkeit
+title: Storno und Änderung – Freigabe der Bestellung und Stornierbarkeit
 type: policy
 status: draft
 customer_types:
@@ -8,13 +8,14 @@ sales_channels:
   - looxis-de
   - fachhaendler
   - looxis-pro
+  - amazon
 products:
 categories:
   - order-process-question
 topics:
   - payment-processing
   - order-release
-summary: "Ein Kunde möchte eine Bestellung stornieren, fragt, ob er für eine nicht bezahlte Bestellung zahlen muss, bekommt eine Zahlungserinnerung für eine Bestellung, die er nicht mehr will, oder hat doppelt bestellt. Klärt: Eine nicht bezahlte Mollie-Bestellung wird nie freigegeben, nicht produziert und automatisch storniert, ohne Kosten für den Kunden; eine bezahlte Bestellung oder eine Bestellung auf Rechnung oder Lastschrift gilt als freigegeben und kann in der Regel nicht mehr storniert oder geändert werden; ab 150 € Auftragswert kann die Produktionsleitung auf Wunsch prüfen, ob die Bearbeitung noch abgebrochen werden kann. Gilt nicht für Amazon und masterpics."
+summary: "Ein Kunde möchte eine Bestellung stornieren, fragt, ob er für eine nicht bezahlte Bestellung zahlen muss, bekommt eine Zahlungserinnerung für eine Bestellung, die er nicht mehr will, oder hat doppelt bestellt; auch wenn ein Amazon-Kunde die Bestellung stornieren oder das Bild ändern möchte. Klärt: Eine nicht bezahlte Mollie-Bestellung wird nie freigegeben, nicht produziert und automatisch storniert, ohne Kosten für den Kunden; eine bezahlte Bestellung oder eine Bestellung auf Rechnung oder Lastschrift gilt als freigegeben und kann in der Regel nicht mehr storniert oder geändert werden; eine Amazon-Bestellung ist mit dem Eingang bei LOOXIS freigegeben und kann dann weder storniert noch geändert noch erstattet werden; ab 150 € Auftragswert kann die Produktionsleitung auf Wunsch prüfen, ob die Bearbeitung noch abgebrochen werden kann. Gilt nicht für masterpics."
 retrieval: binding
 triggers:
   - Storno
@@ -32,21 +33,27 @@ triggers:
   - Zahlungsaufforderung
   - Bestellung nicht bezahlt
   - nicht mehr haben
+  - Bild ändern
+  - Foto ändern
+  - Motiv ändern
+  - Bestellung ändern
+  - anderes Bild
 actions:
   - cancellation
 related_knowledge:
   - POLICY-001
+  - POLICY-040
   - POLICY-042
   - POLICY-043
   - POLICY-044
   - PLAYBOOK-041
 ---
 
-Gilt für alle Aufträge in den Vertriebskanälen looxis-de, fachhaendler und looxis-pro, auch für manuell angelegte Bestellungen. Gilt nicht für Amazon (POLICY-040) und nicht für masterpics.
+Gilt für alle Aufträge in den Vertriebskanälen looxis-de, fachhaendler, looxis-pro und amazon, auch für manuell angelegte Bestellungen. Gilt nicht für masterpics.
 
 # Regel
 
-Ob eine Bestellung storniert werden kann, hängt davon ab, ob sie freigegeben ist. Freigegeben wird sie durch die Zahlung oder, bei Rechnung und Lastschrift, mit dem Abschluss der Bestellung.
+Ob eine Bestellung storniert werden kann, hängt davon ab, ob sie freigegeben ist. Freigegeben wird sie durch die Zahlung oder, bei Rechnung und Lastschrift, mit dem Abschluss der Bestellung. Eine Amazon-Bestellung ist mit dem Eingang bei LOOXIS freigegeben.
 
 ## Nicht bezahlte Bestellung (Zahlungsabwicklung über Mollie)
 
@@ -65,6 +72,18 @@ Registrierte Fachhändler haben teils die Zahlungsart „auf Rechnung“ oder �
 
 Eine mit Mollie erfolgreich bezahlte Bestellung gilt als bestätigt und freigegeben. Sie kann **in der Regel nicht mehr storniert oder geändert** werden. Das gilt für Endverbraucher und Fachhändler.
 
+## Amazon-Bestellung
+
+Eine Amazon-Bestellung ist freigegeben, sobald Amazon sie an LOOXIS übermittelt hat und sie in EOCS vorliegt. Ab diesem Zeitpunkt wird sie bearbeitet.
+
+- Sie kann **nicht mehr geändert** werden, auch nicht das Bild oder Motiv.
+- Sie kann **nicht mehr storniert** werden.
+- Eine **Erstattung ist nicht möglich**, weil das Produkt individuell nach den Vorgaben des Kunden angefertigt wird.
+- Der Kunde kann jederzeit eine **neue Bestellung** aufgeben, zum Beispiel mit einem anderen Bild. Sie wird separat bezahlt; die bestehende Bestellung bleibt bestehen und wird wie bestellt produziert und versendet.
+- Liegt die Bestellung LOOXIS noch nicht vor (Amazons Rückhaltephase), gilt POLICY-040.
+
+Ausnahme ab 150 € siehe nächster Abschnitt; sie gilt auch für Amazon.
+
 # Ausnahme: Auftrag ab 150 €
 
 Hat eine freigegebene Bestellung mehrere Produkte oder ein teures Produkt und beträgt der Auftragswert 150 € oder mehr (Gesamtbetrag der Bestellung laut EOCS), kann im Sinne des Kunden geprüft werden, ob die Bearbeitung noch abgebrochen werden kann und nur die bis dahin entstandenen Kosten berechnet werden. Das kann für den Kunden günstiger sein als die volle Zahlung für Ware, mit der er nichts anfangen kann.
@@ -81,11 +100,14 @@ Bezahlte oder auf Rechnung oder Lastschrift freigegebene Bestellung: „Ihre Bes
 
 Antwortet ein Endverbraucher auf die Zahlungserinnerung nur mit der Bitte um Stornierung und ohne weiteren Hinweis, gilt für die Antwort PLAYBOOK-041: Es wird nach dem Grund gefragt.
 
-Bei Auftrag ab 150 €, wenn der Kunde bei der Stornierung bleibt (zusätzlich zum vorigen Text): „Da Ihre Bestellung einen größeren Umfang hat, prüfen wir gerne intern, ob ein Abbruch der Bearbeitung noch möglich ist und nur die bis dahin entstandenen Kosten berechnet werden. Das ist keine Zusage; wir melden uns mit dem Ergebnis.“
+Amazon-Bestellung, die LOOXIS vorliegt: deutlich und in einfacher Sprache. Amazon-Kunden gehen oft davon aus, dass alles möglich und kostenfrei ist; die Antwort sagt deshalb klar, was nicht geht, ohne Einschränkungen wie „leider eventuell“. Zum Beispiel: „Ihre Bestellung ist bei uns eingegangen und wird bereits bearbeitet. Sie kann nicht mehr geändert und nicht mehr storniert werden. Eine Erstattung ist nicht möglich, weil das Produkt individuell für Sie angefertigt wird. Sie können jederzeit eine neue Bestellung mit dem gewünschten Bild aufgeben. Diese wird separat bezahlt; Ihre bisherige Bestellung bleibt bestehen und wird wie bestellt geliefert.“
+
+Bei Auftrag ab 150 €, wenn der Kunde bei der Stornierung bleibt (zusätzlich zum Text für die freigegebene Bestellung): „Da Ihre Bestellung einen größeren Umfang hat, prüfen wir gerne intern, ob ein Abbruch der Bearbeitung noch möglich ist und nur die bis dahin entstandenen Kosten berechnet werden. Das ist keine Zusage; wir melden uns mit dem Ergebnis.“
 
 # Grenzen
 
 - Keine Stornierung einer freigegebenen Bestellung zusagen.
+- Bei Amazon keine Änderung, Stornierung oder Erstattung in Aussicht stellen und nicht andeuten, eine neue Bestellung sei kostenfrei.
 - Nicht behaupten, eine Bestellung sei bezahlt, unbezahlt oder freigegeben, ohne es im Verlauf oder in den Bestelldaten zu sehen; sonst als interne Klärung vorsehen.
 - Den Zeitpunkt der automatischen Stornierung nicht beziffern („zeitnah“).
 - Die Prüfung ab 150 € nicht anbieten, wenn der Auftragswert darunter liegt oder nicht bekannt ist.

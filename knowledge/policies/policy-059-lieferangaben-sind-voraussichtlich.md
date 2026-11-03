@@ -28,6 +28,12 @@ triggers:
   - Geburtstag
   - Lieferzeit
   - voraussichtlich
+  - unbedingt am
+  - unbedingt bis
+  - rechtzeitig
+  - am Freitag
+  - bis Freitag
+  - bis Samstag
 exclude_triggers:
 when:
 actions:
