@@ -39,6 +39,8 @@ return [
 
     'about_path' => base_path('docs/ABOUT.md'),
 
+    'changelog_path' => base_path('docs/CHANGELOG.md'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

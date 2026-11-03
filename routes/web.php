@@ -5,6 +5,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AdvancedModeController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AnalysisOverviewController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\DhlReturnController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
@@ -42,6 +43,7 @@ Route::get('/knowledge/dokument/{path}', [KnowledgeController::class, 'show'])
     ->name('knowledge.show');
 
 Route::get('/ueber-die-app', AboutController::class)->name('about');
+Route::get('/aenderungen', ChangelogController::class)->name('changes');
 
 Route::get('/einstellungen', [SettingsController::class, 'index'])->name('settings.index');
 Route::get('/einstellungen/mail-anzeige', [SettingsController::class, 'mail'])->name('settings.mail');
