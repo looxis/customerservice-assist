@@ -2,7 +2,7 @@
 id: PLAYBOOK-047
 title: Kunde erwähnt Fotos, die nicht angekommen sind
 type: playbook
-status: draft
+status: active
 
 customer_types:
 sales_channels:
