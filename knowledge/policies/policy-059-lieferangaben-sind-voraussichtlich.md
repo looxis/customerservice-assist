@@ -31,9 +31,20 @@ triggers:
   - unbedingt am
   - unbedingt bis
   - rechtzeitig
+  - am Montag
+  - bis Montag
+  - am Dienstag
+  - bis Dienstag
+  - am Mittwoch
+  - bis Mittwoch
+  - am Donnerstag
+  - bis Donnerstag
   - am Freitag
   - bis Freitag
+  - am Samstag
   - bis Samstag
+  - am Sonntag
+  - bis Sonntag
 exclude_triggers:
 when:
 actions:
