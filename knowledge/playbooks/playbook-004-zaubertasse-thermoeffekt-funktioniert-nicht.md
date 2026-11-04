@@ -2,7 +2,7 @@
 id: PLAYBOOK-004
 title: 'Zaubertasse: Thermoeffekt funktioniert angeblich nicht'
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

@@ -2,7 +2,7 @@
 id: POLICY-002
 title: Ersatz und Erstattung bei Reklamationen
 type: policy
-status: draft
+status: active
 customer_types:
 - b2c
 sales_channels:

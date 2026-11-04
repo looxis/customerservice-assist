@@ -2,7 +2,7 @@
 id: TONE-002
 title: Allgemeine Tonalität im Kundenservice
 type: tone
-status: draft
+status: active
 topics:
 - customer-language
 - empathy

@@ -2,7 +2,7 @@
 id: POLICY-035
 title: Kleine optische Beanstandungen sachlich bewerten
 type: policy
-status: draft
+status: active
 customer_types:
 - b2c
 - b2b-reseller

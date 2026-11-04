@@ -2,7 +2,7 @@
 id: PROCESS-004
 title: Thermoeffekt der Zaubertasse prüfen
 type: process
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

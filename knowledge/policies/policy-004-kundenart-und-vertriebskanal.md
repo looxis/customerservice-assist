@@ -2,7 +2,7 @@
 id: POLICY-004
 title: Kundenart und Vertriebskanal vor der Entscheidung prüfen
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

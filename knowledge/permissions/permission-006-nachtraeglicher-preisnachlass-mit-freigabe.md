@@ -2,7 +2,7 @@
 id: PERMISSION-006
 title: Nachträglicher Preisnachlass auf beanstandete Ware nur mit Freigabe
 type: permission
-status: draft
+status: active
 customer_types:
 - b2c
 - b2b-reseller
