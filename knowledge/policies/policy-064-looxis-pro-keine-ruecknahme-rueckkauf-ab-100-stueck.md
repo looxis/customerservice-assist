@@ -2,7 +2,7 @@
 id: POLICY-064
 title: LOOXIS-Pro – keine Rücknahme, Rückkauf nur ab 100 Stück durch den Einkauf
 type: policy
-status: draft
+status: active
 
 customer_types:
   - b2b-pro

@@ -2,7 +2,7 @@
 id: POLICY-065
 title: LOOXIS-Pro – Reklamation, die Lösung entscheidet der Produktionsleiter
 type: policy
-status: draft
+status: active
 
 customer_types:
   - b2b-pro
