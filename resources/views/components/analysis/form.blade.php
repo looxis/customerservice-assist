@@ -192,10 +192,14 @@
                 <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Vorschlag erstellen</x-button>
                 @if ($canClose)
                     <span class="text-sm text-slate-600">oder</span>
+                    <x-button type="submit" form="direkt-antworten-formular" variant="secondary" class="min-h-11" title="Ohne Vorschlag direkt eine Antwort schreiben und senden (kein KI-Aufruf)."><x-icon name="edit" size="16" /> Direkt antworten</x-button>
                     <x-button variant="danger" class="min-h-11" x-on:click="$dispatch('close-ticket')"><x-icon name="x-circle" size="16" /> Ticket ohne Antwort schließen</x-button>
                 @endif
             </div>
         </form>
+        @if ($canClose)
+            <form id="direkt-antworten-formular" method="POST" action="{{ route('tickets.manual-reply', ['number' => $number]) }}" class="hidden">@csrf</form>
+        @endif
         @if ($collapsible)
             </details>
         @endif

@@ -219,7 +219,7 @@ class AnalysisOverview
      */
     private function query(AnalysisFilter $filter): Builder
     {
-        $query = Analysis::query();
+        $query = Analysis::query()->where('status', '!=', 'manual');
 
         if ($filter->from !== null || $filter->to !== null) {
             $filter->from !== null && $query->where('created_at', '>=', $filter->from->startOfDay()->utc());

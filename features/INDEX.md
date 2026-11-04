@@ -32,6 +32,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-62 | Große Anhänge beim Senden zuverlässig übergeben | Beim Senden einer Antwort mit großem Anhang (Anlass: Ticket 2140026, Screenshot von rund 900 KB, 2026-10-26) bricht Zammad mit Status 408 oder Timeout ab, ohne Anhang klappt der Versand. Ursache vermutlich der Upload des Base64-Inhalts (rund 1,2 MB) in der Antwortanfrage. Umbau: Anhänge vorab getrennt zu Zammad hochladen und beim Senden nur darauf verweisen; vorher klären, was auf dem Weg zu Zammad das Limit setzt (Proxy oder Upload-Bandbreite). Bis dahin: Anhänge klein halten (JPG unter etwa 300 KB). Berührt PROJ-61 | PROJ-19, PROJ-61 | Roadmap | – | 2026-10-26 |
 | PROJ-63 | Produkte ohne Kundenservice-Wissen auswerten | Reklamationen und Fragen zu ProductForge-Produkten, für die es noch kein Kundenservice-Wissen gibt, werden automatisch je Produkt und Thema gezählt und Admins aufgelistet (Reklamation schon ab dem ersten Fall), damit neue Produkte schnell Wissen bekommen (Anlass: neue Produkte wie die Erinnerungsbox, Kunde meldet ausgeleierte Bohrung im Scharnier, 2026-10-26) | PROJ-9, PROJ-12, PROJ-38, PROJ-57 | Architected | [Spec](PROJ-63-produkte-ohne-servicewissen-auswerten.md) | 2026-10-26 |
 | PROJ-65 | Retouren-Tracking und Zählung | Rücksendung über das DHL-Retourenlabel per DHL-Schnittstelle verfolgen (unterwegs, zugestellt), Retouren zählen und in eine spätere Auswertung einfließen lassen. Folgefunktion von PROJ-64 | PROJ-64 | Roadmap | – | 2026-10-27 |
+| PROJ-69 | Direkt antworten ohne KI-Aufruf | Neben „Ohne Antwort schließen“ ein Knopf „Direkt antworten“: leerer manueller Antwortentwurf in der vorhandenen Versandansicht, ohne KI-Aufruf und ohne Zählung als Analyse | PROJ-19, PROJ-68 | In Review | [Spec](PROJ-69-direkt-antworten.md) | 2026-11-04 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -51,4 +52,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-69
+## Next Available ID: PROJ-70

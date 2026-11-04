@@ -11,6 +11,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\KnowledgeReviewController;
+use App\Http\Controllers\ManualReplyController;
 use App\Http\Controllers\ProcedureController;
 use App\Http\Controllers\ProductQuestionController;
 use App\Http\Controllers\ProductSearchController;
@@ -125,6 +126,7 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
     Route::delete('/tickets/{number}/analysen', [AnalysisController::class, 'destroyAll'])->name('tickets.analyses.destroy');
     Route::post('/tickets/{number}/schliessen', TicketCloseController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:20,1')->name('tickets.close');
+    Route::post('/tickets/{number}/direkt-antworten', ManualReplyController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:20,1')->name('tickets.manual-reply');
     Route::post('/tickets/{number}/uebersetzung', [TranslationController::class, 'store'])->middleware('throttle:language-model')->name('tickets.translation.store');
 });
 

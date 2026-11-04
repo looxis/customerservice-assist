@@ -171,6 +171,47 @@ class AnalysisStore
     }
 
     /**
+     * Start a reply without any language model call: an empty draft the employee writes and sends from the usual
+     * proposal view. Its status is `manual`, so statistics, overview and ticket state (which only count `completed`)
+     * ignore it. An unused empty one of the same person is reused.
+     */
+    public function putManualReply(string $ticketNumber, string $scopeKey, string $staff, ?int $newestArticleId, ?int $basedOnArticleId): string
+    {
+        $existing = Analysis::query()->where('scope_key', $scopeKey)->where('status', 'manual')->where('staff_name', $staff)->whereNull('reply_edited_at')->whereNull('reply_sent_at')->whereNull('content_deleted_at')->whereNotNull('content')->latest('id')->first();
+
+        if ($existing !== null && $existing->uuid === $this->latest($scopeKey)) {
+            return $existing->uuid;
+        }
+
+        $id = (string) Str::uuid();
+
+        Analysis::query()->create([
+            'uuid' => $id,
+            'ticket_number' => $ticketNumber,
+            'scope_key' => $scopeKey,
+            'based_on_article_id' => $basedOnArticleId,
+            'status' => 'manual',
+            'staff_name' => $staff,
+            'content' => [
+                'ticket' => $ticketNumber,
+                'scope' => $scopeKey,
+                'sources' => [],
+                'thread' => ['newest_article_id' => $newestArticleId, 'last_article_id' => null, 'last_article_at' => null, 'count' => 0],
+                'inputs' => [],
+                'decisions' => [],
+                'reply_edit' => null,
+                'result' => ['reply' => ['text' => '', 'language' => 'Deutsch']],
+                'notes' => [],
+                'placeholders' => [],
+                'draft_ids' => [],
+                'meta' => ['staff' => $staff, 'manual' => true, 'based_on_article_id' => $basedOnArticleId, 'test_until' => null, 'created_at' => CarbonImmutable::now()->toIso8601String()],
+            ],
+        ]);
+
+        return $id;
+    }
+
+    /**
      * Log a failed analysis without any content.
      */
     public function putFailure(string $ticketNumber, string $scopeKey, string $staff, string $model, string $error, int $durationMs, ?int $basedOnArticleId = null): void
@@ -526,6 +567,6 @@ class AnalysisStore
      */
     private function finished(string $scopeKey): Builder
     {
-        return Analysis::query()->where('scope_key', $scopeKey)->where('status', 'completed')->latest()->latest('id');
+        return Analysis::query()->where('scope_key', $scopeKey)->whereIn('status', ['completed', 'manual'])->latest()->latest('id');
     }
 }

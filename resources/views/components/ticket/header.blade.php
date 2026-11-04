@@ -76,6 +76,12 @@
             <x-icon name="refresh" size="16" /> Aktualisieren
         </x-button>
         @if ($canClose)
+            <form method="POST" action="{{ route('tickets.manual-reply', ['number' => $ticket->number]) }}">
+                @csrf
+                <x-button type="submit" variant="secondary" title="Ohne Vorschlag direkt eine Antwort schreiben und senden (kein KI-Aufruf).">
+                    <x-icon name="edit" size="16" /> Direkt antworten
+                </x-button>
+            </form>
             <x-button variant="danger" x-data x-on:click="$dispatch('close-ticket')">
                 <x-icon name="x-circle" size="16" /> Ohne Antwort schließen
             </x-button>

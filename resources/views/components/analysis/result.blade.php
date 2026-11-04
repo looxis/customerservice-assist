@@ -25,6 +25,24 @@
     $link = fn (?string $id): string => route($question ? 'questions.show' : 'tickets.show', array_filter(['number' => $number, 'analyse' => $id, 'stand' => $stand])).'#ergebnis';
 @endphp
 
+{{-- A reply written without a language model call (PROJ-69): only the editor with the sending block. --}}
+@if ($meta['manual'] ?? false)
+<section id="ergebnis" aria-labelledby="result-heading" class="scroll-mt-4">
+    <x-card>
+        <h2 id="result-heading" class="text-base font-semibold text-slate-900">Direkt antworten</h2>
+        <p class="mt-1 text-sm text-slate-600">Ohne KI-Vorschlag, gestartet von {{ $meta['staff'] }}, {{ $time($meta['created_at']) }} Uhr</p>
+
+        @if (! $isLatest)
+            <x-alert type="warning" class="mt-4">
+                Ältere Antwort vom {{ $time($meta['created_at']) }} Uhr – nur lesbar.
+                <a href="{{ $link(null) }}" class="font-semibold underline">Zur neuesten</a>
+            </x-alert>
+        @endif
+
+        <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" :manual="true" />
+    </x-card>
+</section>
+@else
 {{-- Analysis result (PROJ-10): what to do and the reply first, the reasoning
      in collapsible sections below. --}}
 <section id="ergebnis" aria-labelledby="result-heading" class="scroll-mt-4">
@@ -443,3 +461,4 @@
         @endif
     </x-card>
 </section>
+@endif

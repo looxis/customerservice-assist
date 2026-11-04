@@ -1,4 +1,4 @@
-@props(['result', 'number', 'readonly' => false, 'locked' => false])
+@props(['result', 'number', 'readonly' => false, 'locked' => false, 'manual' => false])
 
 @php
     $language = $result['result']['reply']['language'] ?? null;
@@ -247,7 +247,7 @@
                 <x-button x-on:click="copy()" x-bind:disabled="text.trim() === ''"><x-icon name="doc" size="16" /> Kopieren</x-button>
             @endif
         @endunless
-        @unless ($readonly)
+        @unless ($readonly || $manual)
         <x-button variant="secondary" x-show="text !== original" x-cloak x-on:click="restore()"><x-icon name="refresh" size="16" /> Original der KI wiederherstellen</x-button>
         @endunless
         @if ($result['reply_foreign'] ?? false)
