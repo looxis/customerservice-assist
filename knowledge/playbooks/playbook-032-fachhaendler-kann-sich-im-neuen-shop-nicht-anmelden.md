@@ -81,7 +81,7 @@ Ein Fachhändler kommt nicht in den Fachhändler-Shop: Anmeldung oder Passwort w
    - **Aktiv:** Ursache beim Händler suchen (Adresse, Tippfehler, Passwort); „Passwort vergessen“ erklären.
    - **Deaktiviert:** Dem Händler sagen, dass das Konto deaktiviert ist, und klären, ob er es weiter nutzen möchte. Wenn ja, nach PROCEDURE-007 wieder aktivieren. Zahlungsarten nach POLICY-052: ab der nächsten Bestellung steht Mollie zur Verfügung, frühere Zahlungsvereinbarungen gelten nicht automatisch weiter; Rechnung wird nicht mehr angeboten; Lastschrift nur, wenn der Händler sie ausdrücklich verlangt, und dann nur nach Freigabe der Geschäftsleitung (POLICY-041).
    - **Kein Konto gefunden oder nicht übernommen:** Neuanlage anbieten. Dafür die Kundennummer oder die zuvor verwendete E-Mail-Adresse erfragen. Als Zahlungsart steht danach ausschließlich Mollie zur Verfügung (POLICY-041, PROCESS-015). Den Grund nur nennen, wenn er feststeht.
-3. **Neuer Fachhändler:** Ein Konto kann er nicht selbst anlegen, LOOXIS legt es an. Firmenname und E-Mail-Adresse erfragen. Keine Dauer zusagen.
+3. **Neuer Fachhändler:** Das Vorgehen steht in PLAYBOOK-050 (Konto anlegen nach PROCEDURE-010). Keine Dauer zusagen.
 4. **Fachhändler ist nicht mehr aktiv:** Auf Rückmeldung kann sein nicht mehr benötigtes Konto aus Sicherheitsgründen gelöscht werden.
 
 # Kommunikation

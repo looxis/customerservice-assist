@@ -14,7 +14,7 @@ beforeEach(function () {
         'ai.providers.openai.key' => 'sk-test',
         'cache.default' => 'array',
         'staff.admins' => ['Etienne'],
-        'knowledge.tool_links' => ['eocs-kunden' => 'https://eocs.example/customers', 'vanilo-kunden' => 'https://shop.example/manage/shopper', 'mailcoach-listen' => 'https://mail.example/email-lists'],
+        'knowledge.tool_links' => ['eocs-kunden' => 'https://eocs.example/customers', 'eocs-kunde-anlegen' => 'https://eocs.example/customers/create', 'vanilo-kunden' => 'https://shop.example/manage/shopper', 'mailcoach-listen' => 'https://mail.example/email-lists'],
     ]);
 
     knowledgeBase([

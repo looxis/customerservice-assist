@@ -67,7 +67,7 @@ Der Fachhändler-Shop läuft auf derselben Software-Plattform wie der Endverbrau
 - Inaktive Kunden wurden per Newsletter informiert, dass ihr Konto ebenfalls übernommen wird, wenn sie das durch eine Antwort auf den Newsletter wünschen.
 - Wurde ein Konto nicht übernommen, legt LOOXIS es neu an (siehe unten). Benötigt werden die Kundennummer oder die zuvor verwendete E-Mail-Adresse; als Zahlungsart steht ausschließlich Mollie zur Verfügung, eine Rückkehr zur Lastschrift braucht ein neues Mandat.
 - Ein gesperrtes (deaktiviertes) Konto schaltet LOOXIS nach Rücksprache mit dem Kunden wieder frei, es wird nicht neu angelegt (siehe „Reaktivierung deaktivierter Konten und Zahlungsarten“).
-- Ein uns bisher unbekannter Fachhändler kann sich kein Kundenkonto selbst anlegen. Das läuft über LOOXIS.
+- Ein uns bisher unbekannter Fachhändler kann sich kein Kundenkonto selbst anlegen. Das läuft über LOOXIS: Ein gewerblicher Kunde mit ernsthaftem Interesse bekommt in der Regel ein neues Konto (PLAYBOOK-050, Arbeitsschritte: PROCEDURE-010).
 
 # Kontostatus im Shop
 
@@ -128,4 +128,4 @@ Ein deaktiviertes Konto wird nur nach Rücksprache mit dem Kunden wieder aktivie
 
 # Noch zu klären
 
-- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto neu anlegt oder löscht (die Reaktivierung steht in PROCEDURE-007). Welche Angaben ein bisher unbekannter Händler zusätzlich braucht, ist nicht festgelegt.
+- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto löscht (die Neuanlage steht in PROCEDURE-010, die Reaktivierung in PROCEDURE-007).

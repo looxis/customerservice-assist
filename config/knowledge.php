@@ -133,6 +133,7 @@ return [
         'account-closure' => 'Kundenkonto schließen',
         'account-reactivation' => 'Kundenkonto reaktivieren',
         'account-verification' => 'Kundenkonto verifizieren',
+        'account-creation' => 'Kundenkonto anlegen',
     ],
 
     /*
@@ -149,6 +150,7 @@ return [
 
     'tool_links' => [
         'eocs-kunden' => env('LINK_EOCS_CUSTOMERS', 'https://eocs.loox.is/customers'),
+        'eocs-kunde-anlegen' => 'https://eocs.loox.is/customers/create',
         'vanilo-kunden' => env('LINK_VANILO_SHOPPERS', 'https://looxis.de/manage/shopper'),
         'mailcoach-listen' => env('LINK_MAILCOACH_LISTS', 'https://looxis.mailcoach.app/email-lists'),
     ],
@@ -179,6 +181,7 @@ return [
         'partial-refund' => 'Teilerstattung oder Preisnachlass ohne Neuanfertigung',
         'account-closure' => 'Kundenkonto eines Fachhändlers schließen, nachdem er die Geschäftsbeziehung schriftlich beendet hat (Mailcoach, Vanilo, EOCS)',
         'account-reactivation' => 'deaktiviertes Kundenkonto eines Fachhändlers nach Rücksprache wieder aktivieren und die Zahlungsart in EOCS und Vanilo setzen',
+        'account-creation' => 'Kundenkonto eines neuen Fachhändlers in EOCS anlegen und mit dem Shop synchronisieren, nachdem klar ist, dass er gewerblich tätig ist und ernsthaftes Interesse hat',
         'account-verification' => 'unverifiziertes Kundenkonto eines Fachhändlers für den Kunden in Vanilo bestätigen, damit „Passwort vergessen“ funktioniert (nur bis 2. November 2026)',
     ],
 
