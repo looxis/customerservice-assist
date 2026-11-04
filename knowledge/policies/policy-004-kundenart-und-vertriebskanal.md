@@ -47,7 +47,7 @@ Vor der Anwendung einer fachlichen Regel müssen Kundenart und Vertriebskanal fe
 
 # B2B-Besonderheiten
 
-Bei B2B können andere Bedingungen gelten. Bei LOOXIS-Pro sind insbesondere Rohware, Auslandsversand, höhere Versandkosten und möglicher Speditionsversand zu berücksichtigen. Daraus folgt noch keine pauschale Zuordnung der Kosten oder Zusage eines kostenfreien Ersatzversands.
+Bei B2B können andere Bedingungen gelten. Bei LOOXIS-Pro sind insbesondere Rohware, Auslandsversand, höhere Versandkosten und möglicher Speditionsversand zu berücksichtigen. Daraus folgt noch keine pauschale Zuordnung der Kosten oder Zusage eines kostenfreien Ersatzversands. Rücknahme und Rückkauf regelt POLICY-064.
 
 # Bestätigte Regeln für Foto-Fachhändler
 
@@ -61,4 +61,4 @@ Fehlen die für den Kanal oder B2B-Fall benötigten Regeln, ist eine Wissenslüc
 
 # Noch zu klären
 
-- Rücknahme, Reklamation, Ersatz und Erstattung bei LOOXIS-Pro, einschließlich Auslands- und Speditionsversand.
+- Reklamation, Ersatz und Erstattung bei LOOXIS-Pro, einschließlich Auslands- und Speditionsversand.
