@@ -80,7 +80,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Automatischer Ticket-Eingang: neue und wieder geöffnete Zammad-Tickets ohne Eingabe erfassen, Datenmodell für spätere Klassifikation und Automatisierung | Approved |
 | Ticketübersicht auf der Startseite: Ansichten, kombinierbare Filter, Klick öffnet die vorhandene Bearbeitung | Approved |
 | Ticket ohne Antwort schließen (aus CSA nach Zammad, mit optionaler interner Notiz) | Approved |
-| Direkt antworten ohne KI-Aufruf (leerer Antwortentwurf mit Versand nach Zammad) | In Review |
+| Direkt antworten ohne KI-Aufruf (leerer Antwortentwurf mit Versand nach Zammad) | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

@@ -86,6 +86,19 @@ describe('starting a direct reply', function () {
         expect(Analysis::query()->count())->toBe(0);
     });
 
+    test('is refused for a rewound ticket of the test mode', function () {
+        $this->withCookie('staff_name', 'Nele')->post(route('tickets.manual-reply', ['number' => '2137942']), ['stand' => '5'])->assertForbidden();
+
+        expect(Analysis::query()->count())->toBe(0);
+    });
+
+    test('is not listed in the analysis overview', function () {
+        config(['staff.admins' => ['Nele']]);
+        startDirectReply();
+
+        $this->withCookie('staff_name', 'Nele')->get(route('analysis-overview.index'))->assertOk()->assertDontSeeText('2137942');
+    });
+
     test('the draft can be saved and sent through the usual routes', function () {
         $id = manualId(startDirectReply());
 

@@ -1,6 +1,6 @@
 # PROJ-69: Direkt antworten ohne KI-Aufruf
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-11-04
 **Last Updated:** 2026-11-04
 
@@ -26,3 +26,27 @@ Manchmal braucht es keinen Vorschlag: der Mitarbeiter weiß die Antwort und will
 - Route `tickets.manual-reply` → `ManualReplyController`, `StartManualReplyRequest`.
 - Schlanker Zweig in `components/analysis/result.blade.php` (nur Editor und Versand).
 - Test: `tests/Feature/PROJ-69-DirectReplyTest.php`.
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-11-04
+**Tester:** QA Engineer (AI) und Auftraggeber (manueller Test im Browser: „funktioniert gut“)
+
+### Acceptance Criteria
+- [x] Knopf im Ticketkopf und im Formular, nur mit Token, offenes Ticket, nicht zurückgespult
+- [x] Klick legt leeren manuellen Entwurf an (kein KI-Aufruf) und öffnet die Versandansicht
+- [x] Erneuter Klick öffnet denselben unbenutzten Entwurf
+- [x] Zählt nicht als Analyse (Erfolgsquote, Analysen-Übersicht, Ticket-Stand)
+
+### Security
+- CSRF: beide Formulare mit `@csrf`. Autorisierung wie „Ohne Antwort schließen“ (Zammad-Token, kein `stand`), 403 getestet. Rate-Limit `throttle:20,1`. Senden unverändert über die vorhandene, abgesicherte Route (Doppelversand-Sperre).
+
+### Tests
+- `tests/Feature/PROJ-69-DirectReplyTest.php`: 9 Tests, alle grün. Gesamtlauf: 2162 von 2166 grün; die 2 Fehler sind die bekannten PROJ-56-Tests (Sichtbarkeit der Meldungen offen), unabhängig von PROJ-69.
+
+### Bugs
+Keine Critical/High/Medium.
+
+### Entscheidung: READY

@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-04
+
+- Tickets können auch ohne KI-Einsatz direkt beantwortet werden
+
 ## 2026-11-03
 
 - Emails können jetzt bis zu 20 MB Anhang haben. Es wird erkannt, wenn kein Bild angehängt ist, obwohl eines erwähnt ist; der Antwortvorschlag bittet dann erneut um Zusendung eines (kleineren) Bildes.
