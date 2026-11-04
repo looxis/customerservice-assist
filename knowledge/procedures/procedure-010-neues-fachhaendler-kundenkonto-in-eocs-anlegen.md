@@ -14,7 +14,7 @@ categories:
   - order-process-question
 topics:
   - customer-account
-summary: "Interne Anleitung, wie das Kundenkonto eines neuen Fachhändlers in EOCS angelegt wird: Kunde erstellen, Rechnungs- und Lieferadresse, Vertriebskanal fachhaendler.looxis.de und Zahlungsart wählen, speichern, Kanal und Zahlungsart im Konto nochmals setzen, Kunden aktualisieren und den Kunden per E-Mail informieren. Gilt nicht für bestehende oder deaktivierte Konten (PROCEDURE-007)."
+summary: "Interne Anleitung, wie das Kundenkonto eines neuen Fachhändlers in EOCS angelegt wird: Kunde erstellen, Rechnungs- und Lieferadresse, Vertriebskanal fachhaendler.looxis.de und Zahlungsart wählen, speichern, Kanal und Zahlungsart im Konto nochmals setzen, Kunden aktualisieren, den Kunden in die Newsletter-Liste in Mailcoach aufnehmen und ihn per E-Mail informieren. Gilt nicht für bestehende oder deaktivierte Konten (PROCEDURE-007)."
 retrieval: triggered
 triggers:
   - Konto anlegen
@@ -46,7 +46,8 @@ Für einen neuen Fachhändler ein Kundenkonto anlegen, damit er im Fachhändler-
 5. In EOCS: Speichern.
 6. In EOCS: Im gespeicherten Kundenkonto weiter unten den Vertriebskanal nochmals hinzufügen und die Zahlungsart nochmals einfügen.
 7. In EOCS: Die Checkbox beim Vertriebskanal anhaken, auf die drei Punkte (⋮) klicken und „Kunden aktualisieren“ wählen.
-8. Dem Kunden das neue Konto per E-Mail bestätigen und ihn bitten, unter https://fachhaendler.looxis.de im Bereich „Login“ die Funktion „Passwort vergessen“ zu nutzen (PLAYBOOK-050). Interne Notiz im Ticket setzen.
+8. Im Mailcoach: [Mailcoach-Listen öffnen](link:mailcoach-listen) und die E-Mail-Adresse des neuen Kunden zur Newsletter-Liste hinzufügen.
+9. Dem Kunden das neue Konto per E-Mail bestätigen und ihn bitten, unter https://fachhaendler.looxis.de im Bereich „Login“ die Funktion „Passwort vergessen“ einmal durchzuführen, um sein erstes Passwort zu setzen (PLAYBOOK-050). Interne Notiz im Ticket setzen.
 
 # Kritische Hinweise
 
@@ -58,5 +59,6 @@ Für einen neuen Fachhändler ein Kundenkonto anlegen, damit er im Fachhändler-
 - [ ] Rechnungs- und Lieferadresse eingetragen
 - [ ] Vertriebskanal und Zahlungsart beim Anlegen und im gespeicherten Konto gesetzt
 - [ ] „Kunden aktualisieren“ ausgeführt
-- [ ] Kunde per E-Mail informiert, wie er sein Passwort setzt
+- [ ] E-Mail-Adresse steht in der Newsletter-Liste in Mailcoach
+- [ ] Kunde per E-Mail informiert, wie er sein erstes Passwort setzt
 - [ ] Interne Notiz im Ticket gesetzt

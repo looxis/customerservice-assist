@@ -87,11 +87,25 @@ Der Kundenservice legt das Konto bei einem erkennbar gewerblichen Kunden mit ern
 
 Angaben erfragen: „Ein Kundenkonto im Fachhändler-Shop legen wir für Sie gerne an. Bitte nennen Sie uns dazu Ihren Firmennamen, Ihre Rechnungs- und Lieferadresse, die E-Mail-Adresse, mit der Sie sich anmelden möchten, und Ihre USt-IdNr.“
 
-Nach Anlage des Kontos, per E-Mail: Das Konto ist angelegt. Bitte unter https://fachhaendler.looxis.de im Bereich „Login“ die Funktion „Passwort vergessen“ nutzen, dort die bei uns hinterlegte E-Mail-Adresse [E-Mail] eingeben und den Anweisungen in der E-Mail zum Zurücksetzen des Passworts folgen.
+Nach Anlage des Kontos, per E-Mail: Das Konto ist angelegt.
+
+Der Kunde hat noch kein Passwort. Bei der Anlage des Kontos wird kein Passwort vergeben, LOOXIS kann auch keines erzeugen oder hinterlegen. Der erste Login ist deshalb nur möglich, wenn der Kunde einmal die Funktion „Passwort vergessen“ durchführt und sich damit sein erstes Passwort setzt. Das so beschreiben, nicht mit „wenn Sie noch kein Passwort haben“ oder „falls Sie Ihr Passwort nicht mehr wissen“: Bitte unter https://fachhaendler.looxis.de im Bereich „Login“ die Funktion „Passwort vergessen“ nutzen, dort die bei uns hinterlegte E-Mail-Adresse [E-Mail] eingeben und den Anweisungen in der E-Mail zum Setzen des Passworts folgen.
+
+Weitere Hinweise für den neuen Händler, in die Bestätigung aufnehmen:
+
+- Wir empfehlen die Nutzung einer Passwort-Datenbank.
+- Bitte machen Sie sich unbedingt mit dem Bestellprozess und vor allem mit den Produkten vertraut.
+- Personalisierte Produkte sind grundsätzlich vom Widerrufsrecht ausgeschlossen. Geschäftskunden haben grundsätzlich kein Rückgaberecht.
+- Die Produktbeschreibungen enthalten in der Regel detaillierte Informationen zu den Produkten. Ist trotzdem etwas unklar, bitte unbedingt vor dem Ausführen einer Bestellung nachfragen.
+- Eine einmal bestätigte Bestellung kann nicht mehr storniert werden, da sie auch außerhalb der Öffnungszeiten automatisiert in die Bearbeitung geht.
+- Wichtige Updates teilen wir per Newsletter mit und im Kopfbereich des Online-Shops in der „Händler-Info-Box“. Bitte immer ein Auge darauf haben.
+
+Der neue Kunde wird außerdem in die Newsletter-Liste in Mailcoach aufgenommen (PROCEDURE-010).
 
 # No-Gos
 
 - Das Konto zusagen, wenn Gewerblichkeit oder ernsthaftes Interesse unklar sind und die Geschäftsleitung noch nicht entschieden hat.
 - Einem Neukunden Rechnung als Zahlungsart anbieten.
 - Ein Passwort nennen oder setzen.
+- Formulieren, als hätte der Neukunde möglicherweise schon ein Passwort („falls Sie noch kein Passwort haben“, „falls Sie es vergessen haben“). Er hat definitiv keines.
 - Eine Dauer für die Anlage zusagen.
