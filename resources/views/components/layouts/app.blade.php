@@ -33,6 +33,7 @@
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Hauptnavigation">
             <x-nav-item :href="route('tickets.analyze')" icon="sparkle" :active="request()->routeIs('tickets.*')">Tickets</x-nav-item>
+            <x-nav-item :href="route('todos.index')" icon="check" :active="request()->routeIs('todos.*')">ToDos @if (($todoCounts['meine'] ?? 0) > 0)<span class="ml-2 rounded-full bg-warning-500/15 px-2 text-xs font-semibold text-warning-700">{{ $todoCounts['meine'] }}</span>@endif</x-nav-item>
             <x-nav-item :href="route('questions.create')" icon="chat" :active="request()->routeIs('questions.*')">Frage stellen</x-nav-item>
             <x-nav-item :href="route('dhl-return.index')" icon="doc" :active="request()->routeIs('dhl-return.*')">DHL Retoure</x-nav-item>
             <x-nav-item :href="route('quote.index')" icon="calculator" :active="request()->routeIs('quote.*')">Angebot berechnen</x-nav-item>

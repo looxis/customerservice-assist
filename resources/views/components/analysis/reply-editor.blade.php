@@ -51,7 +51,11 @@
             ticketUrl: @js($send['ticket_url'] ?? null),
             files: [],
             fileError: '',
+            note: '',
+            todos: [],
+            warning: '',
         },
+        addTodo() { this.send.todos.push({ description: '', assignee: @js(app(\App\Staff\StaffDirectory::class)->current(request()) ?? ''), due_in: '', kind: 'direct', waiting_for: '', notify_customer: false, notify_hint: '' }) },
         sendReady: @js($send['state'] === 'ready'),
         returnLabel: @js($result['return_label'] ?? null),
         async linkLabel(label) {
@@ -119,6 +123,11 @@
                 form.append('after', this.send.after);
                 if (this.send.after === 'reminder') { form.append('days', this.send.days) }
                 form.append('confirm_newer', confirmNewer === true ? '1' : '0');
+                form.append('note', this.send.note);
+                this.send.todos.filter((todo) => todo.description.trim() !== '').forEach((todo, index) => {
+                    ['description', 'assignee', 'due_in', 'kind', 'waiting_for', 'notify_hint'].forEach((key) => form.append(`todos[${index}][${key}]`, todo[key] ?? ''));
+                    form.append(`todos[${index}][notify_customer]`, todo.notify_customer ? '1' : '0');
+                });
                 this.send.files.forEach((file) => form.append('files[]', file, file.name));
                 const response = await fetch(@js(route('tickets.analysis.send', ['number' => $number, 'analysis' => $result['id']])), {
                     method: 'POST',
@@ -128,6 +137,11 @@
                 const data = await response.json().catch(() => ({}));
                 if (response.ok && data.sent) {
                     this.send.sent = { by: data.by, at: data.at };
+                    this.send.warning = [
+                        data.note_failed ? 'Die interne Notiz konnte nicht in Zammad gespeichert werden; die Antwort wurde gesendet.' : '',
+                        data.todos_failed ? 'Die ToDos konnten nicht angelegt werden; die Antwort wurde gesendet. Bitte die ToDos am Ticket nachtragen.' : '',
+                    ].filter(Boolean).join(' ');
+                    this.send.todos = [];
                     this.send.files = [];
                     this.send.ticketUrl = data.ticket_url || this.send.ticketUrl;
                     this.$dispatch('reply-copied');
@@ -278,6 +292,7 @@
         <section class="mt-5 rounded-lg border border-slate-200 bg-slate-50/60 p-4" aria-label="Antwort versenden" id="antwort-versenden">
             <div x-show="send.sent" @if ($send['state'] !== 'sent') x-cloak @endif role="status" class="text-sm text-success-700">
                 <p class="font-semibold">Gesendet von <span x-text="send.sent ? send.sent.by : ''">{{ $send['sent']['by'] ?? '' }}</span> am <span x-text="send.sent ? send.sent.at : ''">{{ $send['sent']['at'] ?? '' }}</span> Uhr</p>
+                <p x-show="send.warning !== ''" x-cloak role="alert" class="mt-1 font-medium text-warning-700" x-text="send.warning"></p>
                 <p class="mt-1" x-show="send.ticketUrl"><a x-bind:href="send.ticketUrl" target="_blank" rel="noopener" class="font-medium underline">Ticket in Zammad öffnen</a></p>
             </div>
             @if ($send['state'] === 'ready')
@@ -322,10 +337,39 @@
                         <legend class="text-sm font-medium text-slate-900">Danach</legend>
                         <div class="mt-1 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-900">
                             <label class="inline-flex items-center gap-2"><input type="radio" value="close" x-model="send.after" class="text-brand focus:ring-brand"> Ticket schließen</label>
+                            <label class="inline-flex items-center gap-2"><input type="radio" value="keep" x-model="send.after" class="text-brand focus:ring-brand"> Ticket offen lassen</label>
                             <label class="inline-flex items-center gap-2"><input type="radio" value="reminder" x-model="send.after" class="text-brand focus:ring-brand"> Erinnerung in
                                 <select x-model.number="send.days" x-bind:disabled="send.after !== 'reminder'" aria-label="Tage bis zur Erinnerung" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand"><option value="1">1</option><option value="3">3</option><option value="7">7</option></select> Tagen</label>
                         </div>
                     </fieldset>
+                    <div>
+                        <label for="send-note" class="block text-sm font-medium text-slate-900">Interne Notiz <span class="font-normal text-slate-600">(optional, nur in Zammad sichtbar, nicht für den Kunden)</span></label>
+                        <textarea id="send-note" x-model="send.note" rows="2" maxlength="2000" class="mt-1 field-sizing-content block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">ToDos zu dieser Antwort <span class="font-normal text-slate-600">(bleiben offen, auch wenn das Ticket geschlossen wird)</span></p>
+                        <ul class="mt-2 space-y-3" x-show="send.todos.length > 0" x-cloak>
+                            <template x-for="(todo, index) in send.todos" :key="index">
+                                <li class="space-y-2 rounded-md bg-white p-3 ring-1 ring-slate-200 ring-inset">
+                                    <textarea x-model="todo.description" rows="2" maxlength="1000" placeholder="Was ist noch zu tun? z. B. Teilerstattung nach Versand der neuen Bestellung" x-bind:aria-label="'ToDo ' + (index + 1)" class="block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-900">
+                                        <label class="inline-flex items-center gap-2">Zuständig
+                                            <select x-model="todo.assignee" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand">
+                                                @foreach (app(\App\Staff\StaffDirectory::class)->names() as $staffName)<option value="{{ $staffName }}">{{ $staffName }}</option>@endforeach
+                                            </select></label>
+                                        <label class="inline-flex items-center gap-2">Fällig
+                                            <select x-model="todo.due_in" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand"><option value="">ohne Frist</option><option value="1">in 1 Tag</option><option value="3">in 3 Tagen</option><option value="7">in 7 Tagen</option></select></label>
+                                        <label class="inline-flex items-center gap-2"><input type="checkbox" x-bind:checked="todo.kind === 'waiting'" x-on:change="todo.kind = $event.target.checked ? 'waiting' : 'direct'" class="rounded text-brand focus:ring-brand"> Wartet auf Ereignis</label>
+                                        <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.notify_customer" class="rounded text-brand focus:ring-brand"> Kunde danach informieren</label>
+                                        <button type="button" x-on:click="send.todos.splice(index, 1)" class="font-semibold text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand">Entfernen</button>
+                                    </div>
+                                    <input x-show="todo.kind === 'waiting'" x-cloak type="text" x-model="todo.waiting_for" maxlength="255" placeholder="Worauf wird gewartet? z. B. Versand der Ersatzbestellung" aria-label="Worauf wird gewartet?" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                                    <input x-show="todo.notify_customer" x-cloak type="text" x-model="todo.notify_hint" maxlength="1000" placeholder="Hinweis für die spätere Antwort, z. B. Sendungsnummer mitteilen" aria-label="Hinweis für die spätere Antwort" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                                </li>
+                            </template>
+                        </ul>
+                        <div class="mt-2"><x-button variant="secondary" x-on:click="addTodo()" x-bind:disabled="send.todos.length >= 10"><x-icon name="plus" size="16" /> ToDo hinzufügen</x-button></div>
+                    </div>
                     <div x-show="send.newer !== ''" x-cloak role="alert" class="rounded-md bg-warning-500/10 p-3 text-sm text-slate-900 ring-1 ring-warning-500/30 ring-inset">
                         <p class="font-semibold text-warning-700" x-text="send.newer"></p>
                         <div class="mt-2 flex flex-wrap gap-3">

@@ -81,6 +81,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Ticketübersicht auf der Startseite: Ansichten, kombinierbare Filter, Klick öffnet die vorhandene Bearbeitung | Approved |
 | Ticket ohne Antwort schließen (aus CSA nach Zammad, mit optionaler interner Notiz) | Approved |
 | Direkt antworten ohne KI-Aufruf (leerer Antwortentwurf mit Versand nach Zammad) | Approved |
+| Ticketbezogene ToDos und interne Folgeaufgaben (Phase 1): eigene ToDo-Verwaltung unabhängig vom Ticketstatus, Übersicht auf der Startseite, ToDos beim Antwortversand anlegen, Antwort mit interner Notiz ohne Schließen, Kundenbenachrichtigung nach Erledigung; KI-Vorschläge und EOCS-Ereignisse später | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

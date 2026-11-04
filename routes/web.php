@@ -26,6 +26,7 @@ use App\Http\Controllers\TicketAttachmentController;
 use App\Http\Controllers\TicketCloseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketOverviewController;
+use App\Http\Controllers\TicketTodoController;
 use App\Http\Controllers\TranslationController;
 use App\Zammad\SampleTicket;
 use Illuminate\Support\Facades\Route;
@@ -128,6 +129,14 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::post('/tickets/{number}/schliessen', TicketCloseController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:20,1')->name('tickets.close');
     Route::post('/tickets/{number}/direkt-antworten', ManualReplyController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:20,1')->name('tickets.manual-reply');
     Route::post('/tickets/{number}/uebersetzung', [TranslationController::class, 'store'])->middleware('throttle:language-model')->name('tickets.translation.store');
+    Route::post('/tickets/{number}/todos', [TicketTodoController::class, 'store'])->middleware('throttle:30,1')->name('tickets.todos.store');
+});
+
+Route::get('/todos', [TicketTodoController::class, 'index'])->name('todos.index');
+Route::middleware('staff.selected')->whereNumber('todo')->group(function (): void {
+    Route::patch('/todos/{todo}', [TicketTodoController::class, 'update'])->name('todos.update');
+    Route::post('/todos/{todo}/abschliessen', [TicketTodoController::class, 'complete'])->middleware('throttle:30,1')->name('todos.complete');
+    Route::post('/todos/{todo}/oeffnen', [TicketTodoController::class, 'reopen'])->name('todos.reopen');
 });
 
 // Routes that work with a ticket number and with the number of a question (PROJ-40).

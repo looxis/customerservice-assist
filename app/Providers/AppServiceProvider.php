@@ -18,6 +18,7 @@ use App\Settings\SettingsStore;
 use App\Staff\AdvancedMode;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Todo\TodoBoard;
 use App\Zammad\MessageBody;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadReplySender;
@@ -69,7 +70,7 @@ class AppServiceProvider extends ServiceProvider
                     default => 'analysis_error',
                 }, 'Zu viele KI-Aufrufe in kurzer Zeit. Bitte eine Minute warten und dann erneut versuchen.')));
 
-        View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show', 'questions.create', 'questions.show'], function (\Illuminate\View\View $view): void {
+        View::composer(['components.layouts.app', 'tickets.analyze', 'tickets.show', 'questions.create', 'questions.show', 'todos.index'], function (\Illuminate\View\View $view): void {
             $staff = app(StaffDirectory::class);
             $testMode = app(TestMode::class);
 
@@ -83,6 +84,7 @@ class AppServiceProvider extends ServiceProvider
                 'ticketOverviewAvailable' => $testMode->isAvailable(request()),
                 'stats' => app(AppStats::class)->all(),
                 'openGapCount' => app(KnowledgeGapLog::class)->openCount(),
+                'todoCounts' => app(TodoBoard::class)->counts($staff->current(request())),
             ]);
         });
     }

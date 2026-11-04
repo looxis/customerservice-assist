@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Todo\TodoRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
@@ -28,8 +29,11 @@ class SendReplyRequest extends FormRequest
             'subject' => ['required', 'string', 'max:300', 'regex:/^[^\x00-\x1F\x7F]*$/u'],
             'text' => ['required', 'string', 'max:'.config('analysis.max_reply_length')],
             'signature' => ['nullable', 'string', 'max:600'],
-            'after' => ['required', Rule::in(['close', 'reminder'])],
+            'after' => ['required', Rule::in(['close', 'reminder', 'keep'])],
             'days' => ['required_if:after,reminder', 'nullable', 'integer', Rule::in([1, 3, 7])],
+            'note' => ['nullable', 'string', 'max:2000'],
+            'todos' => ['sometimes', 'array', 'max:10'],
+            ...TodoRules::fields('todos.*.'),
             'confirm_newer' => ['sometimes', 'boolean'],
             'files' => ['sometimes', 'array', 'max:'.self::MAX_FILES],
             'files.*' => ['file', 'mimes:pdf,png,jpg,jpeg,webp', 'mimetypes:application/pdf,image/png,image/jpeg,image/webp', 'max:'.(self::MAX_BYTES / 1024)],
@@ -66,6 +70,7 @@ class SendReplyRequest extends FormRequest
             'subject.regex' => 'Der Betreff darf keine Zeilenumbrüche oder Steuerzeichen enthalten.',
             'text.required' => 'Der Antworttext ist leer.',
             'days.required_if' => 'Bitte 1, 3 oder 7 Tage wählen.',
+            ...TodoRules::messages('todos.*.'),
             'files.max' => 'Es sind höchstens 5 Anhänge möglich.',
             'files.*.mimes' => 'Ein Anhang hat kein erlaubtes Format. Erlaubt sind PDF, PNG, JPG, JPEG und WebP.',
             'files.*.mimetypes' => 'Der Anhang entspricht nicht dem erlaubten Format (PDF, PNG, JPG, JPEG, WebP).',

@@ -29,10 +29,10 @@ describe('layout shell', function () {
         preg_match('/<nav\b.*?<\/nav>/s', $html, $nav);
 
         expect($nav)->not->toBeEmpty()
-            ->and(substr_count($nav[0], '<a'))->toBe(6)
+            ->and(substr_count($nav[0], '<a'))->toBe(7)
             ->and(substr_count($nav[0], 'aria-current="page"'))->toBe(1)
             ->and($nav[0])->toContain('Knowledge')
-            ->and($nav[0])->toContain('Tickets')->toContain('Frage stellen')->toContain('DHL Retoure')->toContain('Angebot berechnen')
+            ->and($nav[0])->toContain('Tickets')->toContain('ToDos')->toContain('Frage stellen')->toContain('DHL Retoure')->toContain('Angebot berechnen')
             ->toContain('aria-current="page"')
             ->toContain('bg-brand-tint')
             ->toContain('text-brand-700')

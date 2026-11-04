@@ -1,5 +1,5 @@
 {{-- The list of tracked tickets on the start page (PROJ-67). --}}
-@props(['filter', 'rows', 'options', 'sync', 'lacksStaffUser' => false])
+@props(['filter', 'rows', 'options', 'sync', 'lacksStaffUser' => false, 'todoTickets' => []])
 
 @php
     $views = \App\Analysis\TicketList::VIEWS;
@@ -131,6 +131,7 @@
                                     <td class="px-4 py-3 align-top whitespace-nowrap"><a href="{{ route('tickets.show', $row->number) }}" class="font-mono text-brand hover:text-brand-hover">{{ $row->number }}</a></td>
                                     <td class="px-4 py-3 align-top text-slate-900 wrap-anywhere">
                                         <a href="{{ route('tickets.show', $row->number) }}" class="hover:text-brand">{{ $row->title }}</a>
+                                        @if (in_array($row->zammad_id, $todoTickets, true))<x-badge compact tone="warning" class="ml-1" title="Zu diesem Ticket gibt es offene ToDos">ToDo</x-badge>@endif
                                         @if ($row->sync_status === \App\Zammad\SyncStatus::SyncFailed)
                                             <x-badge compact tone="warning" class="ml-1">Stand evtl. veraltet</x-badge>
                                         @elseif ($row->sync_status !== \App\Zammad\SyncStatus::Synced)

@@ -6,5 +6,9 @@
     <x-ticket.lookup />
     </div>
 
-    <x-ticket.list :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" />
+    <div class="mb-8">
+        <x-todo.panel :view="$todoView" :counts="$todoCounts" :list="$todoList" />
+    </div>
+
+    <x-ticket.list :todo-tickets="$todoTickets" :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" />
 </x-layouts.app>

@@ -102,6 +102,25 @@ class ZammadReplySender
     }
 
     /**
+     * Add an internal note to the ticket without changing its status (PROJ-70), in the name of the employee.
+     *
+     * @throws ReplyException
+     */
+    public function addNote(string $token, int $ticketId, string $subject, string $body): void
+    {
+        $this->whoAmI($token);
+
+        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$ticketId}", ['article' => [
+            'type' => 'note',
+            'sender' => 'Agent',
+            'internal' => true,
+            'content_type' => 'text/plain',
+            'subject' => $subject,
+            'body' => trim($body),
+        ]]), certain: false);
+    }
+
+    /**
      * Create a new ticket for the customer with the e-mail as its first article, in the name of the employee
      * (PROJ-64). The customer is found or created by the address.
      *

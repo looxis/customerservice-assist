@@ -34,6 +34,7 @@ use App\ProductForge\ProductResolver;
 use App\Returns\ReturnInstructions;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Todo\TodoService;
 use App\Zammad\OrderMentionItem;
 use App\Zammad\OutgoingAttachment;
 use App\Zammad\OutgoingReply;
@@ -308,7 +309,7 @@ class AnalysisController extends Controller
     /**
      * Hand the reply to Zammad in the name of the chosen employee (PROJ-19). Counts for the statistics like a copy.
      */
-    public function sendReply(string $number, string $analysis, SendReplyRequest $request, AnalysisStore $store, AnalysisPanel $panel, StaffDirectory $staff, ZammadClient $zammad, ZammadReplySender $sender, ReplyDelivery $delivery): JsonResponse
+    public function sendReply(string $number, string $analysis, SendReplyRequest $request, AnalysisStore $store, AnalysisPanel $panel, StaffDirectory $staff, ZammadClient $zammad, ZammadReplySender $sender, ReplyDelivery $delivery, TodoService $todos): JsonResponse
     {
         $stored = $store->result($analysis);
         $name = $staff->current($request);
@@ -357,6 +358,7 @@ class AnalysisController extends Controller
 
                 if ($earlier !== null) {
                     $store->markReplySent($analysis, $name, $earlier->zammadUser, (string) $request->validated('subject'), 'unbekannt', $earlier->articleId, $this->replyChanged($request, $panel, $stored));
+                    rescue(fn () => $todos->markNotified($analysis));
 
                     return response()->json(['message' => 'Die Antwort war bereits in Zammad angekommen.', 'code' => 'sent'], 409);
                 }
@@ -392,7 +394,11 @@ class AnalysisController extends Controller
 
         $after = $request->validated('after');
         $days = (int) $request->validated('days', 0);
-        $state = $after === 'close' ? 'closed' : 'pending reminder';
+        $state = match ($after) {
+            'close' => 'closed',
+            'keep' => 'open',
+            default => 'pending reminder',
+        };
         $subject = trim((string) $request->validated('subject'));
         $body = trim((string) $request->validated('text'));
         $signature = trim((string) $request->validated('signature', ''));
@@ -400,7 +406,7 @@ class AnalysisController extends Controller
         $files = $this->outgoingFiles($request);
 
         try {
-            $sent = $sender->send($token, new OutgoingReply($ticket->id, trim((string) $request->validated('to')), $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'close' ? null : ReplyDelivery::reminderDate($days), $files));
+            $sent = $sender->send($token, new OutgoingReply($ticket->id, trim((string) $request->validated('to')), $subject, $signature === '' ? $body : $body."\n\n".$signature, $target->inReplyTo, $state, $after === 'reminder' ? ReplyDelivery::reminderDate($days) : null, $files));
         } catch (ReplyException $exception) {
             if ($exception->problem->notSent()) {
                 $store->releaseReplySend($analysis);
@@ -409,9 +415,53 @@ class AnalysisController extends Controller
             return response()->json(['message' => $exception->problem->message($name), 'code' => $exception->problem->value], 502);
         }
 
-        $store->markReplySent($analysis, $name, $sent->zammadUser, $subject, $after === 'close' ? 'closed' : "pending reminder +{$days}d", $sent->articleId, $this->replyChanged($request, $panel, $stored), $files === [] ? null : implode(', ', array_map(fn (OutgoingAttachment $file): string => $file->label(), $files)));
+        $store->markReplySent($analysis, $name, $sent->zammadUser, $subject, match ($after) {
+            'close' => 'closed',
+            'keep' => 'open',
+            default => "pending reminder +{$days}d",
+        }, $sent->articleId, $this->replyChanged($request, $panel, $stored), $files === [] ? null : implode(', ', array_map(fn (OutgoingAttachment $file): string => $file->label(), $files)));
 
-        return response()->json(['sent' => true, 'by' => $name, 'at' => now('Europe/Berlin')->format('d.m.Y \\u\\m H:i'), 'ticket_url' => $ticket->zammadUrl]);
+        return response()->json([
+            'sent' => true, 'by' => $name, 'at' => now('Europe/Berlin')->format('d.m.Y \\u\\m H:i'), 'ticket_url' => $ticket->zammadUrl,
+            ...$this->afterReply($request, $number, $analysis, $ticket->id, $name, $token, $sender, $todos),
+        ]);
+    }
+
+    /**
+     * What goes with a sent reply (PROJ-70): the internal note and the ToDos. The reply is out by now, so a failure
+     * here is reported and never undoes or repeats it.
+     *
+     * @return array{note_failed: bool, todos_failed: bool, todos: int}
+     */
+    private function afterReply(SendReplyRequest $request, string $number, string $analysis, int $ticketId, string $name, string $token, ZammadReplySender $sender, TodoService $todos): array
+    {
+        $noteFailed = false;
+        $todosFailed = false;
+        $created = 0;
+        $note = trim((string) $request->validated('note', ''));
+
+        if ($note !== '') {
+            try {
+                $sender->addNote($token, $ticketId, 'Interne Notiz zur Antwort', $note);
+            } catch (ReplyException) {
+                $noteFailed = true;
+            }
+        }
+
+        rescue(fn () => $todos->markNotified($analysis));
+
+        $rows = array_values((array) $request->validated('todos', []));
+
+        if ($rows !== []) {
+            try {
+                $created = $todos->createFromReply($ticketId, $number, $rows, $analysis, $name);
+            } catch (\Throwable $exception) {
+                report($exception);
+                $todosFailed = true;
+            }
+        }
+
+        return ['note_failed' => $noteFailed, 'todos_failed' => $todosFailed, 'todos' => $created];
     }
 
     /**

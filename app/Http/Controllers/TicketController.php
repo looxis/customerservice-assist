@@ -17,6 +17,7 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Todo\TodoBoard;
 use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
@@ -50,7 +51,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery, AnalysisStore $store): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery, AnalysisStore $store, TodoBoard $todos): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -110,6 +111,7 @@ class TicketController extends Controller
             'orderProblem' => $orderProblem,
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
+            'ticketTodos' => $todos->forTicket($ticket->id),
         ]);
     }
 
