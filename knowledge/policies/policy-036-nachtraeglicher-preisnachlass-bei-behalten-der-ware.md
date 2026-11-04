@@ -2,7 +2,7 @@
 id: POLICY-036
 title: Nachträglicher Preisnachlass bei Behalten beanstandeter Ware
 type: policy
-status: draft
+status: active
 customer_types:
 - b2c
 - b2b-reseller
@@ -19,7 +19,7 @@ related_knowledge:
 - POLICY-034
 - POLICY-035
 - PERMISSION-006
-summary: "Ein Privatkunde oder Foto-Fachhändler möchte beanstandete gelieferte Ware behalten und nachträglich Rabatt, Gutschrift oder Teilerstattung erhalten. Ein freiwilliger Nachlass ist kein regulärer Reklamationsweg und benötigt als Ausnahme Geschäftsführerfreigabe; gesetzliche Minderungsrechte bleiben unberührt. Gilt nicht für Rabatt auf eine neue Kulanz-Anfertigung."
+summary: "Ein Privatkunde oder Foto-Fachhändler möchte beanstandete gelieferte Ware behalten und nachträglich Rabatt, Gutschrift oder Teilerstattung erhalten. Ein freiwilliger Nachlass ist kein regulärer Reklamationsweg und benötigt als Ausnahme Geschäftsführerfreigabe; gesetzliche Minderungsrechte bleiben unberührt. Solange der Fehler nicht geklärt ist, deutet die Antwort keinen Nachlass, Ersatz oder eine spätere Lösung an. Gilt nicht für Rabatt auf eine neue Kulanz-Anfertigung."
 retrieval: binding
 triggers:
 - Preisnachlass
@@ -49,6 +49,16 @@ Gilt für Privatkunden auf allen Vertriebskanälen sowie Foto-Fachhändler/Resel
 Freiwillige nachträgliche Preisnachlässe sind kein regulärer Reklamationsweg. Die beanstandete Qualität wird unabhängig vom Rabattwunsch geprüft, bei kleinen optischen Auffälligkeiten nach POLICY-035.
 
 Bei bestätigtem Fehler wird bevorzugt die passende kostenfreie Ersatzlösung nach den anwendbaren Regeln angeboten. Ein Rabattwunsch allein begründet weder eine Fehleranerkennung noch einen Nachlass. Die Bereitschaft zum Behalten beweist umgekehrt nicht, dass die Ware mangelfrei ist.
+
+# Antwort, solange der Sachverhalt ungeklärt ist
+
+Solange nicht feststeht, ob überhaupt ein Fehler vorliegt (Foto, Test oder Angaben fehlen), fragt die Antwort ausschließlich nach den fehlenden Informationen. Sie lässt offen, wie der Fall ausgeht:
+
+- Die Antwort sagt nicht zu und deutet nicht an, dass ein Preisnachlass, Rabatt, Ersatz oder eine Erstattung möglich ist oder später besprochen werden kann. Nicht schreiben: „über einen Preisnachlass können wir danach sprechen“, „anschließend finden wir eine Lösung“, „dann schauen wir, was wir für Sie tun können“.
+- Die Antwort schließt einen Nachlass auch nicht aus und lehnt ihn nicht ab. Sie geht auf den Rabattwunsch gar nicht ein oder nennt nur, dass zuerst der Sachverhalt geprüft wird („Wir prüfen zunächst, was an Ihrer Bestellung auffällt“). Auf die Frage nach dem weiteren Vorgehen genügt: Nach Eingang der Angaben meldet sich der Kundenservice.
+- Der gesetzliche Minderungsanspruch bleibt unberührt (siehe unten). Beruft sich der Kunde ausdrücklich auf Gewährleistung oder Minderung, wird das gesondert geprüft und nicht mit dieser Regel übergangen.
+
+Begründung: Ein Rabattwunsch, der zusammen mit einer nicht belegten Fehlerbeschreibung kommt, kann berechtigt sein, ist aber kein Beleg für einen Fehler. Ein Hinweis auf einen späteren Nachlass nimmt der Klärung ihre Wirkung und setzt eine Erwartung, die der Kundenservice nicht erfüllen darf (PERMISSION-006). Auch ein Verdacht, der Fehler werde nur angeführt, um einen Nachlass zu erhalten, steht nie in der Antwort und wird dem Kunden nicht unterstellt (POLICY-035). Im internen Teil des Vorschlags wird er nicht als Tatsache behandelt, sondern nur als Grund, den Sachverhalt vor jeder Lösung sorgfältig zu klären.
 
 # Freiwillige Ausnahme
 
