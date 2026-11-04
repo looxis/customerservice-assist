@@ -18,7 +18,7 @@ topics:
   - customer-account
   - shop-outage
 
-summary: "Ein LOOXIS-Pro-Kunde kann den Shop www.looxis-pro.com nicht aufrufen, wird nach Benutzername und Passwort gefragt, kann nicht bestellen oder fragt nach dem Newsletter zur Sicherheitslücke. Anweisung an den Agenten: auf den Newsletter vom 26.10.2026 verweisen, die Zugangsdaten der vorgeschalteten Passwortabfrage nennen und erklären, dass danach die gewohnte Anmeldung folgt. Gilt nur befristet bis 15.12.2026."
+summary: "Ein LOOXIS-Pro-Kunde kann sich nicht mehr einloggen oder anmelden, kann den Shop www.looxis-pro.com nicht aufrufen, wird nach Benutzername und Passwort gefragt, kann nicht bestellen, fragt, ob er ein neues Konto anlegen muss, oder fragt nach dem Newsletter zur Sicherheitslücke. Anweisung an den Agenten: auf den Newsletter vom 26.10.2026 verweisen, die Zugangsdaten der vorgeschalteten Passwortabfrage nennen und erklären, dass danach die gewohnte Anmeldung folgt. Gilt nur befristet bis 15.12.2026."
 retrieval: triggered
 triggers:
   - Passwortabfrage
@@ -33,6 +33,14 @@ triggers:
   - Sicherheitslücke
   - Newsletter
   - looxis-pro.com
+  - einloggen
+  - eingeloggt
+  - Login
+  - anmelden
+  - Anmeldung
+  - angemeldet
+  - Passwort
+  - neues Konto
 exclude_triggers:
 when:
 actions:
@@ -52,12 +60,14 @@ Der LOOXIS-Pro-Shop war wegen einer kritischen Sicherheitslücke in PHP, die am 
 
 - Der Kunde schreibt, er könne den LOOXIS-Pro-Shop nicht aufrufen oder nicht bestellen.
 - Der Kunde wird nach einem Benutzernamen und Passwort gefragt, kennt diese aber nicht.
+- Der Kunde kann sich nicht mehr in sein Konto einloggen oder fragt, ob er ein neues Konto anlegen muss.
 - Der Kunde fragt nach dem Newsletter oder der Sicherheitslücke.
 
 # Zu prüfen
 
 1. Handelt es sich um einen LOOXIS-Pro-Kunden und den Shop www.looxis-pro.com?
 2. Schildert der Kunde ein anderes Problem als die Passwortabfrage (zum Beispiel eine Fehlermeldung nach der eigenen Anmeldung)? Dann nachfragen, was genau er sieht.
+3. Meldet der Kunde einen Login-Fehler, ohne die Passwortabfrage zu erwähnen: Wahrscheinlich ist die Passwortabfrage die Ursache. Zuerst den Zugang erklären, kein neues Konto empfehlen und kein internes Kundenkonto prüfen lassen.
 
 # Empfohlene Maßnahme
 
