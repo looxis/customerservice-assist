@@ -47,7 +47,7 @@ Vor der Anwendung einer fachlichen Regel müssen Kundenart und Vertriebskanal fe
 
 # B2B-Besonderheiten
 
-Bei B2B können andere Bedingungen gelten. Bei LOOXIS-Pro sind insbesondere Rohware, Auslandsversand, höhere Versandkosten und möglicher Speditionsversand zu berücksichtigen. Daraus folgt noch keine pauschale Zuordnung der Kosten oder Zusage eines kostenfreien Ersatzversands. Rücknahme und Rückkauf regelt POLICY-064.
+Bei B2B können andere Bedingungen gelten. Bei LOOXIS-Pro sind insbesondere Rohware, Auslandsversand, höhere Versandkosten und möglicher Speditionsversand zu berücksichtigen. Daraus folgt noch keine pauschale Zuordnung der Kosten oder Zusage eines kostenfreien Ersatzversands. Rücknahme und Rückkauf regelt POLICY-064. Bei Reklamationen von LOOXIS-Pro-Kunden entscheidet der Produktionsleiter über die Lösung (POLICY-065).
 
 # Bestätigte Regeln für Foto-Fachhändler
 
@@ -58,7 +58,3 @@ Für berechtigte Reklamationen gilt POLICY-034 mit PERMISSION-002 (Ersatz) und P
 Ist Kundenart oder Kanal nicht zuverlässig bekannt, zuerst die Bestell- und Kundenstammdaten intern prüfen. Sind sie dort nicht ermittelbar, den Kunden gezielt fragen, wo und in welcher Eigenschaft er bestellt hat.
 
 Fehlen die für den Kanal oder B2B-Fall benötigten Regeln, ist eine Wissenslücke zu benennen. Es darf keine uneingeschränkte Erstattungs- oder Ersatzempfehlung aus einer Verbraucher-Policy abgeleitet werden.
-
-# Noch zu klären
-
-- Reklamation, Ersatz und Erstattung bei LOOXIS-Pro, einschließlich Auslands- und Speditionsversand.
