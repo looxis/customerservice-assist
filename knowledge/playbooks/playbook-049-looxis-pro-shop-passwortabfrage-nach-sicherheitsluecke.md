@@ -46,7 +46,7 @@ Gilt nur für LOOXIS-Pro-Kunden (Bestellweg www.looxis-pro.com). **Testweise gü
 
 # Fallmuster
 
-Der LOOXIS-Pro-Shop war wegen einer kritischen Sicherheitslücke in PHP vorübergehend offline. Seit dem Newsletter vom 26. Oktober 2026, 9:30 Uhr, ist er wieder erreichbar, aber nur über eine vorgeschaltete Passwortabfrage für die gesamte Webseite. Das ist eine Übergangslösung und beschränkt den Zugang auf Bestandskunden. Der Shop wird auf ein neues System umgestellt. Die Passwortabfrage soll nur für einige Wochen nötig sein.
+Der LOOXIS-Pro-Shop war wegen einer kritischen Sicherheitslücke in PHP, die am 22. Oktober 2026 weltweit bekannt wurde, vorübergehend offline. Seit dem Newsletter vom 26. Oktober 2026, 9:30 Uhr, ist er wieder erreichbar, aber nur über eine vorgeschaltete Passwortabfrage für die gesamte Webseite. Das ist eine Übergangslösung und beschränkt den Zugang auf Bestandskunden. Der Shop wird auf ein neues System umgestellt. Die Passwortabfrage soll nur für einige Wochen nötig sein.
 
 # Erkennungsmerkmale
 
@@ -61,7 +61,7 @@ Der LOOXIS-Pro-Shop war wegen einer kritischen Sicherheitslücke in PHP vorüber
 
 # Empfohlene Maßnahme
 
-Auf den Newsletter vom 26. Oktober 2026 (9:30 Uhr) hinweisen und dem Kunden den Zugang direkt erklären:
+Auf den Newsletter vom 26. Oktober 2026 (9:30 Uhr) hinweisen, erklären, dass der zusätzliche Passwortschutz wegen der am 22. Oktober 2026 weltweit bekannt gewordenen PHP-Sicherheitslücke notwendig wurde, und dem Kunden den Zugang direkt erklären:
 
 1. www.looxis-pro.com wie gewohnt aufrufen.
 2. Bei der vorgeschalteten Passwortabfrage eingeben: Benutzername `customer`, Passwort `94e_VQ3bonL3t#F`.
