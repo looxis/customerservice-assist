@@ -50,7 +50,7 @@ Eine Reklamation zu Qualität, gelieferter Ware oder Umsetzung der Personalisier
 
 1. Die Beanstandung mit Bestellung, Kundenkonfiguration und verfügbaren Nachweisen abgleichen.
 2. Feststellen, ob ein Mangel, ein eindeutiger eigener Fehler oder eine noch ungeklärte Beanstandung vorliegt.
-3. Bei Interpretationsspielraum, etwa „Druck zu dunkel“ oder „einen Millimeter außerhalb der Mitte“, keine automatische Fehleranerkennung und keine automatische Erstattung vornehmen. Die tatsächliche Abweichung prüfen.
+3. Bei Interpretationsspielraum, etwa „Druck zu dunkel“ oder „einen Millimeter außerhalb der Mitte“, keine automatische Fehleranerkennung und keine automatische Erstattung vornehmen. Die tatsächliche Abweichung prüfen. Für Helligkeit und Ausrichtung sind keine numerischen Toleranzen festgelegt; die Abweichung wird im Einzelfall bewertet (PROCESS-002).
 4. Bei erforderlicher Korrektur bevorzugt kostenfreie Neuproduktion und Ersatzversand anbieten.
 5. Bei ausdrücklichem Erstattungswunsch und eindeutigem grobem eigenem Fehler eine Erstattung als mögliche Lösung prüfen.
 
@@ -69,10 +69,6 @@ Für vertauschte Ware sowie die Rücksendung wiederverwendbarer, nicht personali
 Gesetzliche Mängelrechte bleiben unberührt. Der bevorzugte Ersatzweg darf einen bestehenden Anspruch auf Rücktritt, Minderung oder Erstattung nicht verdrängen. Insbesondere bei erfolgloser oder unangemessen verzögerter Nacherfüllung sowie besonders schwerwiegenden Mängeln ist eine gesonderte rechtliche Prüfung erforderlich.
 
 Ein subjektiv formulierter Vorwurf ist weder automatisch ein Mangel noch automatisch unbegründet.
-
-# Noch zu klären
-
-- Produktbezogene Kriterien zur Bewertung von Druckhelligkeit und Ausrichtung; es sind noch keine Toleranzwerte festgelegt.
 
 # Rechtsgrundlagen
 
