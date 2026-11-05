@@ -81,6 +81,7 @@ final readonly class CaseLinks
             'zammad-ticket' => $this->ticketUrl === null ? [] : [['url' => $this->ticketUrl, 'label' => null]],
             'amazon-bestellung' => $this->amazonTargets($key),
             'vanilo-kunden' => $this->fixed($key, $this->customerEmail === null ? null : ['email' => $this->customerEmail, 'order_by' => 'newest_first']),
+            'eocs-kunden' => $this->fixed($key, $this->customerEmail === null ? null : ['tableColumnSearchQueries' => ['contact' => ['email' => $this->customerEmail]]]),
             default => $this->fixed($key),
         };
     }

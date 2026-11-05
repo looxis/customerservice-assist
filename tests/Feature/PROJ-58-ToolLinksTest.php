@@ -60,10 +60,11 @@ describe('the targets', function () {
             ->and($without->targets('vanilo-kunden')[0]['url'])->toBe('https://shop.example/manage/shopper');
     });
 
-    test('EOCS customers and Mailcoach never get a search term', function () {
-        $case = new CaseLinks(customerEmail: 'kunde@example.org');
+    test('EOCS customers get the e-mail address as column search, Mailcoach never gets a search term', function () {
+        $case = new CaseLinks(customerEmail: 'kunde+shop@example.org');
 
-        expect($case->targets('eocs-kunden')[0]['url'])->toBe('https://eocs.example/customers')
+        expect(urldecode($case->targets('eocs-kunden')[0]['url']))->toBe('https://eocs.example/customers?tableColumnSearchQueries[contact][email]=kunde+shop@example.org')
+            ->and((new CaseLinks)->targets('eocs-kunden')[0]['url'])->toBe('https://eocs.example/customers')
             ->and($case->targets('mailcoach-listen')[0]['url'])->toBe('https://mail.example/email-lists');
     });
 
