@@ -55,7 +55,7 @@ class KnowledgeSelect extends Command
         $this->line("Wissensstand: {$selection->state->label()}");
 
         $this->newLine();
-        $this->line('Ausgewählt: '.$this->documents(count($selection->selected)).', davon '.$selection->draftCount().' Entwurfs-Wissen');
+        $this->line('Ausgewählt: '.$this->documents(count($selection->selected)));
 
         if (! $selection->isEmpty()) {
             $this->table(['ID', 'Titel', 'Status', 'Grund'], $this->rows($selection->selected));

@@ -253,7 +253,7 @@ describe('running an analysis', function () {
             && $prompt->contains('Kundengruppe: Privatkunde, Amazon')
             && $prompt->contains('Bestellung 402-0000000-0000001')
             && $prompt->contains('Fototasse Schwarz (Art.-Nr. 11281)')
-            && $prompt->contains('POLICY-001 – Allgemeine Regel (Policies, Entwurf)')
+            && $prompt->contains('POLICY-001 – Allgemeine Regel (Policies)')
             && $prompt->contains('POLICY-002 – Nur Amazon (Policies)')
             && $prompt->contains('[LIEFERADRESSE]')
             && ! $prompt->contains('PROCEDURE-001')
@@ -267,11 +267,10 @@ describe('running an analysis', function () {
                 'Vorschlag', 'Vorschlag von Nele', 'Unklar', 'Confidence MITTEL',
                 'Was ist zu tun?', 'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
                 'Du darfst das selbst entscheiden.',
-                'Beruht teilweise auf Entwurfs-Wissen', 'POLICY-001',
                 'Interne Abläufe', 'Für diesen Fall', 'Antwort abwarten',
                 'Antwortentwurf', 'Von der App eingesetzt: Lieferadresse', 'Hallo Erika,',
                 'Begründung', 'Ohne Test kein Urteil.',
-                'Quellen', 'POLICY-001', 'Entwurf',
+                'Quellen', 'POLICY-001',
                 'Kurzfassung', 'Die Tasse bleibt schwarz.', 'Ersatz', 'Reklamation', 'Thermoeffekt angeblich defekt',
                 'Bestellung gefunden',
                 'Nele', 'gpt-5.5', 'Prompt analysis-',

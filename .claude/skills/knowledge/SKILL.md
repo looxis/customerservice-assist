@@ -1,6 +1,6 @@
 ---
 name: knowledge
-description: Capture company knowledge as a correctly formatted Markdown file in knowledge/. Interviews the author, picks the document type, assigns the next free ID, reuses existing tags and writes the file as a draft. Pass a topic or a real case as argument.
+description: Capture company knowledge as a correctly formatted Markdown file in knowledge/. Interviews the author, picks the document type, assigns the next free ID, reuses existing tags and writes the file as active. Pass a topic or a real case as argument.
 argument-hint: "topic or case, e.g. 'Kulanz bei Tippfehlern' or 'Kunde reklamiert dunkles 3D-Glasfoto'"
 user-invocable: true
 ---
@@ -70,7 +70,7 @@ The author's input often mixes rules (what we do) with product facts (how the pr
 Show first the confirmed sorting table, then the complete file(s) with target path, then the ProductForge entries (format: guide section "Ausgabeformat": product, level, field, type of change, text, note), before writing anything. Apply corrections until the author confirms.
 
 ### 5. Write
-- Target folder and file name as defined in the guide; next free ID; `status: draft`.
+- Target folder and file name as defined in the guide; next free ID; `status: active`.
 - Structure identical to the template of the type; leave out the template notice lines.
 - No personal data from the conversation (names, addresses, order or ticket numbers).
 - A product file already exists for the product: extend that file instead of creating a second one, and show the change before saving. Extend it only with scope, `order_keywords`, `customer_terms` and references to rules, never with product facts; product facts go out as ProductForge entries.
@@ -81,7 +81,7 @@ Show first the confirmed sorting table, then the complete file(s) with target pa
 State the path, the ID and every newly introduced tag value. Run through the final check from the guide and mention anything that does not pass. If there are ProductForge parts, repeat them under the heading "Bitte in ProductForge eintragen" with product, level, field and text.
 
 ## What NOT to do
-- Do NOT set `status: active` — only the author does that, after testing.
+- Never use `status: draft`; it does not exist any more. New files are `active`.
 - Do NOT commit or push unless the author explicitly asks.
 - Do NOT change `docs/KNOWLEDGE_BASE_DESIGN.md`.
 - Do NOT write product facts (technical data, dimensions, delivery contents, care and warning notes, product-specific service knowledge) into `knowledge/`; they go out as ProductForge entries.
@@ -90,4 +90,4 @@ State the path, the ID and every newly introduced tag value. Run through the fin
 - Do NOT edit existing knowledge files beyond what the author asked for.
 
 ## Handoff
-> "Datei liegt unter `knowledge/…` als Entwurf (ID …). Prüfe sie fachlich und committe sie; getestet wird sie an einem Fall in der App. Zusätzlich bitte in ProductForge eintragen: … (Produkt, Ebene, Feld, Text; entfällt, wenn nichts nach ProductForge gehört)."
+> "Datei liegt unter `knowledge/…` (ID …, Status active). Prüfe sie fachlich und committe sie; getestet wird sie an einem Fall in der App. Zusätzlich bitte in ProductForge eintragen: … (Produkt, Ebene, Feld, Text; entfällt, wenn nichts nach ProductForge gehört)."

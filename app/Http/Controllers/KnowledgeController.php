@@ -45,7 +45,6 @@ class KnowledgeController extends Controller
             'counts' => [
                 'total' => $documents->count(),
                 'usable' => $usable->count(),
-                'draft' => $usable->where('status', 'draft')->count(),
                 'active' => $usable->where('status', 'active')->count(),
             ],
             'issuesByPath' => $library->issues()->groupBy('path'),
@@ -128,7 +127,7 @@ class KnowledgeController extends Controller
     }
 
     /**
-     * @return array{status: string|null, actions: list<array{target: string, label: string, blockers: list<string>}>, evidence: array<string, mixed>, related: list<string>, writable: bool}
+     * @return array{status: string|null, actions: list<array{target: string, label: string, blockers: list<string>}>, evidence: array<string, mixed>, writable: bool}
      */
     private function statusPanel(KnowledgeDocument $document, DocumentStatusChanger $changer, DocumentEvidence $evidence): array
     {
@@ -142,7 +141,6 @@ class KnowledgeController extends Controller
                 'blockers' => $changer->blockers($document, $target),
             ], $targets),
             'evidence' => $document->id === null ? [] : $evidence->for($document->id),
-            'related' => $changer->relatedDrafts($document),
             'writable' => $changer->writable($document),
         ];
     }

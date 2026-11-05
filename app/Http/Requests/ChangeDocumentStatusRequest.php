@@ -19,7 +19,7 @@ class ChangeDocumentStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', 'in:draft,active,deprecated'],
+            'status' => ['required', 'string', 'in:active,deprecated'],
             'fingerprint' => ['required', 'string', 'size:64'],
         ];
     }

@@ -174,7 +174,6 @@
                                                 class="text-left font-medium text-brand hover:text-brand-hover">
                                             <span class="font-mono text-xs">{{ $entry['id'] }}</span> {{ $entry['title'] }}
                                         </button>
-                                        @if ($entry['draft'])<x-badge compact tone="warning">Entwurf</x-badge>@endif
                                         @if ($entry['note'])<span class="text-xs text-warning-700">{{ $entry['note'] }}</span>@endif
                                         <span x-show="shown(@js($entry['id']))" x-cloak class="text-xs text-slate-600">angezeigt</span>
                                     </li>

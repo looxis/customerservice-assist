@@ -30,11 +30,7 @@
         </x-alert>
     @endif
 
-    @if ($document->parsed && ! $hasErrors && $document->status === 'draft')
-        <x-alert type="warning">
-            Entwurfs-Wissen: Dieses Dokument ist noch nicht fachlich bestätigt. Die App verwendet es bereits und kennzeichnet es im Ergebnis. Wenn dir etwas unstimmig vorkommt, gib bitte Bescheid.
-        </x-alert>
-    @elseif ($document->status === 'deprecated')
+    @if ($document->status === 'deprecated')
         <x-alert>Veraltet: Dieses Dokument gilt nicht mehr und wird von der App nicht verwendet.</x-alert>
     @endif
 
@@ -206,10 +202,6 @@
                         <p class="mt-2 text-sm text-warning-700">Bisher nur in {{ $evidence['named'] }} {{ $evidence['named'] === 1 ? 'Vorschlag' : 'Vorschlägen' }} von der KI genannt. Das reicht für eine Entscheidung, ist aber eine dünne Grundlage.</p>
                     @endif
                     <p class="mt-1 text-xs text-slate-600">Ohne Testläufe und fehlgeschlagene Vorschläge, alle bisherigen Fassungen des Dokuments.</p>
-                @endif
-
-                @if ($statusPanel['related'] !== [])
-                    <p class="mt-3 text-sm text-warning-700">Verwandtes Wissen ist noch Entwurf: <span class="font-mono">{{ implode(', ', $statusPanel['related']) }}</span>. Das sperrt die Aktion nicht.</p>
                 @endif
 
                 <div class="mt-4 flex flex-wrap items-start gap-3">

@@ -9,13 +9,9 @@
         <span class="font-mono text-xs text-slate-600">{{ $procedure['id'] }}</span>
         <span class="font-semibold text-slate-900">{{ $procedure['title'] }}</span>
         @foreach ($procedure['actions'] as $label)<x-badge compact>{{ $label }}</x-badge>@endforeach
-        @if ($procedure['draft'])<x-badge compact tone="warning">Entwurf</x-badge>@endif
         <button type="button" data-close-procedure="{{ $procedure['id'] }}" class="ml-auto text-xs font-semibold text-slate-600 hover:text-slate-900">Schließen</button>
     </summary>
     <div class="border-t border-slate-100 p-4">
-        @if ($procedure['draft'])
-            <x-alert type="warning" class="mb-4">Dieser Ablauf ist noch ein Entwurf. Wenn dir etwas falsch vorkommt, melde es als Wissenslücke.</x-alert>
-        @endif
         <x-knowledge.text :html="$procedure['html']" />
     </div>
 </details>

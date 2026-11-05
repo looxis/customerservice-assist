@@ -1,6 +1,6 @@
 # PROJ-71: Draft-Status für Wissen abschaffen
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-11-05
 **Last Updated:** 2026-11-05
 
@@ -44,7 +44,7 @@
 - Security: Statuswechsel auf `deprecated` bleibt Admin-only.
 
 ## Open Questions
-- [ ] Gibt es unter den 118 Entwürfen welche, die bewusst noch nicht live sein sollen (dann vorab auf `deprecated` oder mit `trial_until` versehen)?
+- [x] Gibt es unter den 118 Entwürfen welche, die bewusst noch nicht live sein sollen? Entschieden 2026-11-05: Nein, alle werden `active`.
 
 ## Decision Log
 
@@ -62,6 +62,15 @@
 
 ---
 <!-- Sections below are added by subsequent skills -->
+
+## Implementation Notes (2026-11-05)
+- 118 Dateien in `knowledge/` und alle Vorlagen auf `active`; `config/knowledge.php`: Status nur noch `active` und `deprecated`, nur `active` ist verwendbar; `draft` meldet `knowledge:check` als Fehler („Unbekannter Status“).
+- Entfernt: `isDraft()`, `draftCount()`, Draft-Felder in Quellen und `draft_ids` der Analysen (ältere Analysen bleiben anzeigbar), Entwurfs-Hinweis und -Badges, Draft-Kachel und -Filter in Knowledge-Übersicht und „Über die App“, Prompt-Zeile zu Entwurfs-Wissen (Prompt-Version `analysis-2026-11-05.1`), Entwurfsanzahl in der Seitenleisten-Statistik.
+- Statuspanel (Admin): nur noch `active` → `deprecated` („Als veraltet markieren“) und `deprecated` → `active` („Wieder als gültig setzen“); `TrialChanger` unverändert.
+- Doku und Skill angepasst: Authoring Guide, Design-Dokument, README, PRD, Über die App, Skill `knowledge` (neue Dateien sind `active`).
+- Folge der Umstellung: Sieben bisher als Entwurf geführte Dokumente mit Abschnitt „Noch zu klären“ lösen jetzt die Warnung aus (PLAYBOOK-030, POLICY-009, POLICY-060, POLICY-061, PROCESS-011, PROCESS-015, `edible-photo`; bei POLICY-052 gab es die Warnung schon): Punkte entscheiden oder Abschnitt entfernen.
+- Tests angepasst (`tests/Pest.php` Standardstatus `active`, PROJ-2, -3, -4, -9, -10, -23, -24, -25, -30, -41); Knowledge-bezogene Tests grün, außer zwei bekannte Fehler in PROJ-56 (Sichtbarkeit der Meldungen, offen).
+
 
 ## Tech Design (Solution Architect)
 _To be added by /architecture_

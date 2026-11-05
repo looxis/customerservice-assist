@@ -7,7 +7,6 @@
     $assessment = ['berechtigt' => 'success', 'unberechtigt' => 'danger', 'unklar' => 'warning'];
     $confidence = ['HOCH' => 'success', 'MITTEL' => 'warning', 'NIEDRIG' => 'danger'];
     $time = fn (string $value): string => \Carbon\CarbonImmutable::parse($value)->setTimezone('Europe/Berlin')->format('d.m.Y, H:i');
-    $usedDrafts = collect($result['sources'])->where('draft', true)->pluck('id')->all();
     $usedTrials = collect($result['sources'])->filter(fn ($source) => ($source['trial_until'] ?? null) !== null);
     $gaps = $r['knowledge_gaps'] ?? [];
     $legacyMissing = $r['missing_information'] ?? [];
@@ -229,12 +228,6 @@
                     </span>
                 </p>
             @endif
-            @if ($usedDrafts !== [])
-                <p class="flex items-start gap-2 text-warning-700">
-                    <x-icon name="warning" size="16" class="mt-0.5 shrink-0" />
-                    <span>Beruht teilweise auf Entwurfs-Wissen – bitte kritisch prüfen: <span class="font-mono text-xs">{{ implode(', ', $usedDrafts) }}</span></span>
-                </p>
-            @endif
 
             @if ($advanced && ($notes !== [] || ($meta['knowledge_warnings'] ?? []) !== []))
                 <p class="text-slate-600">Prüfhinweise vorhanden – siehe unten.</p>
@@ -294,7 +287,6 @@
                             <span class="font-mono text-xs text-slate-600">{{ $source['id'] }}</span>
                             <span class="font-medium">{{ $source['title'] ?? '–' }}</span>
                             @if ($source['type'])<x-badge compact>{{ $source['type'] }}</x-badge>@endif
-                            @if ($source['draft'])<x-badge compact tone="warning">Entwurf</x-badge>@endif
                             @if ($source['trial_until'] ?? null)<x-badge compact :tone="\Carbon\CarbonImmutable::parse($source['trial_until'], 'Europe/Berlin')->endOfDay()->isPast() ? 'danger' : 'info'">Vorläufig bis {{ \Carbon\CarbonImmutable::parse($source['trial_until'])->format('d.m.Y') }}</x-badge>@endif
                             @if ($source['reported_many'] ?? false)<x-badge compact tone="warning">Mehrfach zur Prüfung gemeldet</x-badge>@endif
                             @if ($source['state'] === 'changed')<x-badge compact tone="info">Seit dem Vorschlag geändert</x-badge>@endif

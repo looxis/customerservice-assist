@@ -11,9 +11,4 @@ final readonly class KnowledgeSelectionEntry
         public KnowledgeDocument $document,
         public string $reason,
     ) {}
-
-    public function isDraft(): bool
-    {
-        return $this->document->isDraft();
-    }
 }

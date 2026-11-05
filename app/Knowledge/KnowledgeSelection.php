@@ -48,11 +48,6 @@ final readonly class KnowledgeSelection
         return $fingerprints;
     }
 
-    public function draftCount(): int
-    {
-        return count(array_filter($this->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()));
-    }
-
     public function characterCount(): int
     {
         return array_sum(array_map(fn (KnowledgeSelectionEntry $entry): int => $entry->document->length(), $this->selected));

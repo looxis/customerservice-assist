@@ -169,13 +169,13 @@ describe('reply draft', function () {
 });
 
 describe('sources', function () {
-    test('sources show id, title, type, draft mark and the text as analysed, with a link to the overview', function () {
+    test('sources show id, title, type and the text as analysed, with a link to the overview', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Quellen (2)', 'POLICY-001', 'Allgemeine Regel', 'policy', 'Entwurf', 'Bestellungen werden nicht zusammengeführt.', 'In der Knowledge-Übersicht öffnen', 'POLICY-002', 'Aktive Regel'])
-            ->assertSeeText('Beruht teilweise auf Entwurfs-Wissen – bitte kritisch prüfen: POLICY-001');
+            ->assertSeeTextInOrder(['Quellen (2)', 'POLICY-001', 'Allgemeine Regel', 'policy', 'Bestellungen werden nicht zusammengeführt.', 'In der Knowledge-Übersicht öffnen', 'POLICY-002', 'Aktive Regel'])
+            ->assertDontSeeText('Entwurfs-Wissen');
     });
 
     test('a source changed since the analysis keeps the old text and is marked, a removed one too', function () {
@@ -236,7 +236,7 @@ describe('finding the latest analysis', function () {
 
     test('results from before PROJ-10 without the new fields are still shown', function () {
         $store = app(AnalysisStore::class);
-        $id = $store->putResult(['ticket' => '2137942', 'result' => resultAnswer(), 'notes' => [], 'placeholders' => [], 'draft_ids' => ['POLICY-001'],
+        $id = $store->putResult(['ticket' => '2137942', 'result' => resultAnswer(), 'notes' => [], 'placeholders' => [],
             'meta' => ['staff' => 'Nele', 'created_at' => now()->toIso8601String(), 'model' => 'gpt-5.5', 'prompt_version' => 'analysis-x', 'knowledge_state' => 'abc', 'knowledge_fingerprints' => ['POLICY-001' => 'x'], 'duration_ms' => 1000]]);
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)

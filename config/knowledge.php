@@ -84,11 +84,11 @@ return [
     |
     */
 
-    'statuses' => ['draft', 'active', 'deprecated'],
+    'statuses' => ['active', 'deprecated'],
 
-    'statuses_labels' => ['draft' => 'Entwurf', 'active' => 'Gültig', 'deprecated' => 'Veraltet'],
+    'statuses_labels' => ['active' => 'Gültig', 'deprecated' => 'Veraltet'],
 
-    'usable_statuses' => ['draft', 'active'],
+    'usable_statuses' => ['active'],
 
     'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro', 'b2b-whitelabel'],
 

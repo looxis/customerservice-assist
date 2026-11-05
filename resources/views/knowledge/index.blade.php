@@ -21,10 +21,6 @@
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['usable'] }}</dd>
             </div>
             <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Entwurf</dt>
-                <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['draft'] }}</dd>
-            </div>
-            <div>
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Aktiv</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['active'] }}</dd>
             </div>
@@ -52,7 +48,6 @@
 
                 <x-select name="status" label="Status">
                     <option value="">Jeder Status</option>
-                    <option value="draft" @selected(($filters['status'] ?? '') === 'draft')>Entwurf</option>
                     <option value="active" @selected(($filters['status'] ?? '') === 'active')>Aktiv</option>
                     <option value="deprecated" @selected(($filters['status'] ?? '') === 'deprecated')>Veraltet</option>
                 </x-select>

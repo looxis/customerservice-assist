@@ -11,9 +11,9 @@ beforeEach(function () {
     config(['staff.admins' => ['Etienne']]);
 
     $this->library = knowledgeBase([
-        'policies/policy-001-a.md' => knowledgeDoc(['id' => 'POLICY-001', 'title' => 'Regel A', 'status' => 'draft']),
+        'policies/policy-001-a.md' => knowledgeDoc(['id' => 'POLICY-001', 'title' => 'Regel A', 'status' => 'deprecated']),
         'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'Regel B', 'status' => 'active']),
-        'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'title' => 'Regel C', 'status' => 'draft', 'related_knowledge' => ['POLICY-001']], "Gilt für alle.\n\n# Regel\n\nEin Satz.\n\n# Noch zu klären\n\n- Offen"),
+        'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'title' => 'Regel C', 'status' => 'deprecated'], "Gilt für alle.\n\n# Regel\n\nEin Satz.\n\n# Noch zu klären\n\n- Offen"),
         'policies/policy-004-d.md' => knowledgeDoc(['id' => 'POLICY-004', 'title' => 'Regel D', 'status' => 'deprecated']),
     ]);
 });
@@ -48,14 +48,14 @@ function analysisUsing(string $id, array $attributes = []): Analysis
 describe('the status panel', function () {
     test('admins see the actions of the current status, others see no panel', function () {
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))
-            ->assertOk()->assertSeeText('Als gültig bestätigen')->assertDontSeeText('Zurück auf Entwurf');
+            ->assertOk()->assertSeeText('Wieder als gültig setzen')->assertDontSeeText('Als veraltet markieren');
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-002-b.md']))
-            ->assertSeeText('Zurück auf Entwurf')->assertSeeText('Als veraltet markieren')->assertDontSeeText('Als gültig bestätigen');
+            ->assertSeeText('Als veraltet markieren')->assertDontSeeText('Wieder als gültig setzen')->assertDontSeeText('Zurück auf Entwurf');
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-004-d.md']))
-            ->assertSeeText('Zurück auf Entwurf')->assertDontSeeText('Als veraltet markieren');
+            ->assertSeeText('Wieder als gültig setzen')->assertDontSeeText('Als veraltet markieren');
 
         $this->withCookie('staff_name', 'Nele')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))
-            ->assertOk()->assertDontSeeText('Als gültig bestätigen');
+            ->assertOk()->assertDontSeeText('Wieder als gültig setzen');
     });
 
     test('the evidence counts retrieved and named documents and ratings without test runs and failures', function () {
@@ -72,20 +72,20 @@ describe('the status panel', function () {
             ->and($evidence['ratings']['discarded'])->toBe(1)->and($evidence['unrated'])->toBe(1)->and($evidence['thin'])->toBeFalse();
     });
 
-    test('a document with an open section and a related draft is blocked for confirming, with the hint', function () {
+    test('a document with an open section is blocked for setting it valid again, with the hint', function () {
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-003-c.md']))
-            ->assertSeeText('Abschnitt „Noch zu klären“')->assertSeeText('Verwandtes Wissen ist noch Entwurf');
+            ->assertSeeText('Abschnitt „Noch zu klären“')->assertDontSeeText('Entwurf');
     });
 });
 
 describe('changing the status', function () {
-    test('confirming changes only the status line of the file', function () {
+    test('setting a document valid again changes only the status line of the file', function () {
         $before = file_get_contents(statusFile('policy-001-a.md'));
 
         setStatus('policies/policy-001-a.md', 'active')->assertRedirect()->assertSessionHas('status_changed', 'active');
 
         $after = file_get_contents(statusFile('policy-001-a.md'));
-        expect($after)->toBe(preg_replace('/^status: draft$/m', 'status: active', $before))->and($after)->not->toBe($before);
+        expect($after)->toBe(preg_replace('/^status: deprecated$/m', 'status: active', $before))->and($after)->not->toBe($before);
     });
 
     test('the line endings and the rest of the file stay byte for byte', function () {
@@ -95,15 +95,15 @@ describe('changing the status', function () {
 
         setStatus('policies/policy-001-a.md', 'active');
 
-        expect(file_get_contents($file))->toBe(preg_replace('/^status: draft(\r?)$/m', 'status: active$1', $before));
+        expect(file_get_contents($file))->toBe(preg_replace('/^status: deprecated(\r?)$/m', 'status: active$1', $before));
     });
 
-    test('active can go back to draft or to deprecated and deprecated back to draft', function () {
+    test('active can be retired and a retired document can be set valid again', function () {
         setStatus('policies/policy-002-b.md', 'deprecated')->assertSessionHas('status_changed');
         expect(file_get_contents(statusFile('policy-002-b.md')))->toContain('status: deprecated');
 
-        setStatus('policies/policy-002-b.md', 'draft')->assertSessionHas('status_changed');
-        expect(file_get_contents(statusFile('policy-002-b.md')))->toContain('status: draft');
+        setStatus('policies/policy-002-b.md', 'active')->assertSessionHas('status_changed');
+        expect(file_get_contents(statusFile('policy-002-b.md')))->toContain('status: active');
     });
 
     test('others are refused with 403 and nothing changes', function () {
@@ -132,8 +132,9 @@ describe('changing the status', function () {
         expect(file_get_contents(statusFile('policy-003-c.md')))->toBe($before);
     });
 
-    test('a transition that does not exist and an unknown status or path are refused', function () {
+    test('a transition that does not exist, the removed draft status and an unknown status or path are refused', function () {
         setStatus('policies/policy-001-a.md', 'deprecated')->assertSessionHas('status_error');
+        setStatus('policies/policy-002-b.md', 'draft')->assertSessionHasErrors('status');
         setStatus('policies/policy-001-a.md', 'sonstwas')->assertSessionHasErrors('status');
         setStatus('policies/gibt-es-nicht.md', 'active', str_repeat('a', 64))->assertSessionHas('status_error');
         setStatus('../.env', 'active', str_repeat('a', 64))->assertSessionHas('status_error');
@@ -165,7 +166,7 @@ describe('changing the status', function () {
 });
 
 describe('QA probes (PROJ-23)', function () {
-    test('a confirmed document is no longer a draft in the knowledge that is used', function () {
+    test('a document set valid again is used again', function () {
         setStatus('policies/policy-001-a.md', 'active')->assertSessionHas('status_changed');
 
         $library = app(KnowledgeLibrary::class);
@@ -186,7 +187,7 @@ describe('QA probes (PROJ-23)', function () {
 
     test('a document with a prohibited status value offers no action and is refused', function () {
         $file = statusFile('policy-001-a.md');
-        file_put_contents($file, str_replace('status: draft', 'status: irgendwas', file_get_contents($file)));
+        file_put_contents($file, str_replace('status: deprecated', 'status: irgendwas', file_get_contents($file)));
 
         $this->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))
             ->assertOk()->assertSeeText('keine Statusänderung in der App möglich');

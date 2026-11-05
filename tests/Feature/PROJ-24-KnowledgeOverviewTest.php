@@ -62,19 +62,19 @@ describe('document list', function () {
         ]);
 
         $this->get('/knowledge')
-            ->assertSeeInOrder(['POLICY-001', 'Kulanz', 'Entwurf', 'Kundenart:', 'b2c', 'Kanal:', 'looxis-de', 'Kategorie:', 'complaint', 'Produkt:', 'alle'])
+            ->assertSeeInOrder(['POLICY-001', 'Kulanz', 'Aktiv', 'Kundenart:', 'b2c', 'Kanal:', 'looxis-de', 'Kategorie:', 'complaint', 'Produkt:', 'alle'])
             ->assertSee('href="'.documentUrl('policies/policy-001-a.md').'"', false);
     });
 
     test('each status has its own badge and deprecated documents are muted', function () {
         knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['status' => 'draft']),
+            'policies/policy-001-a.md' => knowledgeDoc(['status' => 'active']),
             'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'status' => 'active']),
             'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'status' => 'deprecated']),
         ]);
 
         $html = $this->get('/knowledge')
-            ->assertSeeInOrder(['POLICY-001', 'Entwurf', 'POLICY-002', 'Aktiv', 'POLICY-003', 'Wird nicht verwendet', 'Veraltet'])
+            ->assertSeeInOrder(['POLICY-001', 'Aktiv', 'POLICY-002', 'Aktiv', 'POLICY-003', 'Wird nicht verwendet', 'Veraltet'])
             ->getContent();
 
         expect(substr_count($html, 'opacity-60'))->toBe(1);
@@ -104,14 +104,14 @@ describe('document list', function () {
 describe('figures and knowledge state', function () {
     test('the header shows the document counts and the knowledge state', function () {
         knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['status' => 'draft']),
+            'policies/policy-001-a.md' => knowledgeDoc(['status' => 'active']),
             'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'status' => 'active']),
             'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'status' => 'deprecated']),
             'policies/policy-004-d.md' => knowledgeDoc(['id' => 'POLICY-004', 'status' => 'final']),
         ]);
 
         $html = $this->get('/knowledge')
-            ->assertSeeInOrder(['Dokumente', '4', 'Verwendbar', '2', 'Entwurf', '1', 'Aktiv', '1'])
+            ->assertSeeInOrder(['Dokumente', '4', 'Verwendbar', '2', 'Aktiv', '2'])
             ->assertSeeText('Wissensstand: 97af4ee vom 02.10.2026')
             ->getContent();
 
@@ -152,8 +152,8 @@ describe('filter', function () {
     beforeEach(function () {
         knowledgeBase([
             'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Kulanz im Shop', 'status' => 'active']),
-            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'Lieferverzögerung', 'topics' => ['Kein Slug']]),
-            'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'title' => 'Erstattung', 'action' => 'refund', 'agent_allowed' => true]),
+            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'Lieferverzögerung', 'topics' => ['Kein Slug'], 'status' => 'deprecated']),
+            'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'title' => 'Erstattung', 'action' => 'refund', 'agent_allowed' => true, 'status' => 'deprecated']),
         ]);
     });
 
@@ -178,7 +178,7 @@ describe('filter', function () {
         'issues only' => ['issues=1', ['Lieferverzögerung'], ['Kulanz im Shop', 'Erstattung'], 'name="issues" value="1" checked'],
         'search in title, any case' => ['q=KULANZ', ['Kulanz im Shop'], ['Lieferverzögerung', 'Erstattung'], 'value="KULANZ"'],
         'search in id' => ['q=policy-002', ['Lieferverzögerung'], ['Kulanz im Shop', 'Erstattung'], 'value="policy-002"'],
-        'combined' => ['type=policy&status=draft', ['Lieferverzögerung'], ['Kulanz im Shop', 'Erstattung'], '<option value="draft" selected>'],
+        'combined' => ['type=policy&status=deprecated', ['Lieferverzögerung'], ['Kulanz im Shop', 'Erstattung'], '<option value="deprecated" selected>'],
     ]);
 
     test('no match shows the empty state with a reset link', function (string $query) {
@@ -267,7 +267,7 @@ describe('document view', function () {
         $this->get(documentUrl('policies/policy-001-a.md'))
             ->assertOk()
             ->assertSee('<title>POLICY-001 – Customer Service Assist</title>', false)
-            ->assertSeeInOrder(['POLICY-001', 'Policies', 'Kulanz im Shop', 'Entwurf', 'Kundenart:', 'b2c', 'Kanal:', 'looxis-de', 'Kategorie:', 'complaint', 'Produkt:', 'alle', 'Themen:', 'goodwill', 'refund', 'policies/policy-001-a.md', 'Fingerabdruck'])
+            ->assertSeeInOrder(['POLICY-001', 'Policies', 'Kulanz im Shop', 'Aktiv', 'Kundenart:', 'b2c', 'Kanal:', 'looxis-de', 'Kategorie:', 'complaint', 'Produkt:', 'alle', 'Themen:', 'goodwill', 'refund', 'policies/policy-001-a.md', 'Fingerabdruck'])
             ->assertSeeText($library->find('POLICY-001')->shortFingerprint());
     });
 
@@ -319,12 +319,11 @@ describe('document view', function () {
         $this->get(documentUrl('policies/policy-001-a.md'))->assertDontSee('>POLICY-002</a>', false);
     });
 
-    test('drafts and deprecated documents carry a notice', function (string $status, string $notice) {
+    test('deprecated documents carry a notice', function (string $status, string $notice) {
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => $status])]);
 
         $this->get(documentUrl('policies/policy-001-a.md'))->assertSeeText($notice);
     })->with([
-        ['draft', 'Entwurfs-Wissen: Dieses Dokument ist noch nicht fachlich bestätigt'],
         ['deprecated', 'Veraltet: Dieses Dokument gilt nicht mehr'],
     ]);
 

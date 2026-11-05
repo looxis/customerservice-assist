@@ -23,7 +23,7 @@ class AppStats
     public function __construct(private readonly KnowledgeLibrary $library) {}
 
     /**
-     * @return array{version: string, state: string, documents: int, drafts: int, bytes: int, tickets: int, gaps: int, openGaps: int, review: int}
+     * @return array{version: string, state: string, documents: int, bytes: int, tickets: int, gaps: int, openGaps: int, review: int}
      */
     public function all(): array
     {
@@ -83,7 +83,7 @@ class AppStats
     }
 
     /**
-     * @return array{state: string, documents: int, drafts: int, bytes: int}
+     * @return array{state: string, documents: int, bytes: int}
      */
     public function knowledge(): array
     {
@@ -94,7 +94,6 @@ class AppStats
             return [
                 'state' => $this->library->state()->label(),
                 'documents' => $usable->count(),
-                'drafts' => $usable->where('status', 'draft')->count(),
                 'bytes' => (int) $usable->sum(fn (KnowledgeDocument $document): int => (int) @filesize($root.'/'.$document->path)),
             ];
         });

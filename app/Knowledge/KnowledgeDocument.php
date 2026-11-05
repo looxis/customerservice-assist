@@ -292,11 +292,6 @@ final readonly class KnowledgeDocument
         return $days !== null && $days > (int) config('knowledge.trial.grace_days');
     }
 
-    public function isDraft(): bool
-    {
-        return $this->status === 'draft';
-    }
-
     public function length(): int
     {
         return mb_strlen($this->body);

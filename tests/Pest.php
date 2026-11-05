@@ -79,7 +79,7 @@ function knowledgeBase(array $files): KnowledgeLibrary
  */
 function knowledgeDoc(array $overrides = [], string $body = "Gilt für alle Kundenarten.\n\n# Regel\n\nEin Satz."): string
 {
-    $frontmatter = array_merge(['id' => 'POLICY-001', 'title' => 'Titel', 'type' => 'policy', 'status' => 'draft'], $overrides);
+    $frontmatter = array_merge(['id' => 'POLICY-001', 'title' => 'Titel', 'type' => 'policy', 'status' => 'active'], $overrides);
 
     return "---\n".Yaml::dump($frontmatter)."---\n\n".$body."\n";
 }

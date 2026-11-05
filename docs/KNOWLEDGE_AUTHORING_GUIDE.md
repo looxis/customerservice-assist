@@ -2,7 +2,7 @@
 
 > Diese Datei wird zusammen mit `KNOWLEDGE_BASE_DESIGN.md` in einen KI-Chat gegeben (z. B. ChatGPT im Browser), der beim Schreiben der Knowledge Base hilft. Sie ergänzt das Design-Dokument um die Punkte, die dort offen sind und ohne die die Dateien in der App nicht zuverlässig gefunden werden.
 >
-> Bei Widersprüchen gilt `KNOWLEDGE_BASE_DESIGN.md`, mit einer bewussten Ausnahme: Das Design-Dokument sagt, nur `status: active` werde produktiv verwendet. Für diese App gilt stattdessen, dass auch `draft`-Dokumente verwendet und im Ergebnis als Entwurfs-Wissen gekennzeichnet werden, damit neues Wissen an Fällen getestet werden kann. `deprecated` wird nie verwendet. An der Arbeitsweise ändert das nichts: Neue Dateien entstehen als `draft`.
+> Bei Widersprüchen gilt `KNOWLEDGE_BASE_DESIGN.md`. Neue Dateien entstehen sofort als `active`; den Status `draft` gibt es nicht mehr. Ein Vorgehen, das nur testweise gilt, bekommt `trial_until` und `trial_goal`; `deprecated` wird nie verwendet.
 
 ## Deine Aufgabe
 
@@ -66,7 +66,7 @@ Die Beispiele zeigen die Zuordnung. Konkrete Produktfakten stehen nur, soweit si
 
 **Ausnahme: ausgelaufene Produkte.** Für Produkte, die nicht mehr nachproduziert werden und nur noch als Restbestand verkauft werden, legt der Autor bewusst keinen Eintrag in ProductForge an (Import und Pflege wären unverhältnismäßig). Ihre Produktfakten und ihr Servicewissen stehen dann in einer Produktdatei in `knowledge/` (Beispiel: PRODUCT-009 für Opera und Leuchtstelen, Wissensbereich `led-base-retired`). Voraussetzungen: Der Autor hat das ausdrücklich so entschieden; die Datei nennt am Anfang, dass es eine Ausnahme für ausgelaufene Produkte ist; läuft das Wissen zu einem bekannten Datum ab, steht `trial_until` mit diesem Datum, damit `knowledge:check` rechtzeitig warnt. Fragt der Autor nicht ausdrücklich danach, sortierst du weiter nach den Regeln oben.
 
-Im Zweifel legst du die Markdown-Datei als Entwurf an und lässt die Zuordnung später korrigieren. Fehlt ein Produkt in ProductForge ganz, meldet die App das als Wissenslücke „Nicht in ProductForge“; du erfindest dafür nichts.
+Im Zweifel legst du die Markdown-Datei an und lässt die Zuordnung später korrigieren. Fehlt ein Produkt in ProductForge ganz, meldet die App das als Wissenslücke „Nicht in ProductForge“; du erfindest dafür nichts.
 
 ## Ausgabeformat
 
@@ -120,14 +120,14 @@ Dateinamen: nur Kleinbuchstaben, Ziffern und Bindestriche; Umlaute ausschreiben 
 Pflicht in jeder Datei: `id`, `title`, `type`, `status`.
 
 - `type`: genau einer von `policy`, `permission`, `product`, `process`, `procedure`, `playbook`, `tone`, `glossary`, `example-good`, `example-bad`
-- `status`: neue Dateien immer `draft`. Auf `active` setzt sie nur der Autor nach fachlicher Prüfung, in der App per Klick „Als gültig bestätigen“ auf der Dokumentseite (nur Admins; die App ändert nur die Zeile `status:` in der Datei, anschließend die Änderung committen); `draft` wird von der App mitverwendet und als Entwurfs-Wissen gekennzeichnet, `deprecated` nie.
+- `status`: neue Dateien sofort `active`; `draft` gibt es nicht mehr (die Prüfung meldet es als Fehler). `deprecated` setzt ein Admin in der App, wenn ein Dokument nicht mehr gilt; die App ändert nur die Zeile `status:` in der Datei, anschließend die Änderung committen. `deprecated` wird nie verwendet.
 - `last_reviewed`: Datum im Format `JJJJ-MM-TT`, nur wenn der Autor den Inhalt wirklich geprüft hat.
 - `trial_until` und `trial_goal` (optional, nur für **vorläufiges Wissen**): Wird eine Vorgehensweise bewusst nur eine Zeit lang getestet, steht in `trial_until` der letzte Tag der Testphase (`JJJJ-MM-TT`, z. B. drei Monate) und in `trial_goal` ein Satz, woran wir erkennen, ob es geholfen hat. Der Status bleibt `active` (oder `draft`). Die App kennzeichnet das Dokument als „Vorläufig bis …“ (Ergebnis, Wissensübersicht, Dokumentseite), sagt der KI, dass das Vorgehen in Erprobung ist, und `knowledge:check` warnt zwei Wochen vor dem Ende und danach. Im Text des Dokuments zusätzlich „Testweise gültig bis TT.MM.JJJJ“ nennen. Läuft die Testphase ab, entscheidet der Autor: dauerhaft gültig machen (beide Felder entfernen), verlängern (neues Datum) oder auf `deprecated` setzen.
 - Listen als YAML-Listen, auch bei nur einem Eintrag. Leere Felder leer lassen, nicht mit Platzhaltern füllen.
 - Titel mit Doppelpunkt oder Anführungszeichen in Anführungszeichen setzen.
 - Titel und Text mit echten Umlauten und ß schreiben („Rücknahme", nicht „Ruecknahme"). Die Umschreibung gilt nur für Dateinamen.
 - `related_knowledge` ist in jedem Dokumenttyp erlaubt: eine Liste der IDs, auf die sich das Dokument stützt.
-- Abschnitte wie „Noch zu klären" sind nur im Status `draft` zulässig. Bevor ein Dokument `active` wird, sind die Punkte entschieden oder entfernt; die App liest sonst offene Fragen als geltenden Inhalt mit.
+- Abschnitte wie „Noch zu klären" gehören nicht in eine Datei: Die App liest offene Fragen als geltenden Inhalt mit, und `knowledge:check` warnt davor. Punkte vorher entscheiden oder entfernen.
 - Der Text beschreibt, was fachlich gilt, und nimmt nicht auf die App Bezug („wenn die App empfiehlt …"). Eine Befugnis hängt von Sachverhalt und Betrag ab, nicht von einer Empfehlung der App.
 
 ### Schlagwörter: `products`, `categories`, `topics`
@@ -439,7 +439,7 @@ Heute möchte ich erfassen:
 
 - Pfad, Dateiname und `type` passen zusammen.
 - `id` ist neu und folgt dem Schema.
-- `status: draft`.
+- `status: active`.
 - Alle Schlagwörter sind vorhandene Werte oder ausdrücklich als neu genannt.
 - `customer_types` und `sales_channels` sind gesetzt, wenn das Dokument eingeschränkt gilt, sonst leer; der Text nennt denselben Geltungsbereich.
 - `categories` ist vorhanden; bei Playbooks und Processes ist mindestens ein Wert gesetzt.

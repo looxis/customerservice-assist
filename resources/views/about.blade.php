@@ -24,10 +24,6 @@
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Verwendbare Dokumente</dt>
                 <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['usable'] }}</dd>
             </div>
-            <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-600">Davon Entwürfe</dt>
-                <dd class="mt-1 font-display text-lg font-semibold text-slate-900">{{ $counts['draft'] }}</dd>
-            </div>
         </dl>
         @if ($knowledgeMessage !== null)
             <x-alert type="warning" class="mt-4">{{ $knowledgeMessage }}</x-alert>

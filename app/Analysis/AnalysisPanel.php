@@ -504,7 +504,7 @@ class AnalysisPanel
      * (their text is loaded when picked).
      *
      * @param  array<string, mixed>  $result
-     * @return array{suggested: list<array<string, mixed>>, catalogue: array<string, list<array{id: string, title: string|null, draft: bool, note: string|null}>>}
+     * @return array{suggested: list<array<string, mixed>>, catalogue: array<string, list<array{id: string, title: string|null, note: string|null}>>}
      */
     private function procedures(array $result, CaseLinks $links): array
     {
@@ -521,7 +521,6 @@ class AnalysisPanel
             'catalogue' => array_map(fn (array $entries): array => array_map(fn (array $entry): array => [
                 'id' => $entry['document']->id,
                 'title' => $entry['document']->title,
-                'draft' => $entry['document']->isDraft(),
                 'note' => $entry['note'],
             ], $entries), $finder->catalogue($group, $products)),
         ];
@@ -530,14 +529,13 @@ class AnalysisPanel
     /**
      * What the card of a procedure needs.
      *
-     * @return array{id: string, title: string|null, draft: bool, actions: list<string>, html: HtmlString}
+     * @return array{id: string, title: string|null, actions: list<string>, html: HtmlString}
      */
     public static function procedureCard(KnowledgeDocument $document, ?CaseLinks $links = null): array
     {
         return [
             'id' => (string) $document->id,
             'title' => $document->title,
-            'draft' => $document->isDraft(),
             'actions' => array_map(fn (string $action): string => config("knowledge.actions.{$action}", $action), $document->actions()),
             'html' => app(ProcedureRenderer::class)->render($document, $links),
         ];
@@ -595,10 +593,9 @@ class AnalysisPanel
     private function sources(array $stored): array
     {
         $snapshots = collect($stored['sources'] ?? [])->keyBy('id');
-        $drafts = $stored['draft_ids'] ?? [];
         $reportedMany = array_map(fn (array $count): bool => $count['many'], app(KnowledgeReviewLog::class)->openCounts());
 
-        return array_map(function (string $id) use ($snapshots, $drafts, $reportedMany): array {
+        return array_map(function (string $id) use ($snapshots, $reportedMany): array {
             $snapshot = $snapshots->get($id);
             $current = $this->library->find($id);
 
@@ -606,7 +603,6 @@ class AnalysisPanel
                 'id' => $id,
                 'title' => $snapshot['title'] ?? $current?->title,
                 'type' => $snapshot['type'] ?? $current?->type,
-                'draft' => $snapshot['draft'] ?? in_array($id, $drafts, true),
                 'trial_until' => $snapshot['trial_until'] ?? null,
                 'trial_goal' => $snapshot['trial_goal'] ?? null,
                 'reported_many' => $reportedMany[$id] ?? false,

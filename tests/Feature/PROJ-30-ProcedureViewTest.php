@@ -89,14 +89,14 @@ describe('suggestions', function () {
 });
 
 describe('view', function () {
-    test('the internal procedures appear under what to do and above the reply, set apart from it, with id, title, actions, draft mark and text', function () {
+    test('the internal procedures appear under what to do and above the reply, set apart from it, with id, title, actions and text', function () {
         $html = procedureCase(['return']);
 
         expect($html)->toContain('Interne Abläufe')->toContain('– intern, nicht an den Kunden')
             ->and(strpos($html, 'Was ist zu tun?'))->toBeLessThan(strpos($html, 'id="ablaeufe"'))
             ->and(strpos($html, 'id="ablaeufe"'))->toBeLessThan(strpos($html, 'aria-label="Antwortentwurf"'))
             ->and($html)->toContain('PROCEDURE-001')->toContain('Retoure erfassen')->toContain(config('knowledge.actions.return'))
-            ->toContain('Dieser Ablauf ist noch ein Entwurf.');
+            ->not->toContain('Dieser Ablauf ist noch ein Entwurf.');
     });
 
     test('steps and check items get checkboxes, critical notes are highlighted, ids are linked', function () {

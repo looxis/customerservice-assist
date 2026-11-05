@@ -136,7 +136,6 @@ class CaseAnalyzer
                 'id' => $entry->document->id,
                 'title' => $entry->document->title,
                 'type' => $entry->document->type,
-                'draft' => $entry->isDraft(),
                 'trial_until' => $entry->document->trialUntil()?->format('Y-m-d'),
                 'trial_goal' => $entry->document->trialGoal(),
                 'path' => $entry->document->path,
@@ -153,7 +152,6 @@ class CaseAnalyzer
             'result' => $checked['result'],
             'notes' => [...$notes, ...$checked['notes']],
             'placeholders' => $pseudonymizer->values(),
-            'draft_ids' => array_values(array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, array_filter($selection->selected, fn (KnowledgeSelectionEntry $entry): bool => $entry->isDraft()))),
             ...($request->related === null || $request->related->isEmpty() ? [] : ['related' => $request->related->toStored()]),
             ...($products === null ? [] : ['product_data' => $request->productPackage->toStored(), 'product_sent' => $products->prompt()->record]),
             ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
@@ -647,7 +645,7 @@ class CaseAnalyzer
                 $hint = isset($hints[(string) $entry->document->id]) ? $this->hint($hints[(string) $entry->document->id]) : '';
 
                 return '## '.$entry->document->id.' – '.$entry->document->title
-                    .' ('.config("knowledge.types.{$entry->document->type}.label").($entry->isDraft() ? ', Entwurf' : '').($entry->document->isTrial() ? ', in Erprobung' : '').")\n".$hint.$this->trialNote($entry->document).$entry->document->body;
+                    .' ('.config("knowledge.types.{$entry->document->type}.label").($entry->document->isTrial() ? ', in Erprobung' : '').")\n".$hint.$this->trialNote($entry->document).$entry->document->body;
             }, $selection->selected)));
     }
 

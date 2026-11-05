@@ -10,14 +10,12 @@ class DocumentStatusChanger
 {
     /** @var array<string, list<string>> */
     private const array TRANSITIONS = [
-        'draft' => ['active'],
-        'active' => ['draft', 'deprecated'],
-        'deprecated' => ['draft'],
+        'active' => ['deprecated'],
+        'deprecated' => ['active'],
     ];
 
     public const array LABELS = [
-        'active' => 'Als gültig bestätigen',
-        'draft' => 'Zurück auf Entwurf',
+        'active' => 'Wieder als gültig setzen',
         'deprecated' => 'Als veraltet markieren',
     ];
 
@@ -68,19 +66,6 @@ class DocumentStatusChanger
         $file = $this->file($document->path);
 
         return is_file($file) && ! is_link($file) && is_writable($file) && is_writable(dirname($file));
-    }
-
-    /**
-     * Related documents that are still drafts (a hint, never a block).
-     *
-     * @return list<string>
-     */
-    public function relatedDrafts(KnowledgeDocument $document): array
-    {
-        return collect($document->list('related_knowledge'))
-            ->filter(fn (string $id): bool => $this->library->all()->contains(fn (KnowledgeDocument $other): bool => $other->id === $id && $other->status === 'draft'))
-            ->values()
-            ->all();
     }
 
     /**

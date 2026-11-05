@@ -32,7 +32,6 @@ class AboutController extends Controller
             'state' => $library->state(),
             'counts' => [
                 'usable' => $usable->count(),
-                'draft' => $usable->where('status', 'draft')->count(),
             ],
             'knowledgeMessage' => $library->all()->isEmpty() ? ($library->issues()->first()?->message ?? 'Der Knowledge-Ordner enthält keine Dokumente.') : null,
         ]);

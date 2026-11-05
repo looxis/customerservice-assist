@@ -306,7 +306,6 @@ last_reviewed:
 Erlaubte Startwerte:
 
 ```text
-draft
 active
 deprecated
 ```
@@ -338,7 +337,7 @@ EXAMPLE-BAD-001
 id: PRODUCT-001
 title: Produktname
 type: product
-status: draft
+status: active
 products:
   - product-slug
 topics:
@@ -377,7 +376,7 @@ last_reviewed:
 id: POLICY-001
 title:
 type: policy
-status: draft
+status: active
 products:
 categories:
 topics:
@@ -414,7 +413,7 @@ last_reviewed:
 id: PERMISSION-001
 title: Kostenlose Neuanfertigung
 type: permission
-status: draft
+status: active
 
 action: replacement
 agent_allowed: true
@@ -448,7 +447,7 @@ last_reviewed:
 id: PROCESS-001
 title:
 type: process
-status: draft
+status: active
 products:
 categories:
 topics:
@@ -480,7 +479,7 @@ last_reviewed:
 id: PLAYBOOK-001
 title:
 type: playbook
-status: draft
+status: active
 
 products:
 categories:
@@ -537,7 +536,7 @@ last_reviewed:
 id: TONE-001
 title:
 type: tone
-status: draft
+status: active
 categories:
 topics:
 owner:

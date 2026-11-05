@@ -88,10 +88,10 @@ describe('content of the real text', function () {
             ->assertSeeText('Erstattungen, Gutschriften');
     });
 
-    test('"good to know" explains unclear results, draft knowledge and sources', function () {
+    test('"good to know" explains unclear results, trial knowledge and sources', function () {
         $this->get(route('about'))
             ->assertSeeText('„Unklar" ist ein gutes Ergebnis.')
-            ->assertSeeText('Entwurfs-Wissen')
+            ->assertSeeText('Vorläufiges Wissen')
             ->assertSeeText('Jede Empfehlung nennt ihre Quellen');
     });
 
@@ -176,7 +176,7 @@ describe('current state box', function () {
         $this->get(route('about'))->assertSeeTextInOrder(['Aktueller Stand', 'App-Version', '97af4ee · 02.10.2026']);
     });
 
-    test('it shows the knowledge state and the number of usable documents and drafts', function () {
+    test('it shows the knowledge state and the number of usable documents', function () {
         knowledgeBase([
             'policies/policy-001-a.md' => knowledgeDoc(['status' => 'active']),
             'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002']),
@@ -188,7 +188,6 @@ describe('current state box', function () {
         $this->get(route('about'))->assertSeeTextInOrder([
             'Wissensstand', '97af4ee vom 02.10.2026',
             'Verwendbare Dokumente', '3',
-            'Davon Entwürfe', '2',
         ]);
     });
 

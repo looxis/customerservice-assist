@@ -61,7 +61,7 @@ describe('readme', function () {
             ->toContain('Source of Truth')
             ->toContain('`policies/`', '`permissions/`', '`products/`', '`processes/`', '`playbooks/`', '`tone/`', '`glossary/`', '`examples/good/`', '`examples/bad/`', '`templates/`')
             ->toContain('## Rangfolge bei Widersprüchen')
-            ->toContain('`draft`', '`active`', '`deprecated`')
+            ->toContain('`active`', '`deprecated`')
             ->toContain('## So entsteht eine Datei')
             ->toContain('docs/KNOWLEDGE_AUTHORING_GUIDE.md', 'docs/KNOWLEDGE_BASE_DESIGN.md');
 
@@ -88,12 +88,12 @@ describe('templates', function () {
         expect($names)->toBe(['example-bad', 'example-good', 'glossary', 'permission', 'playbook', 'policy', 'procedure', 'process', 'product', 'tone']);
     });
 
-    test('the frontmatter is valid YAML with required fields, placeholder id and draft status', function (string $type, string $id) {
+    test('the frontmatter is valid YAML with required fields, placeholder id and active status', function (string $type, string $id) {
         $frontmatter = knowledgeFile("knowledge/templates/{$type}.md")['frontmatter'];
 
         expect($frontmatter['id'])->toBe($id)
             ->and($frontmatter['type'])->toBe($type)
-            ->and($frontmatter['status'])->toBe('draft')
+            ->and($frontmatter['status'])->toBe('active')
             ->and($frontmatter)->toHaveKeys(['title', 'customer_types', 'sales_channels', 'related_knowledge', 'categories', 'topics']);
     })->with('templates');
 
@@ -149,8 +149,8 @@ describe('skill', function () {
             ->toContain('name: knowledge', 'user-invocable: true')
             ->toContain('docs/KNOWLEDGE_AUTHORING_GUIDE.md', 'docs/KNOWLEDGE_BASE_DESIGN.md', 'knowledge/templates/')
             ->toContain('never reuse an ID', '`000` is reserved')
-            ->toContain('status: draft')
-            ->toContain('Do NOT set `status: active`')
+            ->toContain('status: active')
+            ->toContain('Never use `status: draft`')
             ->toContain('Do NOT commit or push')
             ->toContain('No personal data')
             ->toContain('extend that file instead of creating a second one')

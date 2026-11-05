@@ -203,7 +203,6 @@ class AnalysisStore
                 'result' => ['reply' => ['text' => '', 'language' => 'Deutsch']],
                 'notes' => [],
                 'placeholders' => [],
-                'draft_ids' => [],
                 'meta' => ['staff' => $staff, 'manual' => true, 'based_on_article_id' => $basedOnArticleId, 'test_until' => null, 'created_at' => CarbonImmutable::now()->toIso8601String()],
             ],
         ]);

@@ -275,10 +275,10 @@ test('a chosen product whose product file became faulty is named as without prod
 });
 
 describe('which documents qualify at all', function () {
-    test('faulty and deprecated documents are never used, drafts are used and marked', function () {
+    test('faulty and deprecated documents are never used', function () {
         knowledgeBase([
             ...selectionDoc('POLICY-001', ['status' => 'active']),
-            ...selectionDoc('POLICY-002', ['status' => 'draft']),
+            ...selectionDoc('POLICY-002', ['status' => 'active']),
             ...selectionDoc('POLICY-003', ['status' => 'deprecated']),
             ...selectionDoc('POLICY-004', ['customer_types' => ['firma']]),
         ]);
@@ -286,10 +286,7 @@ describe('which documents qualify at all', function () {
         $selection = selectFor('private-looxis-de');
 
         expect(selectedIds($selection))->toBe(['POLICY-001', 'POLICY-002'])
-            ->and(excludedReasons($selection))->toBe([])
-            ->and($selection->selected[0]->isDraft())->toBeFalse()
-            ->and($selection->selected[1]->isDraft())->toBeTrue()
-            ->and($selection->draftCount())->toBe(1);
+            ->and(excludedReasons($selection))->toBe([]);
     });
 
     test('categories and topics do not affect the selection', function () {
@@ -344,7 +341,7 @@ describe('result', function () {
         ]);
     });
 
-    test('the result holds context, knowledge state, fingerprints, draft count and size', function () {
+    test('the result holds context, knowledge state, fingerprints and size', function () {
         $library = knowledgeBase([
             ...selectionDoc('POLICY-001', ['status' => 'active'], 'Zehn Zeich'),
             ...selectionDoc('POLICY-002', [], 'Fünf.'),
@@ -359,7 +356,6 @@ describe('result', function () {
                 'POLICY-001' => $library->find('POLICY-001')->fingerprint,
                 'POLICY-002' => $library->find('POLICY-002')->fingerprint,
             ])
-            ->and($selection->draftCount())->toBe(1)
             ->and($selection->characterCount())->toBe(15)
             ->and($selection->warnings)->toBe([]);
     });
@@ -574,15 +570,15 @@ describe('preview command', function () {
 
         $this->artisan('knowledge:select private-looxis-de --product=lunchbox')
             ->expectsOutputToContain('Fallkontext: Privatkunde, looxis.de; Produkte: lunchbox')
-            ->expectsOutputToContain('Ausgewählt: 2 Dokumente, davon 2 Entwurfs-Wissen')
+            ->expectsOutputToContain('Ausgewählt: 2 Dokumente')
             ->expectsTable(['ID', 'Titel', 'Status', 'Grund'], [
-                ['POLICY-001', 'Für alle', 'draft', 'gilt für alle'],
-                ['PRODUCT-001', 'Lunchbox', 'draft', 'Produktwissen lunchbox'],
+                ['POLICY-001', 'Für alle', 'active', 'gilt für alle'],
+                ['PRODUCT-001', 'Lunchbox', 'active', 'Produktwissen lunchbox'],
             ])
             ->expectsOutputToContain('Nicht ausgewählt: 1 Dokument')
             ->doesntExpectOutputToContain('1 Dokumente')
             ->expectsTable(['ID', 'Titel', 'Status', 'Grund'], [
-                ['POLICY-002', 'Nur Amazon', 'draft', 'nur für Kanal amazon'],
+                ['POLICY-002', 'Nur Amazon', 'active', 'nur für Kanal amazon'],
             ])
             ->expectsOutputToContain('Umfang: ')
             ->assertSuccessful();

@@ -42,7 +42,7 @@ describe('figures', function () {
 
         $stats = (new AppStats($library))->knowledge();
 
-        expect($stats['documents'])->toBe(2)->and($stats['drafts'])->toBe(1)->and($stats['bytes'])->toBe((int) $bytes)->and($bytes)->toBeGreaterThan(0);
+        expect($stats['documents'])->toBe(2)->and($stats['bytes'])->toBe((int) $bytes)->and($bytes)->toBeGreaterThan(0);
     });
 
     test('sizes are written in German notation', function () {

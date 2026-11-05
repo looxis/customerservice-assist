@@ -26,7 +26,7 @@ describe('reading', function () {
 
         expect($policy->title)->toBe('Titel')
             ->and($policy->type)->toBe('policy')
-            ->and($policy->status)->toBe('draft')
+            ->and($policy->status)->toBe('active')
             ->and($policy->topics())->toBe(['refund'])
             ->and($policy->body)->toStartWith('Gilt für alle Kundenarten.')
             ->and($policy->path)->toBe('policies/policy-001-a.md');
@@ -46,10 +46,10 @@ describe('reading', function () {
             ->and($library->issues())->toBeEmpty();
     });
 
-    test('draft and active documents are usable, deprecated ones are not', function () {
+    test('active documents are usable, deprecated ones are not', function () {
         $library = knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['status' => 'draft']),
-            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'status' => 'active']),
+            'policies/policy-001-a.md' => knowledgeDoc(),
+            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002']),
             'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'status' => 'deprecated']),
         ]);
 
@@ -104,7 +104,7 @@ describe('reading', function () {
 
     test('dates and numbers in the frontmatter are accepted', function () {
         $library = knowledgeBase([
-            'permissions/permission-001-a.md' => "---\nid: PERMISSION-001\ntitle: Titel\ntype: permission\nstatus: draft\naction: refund\nagent_allowed: true\nmax_value_eur: 35\nlast_reviewed: 2026-10-01\n---\n\nText.\n",
+            'permissions/permission-001-a.md' => "---\nid: PERMISSION-001\ntitle: Titel\ntype: permission\nstatus: active\naction: refund\nagent_allowed: true\nmax_value_eur: 35\nlast_reviewed: 2026-10-01\n---\n\nText.\n",
         ]);
 
         expect($library->issues())->toBeEmpty();
@@ -120,14 +120,14 @@ describe('errors exclude a document', function () {
     })->with([
         'no frontmatter' => [['policies/policy-001-a.md' => "# Regel\n\nText."], 'Das Frontmatter fehlt'],
         'frontmatter not closed' => [['policies/policy-001-a.md' => "---\nid: POLICY-001\ntitle: Titel\n\n# Regel"], 'nicht abgeschlossen'],
-        'invalid yaml' => [['policies/policy-001-a.md' => "---\nid: POLICY-001\ntitle: Regel: mit Doppelpunkt: zweimal\ntype: policy\nstatus: draft\n---\n\nText."], 'kein gültiges YAML'],
+        'invalid yaml' => [['policies/policy-001-a.md' => "---\nid: POLICY-001\ntitle: Regel: mit Doppelpunkt: zweimal\ntype: policy\nstatus: active\n---\n\nText."], 'kein gültiges YAML'],
         'frontmatter without fields' => [['policies/policy-001-a.md' => "---\n---\n\nText."], 'enthält keine Felder'],
         'missing id' => [['policies/policy-001-a.md' => knowledgeDoc(['id' => null])], 'Pflichtfeld `id`'],
         'missing title' => [['policies/policy-001-a.md' => knowledgeDoc(['title' => ''])], 'Pflichtfeld `title`'],
         'missing type' => [['policies/policy-001-a.md' => knowledgeDoc(['type' => null])], 'Pflichtfeld `type`'],
         'missing status' => [['policies/policy-001-a.md' => knowledgeDoc(['status' => null])], 'Pflichtfeld `status`'],
         'unknown type' => [['policies/policy-001-a.md' => knowledgeDoc(['type' => 'rule'])], 'Unbekannter Typ `rule`. Erlaubt: policy, permission'],
-        'unknown status' => [['policies/policy-001-a.md' => knowledgeDoc(['status' => 'final'])], 'Unbekannter Status `final`. Erlaubt: draft, active, deprecated'],
+        'unknown status' => [['policies/policy-001-a.md' => knowledgeDoc(['status' => 'final'])], 'Unbekannter Status `final`. Erlaubt: active, deprecated'],
         'id does not match the type' => [['policies/policy-001-a.md' => knowledgeDoc(['id' => 'PLAYBOOK-001'])], 'passt nicht zum Schema POLICY-001'],
         'id without three digits' => [['policies/policy-1-a.md' => knowledgeDoc(['id' => 'POLICY-1'])], 'passt nicht zum Schema'],
         'template number 000' => [['policies/policy-000-a.md' => knowledgeDoc(['id' => 'POLICY-000'])], 'Die Nummer 000 ist für Vorlagen reserviert'],
@@ -211,9 +211,9 @@ describe('warnings keep a document usable', function () {
         expect(messagesOf($library, 'warning'))->toContain('Verweis auf `POLICY-002`, das als deprecated markiert ist');
     });
 
-    test('valid references, open questions in drafts and unlimited permissions raise nothing', function () {
+    test('valid references and unlimited permissions raise nothing', function () {
         $library = knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['related_knowledge' => ['PERMISSION-001'], 'products' => ['lunchbox']], "# Regel\n\nSiehe POLICY-001 und PERMISSION-001. Bis 35 Euro, 50 bis 80 Prozent.\n\n# Noch zu klären\n\n- Punkt"),
+            'policies/policy-001-a.md' => knowledgeDoc(['related_knowledge' => ['PERMISSION-001'], 'products' => ['lunchbox']], "# Regel\n\nSiehe POLICY-001 und PERMISSION-001. Bis 35 Euro, 50 bis 80 Prozent."),
             'permissions/permission-001-a.md' => knowledgeDoc(['id' => 'PERMISSION-001', 'type' => 'permission', 'action' => 'reproduction', 'agent_allowed' => true, 'max_value_eur' => null, 'approval_role' => null]),
             'products/lunchbox.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'products' => ['lunchbox']]),
         ]);
@@ -363,7 +363,7 @@ describe('check command', function () {
 
         $this->artisan('knowledge:check')
             ->expectsOutputToContain('2 Dokumente, 2 verwendbar')
-            ->expectsOutputToContain('policy: 2 (1 draft, 1 active)')
+            ->expectsOutputToContain('policy: 2 (2 active)')
             ->expectsOutputToContain('Keine Fehler, keine Warnungen.')
             ->assertSuccessful();
     });
@@ -457,7 +457,7 @@ describe('id overview', function () {
 
 describe('qa: hostile and sloppy input', function () {
     test('yaml tags never create php objects or read constants', function (string $title) {
-        $library = knowledgeBase(['policies/policy-001-a.md' => "---\nid: POLICY-001\ntitle: {$title}\ntype: policy\nstatus: draft\n---\n\nText."]);
+        $library = knowledgeBase(['policies/policy-001-a.md' => "---\nid: POLICY-001\ntitle: {$title}\ntype: policy\nstatus: active\n---\n\nText."]);
 
         $document = $library->all()->first();
 
@@ -472,11 +472,11 @@ describe('qa: hostile and sloppy input', function () {
         expect(messagesOf($library, 'error'))->toContain($expected)
             ->and($library->usable())->toBeEmpty();
     })->with([
-        'duplicate key' => ["---\nid: POLICY-001\ntitle: A\ntitle: B\ntype: policy\nstatus: draft\n---\n\nText.", 'kein gültiges YAML'],
-        'tab indentation' => ["---\nid: POLICY-001\ntitle: T\ntype: policy\nstatus: draft\ntopics:\n\t- refund\n---\n\nText.", 'kein gültiges YAML'],
+        'duplicate key' => ["---\nid: POLICY-001\ntitle: A\ntitle: B\ntype: policy\nstatus: active\n---\n\nText.", 'kein gültiges YAML'],
+        'tab indentation' => ["---\nid: POLICY-001\ntitle: T\ntype: policy\nstatus: active\ntopics:\n\t- refund\n---\n\nText.", 'kein gültiges YAML'],
         'status in wrong case' => [knowledgeDoc(['status' => 'Active']), 'Unbekannter Status `Active`'],
         'lowercase id' => [knowledgeDoc(['id' => 'policy-001']), 'passt nicht zum Schema POLICY-001'],
-        'yes instead of true' => ["---\nid: POLICY-001\ntitle: T\ntype: permission\nstatus: draft\naction: refund\nagent_allowed: yes\n---\n\nText.", '`agent_allowed` muss `true` oder `false` sein'],
+        'yes instead of true' => ["---\nid: POLICY-001\ntitle: T\ntype: permission\nstatus: active\naction: refund\nagent_allowed: yes\n---\n\nText.", '`agent_allowed` muss `true` oder `false` sein'],
     ]);
 
     test('file content never appears in an error message', function () {
@@ -499,7 +499,7 @@ describe('qa fixes', function () {
             ->toContain('policy (nächste freie ID: POLICY-008):')
             ->toContain('POLICY-007 – (Datei fehlerhaft, Titel nicht lesbar)');
     })->with([
-        'id line readable' => ['policies/kaputt.md', "---\nid: POLICY-007\ntitle: A: b: c\ntype: policy\nstatus: draft\n---\n\nText."],
+        'id line readable' => ['policies/kaputt.md', "---\nid: POLICY-007\ntitle: A: b: c\ntype: policy\nstatus: active\n---\n\nText."],
         'id only in the file name' => ['policies/policy-007-kaputt.md', 'ohne Frontmatter'],
     ]);
 
@@ -539,9 +539,9 @@ describe('qa fixes', function () {
 
         expect(messagesOf($library, 'error'))->toContain($expected);
     })->with([
-        'duplicate key' => ["---\nid: POLICY-001\ntitle: A\ntitle: B\ntype: policy\nstatus: draft\n---\n\nText.", 'Ein Feld kommt doppelt vor.'],
-        'tab indentation' => ["---\nid: POLICY-001\ntitle: T\ntype: policy\nstatus: draft\ntopics:\n\t- refund\n---\n\nText.", 'Tabulatoren'],
-        'title looks like a date' => ["---\nid: POLICY-001\ntitle: 2026-10-01\ntype: policy\nstatus: draft\n---\n\nText.", 'Feld `title` muss ein einfacher Text sein'],
+        'duplicate key' => ["---\nid: POLICY-001\ntitle: A\ntitle: B\ntype: policy\nstatus: active\n---\n\nText.", 'Ein Feld kommt doppelt vor.'],
+        'tab indentation' => ["---\nid: POLICY-001\ntitle: T\ntype: policy\nstatus: active\ntopics:\n\t- refund\n---\n\nText.", 'Tabulatoren'],
+        'title looks like a date' => ["---\nid: POLICY-001\ntitle: 2026-10-01\ntype: policy\nstatus: active\n---\n\nText.", 'Feld `title` muss ein einfacher Text sein'],
         'title is a list' => [knowledgeDoc(['title' => ['a', 'b']]), 'Feld `title` muss ein einfacher Text sein'],
     ]);
 
