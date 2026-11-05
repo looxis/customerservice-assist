@@ -153,16 +153,6 @@ export default (config) => ({
         return !this.forge.enabled || this.forgeSelected.length === 0 || this.advanced;
     },
 
-    get areaLine() {
-        if (!this.forge.enabled || this.forgeSelected.length === 0) {
-            return '';
-        }
-
-        const names = this.selected.map((slug) => this.product(slug)?.name ?? slug);
-
-        return names.length > 0 ? `Regeln für: ${names.join(', ')}` : 'Es gelten die allgemeinen Regeln.';
-    },
-
     get forgeWithoutArea() {
         return this.forge.enabled && this.forgeSelected.length > 0 && this.selected.length === 0 && this.unknown === '';
     },

@@ -783,7 +783,7 @@ describe('order numbers known from the ticket', function () {
             ->assertSee('name="ohne_bestelldetails"', false);
 
         $this->withCookie('advanced_mode', '1')->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
-            ->assertDontSee('name="ohne_bestelldetails"', false)->assertSeeText('Bestellung: aus EOCS geladen und berücksichtigt.');
+            ->assertDontSee('name="ohne_bestelldetails"', false)->assertDontSeeText('Bestellung: aus EOCS geladen und berücksichtigt.');
     });
 
     test('the prompt tells the model never to ask for an order number it was given', function () {

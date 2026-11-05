@@ -11,7 +11,7 @@
     $firstPlaceholder = "Was du über diesen Fall weißt, das nicht im Ticket steht, z. B.:\n· Foto geprüft: Motiv ist verschoben gedruckt\n· Kundin am Telefon: braucht Ersatz bis zum 20.12.\n· Produktion bestätigt: Fehldruck in der Charge";
     $followUpPlaceholder = "Es gab schon Kontakt. Was du über den Stand weißt, das nicht im Ticket steht, z. B.:\n· Entscheidung: Wir erstatten die Preisdifferenz, die Versandkosten nicht, weil der Kunde die Bestellung selbst geteilt hat\n· Stand: Der Fehler war aufwendiger zu beheben und ist erst heute gelöst\n· Bitte in der Antwort: für die verspätete Rückmeldung entschuldigen und den Grund nennen";
     $collapsible = ($analysis['result'] ?? null) !== null;
-    $startOpen = ! $collapsible || session('analysis_error') || $errors->any();
+    $startOpen = ! $collapsible || session('analysis_error') || $errors->any() || ($analysis['result']['new_messages'] ?? false);
     $usedGroup = collect($analysis['groups'])->firstWhere('key', $inputs['kundengruppe'] ?? $analysis['suggestedGroup'])?->label;
     $usedProducts = collect($analysis['products'])->whereIn('slug', $inputs['produkte'] ?? [])->pluck('title')->all();
     $knownOrders = $analysis['hasOrders'] || $unloadedOrders !== [] || $selected !== [];
@@ -76,9 +76,9 @@
 
             <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" />
 
-            <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}
-                @if ($unloadedOrders !== [] || $selected !== [] || $analysis['hasOrders']) <span class="text-slate-600">Auswahl und Laden stehen oben unter „Bestellungen“.</span>@endif
-            </p>
+            @unless ($analysis['hasOrders'])
+                <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}</p>
+            @endunless
 
             @unless ($knownOrders)
                 <details class="group rounded-md ring-1 ring-slate-200 ring-inset" @if (collect(array_keys(\App\Http\Requests\AnalyzeTicketRequest::MANUAL_ORDER_FIELDS))->contains(fn ($field) => filled(old($field)))) open @endif>
@@ -143,7 +143,7 @@
 
             <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" :hint="$introMode ? 'Optional. Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.' : null">
                 <textarea name="kontext" id="kontext" rows="5" placeholder="{{ $earlierReply ? $followUpPlaceholder : $firstPlaceholder }}" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
-                          class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', $inputs['kontext'] ?? '') }}</textarea>
+                          class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', '') }}</textarea>
                 <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>
             </x-field>
 

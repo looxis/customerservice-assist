@@ -119,17 +119,17 @@ describe('our replies after the last customer message', function () {
 
         fakeThread('CA');
 
-        $this->get($location)->assertOk()->assertDontSeeText('Seit diesem Vorschlag sind neue Nachrichten eingegangen');
+        $this->get($location)->assertOk()->assertDontSeeText('Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen');
     });
 
-    test('a new customer message after the proposal is pointed out', function () {
+    test('a new customer message after the proposal folds the earlier proposal away and opens the form', function () {
         CaseAgent::fake([threadAnswer()]);
         fakeThread('C');
         $location = threadAnalyze()->headers->get('Location');
 
         fakeThread('CAC');
 
-        $this->get($location)->assertOk()->assertSeeText('Seit diesem Vorschlag sind neue Nachrichten eingegangen');
+        $this->get($location)->assertOk()->assertSeeText('Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen');
     });
 });
 

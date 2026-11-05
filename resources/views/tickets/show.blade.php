@@ -49,7 +49,20 @@
             @endif
 
             @if ($analysis['result'])
-                <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" :advanced="$advancedModeActive ?? false" :orders="$selected" :lookups="$lookups ?? []" />
+                @if ($analysis['result']['new_messages'] ?? false)
+                    {{-- New messages since the proposal (PROJ-76): the form for a new proposal is open, the earlier proposal stays reachable. --}}
+                    <details id="frueherer-vorschlag" class="group">
+                        <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+                            <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open:rotate-90" />
+                            Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen
+                        </summary>
+                        <div class="mt-3">
+                            <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" :advanced="$advancedModeActive ?? false" :orders="$selected" :lookups="$lookups ?? []" />
+                        </div>
+                    </details>
+                @else
+                    <x-analysis.result :result="$analysis['result']" :number="$number" :history="$analysis['history']" :admin="$testModeAvailable" :stand="$analysis['stand']" :advanced="$advancedModeActive ?? false" :orders="$selected" :lookups="$lookups ?? []" />
+                @endif
             @endif
 
             <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :can-close="$canCloseTicket" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []"

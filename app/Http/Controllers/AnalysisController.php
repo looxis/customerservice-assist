@@ -193,7 +193,7 @@ class AnalysisController extends Controller
             return $back($exception->problem->message(), $exception->problem !== AnalysisProblem::Misconfigured);
         }
 
-        return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $id, 'bestellungen' => $shown]))->withInput();
+        return redirect()->to($this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $id, 'bestellungen' => $shown]))->withInput($request->except('kontext'));
     }
 
     /**

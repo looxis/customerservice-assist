@@ -86,6 +86,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Regelprüfung vereinfachen: mehrere Nachladerunden, offene Regeln nur als Hinweis, keine Blockade | In Progress |
 | Ergebnisansicht entschlacken: „Schritte für diesen Fall“ entfallen, Arbeitsanleitungen bleiben | In Progress |
 | Einführungsmodus: Infotexte nur bei eingeschaltetem Schalter „Einführung“ | In Progress |
+| Durchsicht der Wissensdateien auf überflüssige interne Schritte (gemeinsam, später, Einzelentscheidung je Treffer) | Planned |
+| Vorschlagsformular und Ergebnis weiter entschlacken (Formular nach neuen Nachrichten direkt offen, Zusatzinformationen leer, weniger Hinweise, zusammengehörige Tickets eingeklappt) | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

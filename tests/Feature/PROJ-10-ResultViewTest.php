@@ -83,7 +83,7 @@ describe('layout', function () {
             ->and($html)->not->toMatch('/<details id="analyse-details"[^>]*\sopen\s/');
     });
 
-    test('the collapsed form names group, products and variant and reopens with the inputs of the analysis', function () {
+    test('the collapsed form names group, products and variant and reopens with the inputs of the analysis, but with an empty field for additional information (PROJ-76)', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis(['produkte' => [], 'kontext' => 'Telefonat geführt']);
 
@@ -91,7 +91,7 @@ describe('layout', function () {
             ->assertSeeText('Erstellt mit: Foto-Fachhändler / Reseller · kein Produktbezug · Ganzer Verlauf')
             ->getContent();
 
-        expect($html)->toContain('>Telefonat geführt</textarea>')->toMatch('/<option value="reseller"\s+selected/');
+        expect($html)->not->toContain('>Telefonat geführt</textarea>')->toMatch('/<option value="reseller"\s+selected/');
     });
 
     test('approval needed is shown in plain words', function () {
@@ -201,14 +201,18 @@ describe('finding the latest analysis', function () {
         $this->withCookie('staff_name', 'Cara')->get('/tickets/2137942')->assertSeeText('Vorschlag von Nele, 06.10.2026, 09:15 Uhr')->assertDontSeeText('neue Nachrichten eingegangen');
     });
 
-    test('new messages since the analysis are pointed out with "Neuen Vorschlag erstellen"', function () {
+    test('new messages since the analysis open the form, the earlier proposal is folded away without a notice or button (PROJ-76)', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis();
         addArticles(zammadArticle(['id' => 2, 'body' => '<p>Und?</p>', 'created_at' => '2026-10-03T07:12:00.000Z']));
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeText('Seit diesem Vorschlag sind neue Nachrichten eingegangen.')
-            ->assertSee('open-analysis-form', false);
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSeeText('Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen')
+            ->assertDontSeeText('Seit diesem Vorschlag sind neue Nachrichten eingegangen.')
+            ->assertDontSeeText('Neuen Vorschlag erstellen')
+            ->getContent();
+
+        expect($html)->toMatch('/<details id="analyse-details"[^>]*\sopen/')->and($html)->not->toMatch('/<details id="frueherer-vorschlag"[^>]*\sopen/');
     });
 
     test('a new analysis replaces the shown one, the earlier one stays stored', function () {

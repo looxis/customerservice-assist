@@ -104,15 +104,6 @@
             <p class="mt-2 inline-flex rounded-md bg-warning-500/10 px-2 py-1 text-xs font-semibold text-warning-700">Testlauf (Stand bis Nachricht vom {{ $time($meta['test_until']) }})</p>
         @endif
 
-        @if ($result['new_messages'] ?? false)
-            <x-alert type="warning" class="mt-4">
-                <p>Seit diesem Vorschlag sind neue Nachrichten eingegangen.</p>
-                <p class="mt-3">
-                    <x-button variant="secondary" x-data x-on:click="$dispatch('open-analysis-form')"><x-icon name="refresh" size="16" /> Neuen Vorschlag erstellen</x-button>
-                </p>
-            </x-alert>
-        @endif
-
         @if ($ruleIncomplete)
             @php($ruleActions = ($retrieval['safeguard']['final_actions'] ?? []) !== [] ? $retrieval['safeguard']['final_actions'] : ($retrieval['safeguard']['first_actions'] ?? []))
             <x-alert type="warning" class="mt-4" id="regelpruefung">

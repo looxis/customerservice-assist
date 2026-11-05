@@ -58,7 +58,7 @@ describe('the examples in the field', function () {
         }
     });
 
-    test('a text that is already in the field stays whatever the examples are', function () {
+    test('the field is empty again after a proposal, the text it held went into that proposal (PROJ-76)', function () {
         fakeZammad([zammadArticle(['id' => 1]), zammadArticle(['id' => 2, 'sender' => 'Agent', 'created_at' => '2026-10-02T07:12:00.000Z'])]);
         CaseAgent::fake([[
             'summary' => ['incident' => 'x', 'customer_wish' => 'y'], 'category' => 'complaint', 'case_pattern' => null, 'assessment' => null,
@@ -69,7 +69,9 @@ describe('the examples in the field', function () {
 
         $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', 'kontext' => 'Wir erstatten die Differenz.']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Wir erstatten die Differenz.');
+        $page = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->getContent();
+
+        expect($page)->toMatch('/<textarea name="kontext"[^<]*><\/textarea>/');
         CaseAgent::assertPrompted(fn ($prompt): bool => $prompt->contains('Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten, Entscheidungen und Wünsche an die Antwort)') && $prompt->contains('Wir erstatten die Differenz.'));
     });
 });

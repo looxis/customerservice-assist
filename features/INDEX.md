@@ -36,6 +36,8 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-72 | Regelprüfung vereinfachen | Verbindliche Regeln werden bis zu dreimal nachgeladen (auch bei Maßnahmenwechsel, Anlass Ticket 2140246); offene Regeln erscheinen nur als gelber Hinweis, Kopieren und Senden werden nie blockiert | PROJ-36, PROJ-19 | In Progress | [Spec](PROJ-72-regelpruefung-vereinfachen.md) | 2026-11-05 |
 | PROJ-73 | Ergebnisansicht entschlacken | „Schritte für diesen Fall“ entfallen, „Was ist zu tun?“ auf Empfehlung, Befugnis und Warnungen reduziert; Arbeitsanleitungen und „Zuerst zu klären“ bleiben unverändert | PROJ-10, PROJ-30, PROJ-39 | In Progress | [Spec](PROJ-73-ergebnisansicht-entschlacken.md) | 2026-11-05 |
 | PROJ-74 | Einführungsmodus für Infotexte | Neuer Schalter „Einführung“ neben „Erweitert“, standardmäßig aus; Hilfetexte und Beispiele erscheinen nur dort, Warnungen immer | PROJ-40, PROJ-10, PROJ-42 | In Progress | [Spec](PROJ-74-einfuehrungsmodus.md) | 2026-11-05 |
+| PROJ-75 | Durchsicht der Wissensdateien auf überflüssige interne Schritte | Gemeinsame, später durchgeführte Durchsicht aller Wissensdateien: Schritte, die automatisch laufen oder erledigt sind (Reklamationsauftrag, Produktion, Versand), streichen oder kürzen; „Noch zu klären“ entscheiden; Einzelentscheidung je Treffer | PROJ-73 | Planned | [Spec](PROJ-75-wissensdurchsicht-interne-schritte.md) | 2026-11-05 |
+| PROJ-76 | Vorschlagsformular und Ergebnis weiter entschlacken | Nach neuen Nachrichten öffnet sich das Formular direkt (früherer Vorschlag eingeklappt), „Zusätzliche Informationen“ standardmäßig leer, Hinweise „Regeln für …“ und „Bestellung geladen“ entfallen, zusammengehörige Tickets eingeklappt mit Erklärung nur im Einführungsmodus | PROJ-73, PROJ-74, PROJ-52 | In Progress | [Spec](PROJ-76-formular-und-ergebnis-feinschliff.md) | 2026-11-05 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -55,4 +57,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-75
+## Next Available ID: PROJ-77

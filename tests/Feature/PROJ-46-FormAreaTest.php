@@ -40,7 +40,7 @@ describe('the form', function () {
         $normal = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->getContent();
         $expert = $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '1')->get('/tickets/2137942')->assertOk()->getContent();
 
-        expect($normal)->toContain('x-show="areaVisible"')->toContain('x-text="areaLine"')->toContain('\\u0022advanced\\u0022:false')
+        expect($normal)->toContain('x-show="areaVisible"')->not->toContain('x-text="areaLine"')->toContain('\\u0022advanced\\u0022:false')
             ->and($expert)->toContain('\\u0022advanced\\u0022:true');
     });
 

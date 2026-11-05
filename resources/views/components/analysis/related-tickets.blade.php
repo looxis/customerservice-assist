@@ -3,13 +3,23 @@
 @php
     $titles = ['linked' => 'In Zammad verknüpft', 'order' => 'Tickets zur Bestellung', 'customer' => 'Weitere Tickets dieses Kunden (letzte 90 Tage)'];
     $selected = array_map('strval', (array) old('related', $related['selected']));
-    $any = collect($related['groups'])->flatten(1)->isNotEmpty();
+    $found = collect($related['groups'])->flatten(1)->count();
+    $any = $found > 0;
+    $openIt = $errors->has('related') || $errors->has('related_manual') || filled(old('related_manual'));
 @endphp
 
 {{-- Tickets that may belong to the same case (PROJ-52): their course goes to the analysis as the earlier course. --}}
-<fieldset class="min-w-0" aria-describedby="zusammenhang-hinweis">
-    <legend class="block text-sm font-medium text-slate-900">Zusammengehörige Tickets</legend>
+<details class="group min-w-0" @if ($openIt) open @endif>
+<summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-2 text-sm font-medium text-slate-900 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
+    <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open:rotate-90" />
+    Zusammengehörige Tickets
+    <span class="font-normal text-slate-600">({{ $found }} gefunden, {{ count($selected) }} vorgewählt)</span>
+</summary>
+<fieldset class="mt-2 min-w-0">
+    <legend class="sr-only">Zusammengehörige Tickets</legend>
+    <x-intro>
     <p id="zusammenhang-hinweis" class="mt-1 text-xs text-slate-600">Der Verlauf dieser Tickets geht als früherer Verlauf mit in den Vorschlag, damit Zusagen und frühere Wünsche berücksichtigt werden. Verknüpfte Tickets sind vorgewählt; bei den anderen entscheidest du.</p>
+    </x-intro>
     <input type="hidden" name="related_set" value="1">
 
     @foreach ($related['problems'] as $problem)
@@ -49,3 +59,4 @@
         @error('related')<p class="mt-1 text-sm text-danger-700">{{ $message }}</p>@enderror
     </div>
 </fieldset>
+</details>
