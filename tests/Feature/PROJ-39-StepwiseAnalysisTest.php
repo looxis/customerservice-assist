@@ -38,7 +38,7 @@ function stepAnswer(array $overrides = []): array
         'reasoning' => 'Antwort hängt vom Bedarf ab.', 'knowledge_gaps' => [],
         'knowledge_ids' => ['POLICY-001'],
         'confidence' => ['level' => 'MITTEL', 'reasons' => ['Regel vorhanden']],
-        'next_step' => 'reply', 'decision' => null, 'internal_steps' => [],
+        'next_step' => 'reply', 'decision' => null,
         'reply' => ['language' => 'Deutsch', 'text' => 'Guten Tag, danke für Ihre Nachricht.'],
     ], $overrides);
 }
@@ -60,7 +60,7 @@ function stepDecision(array $overrides = []): array
 
 function stepBlocked(array $overrides = []): array
 {
-    return stepAnswer(array_replace(['next_step' => 'internal_first', 'reply' => null, 'decision' => stepDecision(), 'internal_steps' => ['Bei der Produktionsleitung nachfragen']], $overrides));
+    return stepAnswer(array_replace(['next_step' => 'internal_first', 'reply' => null, 'decision' => stepDecision()], $overrides));
 }
 
 function stepRun(array $fields = [], string $staff = 'Nele'): string
@@ -86,8 +86,8 @@ describe('validator', function () {
         expect($checked['result']['reply'])->toBeNull()->and($checked['result']['decision']['options'])->toHaveCount(4);
     });
 
-    test('internal first needs a decision or a step', function () {
-        expect(fn () => (new ResultValidator)->check(stepBlocked(['decision' => null, 'internal_steps' => []]), ['POLICY-001']))->toThrow(AnalysisException::class);
+    test('internal first needs a decision', function () {
+        expect(fn () => (new ResultValidator)->check(stepBlocked(['decision' => null]), ['POLICY-001']))->toThrow(AnalysisException::class);
     });
 
     test('a reply is required when the next step is a reply', function () {
@@ -103,10 +103,12 @@ describe('validator', function () {
             ->and($unknown['notes'])->not->toBe([]);
     });
 
-    test('a decision with fewer than two usable options becomes an internal step', function () {
-        $checked = (new ResultValidator)->check(stepBlocked(['decision' => stepDecision(['options' => [['key' => 'a', 'label' => 'Nur eine', 'consequence' => '']]]), 'internal_steps' => []]), ['POLICY-001']);
+    test('a decision with fewer than two usable options is dropped with a note, and internal first then fails', function () {
+        $checked = (new ResultValidator)->check(stepAnswer(['decision' => stepDecision(['options' => [['key' => 'a', 'label' => 'Nur eine', 'consequence' => '']]])]), ['POLICY-001']);
 
-        expect($checked['result']['decision'])->toBeNull()->and($checked['result']['internal_steps'])->toBe(['Was wird zurückgenommen?']);
+        expect($checked['result']['decision'])->toBeNull()->and($checked['result'])->not->toHaveKey('internal_steps')
+            ->and(implode(' ', $checked['notes']))->toContain('wurde verworfen');
+        expect(fn () => (new ResultValidator)->check(stepBlocked(['decision' => stepDecision(['options' => [['key' => 'a', 'label' => 'Nur eine', 'consequence' => '']]])]), ['POLICY-001']))->toThrow(AnalysisException::class);
     });
 });
 
@@ -116,21 +118,21 @@ describe('blocked analysis', function () {
         stepRun();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Interne Abläufe', 'Zuerst zu klären', 'Was wird zurückgenommen?', 'Nur Display zurück', 'Nur Glasfoto-Muster zurück', 'Beides zurück', 'Kein Bedarf – kann entsorgt werden', 'Für diesen Fall', 'Bei der Produktionsleitung nachfragen', 'Noch kein Antwortentwurf'])
+            ->assertSeeTextInOrder(['Interne Abläufe', 'Zuerst zu klären', 'Was wird zurückgenommen?', 'Nur Display zurück', 'Nur Glasfoto-Muster zurück', 'Beides zurück', 'Kein Bedarf – kann entsorgt werden', 'Noch kein Antwortentwurf'])
+            ->assertDontSeeText('Für diesen Fall')
             ->assertDontSeeText('Für diesen Fall fehl')
             ->assertDontSeeText('Antwortentwurf (Deutsch)')
             ->assertDontSeeText('Interne To-dos');
     });
 
     test('a reply that depends on nothing is shown as before', function () {
-        CaseAgent::fake([stepAnswer(['internal_steps' => ['Notiz im Ticket']])]);
+        CaseAgent::fake([stepAnswer()]);
         stepRun();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertSeeText('Antwortentwurf (Deutsch)')
             ->assertDontSeeText('Noch kein Antwortentwurf')
-            ->assertDontSeeText('Fehlende Informationen')
-            ->assertSeeText('Notiz im Ticket');
+            ->assertDontSeeText('Fehlende Informationen');
     });
 
     test('the options are radio choices with a pointer cursor, confirmed by a separate button', function () {
@@ -140,8 +142,7 @@ describe('blocked analysis', function () {
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->getContent();
 
         expect($html)->toMatch('/<label class="[^"]*cursor-pointer[^"]*"[^>]*>\s*<input type="radio" name="klaerung_option" value="none"/')
-            ->and($html)->toContain('Mit diesem Ergebnis fortsetzen')
-            ->and($html)->toContain('Nur Hinweise zum Abhaken');
+            ->and($html)->toContain('Mit diesem Ergebnis fortsetzen');
     });
 
     test('the free result is the last choice inside the box "Zuerst zu klären" and its field is visibly a field', function () {
@@ -149,7 +150,7 @@ describe('blocked analysis', function () {
         stepRun();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Zuerst zu klären', 'Kein Bedarf – kann entsorgt werden', 'Anderes Ergebnis oder Ergänzung', 'Ohne gewählte Option gilt dein Text als Ergebnis', 'Mit diesem Ergebnis fortsetzen', 'Für diesen Fall'])
+            ->assertSeeTextInOrder(['Zuerst zu klären', 'Kein Bedarf – kann entsorgt werden', 'Anderes Ergebnis oder Ergänzung', 'Ohne gewählte Option gilt dein Text als Ergebnis', 'Mit diesem Ergebnis fortsetzen'])
             ->getContent();
 
         expect($html)->toContain("loading-start', { title: 'Vorschlag wird erstellt …'")
@@ -183,8 +184,13 @@ describe('continuing after a clarification', function () {
     });
 
     test('a free result works next to the options and without a decision', function () {
-        CaseAgent::fake([stepBlocked(['decision' => null, 'internal_steps' => ['Lager fragen']]), stepAnswer()]);
+        CaseAgent::fake([stepBlocked(), stepAnswer()]);
         $first = stepRun();
+        app(AnalysisStore::class)->changeResult($first, function (array $content): array {
+            $content['result']['decision'] = null;
+
+            return $content;
+        });
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Ergebnis der internen Prüfung');
 
@@ -243,23 +249,24 @@ describe('older results', function () {
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertOk()
-            ->assertSeeText('Altes To-do')
+            ->assertDontSeeText('Altes To-do')
             ->assertSeeText('Fehlende Angaben (älterer Vorschlag)')
             ->assertSeeText('Antwortentwurf (Deutsch)');
     });
 });
 
-describe('procedures next to case steps', function () {
-    test('stay complete but collapsed under their own heading', function () {
+describe('procedures', function () {
+    test('stay complete but collapsed and no case steps are shown any more (PROJ-73)', function () {
         knowledgeBase([
             'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Rücknahme'], 'Regel.'),
             'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'Rücknahme abwickeln', 'actions' => ['return']], "Gilt für alle.\n\n# Voraussetzungen\n\n- Eine\n\n# Arbeitsschritte\n\n1. Erster Schritt\n\n# Abschlusskontrolle\n\n- Fertig"),
         ]);
-        CaseAgent::fake([stepAnswer(['actions' => ['return'], 'internal_steps' => ['Konkreter Fallschritt']])]);
+        CaseAgent::fake([stepAnswer(['actions' => ['return']])]);
         stepRun();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Für diesen Fall', 'Konkreter Fallschritt', 'Ergänzend aus der Wissensbasis', 'Rücknahme abwickeln', 'Erster Schritt'])
+            ->assertSeeTextInOrder(['Interne Abläufe', 'Rücknahme abwickeln', 'Erster Schritt'])
+            ->assertDontSeeText('Für diesen Fall')
             ->getContent();
 
         expect($html)->not->toMatch('/<details data-procedure="PROCEDURE-001"[^>]*\sopen/');
@@ -284,7 +291,6 @@ describe('security', function () {
                 ['key' => 'a', 'label' => '<img src=x onerror=alert(2)>', 'consequence' => '<b>fett</b>'],
                 ['key' => 'b', 'label' => 'Zwei', 'consequence' => ''],
             ]]),
-            'internal_steps' => ['<svg onload=alert(3)>'],
         ])]);
         stepRun();
 

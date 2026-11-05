@@ -6,10 +6,9 @@
     $suggestedIds = array_column($suggested, 'id');
     $actionLabels = config('knowledge.actions');
     $decision = $result['result']['decision'] ?? null;
-    $steps = $result['steps'] ?? [];
     $awaiting = ($result['result']['next_step'] ?? 'reply') === 'internal_first';
     $canContinue = $awaiting && ($result['is_latest'] ?? true);
-    $caseWork = $decision !== null || $steps !== [] || $awaiting;
+    $caseWork = $decision !== null || $awaiting;
     $labelOrders = $question ? collect() : collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
     $missingActions = implode(', ', array_map(fn ($action) => $actionLabels[$action] ?? $action, $result['result']['actions'] ?? []));
 @endphp
@@ -114,18 +113,6 @@
                     </div>
                 @endif
 
-                @if ($steps !== [])
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Für diesen Fall <span class="font-normal text-slate-600">– von der KI aus dem Fall abgeleitet</span></h3>
-                        <p class="mt-1 text-xs text-slate-600">Nur Hinweise zum Abhaken für dich. Die Kästchen wirken sich nicht auf den Vorschlag aus und werden nicht gespeichert.</p>
-                        <ul class="mt-2 space-y-1 text-sm">
-                            @foreach ($steps as $step)
-                                <li><label class="flex items-start gap-2"><input type="checkbox" class="mt-1 rounded border-slate-300 text-brand focus:ring-brand"><span>{{ $step }}</span></label></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 @if ($canContinue && ! $decision)
                     <x-analysis.clarification-input />
                 @endif
@@ -143,7 +130,7 @@
         <div class="mt-4 space-y-3">
             @foreach ($suggested as $position => $procedure)
                 <div x-show="shown(@js($procedure['id']))">
-                    <x-analysis.procedure-card :procedure="$procedure" :open="! $caseWork && ($position === 0 || count($suggested) < 3)" />
+                    <x-analysis.procedure-card :procedure="$procedure" :open="false" />
                 </div>
             @endforeach
 

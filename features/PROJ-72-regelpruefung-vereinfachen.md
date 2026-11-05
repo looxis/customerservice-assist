@@ -42,7 +42,7 @@
 - Performance: Ohne fehlende Regeln unverändert ein Durchgang.
 
 ## Open Questions
-- [ ] Ist „drei Runden“ ausreichend oder soll die Zahl in den Einstellungen (PROJ-31) einstellbar sein?
+- [x] Soll die Zahl der Runden in den Einstellungen (PROJ-31) einstellbar sein? Entschieden 2026-11-05: Nein. Jede Runde ist ein voller KI-Durchgang (rund 40 Sekunden und 14.000 Eingabe-Tokens mehr), die Einstellung wäre ein Risiko (0 hebt die Absicherung auf, hohe Werte kosten). Die Zahl bleibt in `config/analysis.php` und wird nur bei Bedarf geändert.
 
 ## Decision Log
 

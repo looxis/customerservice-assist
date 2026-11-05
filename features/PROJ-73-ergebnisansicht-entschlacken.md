@@ -1,6 +1,6 @@
 # PROJ-73: Ergebnisansicht entschlacken
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-11-05
 **Last Updated:** 2026-11-05
 
@@ -65,6 +65,16 @@
 
 ---
 <!-- Sections below are added by subsequent skills -->
+
+## Implementation Notes (2026-11-05)
+- `internal_steps` ist aus dem Schema der KI (`CaseAgent`), aus den Pflichtfeldern und der Aufbereitung (`ResultValidator`, `AnalysisPanel`) entfernt. Liefert eine KI das Feld doch noch, wird es verworfen; ältere gespeicherte Vorschläge mit Schritten oder To-dos werden ohne Fehler angezeigt, die Schritte erscheinen nicht.
+- „Interne Abläufe“: der Block „Für diesen Fall“ entfällt. „Zuerst zu klären“ (Auswahl oder freies Ergebnis), DHL-Retourenlabel und die Arbeitsanleitungen bleiben unverändert im Inhalt. Die Arbeitsanleitungen sind jetzt immer eingeklappt (bisher waren sie nur bei Vorschlägen mit Fallschritten eingeklappt, das war fast immer).
+- `internal_first` verlangt eine `decision`; eine Entscheidung ohne zwei brauchbare Optionen wird mit Hinweis verworfen (vorher wurde sie zum Schritt). Bei `internal_first` ohne brauchbare Entscheidung schlägt der Durchgang als ungültiges Ergebnis fehl, wie bisher bei fehlendem Inhalt.
+- Prompt `analysis-2026-11-05.2`: `recommendation` ohne Schrittfolgen; Erledigtes nicht nennen (ein genannter oder angelegter Reklamationsauftrag R… ist erledigt, Produktion und Versand laufen danach automatisch); Verweise auf `internal_steps` ersetzt (Preis-Platzhalter und offene interne Punkte stehen in `recommendation` oder `decision`). `analysis-question.md` entsprechend angepasst.
+- „Was ist zu tun?“ zeigt schon nur Empfehlung, Befugnis, Wissenslücken und Warnungen, „Prüfhinweise vorhanden“ nur im Erweitert-Modus, „Bereits intern geklärt“ nur nach einer Klärung; hier war nichts weiter zu entfernen.
+- Tests angepasst (PROJ-39, PROJ-9, PROJ-30 und gepinnte Prompt-Versionen); Analyse- und Ablauf-Tests grün bis auf die bekannten PROJ-56-Fehler.
+- Beobachtung (nicht Teil dieser Spec): Der Test „a free reproduction proposed by the model does not load the goodwill rules of the real knowledge base“ (PROJ-36) schlägt unabhängig von dieser Änderung gelegentlich fehl (etwa jeder dritte Lauf, auch ohne die PROJ-73-Änderungen).
+
 
 ## Tech Design (Solution Architect)
 _To be added by /architecture_

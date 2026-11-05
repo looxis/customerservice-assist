@@ -74,7 +74,6 @@ class CaseAgent implements Agent, HasStructuredOutput
                 'level' => $schema->string()->enum(['HOCH', 'MITTEL', 'NIEDRIG'])->required(),
                 'reasons' => $schema->array()->items($schema->string())->required(),
             ])->withoutAdditionalProperties()->required(),
-            'internal_steps' => $schema->array()->items($schema->string())->description('Konkrete interne Arbeitsschritte, die jetzt für diesen Fall zu tun sind; keine Schritte für den Fall, dass sich später etwas ergibt')->required(),
             'decision' => $schema->object([
                 'question' => $schema->string()->description('Die interne Entscheidung oder Auskunft, die zuerst nötig ist')->required(),
                 'why' => $schema->string()->description('Warum sie die Kundenantwort wesentlich ändert')->required(),

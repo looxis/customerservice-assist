@@ -9,7 +9,7 @@ namespace App\Analysis;
  */
 class ResultValidator
 {
-    private const array REQUIRED = ['summary', 'category', 'recommendation', 'actions', 'authority', 'reasoning', 'knowledge_ids', 'confidence', 'internal_steps', 'reply'];
+    private const array REQUIRED = ['summary', 'category', 'recommendation', 'actions', 'authority', 'reasoning', 'knowledge_ids', 'confidence', 'reply'];
 
     /**
      * @param  array<string, mixed>  $data
@@ -29,16 +29,16 @@ class ResultValidator
 
         $notes = [];
         $data['next_step'] = in_array($data['next_step'] ?? null, ['internal_first', 'info_only'], true) ? $data['next_step'] : 'reply';
-        $data['internal_steps'] = array_values(array_filter(array_map(fn (mixed $step): string => is_string($step) ? trim($step) : '', (array) $data['internal_steps']), fn (string $step): bool => $step !== ''));
-        $data['decision'] = $this->decision($data['decision'] ?? null, $knowledgeIds, $notes, $data['internal_steps']);
+        unset($data['internal_steps']);
+        $data['decision'] = $this->decision($data['decision'] ?? null, $knowledgeIds, $notes);
 
         if ($replyWanted && $data['next_step'] === 'info_only') {
             $data['next_step'] = 'reply';
         }
 
         if ($data['next_step'] === 'internal_first') {
-            if ($data['decision'] === null && $data['internal_steps'] === []) {
-                throw new AnalysisException(AnalysisProblem::InvalidResult, 'internal_first without decision or steps');
+            if ($data['decision'] === null) {
+                throw new AnalysisException(AnalysisProblem::InvalidResult, 'internal_first without decision');
             }
 
             $data['reply'] = null;
@@ -139,7 +139,7 @@ class ResultValidator
      * @param  list<string>  $steps
      * @return array{question: string, why: string, options: list<array{key: string, label: string, consequence: string}>, knowledge_ids: list<string>}|null
      */
-    private function decision(mixed $decision, array $knowledgeIds, array &$notes, array &$steps): ?array
+    private function decision(mixed $decision, array $knowledgeIds, array &$notes): ?array
     {
         if (! is_array($decision)) {
             return null;
@@ -159,8 +159,7 @@ class ResultValidator
 
         if ($question === '' || count($options) < 2) {
             if ($question !== '') {
-                $steps[] = $question;
-                $notes[] = 'Die Entscheidung hatte keine zwei brauchbaren Optionen und wurde als interner Schritt übernommen.';
+                $notes[] = 'Die Entscheidung hatte keine zwei brauchbaren Optionen und wurde verworfen.';
             }
 
             return null;

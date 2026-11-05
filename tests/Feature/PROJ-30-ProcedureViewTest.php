@@ -121,7 +121,7 @@ describe('view', function () {
             ->toContain('gilt nicht für diese Kundengruppe');
     });
 
-    test('three or more suggestions: only the first is open', function () {
+    test('suggestions are collapsed, even three or more (PROJ-73)', function () {
         knowledgeBase([
             'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
             'procedures/procedure-001-a.md' => knowledgeDoc(['id' => 'PROCEDURE-001', 'type' => 'procedure', 'title' => 'A', 'actions' => ['return']], "x\n\n# Voraussetzungen\n\n- a\n\n# Arbeitsschritte\n\n1. a\n\n# Abschlusskontrolle\n\n- [ ] a"),
@@ -130,7 +130,7 @@ describe('view', function () {
         ]);
 
         $section = str(procedureCase(['return']))->after('id="ablaeufe"')->toString();
-        expect(preg_match_all('/<details data-procedure="PROCEDURE-00\d"\s+open/', $section))->toBe(1)
+        expect(preg_match_all('/<details data-procedure="PROCEDURE-00\d"\s+open/', $section))->toBe(0)
             ->and(preg_match_all('/<details data-procedure="PROCEDURE-00\d"/', $section))->toBe(3);
     });
 

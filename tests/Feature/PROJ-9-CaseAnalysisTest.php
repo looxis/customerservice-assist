@@ -267,7 +267,7 @@ describe('running an analysis', function () {
                 'Vorschlag', 'Vorschlag von Nele', 'Unklar', 'Confidence MITTEL',
                 'Was ist zu tun?', 'Foto mit heißem Wasser anfordern.', 'Foto anfordern',
                 'Du darfst das selbst entscheiden.',
-                'Interne Abläufe', 'Für diesen Fall', 'Antwort abwarten',
+                'Interne Abläufe',
                 'Antwortentwurf', 'Von der App eingesetzt: Lieferadresse', 'Hallo Erika,',
                 'Begründung', 'Ohne Test kein Urteil.',
                 'Quellen', 'POLICY-001',
