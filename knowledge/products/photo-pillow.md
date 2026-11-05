@@ -35,6 +35,9 @@ customer_terms:
   - Kissenbezug
   - Kissenhülle
   - Herzkissen
+  - Motivkissen
+  - personalisiertes Kissen
+  - bedrucktes Kissen
 categories:
   - complaint
   - product-question
@@ -49,11 +52,15 @@ triggers:
   - Kissenbezug
   - Kissenhülle
   - Herzkissen
+  - Motivkissen
+  - personalisiertes Kissen
+  - bedrucktes Kissen
 exclude_triggers:
 when:
 actions:
 related_knowledge:
   - PLAYBOOK-040
+  - PLAYBOOK-051
   - POLICY-010
 ---
 

@@ -46,6 +46,7 @@ related_knowledge:
   - PLAYBOOK-001
   - PLAYBOOK-006
   - PLAYBOOK-023
+  - PLAYBOOK-051
   - PROCESS-002
 ---
 
@@ -73,6 +74,7 @@ Ein Kunde beanstandet sein personalisiertes Fotokissen (Bezug oder Füllung). Da
 - **Wunschtext fehlt oder ist abgeschnitten:** Eingegangene Konfiguration prüfen und dem Kunden zusenden. Steht der Text dort vollständig und ist er im Druck trotzdem abgeschnitten, ein Foto anfordern; ohne Foto lässt sich das nicht beurteilen, dann noch nichts zusagen. Nachweisbarer eigener Fehler: Bezug neu. Sonst erklären und die vergünstigte Neuanfertigung anbieten.
 - **Layout, ungleiche Abstände in der Collage, fehlende Rahmenecken:** Mit der Konfiguration abgleichen; ein Foto ist meist nicht nötig. Fehler bei uns: Daten korrigieren, Bezug neu. Konfiguration so bestellt: erklären (PLAYBOOK-023) und eine Kulanz-Neuanfertigung nach PERMISSION-004 anbieten.
 - **Stoff nicht wie erwartet (zum Beispiel „nicht flauschig“):** Bestellte Stoffvariante in der Bestellung belegen und erklären, kein Foto nötig. Möchte der Kunde einen **anderen** Stoff (zum Beispiel von flauschig zu satiniert oder canvas), ist eine vergünstigte Neuanfertigung ein sinnvolles Angebot. Mit demselben Stoff nicht anbieten, weil das Ergebnis dasselbe wäre.
+- **Falsche Füllung geliefert** (quadratisch statt herzförmig oder umgekehrt): PLAYBOOK-051.
 - **Füllung oder Bezug fehlt:** Fehlendes kostenfrei nachsenden. Findet der Kunde den Bezug nicht, darauf hinweisen, dass er separat in der Umverpackung liegt, oft unter der Werbung.
 
 # No-Gos

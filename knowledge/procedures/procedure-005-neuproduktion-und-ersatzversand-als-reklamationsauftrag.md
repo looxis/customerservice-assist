@@ -62,6 +62,7 @@ Einen Reklamationsauftrag anlegen, damit der reklamierte Artikel neu produziert 
 
 - Achtung: Alle Artikel löschen, die nicht reklamiert wurden. Sonst werden sie ebenfalls neu produziert und versendet.
 - Achtung: Ist bei einem Glasfoto (Glasfoto in Farbe, 2D, 3D) nur die Geschenkbox zerstört und das Glas heil, nicht den Ursprungsartikel in den Reklamationsauftrag aufnehmen, sondern den Artikel „Leerboxen Glas“ mit der SKU 12014. Sonst wird auch das Glas neu produziert (PLAYBOOK-048).
+- Achtung: Ist bei einem Fotokissen nur die Füllung falsch (quadratisch statt herzförmig oder umgekehrt), nicht den Ursprungsartikel Fotokissen in den Reklamationsauftrag aufnehmen, sondern alle Artikel löschen und stattdessen „quadratische Kissenfüllung“ (SKU 10821) oder „herzförmige Kissenfüllung“ (SKU 10822) wählen. Sonst wird auch die Hülle neu produziert, und die Warenwirtschaft bucht das Falsche aus (PLAYBOOK-051).
 - Achtung: Konfiguration prüfen. Eine unveränderte Neuproduktion wiederholt einen Konfigurationsfehler.
 - Achtung: Bei einer Kulanz mit Betrag nicht „Auf Rechnung“ mit Nullrechnung wählen, sondern die Zahlungsart des Kunden.
 
