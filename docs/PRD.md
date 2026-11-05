@@ -82,6 +82,10 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Ticket ohne Antwort schließen (aus CSA nach Zammad, mit optionaler interner Notiz) | Approved |
 | Direkt antworten ohne KI-Aufruf (leerer Antwortentwurf mit Versand nach Zammad) | Approved |
 | Ticketbezogene ToDos und interne Folgeaufgaben (Phase 1): eigene ToDo-Verwaltung unabhängig vom Ticketstatus, Übersicht auf der Startseite, ToDos beim Antwortversand anlegen, Antwort mit interner Notiz ohne Schließen, Kundenbenachrichtigung nach Erledigung; KI-Vorschläge und EOCS-Ereignisse später | Approved |
+| Draft-Status für Wissen abschaffen (alles `active`, `trial_until` und `deprecated` bleiben) | Planned |
+| Regelprüfung vereinfachen: mehrere Nachladerunden, offene Regeln nur als Hinweis, keine Blockade | Planned |
+| Ergebnisansicht entschlacken: „Schritte für diesen Fall“ entfallen, Arbeitsanleitungen bleiben | Planned |
+| Einführungsmodus: Infotexte nur bei eingeschaltetem Schalter „Einführung“ | Planned |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
