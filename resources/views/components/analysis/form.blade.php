@@ -2,6 +2,7 @@
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
+    $introMode = app(\App\Staff\IntroMode::class)->isActive(request());
     $variant = $old('variante', $analysis['defaultVariant']->value);
     $chosenProducts = $old('produkte', $analysis['suggestedProducts']);
     $offers = count($analysis['variants']) > 1;
@@ -140,7 +141,7 @@
                 </x-alert>
             @endif
 
-            <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" hint="Optional. Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.">
+            <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" :hint="$introMode ? 'Optional. Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.' : null">
                 <textarea name="kontext" id="kontext" rows="5" placeholder="{{ $earlierReply ? $followUpPlaceholder : $firstPlaceholder }}" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
                           class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', $inputs['kontext'] ?? '') }}</textarea>
                 <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>
@@ -154,7 +155,9 @@
                         <input type="checkbox" x-model="labelOn" x-on:change="if (labelOn) { $dispatch('dhl-load-address') }" class="mt-0.5 rounded text-brand focus:ring-brand">
                         <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>
                     </label>
-                    <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Nur für Rücksendungen aus Deutschland.</p>
+                    <x-intro>
+                        <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Nur für Rücksendungen aus Deutschland.</p>
+                    </x-intro>
                     <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 pl-6 text-sm font-medium text-danger-700" x-text="labelNote"></p>
                     <div x-show="labelOn" x-cloak class="mt-3 space-y-4">
                         @foreach ($labelOrders as $labelOrder)
@@ -164,6 +167,7 @@
                 </div>
             @endif
 
+            <x-intro>
             <details class="-mt-2 text-sm text-slate-700">
                 <summary class="cursor-pointer font-medium text-slate-700 hover:text-slate-900">So schreibst du es</summary>
                 <ul class="mt-2 list-disc space-y-1 pl-5">
@@ -173,6 +177,7 @@
                     <li>Keine allgemeinen Regeln („das machen wir immer so“): Die gehören in die Wissensdatenbank.</li>
                 </ul>
             </details>
+            </x-intro>
 
             @error('kundengruppe') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
             @error('produkte.*') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror

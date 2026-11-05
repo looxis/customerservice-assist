@@ -49,9 +49,11 @@
 
     @if ($forgeEnabled)
         {{-- The concrete product from the catalog (PROJ-38): positions of the order or a search. --}}
-        <fieldset class="min-w-0 md:col-span-2" aria-describedby="katalog-hinweis">
+        <fieldset class="min-w-0 md:col-span-2" @if (app(\App\Staff\IntroMode::class)->isActive(request())) aria-describedby="katalog-hinweis" @endif>
             <legend class="block text-sm font-medium text-slate-900">Produkt</legend>
-            <p id="katalog-hinweis" class="mt-1 text-xs text-slate-600">Um welches Produkt geht es? Daraus holt die App Produktdaten und Servicewissen aus dem Produktkatalog; bei einer allgemeinen Frage genügt ein Master ohne Größe.</p>
+            <x-intro>
+                <p id="katalog-hinweis" class="mt-1 text-xs text-slate-600">Um welches Produkt geht es? Daraus holt die App Produktdaten und Servicewissen aus dem Produktkatalog; bei einer allgemeinen Frage genügt ein Master ohne Größe.</p>
+            </x-intro>
 
             @foreach ($forge['notices'] as $notice)
                 <p class="mt-1 text-xs font-medium text-warning-700">{{ $notice }}</p>
@@ -98,7 +100,9 @@
     <fieldset class="min-w-0 {{ $forgeEnabled ? 'md:col-span-2' : '' }}" aria-describedby="produkt-hinweis">
         @if ($forgeEnabled)
             <legend class="block text-sm font-medium text-slate-900" x-show="areaVisible">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0"> *</span></legend>
-            <p class="mt-1 text-xs text-slate-600" x-show="areaVisible">Zu welchem Bereich unserer Regeln gehört der Fall (z. B. Essbare Fotos)? Die App schlägt ihn aus dem Produkt vor; bitte nur ändern, wenn der Vorschlag nicht stimmt. Das ist nicht das Produkt selbst.</p>
+            <x-intro>
+                <p class="mt-1 text-xs text-slate-600" x-show="areaVisible">Zu welchem Bereich unserer Regeln gehört der Fall (z. B. Essbare Fotos)? Die App schlägt ihn aus dem Produkt vor; bitte nur ändern, wenn der Vorschlag nicht stimmt. Das ist nicht das Produkt selbst.</p>
+            </x-intro>
             <p class="mt-1 text-xs text-slate-600" x-show="areaLine !== ''" x-cloak x-text="areaLine"></p>
         @else
             <legend class="block text-sm font-medium text-slate-900">Produkt(e)<span class="text-danger-500" aria-hidden="true"> *</span></legend>

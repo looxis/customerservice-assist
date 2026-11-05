@@ -35,7 +35,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-71 | Draft-Status für Wissen abschaffen | Status `draft` entfällt: alle bisherigen Entwürfe werden `active`, neue Dateien sind sofort `active`, Klick „Als gültig bestätigen“, Entwurfs-Hinweise und -Filter entfallen; `trial_until` und `deprecated` bleiben (Teil der Entschlackung, Plan 2026-11-05) | PROJ-23, PROJ-56 | In Progress | [Spec](PROJ-71-draft-status-abschaffen.md) | 2026-11-05 |
 | PROJ-72 | Regelprüfung vereinfachen | Verbindliche Regeln werden bis zu dreimal nachgeladen (auch bei Maßnahmenwechsel, Anlass Ticket 2140246); offene Regeln erscheinen nur als gelber Hinweis, Kopieren und Senden werden nie blockiert | PROJ-36, PROJ-19 | In Progress | [Spec](PROJ-72-regelpruefung-vereinfachen.md) | 2026-11-05 |
 | PROJ-73 | Ergebnisansicht entschlacken | „Schritte für diesen Fall“ entfallen, „Was ist zu tun?“ auf Empfehlung, Befugnis und Warnungen reduziert; Arbeitsanleitungen und „Zuerst zu klären“ bleiben unverändert | PROJ-10, PROJ-30, PROJ-39 | In Progress | [Spec](PROJ-73-ergebnisansicht-entschlacken.md) | 2026-11-05 |
-| PROJ-74 | Einführungsmodus für Infotexte | Neuer Schalter „Einführung“ neben „Erweitert“, standardmäßig aus; Hilfetexte und Beispiele erscheinen nur dort, Warnungen immer | PROJ-40, PROJ-10, PROJ-42 | Planned | [Spec](PROJ-74-einfuehrungsmodus.md) | 2026-11-05 |
+| PROJ-74 | Einführungsmodus für Infotexte | Neuer Schalter „Einführung“ neben „Erweitert“, standardmäßig aus; Hilfetexte und Beispiele erscheinen nur dort, Warnungen immer | PROJ-40, PROJ-10, PROJ-42 | In Progress | [Spec](PROJ-74-einfuehrungsmodus.md) | 2026-11-05 |
 <!-- Add features above this line -->
 
 ## Archive: completed features

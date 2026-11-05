@@ -19,11 +19,11 @@ beforeEach(function () {
 
 afterEach(fn () => cleanUpKnowledgeBases());
 
-function ticketPageWith(array $articles): string
+function ticketPageWith(array $articles, bool $intro = true): string
 {
     fakeZammad($articles);
 
-    return test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->getContent();
+    return test()->withCookie('staff_name', 'Nele')->withCookie('intro_mode', $intro ? '1' : '0')->get('/tickets/2137942')->assertOk()->getContent();
 }
 
 describe('the examples in the field', function () {
@@ -50,7 +50,7 @@ describe('the examples in the field', function () {
         expect($html)->toContain('Foto geprüft: Motiv ist verschoben gedruckt')->not->toContain('Es gab schon Kontakt');
     });
 
-    test('the hint on how to write it is there in both cases, and the hint line names facts, decisions and wishes', function () {
+    test('the hint on how to write it is there in both cases in the introduction mode, and the hint line names facts, decisions and wishes', function () {
         foreach ([[zammadArticle(['id' => 1])], [zammadArticle(['id' => 1]), zammadArticle(['id' => 2, 'sender' => 'Agent', 'created_at' => '2026-10-02T07:12:00.000Z'])]] as $articles) {
             $html = ticketPageWith($articles);
 

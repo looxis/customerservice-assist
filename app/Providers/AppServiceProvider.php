@@ -16,6 +16,7 @@ use App\Settings\KnowledgeValues;
 use App\Settings\MailRules;
 use App\Settings\SettingsStore;
 use App\Staff\AdvancedMode;
+use App\Staff\IntroMode;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Todo\TodoBoard;
@@ -78,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
                 'staffNames' => $staff->names(),
                 'currentStaff' => $staff->current(request()),
                 'advancedModeActive' => app(AdvancedMode::class)->isActive(request()),
+                'introModeActive' => app(IntroMode::class)->isActive(request()),
                 'testModeAvailable' => $testMode->isAvailable(request()),
                 'testModeActive' => $testMode->isActive(request()),
                 'canCloseTickets' => $staff->zammadToken($staff->current(request())) !== null,

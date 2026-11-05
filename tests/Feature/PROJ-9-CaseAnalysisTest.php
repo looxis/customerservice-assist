@@ -602,6 +602,9 @@ describe('missing knowledge', function () {
 
         $this->get('/tickets/2137942')
             ->assertSee('Was du über diesen Fall weißt, das nicht im Ticket steht', false)
+            ->assertDontSeeText('Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft');
+
+        $this->withCookie('intro_mode', '1')->get('/tickets/2137942')
             ->assertSeeText('Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln');
     });
 });

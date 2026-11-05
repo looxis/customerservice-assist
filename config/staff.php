@@ -107,4 +107,7 @@ return [
     // Advanced mode (PROJ-42): a switch per browser for everybody, not only for admins.
     'advanced_mode_cookie' => 'advanced_mode',
 
+    // Introduction mode (PROJ-74): shows the explanatory texts; per browser, for everybody.
+    'intro_mode_cookie' => 'intro_mode',
+
 ];

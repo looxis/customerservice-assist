@@ -144,7 +144,7 @@
             @if ($gaps !== [])
                 <x-alert type="warning">
                     <p class="font-semibold">Wissenslücken</p>
-                    <p class="mt-1">{{ count($gaps) === 1 ? 'Für diesen Fall fehlt die folgende Regel' : 'Für diesen Fall fehlen die folgenden '.count($gaps).' Regeln' }} in der Wissensdatenbank (Regeln, Befugnisse und Abläufe unter „Knowledge“, nicht die Produktdaten aus dem Produktkatalog). Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und jede Lücke mit „Lücke melden“ melden.</p>
+                    <p class="mt-1">{{ count($gaps) === 1 ? 'Für diesen Fall fehlt die folgende Regel' : 'Für diesen Fall fehlen die folgenden '.count($gaps).' Regeln' }} in der Wissensdatenbank<x-intro> (Regeln, Befugnisse und Abläufe unter „Knowledge“, nicht die Produktdaten aus dem Produktkatalog)</x-intro>. Der Vorschlag sagt dazu bewusst nichts zu. Bitte nicht nach Gefühl entscheiden, sondern nachfragen und jede Lücke mit „Lücke melden“ melden.</p>
                     <ul class="mt-3 space-y-2 border-t border-warning-500/30 pt-3">
                         @foreach ($gaps as $gap)
                             @php($reportedBy = $reported['topics'][\App\Analysis\KnowledgeGapLog::topicHash($gap['topic'])] ?? null)

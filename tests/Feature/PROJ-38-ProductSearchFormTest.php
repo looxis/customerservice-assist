@@ -124,7 +124,7 @@ describe('the product search', function () {
 
 describe('the form', function () {
     test('with the connection the form asks for the product and, separately, the knowledge area', function () {
-        $html = $this->get(route('tickets.show', ['number' => '2137942']))->assertOk()->getContent();
+        $html = $this->withCookie('intro_mode', '1')->get(route('tickets.show', ['number' => '2137942']))->assertOk()->getContent();
         $config = scopeConfig($html);
 
         expect($config['forge']['enabled'])->toBeTrue()->and($config['forge']['searchUrl'])->toContain('/produktsuche')

@@ -7,7 +7,9 @@
 {{-- Question without a ticket (PROJ-40): a text, the scope of the knowledge, and the wish for a reply draft. --}}
 <x-card>
     <h2 id="question-heading" class="text-base font-semibold text-slate-900">Frage stellen</h2>
-    <p class="mt-1 text-sm text-slate-600">Frage, Notiz zu einem Anruf oder eine eingefügte Kundennachricht – die App antwortet aus dem Unternehmenswissen.</p>
+    <x-intro>
+        <p class="mt-1 text-sm text-slate-600">Frage, Notiz zu einem Anruf oder eine eingefügte Kundennachricht – die App antwortet aus dem Unternehmenswissen.</p>
+    </x-intro>
 
     @if (session('question_error'))
         <x-alert type="error" class="mt-4" role="alert">
@@ -40,7 +42,9 @@
         <label class="flex items-start gap-2 text-sm text-slate-900">
             <input type="checkbox" name="antwortentwurf" value="1" @checked(old('antwortentwurf')) class="mt-0.5 size-4 rounded border-slate-300 text-brand focus:ring-brand">
             <span>Auch einen Antwortentwurf an den Kunden formulieren
-                <span class="block text-xs text-slate-600">Ohne Haken bekommst du nur die Auskunft für dich. Einen Entwurf kannst du auch später mit einer Nachfrage anfordern.</span>
+<x-intro>
+                    <span class="block text-xs text-slate-600">Ohne Haken bekommst du nur die Auskunft für dich. Einen Entwurf kannst du auch später mit einer Nachfrage anfordern.</span>
+                </x-intro>
             </span>
         </label>
 

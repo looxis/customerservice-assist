@@ -1,6 +1,6 @@
 # PROJ-74: Einführungsmodus für Infotexte
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-11-05
 **Last Updated:** 2026-11-05
 
@@ -58,6 +58,15 @@
 
 ---
 <!-- Sections below are added by subsequent skills -->
+
+## Implementation Notes (2026-11-05)
+- Neuer Schalter „Einführung“ in der Kopfleiste neben „Erweitert“ (Cookie `intro_mode`, Standard aus, Name in `config/staff.php`). Mechanik wie beim Erweitert-Modus: `App\Staff\IntroMode`, `IntroModeController`, `SwitchIntroModeRequest`, Route `POST /einfuehrung` (`intro-mode.switch`), `$introModeActive` für das Layout.
+- Neue Komponente `<x-intro>`: zeigt ihren Inhalt nur im Einführungsmodus (fragt den Modus selbst ab, braucht keine durchgereichte Eigenschaft).
+- Nur in der Einführung: Hilfetext unter „Zusätzliche Informationen“ und „So schreibst du es“, Erklärung zur DHL-Option, Hinweis „Um welches Produkt geht es?“ und Erklärung zum Wissensbereich im Formular, die Klammererklärung im Block „Wissenslücken“, Einleitung und Hinweis zum Antwortentwurf auf der Seite „Frage stellen“.
+- Bleibt immer sichtbar: die Beispiele im Textfeld selbst (Platzhalter), der Datenschutzhinweis am Feld „Deine Frage oder Notiz“, alle Warnungen mit Handlungsbedarf (fehlendes Produkt, Wissenslücke, Hinweis zu nicht berücksichtigten Regeln, neue Nachrichten), „Kein Antwortentwurf angefordert“ und „Noch keine Antwort“ (sie nennen den nächsten Schritt).
+- Tests: neuer `PROJ-74-IntroModeTest`; PROJ-9, PROJ-38, PROJ-59 auf den Einführungsmodus angepasst. Alle Tests zu Ticket-, Frage- und Analyseseiten grün bis auf den bekannten PROJ-56-Fehler.
+- Nicht umgesetzt: Erklärtexte auf der Startseite und in den Einstellungen (dort stehen sie als Teil der Bedienung); bei Bedarf in einer Folgeänderung.
+
 
 ## Tech Design (Solution Architect)
 _To be added by /architecture_

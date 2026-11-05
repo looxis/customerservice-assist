@@ -40,6 +40,22 @@
                     <span class="block font-mono text-xs text-slate-600">{{ $ticket->customerEmail }}</span>
                 @endif
             </dd>
+            @php
+                $caseLinks = \App\Knowledge\CaseLinks::forTicket($ticket, []);
+                $customerTools = [
+                    'Kunde in Vanilo öffnen' => $caseLinks->targets('vanilo-kunden')[0]['url'] ?? null,
+                    'Kunde in EOCS öffnen' => $caseLinks->targets('eocs-kunden')[0]['url'] ?? null,
+                ];
+            @endphp
+            <div class="mt-2 flex flex-wrap gap-2">
+                @foreach ($customerTools as $label => $url)
+                    @if ($url)
+                        <x-button :href="$url" variant="secondary" target="_blank" rel="noopener noreferrer" class="!px-2 !py-1 !text-xs">
+                            {{ $label }} <x-icon name="chevron-right" size="14" />
+                        </x-button>
+                    @endif
+                @endforeach
+            </div>
         </div>
         @if ($advanced)
             <div>

@@ -8,6 +8,7 @@ use App\Http\Controllers\AnalysisOverviewController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\DhlReturnController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\IntroModeController;
 use App\Http\Controllers\KnowledgeController;
 use App\Http\Controllers\KnowledgeGapController;
 use App\Http\Controllers\KnowledgeReviewController;
@@ -70,6 +71,7 @@ Route::get('/produktvarianten', ProductVariantsController::class)->middleware(['
 Route::post('/name', StaffSelectionController::class)->name('staff.select');
 Route::post('/testmodus', TestModeController::class)->name('test-mode.switch');
 Route::post('/erweitert', AdvancedModeController::class)->name('advanced-mode.switch');
+Route::post('/einfuehrung', IntroModeController::class)->name('intro-mode.switch');
 
 Route::get('/ablaeufe/{id}', [ProcedureController::class, 'show'])->where('id', '[A-Z]+-[0-9]{3}')->name('procedures.show');
 

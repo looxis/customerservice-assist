@@ -85,7 +85,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Draft-Status für Wissen abschaffen (alles `active`, `trial_until` und `deprecated` bleiben) | In Progress |
 | Regelprüfung vereinfachen: mehrere Nachladerunden, offene Regeln nur als Hinweis, keine Blockade | In Progress |
 | Ergebnisansicht entschlacken: „Schritte für diesen Fall“ entfallen, Arbeitsanleitungen bleiben | In Progress |
-| Einführungsmodus: Infotexte nur bei eingeschaltetem Schalter „Einführung“ | Planned |
+| Einführungsmodus: Infotexte nur bei eingeschaltetem Schalter „Einführung“ | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

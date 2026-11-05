@@ -72,6 +72,17 @@
                         Erweitert
                     </button>
                 </form>
+                <form method="POST" action="{{ route('intro-mode.switch') }}">
+                    @csrf
+                    <input type="hidden" name="aktiv" value="{{ $introModeActive ? '0' : '1' }}">
+                    <button type="submit" role="switch" aria-checked="{{ $introModeActive ? 'true' : 'false' }}" title="Zeigt Hilfetexte und Beispiele in den Formularen und im Ergebnis"
+                            class="inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand">
+                        <span @class(['relative inline-flex h-5 w-9 shrink-0 rounded-full transition', 'bg-brand' => $introModeActive, 'bg-slate-300' => ! $introModeActive])>
+                            <span @class(['absolute top-0.5 size-4 rounded-full bg-white shadow-1 transition', 'left-4.5' => $introModeActive, 'left-0.5' => ! $introModeActive])></span>
+                        </span>
+                        Einführung
+                    </button>
+                </form>
                 @if ($testModeAvailable)
                     <form method="POST" action="{{ route('test-mode.switch') }}">
                         @csrf
