@@ -424,14 +424,13 @@ describe('QA: edges and attacks', function () {
         expect($this->putCalls)->toBe(0);
     });
 
-    test('an incomplete and unconfirmed rule check blocks the sending like the copying', function () {
+    test('an incomplete rule check does not block the sending (PROJ-72)', function () {
         $id = sendAnalysis();
         Analysis::query()->where('uuid', $id)->update(['rule_check' => 'incomplete', 'rule_check_at' => null]);
 
-        sendReply($id)->assertStatus(409);
-        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertSeeText('Regelprüfung bestätigt');
+        sendReply($id)->assertOk();
 
-        expect($this->putCalls)->toBe(0);
+        expect($this->putCalls)->toBe(1);
     });
 
     test('too many send attempts in a minute are slowed down', function () {

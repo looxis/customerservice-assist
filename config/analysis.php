@@ -126,6 +126,8 @@ return [
     'limits' => [
         'context_characters' => (int) env('ANALYSIS_CONTEXT_CHARACTERS', 300000),
         'answer_reserve_characters' => (int) env('ANALYSIS_ANSWER_RESERVE_CHARACTERS', 30000),
+        // Rounds in which binding rules of a changed recommendation are loaded afterwards (PROJ-72).
+        'safeguard_rounds' => 3,
     ],
 
     /*

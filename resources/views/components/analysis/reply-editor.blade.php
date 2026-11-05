@@ -1,4 +1,4 @@
-@props(['result', 'number', 'readonly' => false, 'locked' => false, 'manual' => false])
+@props(['result', 'number', 'readonly' => false, 'manual' => false])
 
 @php
     $language = $result['result']['reply']['language'] ?? null;
@@ -15,7 +15,6 @@
         edited: @js($result['reply_edited']),
         status: '',
         copied: false,
-        locked: @js($locked),
         fallback: false,
         timer: null,
         back: @js($result['reply_backtranslation']['text'] ?? ''),
@@ -109,7 +108,7 @@
         },
         get message() { return this.text.trim() + (this.send.signature.trim() !== '' ? '\n\n' + this.send.signature.trim() : '') },
         async sendReply(confirmNewer) {
-            if (this.send.busy || this.locked || this.text.trim() === '') { return }
+            if (this.send.busy || this.text.trim() === '') { return }
             if (this.open > 0 && ! confirm(`Noch ${this.open} offene ${this.open === 1 ? 'Stelle' : 'Stellen'} – trotzdem senden?`)) { return }
             this.send.busy = true;
             this.send.error = '';
@@ -195,7 +194,6 @@
             } catch (error) {}
         },
         async copy() {
-            if (this.locked) { return }
             if (this.open > 0 && ! confirm(`Noch ${this.open} offene ${this.open === 1 ? 'Stelle' : 'Stellen'} – trotzdem kopieren?`)) { return }
             try {
                 await navigator.clipboard.writeText(this.text);
@@ -255,11 +253,7 @@
     <div class="mt-3 flex flex-wrap items-center gap-3">
         {{-- With a Zammad token the reply is sent from the app; "Kopieren" stays only where sending is not offered. --}}
         @unless (in_array($send['state'], ['ready', 'sent'], true))
-            @if ($locked)
-                <x-button x-bind:disabled="true"><x-icon name="doc" size="16" /> Kopieren</x-button>
-            @else
-                <x-button x-on:click="copy()" x-bind:disabled="text.trim() === ''"><x-icon name="doc" size="16" /> Kopieren</x-button>
-            @endif
+            <x-button x-on:click="copy()" x-bind:disabled="text.trim() === ''"><x-icon name="doc" size="16" /> Kopieren</x-button>
         @endunless
         @unless ($readonly || $manual)
         <x-button variant="secondary" x-show="text !== original" x-cloak x-on:click="restore()"><x-icon name="refresh" size="16" /> Original der KI wiederherstellen</x-button>
@@ -267,7 +261,6 @@
         @if ($result['reply_foreign'] ?? false)
             <x-button variant="secondary" x-on:click="check()" x-bind:disabled="backStatus === 'loading' || text.trim() === ''"><x-icon name="text" size="16" /> <span x-text="backStatus === 'loading' ? 'Wird übersetzt …' : 'Auf Deutsch gegenlesen'">Auf Deutsch gegenlesen</span></x-button>
         @endif
-        @if ($locked)<span role="status" class="text-sm font-medium text-danger-700">Erst kopierbar, wenn die Regelprüfung bestätigt ist (siehe oben).</span>@endif
         <span x-show="copied" x-cloak role="status" class="text-sm font-medium text-success-700">Kopiert</span>
         <span x-show="fallback" x-cloak role="status" class="text-sm text-slate-600">Der Browser erlaubt das Kopieren hier nicht. Der Text ist markiert – bitte mit Strg+C kopieren.</span>
     </div>

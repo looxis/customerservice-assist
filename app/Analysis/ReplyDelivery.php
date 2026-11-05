@@ -48,12 +48,6 @@ class ReplyDelivery
             return ['state' => 'no_token'];
         }
 
-        $rule = $result['rule_check'] ?? [];
-
-        if (($rule['status'] ?? null) === 'incomplete' && ($rule['at'] ?? null) === null) {
-            return ['state' => 'blocked', 'reason' => 'Erst senden, wenn die Regelprüfung bestätigt ist (siehe oben).'];
-        }
-
         $target = ReplyTarget::for($ticket);
 
         if ($target === null) {

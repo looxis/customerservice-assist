@@ -9,7 +9,6 @@ use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
 use App\Analysis\CaseAnalyzer;
 use App\Analysis\ContextVariant;
-use App\Analysis\QuestionNumber;
 use App\Analysis\RelatedContextBuilder;
 use App\Analysis\RelatedSection;
 use App\Analysis\ReplyDelivery;
@@ -338,10 +337,6 @@ class AnalysisController extends Controller
             return response()->json(['message' => ReplyProblem::NoToken->message($name), 'code' => 'no_token'], 409);
         }
 
-        if ($store->ruleCheckBlocksCopy($analysis)) {
-            return response()->json(['message' => 'Die Regelprüfung ist unvollständig und noch nicht bestätigt.'], 409);
-        }
-
         try {
             $ticket = $zammad->ticket($number);
         } catch (ZammadException $exception) {
@@ -522,26 +517,9 @@ class AnalysisController extends Controller
             return response()->json(['message' => 'Zu diesem Vorschlag gibt es noch keinen Antwortentwurf.'], 409);
         }
 
-        if ($store->ruleCheckBlocksCopy($analysis)) {
-            return response()->json(['message' => 'Die Regelprüfung ist unvollständig und noch nicht bestätigt.'], 409);
-        }
-
         $store->markReplyCopied($analysis, (string) $staff->current($request), trim((string) $request->validated('text', '')) !== trim($panel->originalReply($stored)));
 
         return response()->json(['saved' => true]);
-    }
-
-    /**
-     * Confirm that the binding rules were checked by hand after an incomplete rule check (PROJ-36).
-     */
-    public function acknowledgeRuleCheck(string $number, string $analysis, Request $request, AnalysisStore $store, StaffDirectory $staff): RedirectResponse
-    {
-        $done = $store->acknowledgeRuleCheck($analysis, $number, (string) $staff->current($request));
-
-        $url = QuestionNumber::isQuestion($number) ? route('questions.show', ['number' => $number, 'analyse' => $analysis]).'#ergebnis' : $this->ticketUrl($number, $request, '#ergebnis', ['analyse' => $analysis]);
-
-        return redirect()->to($url)
-            ->with($done ? 'success' : 'error', $done ? 'Danke – die Regelprüfung ist als von dir geprüft vermerkt, der Entwurf kann übernommen werden.' : 'Diese Regelprüfung gibt es nicht oder sie ist schon bestätigt.');
     }
 
     /**

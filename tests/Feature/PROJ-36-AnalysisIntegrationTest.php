@@ -5,6 +5,7 @@ use App\Analysis\Agents\RouterAgent;
 use App\Models\Analysis;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Laravel\Ai\Prompts\AgentPrompt;
 
 beforeEach(function () {
@@ -291,7 +292,26 @@ describe('the safeguard for binding rules', function () {
         expect(retrStored()->content['retrieval']['safeguard'])->toMatchArray(['loaded' => [], 'failed' => false])->and(retrStored())->passes->toBe(1);
     });
 
-    test('it repeats only once: a further measure of the second round is reported, not chased', function () {
+    test('a further measure of the second round is loaded in the next round (PROJ-72)', function () {
+        CaseAgent::fake([
+            retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]),
+            retrAnswer(['actions' => ['partial-refund', 'refund'], 'knowledge_ids' => ['POLICY-020']]),
+            retrAnswer(['actions' => ['refund'], 'knowledge_ids' => ['POLICY-020', 'POLICY-021']]),
+        ]);
+
+        retrAnalyze();
+
+        CaseAgent::assertPromptedTimes(3);
+
+        $stored = retrStored();
+
+        expect($stored->content['retrieval']['safeguard'])->toMatchArray(['loaded' => ['POLICY-020', 'POLICY-021'], 'not_considered' => [], 'rounds' => 2, 'final_actions' => ['refund']])
+            ->and($stored->rule_check)->toBe('complete')
+            ->and($stored)->passes->toBe(3);
+    });
+
+    test('after the configured number of rounds a further measure is reported, not chased', function () {
+        config(['analysis.limits.safeguard_rounds' => 1]);
         CaseAgent::fake([
             retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]),
             retrAnswer(['actions' => ['partial-refund', 'refund'], 'knowledge_ids' => ['POLICY-020']]),
@@ -452,13 +472,14 @@ describe('the rule check status', function () {
     });
 
     test('a failed second round, rules that no longer fit and a new unchecked measure make the check incomplete', function (array $answers) {
+        config(['analysis.limits.safeguard_rounds' => 1]);
         CaseAgent::fake($answers);
 
         retrAnalyze();
 
         expect(retrStored())->rule_check->toBe('incomplete')->rule_check_at->toBeNull()
             ->and(retrStored()->content['retrieval']['rule_check'])->toBe('incomplete')
-            ->and(implode(' ', retrStored()->content['notes']))->toContain('Regelprüfung unvollständig');
+            ->and(implode(' ', retrStored()->content['notes']))->toContain('Verbindliche Regeln zur empfohlenen Maßnahme wurden nicht berücksichtigt');
     })->with([
         'second round fails' => fn () => [retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('Modell nicht erreichbar')],
         'new measure in the second round' => fn () => [retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), retrAnswer(['actions' => ['partial-refund', 'refund'], 'knowledge_ids' => ['POLICY-020']])],
@@ -473,66 +494,31 @@ describe('the rule check status', function () {
         expect(retrStored()->rule_check)->toBe('incomplete');
     });
 
-    test('the page marks the draft as unchecked and cannot copy it until someone confirms having checked the rules', function () {
+    test('the page shows a small hint with the open rules and never blocks copying (PROJ-72)', function () {
+        config(['analysis.limits.safeguard_rounds' => 1]);
         CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
         retrAnalyze();
         $id = retrStored()->uuid;
 
         $page = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertOk();
 
-        $page->assertSeeText('Regelprüfung unvollständig – der Entwurf ist ungeprüft')->assertSeeText('POLICY-020')->assertSeeText('Regeln selbst geprüft – Entwurf freigeben')
-            ->assertSeeText('Erst kopierbar, wenn die Regelprüfung bestätigt ist')->assertSee('x-bind:disabled="true"', false);
-
-        test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.copied', ['number' => '2137942', 'analysis' => $id]), ['text' => 'x'])->assertStatus(409)
-            ->assertJsonFragment(['message' => 'Die Regelprüfung ist unvollständig und noch nicht bestätigt.']);
-        expect(retrStored()->reply_copied_at)->toBeNull();
-    });
-
-    test('a person confirms the check; afterwards the draft can be copied and the confirmation is shown', function () {
-        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
-        retrAnalyze();
-        $id = retrStored()->uuid;
-
-        test()->withCookie('staff_name', 'Cara')->post(route('tickets.analysis.rule-check', ['number' => '2137942', 'analysis' => $id]))
-            ->assertRedirect()->assertSessionHas('success');
-
-        expect(retrStored())->rule_check->toBe('incomplete')->rule_check_by->toBe('Cara')->rule_check_at->not->toBeNull();
-
-        $page = test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}");
-
-        $page->assertSeeText('Von Cara am')->assertSeeText('als selbst geprüft bestätigt')->assertDontSeeText('Erst kopierbar, wenn die Regelprüfung bestätigt ist')->assertDontSeeText('Regeln selbst geprüft – Entwurf freigeben');
+        $page->assertSeeText('konnten verbindliche Regeln nicht berücksichtigt werden')->assertSeeText('POLICY-020')->assertSeeText('Bitte in der Knowledge-Übersicht nachlesen')
+            ->assertDontSeeText('Regeln selbst geprüft')->assertDontSeeText('Erst kopierbar')->assertDontSee('x-bind:disabled="true"', false);
 
         test()->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.analysis.copied', ['number' => '2137942', 'analysis' => $id]), ['text' => 'Guten Tag, wir prüfen das.'])->assertOk();
         expect(retrStored()->reply_copied_at)->not->toBeNull();
     });
 
-    test('a complete or unknown check cannot be confirmed and nothing changes', function () {
-        CaseAgent::fake([retrAnswer(['knowledge_ids' => ['POLICY-001']])]);
-        retrAnalyze();
-        $id = retrStored()->uuid;
-
-        test()->withCookie('staff_name', 'Cara')->post(route('tickets.analysis.rule-check', ['number' => '2137942', 'analysis' => $id]))->assertRedirect()->assertSessionHas('error');
-        test()->withCookie('staff_name', 'Cara')->post(route('tickets.analysis.rule-check', ['number' => '2139999', 'analysis' => $id]))->assertRedirect()->assertSessionHas('error');
-
-        expect(retrStored())->rule_check->toBe('complete')->rule_check_by->toBeNull();
-    });
-
-    test('a confirmation needs a chosen name', function () {
-        CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
-        retrAnalyze();
-        $id = retrStored()->uuid;
-        $this->defaultCookies = [];
-
-        test()->post(route('tickets.analysis.rule-check', ['number' => '2137942', 'analysis' => $id]));
-
-        expect(retrStored()->rule_check_at)->toBeNull();
+    test('the confirmation of the rule check no longer exists', function () {
+        expect(Route::has('tickets.analysis.rule-check'))->toBeFalse();
     });
 
     test('the analysis overview for admins marks incomplete rule checks', function () {
+        config(['analysis.limits.safeguard_rounds' => 1]);
         CaseAgent::fake([retrAnswer(['actions' => ['partial-refund'], 'knowledge_ids' => ['POLICY-001']]), fn () => throw new RuntimeException('weg')]);
         retrAnalyze();
 
-        test()->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertSeeText('Regelprüfung unvollständig');
+        test()->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertOk()->assertSeeText('Regel nicht berücksichtigt');
     });
 });
 

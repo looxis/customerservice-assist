@@ -18,7 +18,6 @@
     $reported = $result['gaps_reported'] ?? ['topics' => [], 'all' => 0];
     $rule = $result['rule_check'] ?? ['status' => null, 'by' => null, 'at' => null];
     $ruleIncomplete = ($rule['status'] ?? null) === 'incomplete';
-    $ruleAcknowledged = $ruleIncomplete && ($rule['at'] ?? null) !== null;
     $retrieval = $result['retrieval'] ?? null;
     $infoOnly = ($r['next_step'] ?? 'reply') === 'info_only';
     $link = fn (?string $id): string => route($question ? 'questions.show' : 'tickets.show', array_filter(['number' => $number, 'analyse' => $id, 'stand' => $stand])).'#ergebnis';
@@ -59,7 +58,7 @@
             </div>
         @endif
 
-        @if ($ruleIncomplete)<x-badge tone="danger">Regelprüfung unvollständig</x-badge>@endif
+        @if ($ruleIncomplete)<x-badge tone="warning">Regel nicht berücksichtigt</x-badge>@endif
                 @if ($gaps !== [])<x-badge tone="warning">Wissenslücke</x-badge>@endif
                 @if ($r['assessment'] ?? null)<x-badge :tone="$assessment[$r['assessment']] ?? 'neutral'">{{ ucfirst($r['assessment']) }}</x-badge>@endif
                 <x-badge :tone="$confidence[$r['confidence']['level']] ?? 'neutral'">Confidence {{ $r['confidence']['level'] }}</x-badge>
@@ -115,22 +114,11 @@
         @endif
 
         @if ($ruleIncomplete)
-            <x-alert :type="$ruleAcknowledged ? 'warning' : 'error'" class="mt-4" id="regelpruefung">
-                <p class="font-semibold">Regelprüfung unvollständig – der Entwurf ist ungeprüft</p>
-                <p class="mt-1">Zur empfohlenen Maßnahme{{ ($retrieval['safeguard']['first_actions'] ?? []) !== [] ? ' ('.implode(', ', array_map(fn ($action) => config("knowledge.actions.{$action}", $action), $retrieval['safeguard']['first_actions'])).')' : '' }} konnten verbindliche Regeln nicht berücksichtigt werden:
-                    <span class="font-mono text-xs">{{ implode(', ', $retrieval['safeguard']['not_considered'] ?? []) }}</span>.
-                    Bitte diese Regeln in der Knowledge-Übersicht selbst nachlesen, bevor du den Vorschlag übernimmst.</p>
-                @if ($ruleAcknowledged)
-                    <p class="mt-2 font-medium">Von {{ $rule['by'] }} am {{ $rule['at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr als selbst geprüft bestätigt.</p>
-                @elseif ($isLatest)
-                    <form method="POST" action="{{ route('tickets.analysis.rule-check', ['number' => $number, 'analysis' => $result['id']]) }}" class="mt-3" x-data
-                          x-on:submit="if (! confirm('Hast du die genannten verbindlichen Regeln selbst geprüft? Erst dann kann der Entwurf kopiert werden.')) { $event.preventDefault() }">
-                        @csrf
-                        @if ($stand)<input type="hidden" name="stand" value="{{ $stand }}">@endif
-                        @foreach ($meta['orders'] ?? [] as $order)<input type="hidden" name="bestellungen[]" value="{{ $order }}">@endforeach
-                        <x-button type="submit" variant="secondary"><x-icon name="check" size="16" /> Regeln selbst geprüft – Entwurf freigeben</x-button>
-                    </form>
-                @endif
+            @php($ruleActions = ($retrieval['safeguard']['final_actions'] ?? []) !== [] ? $retrieval['safeguard']['final_actions'] : ($retrieval['safeguard']['first_actions'] ?? []))
+            <x-alert type="warning" class="mt-4" id="regelpruefung">
+                Zur Maßnahme{{ $ruleActions !== [] ? ' ('.implode(', ', array_map(fn ($action) => config("knowledge.actions.{$action}", $action), $ruleActions)).')' : '' }} konnten verbindliche Regeln nicht berücksichtigt werden:
+                <span class="font-mono text-xs">{{ implode(', ', $retrieval['safeguard']['not_considered'] ?? []) }}</span>.
+                Bitte in der Knowledge-Übersicht nachlesen.
             </x-alert>
         @endif
 
@@ -248,7 +236,7 @@
         </div>
 
         @if ($hasReply)
-            <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" :locked="$ruleIncomplete && ! $ruleAcknowledged" />
+            <x-analysis.reply-editor :result="$result" :number="$number" :readonly="! $isLatest" />
 
             <x-analysis.feedback :result="$result" :number="$number" />
         @elseif ($infoOnly)

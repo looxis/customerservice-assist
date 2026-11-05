@@ -1,6 +1,6 @@
 # PROJ-72: Regelprüfung vereinfachen
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-11-05
 **Last Updated:** 2026-11-05
 
@@ -60,6 +60,14 @@
 
 ---
 <!-- Sections below are added by subsequent skills -->
+
+## Implementation Notes (2026-11-05)
+- `CaseAnalyzer::safeguard()` ist eine Schleife über höchstens `analysis.limits.safeguard_rounds` (Standard 3, in `config/analysis.php`, keine Umgebungsvariable) Nachladerunden. Jede Runde berechnet die fehlenden verbindlichen Regeln aus der zuletzt empfohlenen Maßnahme; geladene Regeln sammeln sich. Fällt eine Runde aus, bleibt das Ergebnis der letzten gültigen Runde stehen. `passes` = 1 + Anzahl Runden.
+- Der gespeicherte Datensatz `retrieval.safeguard` hat neu `final_actions` und `rounds`; ältere Analysen ohne diese Felder werden mit `first_actions` angezeigt.
+- Entfernt: roter Banner, Bestätigungsknopf und Route `tickets.analysis.rule-check`, `AnalysisStore::acknowledgeRuleCheck()` und `ruleCheckBlocksCopy()`, die beiden 409 beim Kopieren und Senden, Sperre im Antwort-Editor, Zweig „blocked“ in `ReplyDelivery`. Spalten `rule_check*` bleiben.
+- Neu: gelber Hinweis „Zur Maßnahme (…) konnten verbindliche Regeln nicht berücksichtigt werden: … Bitte in der Knowledge-Übersicht nachlesen“ und Kopf-Badge „Regel nicht berücksichtigt“; dasselbe Badge in der Analysen-Übersicht. Die Prüfhinweis-Zeile „Regelprüfung unvollständig“ entfällt.
+- Tests: PROJ-36 (neuer Test für den Maßnahmenwechsel in mehreren Runden, bisherige Tests auf eine Runde begrenzt) und PROJ-19 angepasst; alle Analyse-Tests grün bis auf den bekannten PROJ-56-Fehler.
+
 
 ## Tech Design (Solution Architect)
 _To be added by /architecture_

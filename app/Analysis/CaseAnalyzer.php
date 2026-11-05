@@ -169,7 +169,7 @@ class CaseAnalyzer
                 'knowledge_characters' => $selection->characterCount(),
                 'documents_retrieved' => count($selection->selected),
                 'documents_omitted' => $retrieval === null ? 0 : count($retrieval->omitted()),
-                'passes' => $safeguard !== null && $safeguard['loaded'] !== [] ? 2 : 1,
+                'passes' => 1 + ($safeguard['rounds'] ?? 0),
                 'retrieval_version' => $retrieval === null ? null : KnowledgeRetriever::configurationVersion(),
                 'rule_check' => $ruleCheck,
                 ...$this->routerFigures($retrieval, $router),
@@ -331,90 +331,103 @@ class CaseAnalyzer
     }
 
     /**
-     * The safeguard for binding rules (PROJ-36): the analysis may recommend a measure the customer
-     * did not ask for. The binding documents of that measure that are not in the prompt are added
-     * and the analysis runs once more. If that is not possible, the warning says so; the first result stays.
+     * The safeguard for binding rules (PROJ-36, PROJ-72): the analysis may recommend a measure the customer
+     * did not ask for, or change its recommendation in a later pass. The binding documents of the recommended
+     * measures that are not in the prompt are added and the analysis runs again, up to the configured number
+     * of rounds. What cannot be added is named in the warning; the last good result stays.
      *
      * @param  array{case: string, orders: string, products?: string, employee: string, ticket: string, rules: string}  $parts
      * @param  array<string, RetrievedDocument>  $hints
      * @param  array{answer: array<string, mixed>, checked: array<string, mixed>, input: string}  $pass
      * @param  array{attempts: int, duration: int, input: int, output: int}  $totals
-     * @return array{0: array{answer: array<string, mixed>, checked: array<string, mixed>, input: string}, 1: KnowledgeSelection, 2: array<string, RetrievedDocument>, 3: array{first_actions: list<string>, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>}}
+     * @return array{0: array{answer: array<string, mixed>, checked: array<string, mixed>, input: string}, 1: KnowledgeSelection, 2: array<string, RetrievedDocument>, 3: array{first_actions: list<string>, final_actions: list<string>, rounds: int, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>}}
      */
     private function safeguard(AnalysisRequest $request, Prompt $prompt, array $parts, KnowledgeSelection $selection, array $hints, RetrievalResult $retrieval, array $pass, Pseudonymizer $pseudonymizer, string $model, array &$totals, int|float $started, ?ProductPromptState $products = null): array
     {
         $actions = array_values($pass['checked']['result']['actions'] ?? []);
-        $record = ['first_actions' => $actions, 'loaded' => [], 'load_actions' => [], 'failed' => false, 'not_considered' => []];
-        $missing = $retrieval->safeguardDocuments($actions);
-
-        if ($missing === []) {
-            return [$pass, $selection, $hints, $record];
-        }
-
-        $room = $this->room($retrieval, $selection);
-        $free = $room + ($products?->characters() ?? 0);
+        $record = ['first_actions' => $actions, 'final_actions' => $actions, 'rounds' => 0, 'loaded' => [], 'load_actions' => [], 'failed' => false, 'not_considered' => []];
         $added = [];
-        $needed = 0;
 
-        // Binding rules come before product information: the product section gives way if the room is short.
-        foreach ($missing as $document) {
-            if ($document->length() > $free) {
-                continue;
+        for ($round = 1; $round <= (int) config('analysis.limits.safeguard_rounds'); $round++) {
+            $missing = array_values(array_filter(
+                $retrieval->safeguardDocuments($actions),
+                fn (KnowledgeDocument $document): bool => ! isset($added[(string) $document->id]),
+            ));
+
+            if ($missing === []) {
+                break;
             }
 
-            $free -= $document->length();
-            $needed += $document->length();
-            $added[(string) $document->id] = $document;
-        }
+            $room = $this->room($retrieval, $selection);
+            $free = $room + ($products?->characters() ?? 0);
+            $fitting = [];
+            $needed = 0;
 
-        if ($products !== null && $needed > $room) {
-            $products->shrink($needed - $room);
-            $parts['products'] = $products->text();
-        }
+            // Binding rules come before product information: the product section gives way if the room is short.
+            foreach ($missing as $document) {
+                if ($document->length() > $free) {
+                    $record['not_considered'][] = (string) $document->id;
 
-        foreach ($missing as $document) {
-            if (! isset($added[(string) $document->id])) {
-                $record['not_considered'][] = (string) $document->id;
+                    continue;
+                }
+
+                $free -= $document->length();
+                $needed += $document->length();
+                $fitting[(string) $document->id] = $document;
             }
+
+            if ($fitting === []) {
+                $record['failed'] = $added === [];
+
+                break;
+            }
+
+            if ($products !== null && $needed > $room) {
+                $products->shrink($needed - $room);
+                $parts['products'] = $products->text();
+            }
+
+            $reasons = [];
+            $load = [];
+
+            foreach ($fitting as $id => $document) {
+                $for = array_values(array_intersect($document->actions(), $actions));
+                $load = [...$load, ...$for];
+                $reasons[$id] = 'nachgeladen wegen Maßnahme '.implode(', ', $for);
+            }
+
+            $entries = [...$selection->selected, ...array_map(fn (KnowledgeDocument $document): KnowledgeSelectionEntry => new KnowledgeSelectionEntry($document, $reasons[(string) $document->id]), array_values($fitting))];
+            $order = array_flip(array_keys(config('knowledge.types')));
+            usort($entries, fn (KnowledgeSelectionEntry $a, KnowledgeSelectionEntry $b): int => [$order[$a->document->type] ?? PHP_INT_MAX, $a->document->id] <=> [$order[$b->document->type] ?? PHP_INT_MAX, $b->document->id]);
+
+            $next = new KnowledgeSelection($selection->context, $selection->state, $entries, $selection->excluded, $selection->unknownProducts, $selection->productsWithoutKnowledge, $selection->characterLimit, $selection->warnings);
+
+            try {
+                $result = $this->pass($request, $prompt, $parts, $next, $hints, $pseudonymizer, $model, $totals, $started, false);
+            } catch (AnalysisException) {
+                $record['failed'] = true;
+                $record['not_considered'] = array_values(array_unique([...$record['not_considered'], ...array_keys($fitting)]));
+
+                break;
+            }
+
+            $pass = $result;
+            $selection = $next;
+            $added = [...$added, ...$fitting];
+            $actions = array_values($pass['checked']['result']['actions'] ?? []);
+            $record['rounds'] = $round;
+            $record['final_actions'] = $actions;
+            $record['loaded'] = array_keys($added);
+            $record['load_actions'] = array_values(array_unique([...$record['load_actions'], ...$load]));
         }
 
-        if ($added === []) {
-            $record['failed'] = true;
-
-            return [$pass, $selection, $hints, $record];
-        }
-
-        $reasons = [];
-
-        foreach ($added as $id => $document) {
-            $for = array_values(array_intersect($document->actions(), $actions));
-            $record['load_actions'] = array_values(array_unique([...$record['load_actions'], ...$for]));
-            $reasons[$id] = 'nachgeladen wegen Maßnahme '.implode(', ', $for);
-        }
-
-        $entries = [...$selection->selected, ...array_map(fn (KnowledgeDocument $document): KnowledgeSelectionEntry => new KnowledgeSelectionEntry($document, $reasons[(string) $document->id]), array_values($added))];
-        $order = array_flip(array_keys(config('knowledge.types')));
-        usort($entries, fn (KnowledgeSelectionEntry $a, KnowledgeSelectionEntry $b): int => [$order[$a->document->type] ?? PHP_INT_MAX, $a->document->id] <=> [$order[$b->document->type] ?? PHP_INT_MAX, $b->document->id]);
-
-        $second = new KnowledgeSelection($selection->context, $selection->state, $entries, $selection->excluded, $selection->unknownProducts, $selection->productsWithoutKnowledge, $selection->characterLimit, $selection->warnings);
-
-        try {
-            $next = $this->pass($request, $prompt, $parts, $second, $hints, $pseudonymizer, $model, $totals, $started, false);
-        } catch (AnalysisException) {
-            $record['failed'] = true;
-            $record['not_considered'] = array_values(array_unique([...$record['not_considered'], ...array_keys($added)]));
-
-            return [$pass, $selection, $hints, $record];
-        }
-
-        $record['loaded'] = array_keys($added);
-        $further = array_values(array_filter(
-            array_map(fn (KnowledgeDocument $document): string => (string) $document->id, $retrieval->safeguardDocuments($next['checked']['result']['actions'] ?? [])),
-            fn (string $id): bool => ! isset($added[$id]),
+        $further = array_map(fn (KnowledgeDocument $document): string => (string) $document->id, array_filter(
+            $retrieval->safeguardDocuments($actions),
+            fn (KnowledgeDocument $document): bool => ! isset($added[(string) $document->id]),
         ));
         $record['not_considered'] = array_values(array_unique([...$record['not_considered'], ...$further]));
 
-        return [$next, $second, $hints, $record];
+        return [$pass, $selection, $hints, $record];
     }
 
     /**
@@ -429,16 +442,12 @@ class CaseAnalyzer
      * Hints for the employee, shown with the result.
      *
      * @param  array<string, RetrievedDocument>  $hints
-     * @param  array{first_actions: list<string>, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>}|null  $safeguard
+     * @param  array{first_actions: list<string>, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>, final_actions: list<string>, rounds: int}|null  $safeguard
      * @return list<string>
      */
     private function retrievalNotes(RetrievalResult $retrieval, KnowledgeSelection $selection, array $hints, ?array $safeguard): array
     {
         $notes = [];
-
-        if ($safeguard !== null && ($safeguard['failed'] || $safeguard['not_considered'] !== [])) {
-            $notes[] = 'Regelprüfung unvollständig: Der Entwurf ist ungeprüft und darf erst nach bewusster eigener Prüfung der verbindlichen Regeln übernommen werden.';
-        }
 
         $unverified = array_keys(array_filter($hints, fn (RetrievedDocument $item): bool => $item->unverified));
 
@@ -451,7 +460,7 @@ class CaseAnalyzer
         }
 
         if ($safeguard !== null && $safeguard['loaded'] !== []) {
-            $notes[] = 'Nachgeladen wegen Maßnahme '.implode(', ', $safeguard['load_actions']).': '.implode(', ', $safeguard['loaded']).'. Empfehlung und Entwurf stammen aus dem zweiten Durchgang.';
+            $notes[] = 'Nachgeladen wegen Maßnahme '.implode(', ', $safeguard['load_actions']).': '.implode(', ', $safeguard['loaded']).'. Empfehlung und Entwurf stammen aus dem Durchgang '.(1 + $safeguard['rounds']).'.';
         }
 
         if ($safeguard !== null && $safeguard['not_considered'] !== []) {
@@ -465,7 +474,7 @@ class CaseAnalyzer
      * The log of the retrieval, stored encrypted with the analysis.
      *
      * @param  array<string, RetrievedDocument>  $hints
-     * @param  array{first_actions: list<string>, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>}|null  $safeguard
+     * @param  array{first_actions: list<string>, loaded: list<string>, load_actions: list<string>, failed: bool, not_considered: list<string>, final_actions: list<string>, rounds: int}|null  $safeguard
      * @param  list<string>  $manual
      * @return array<string, mixed>
      */

@@ -285,24 +285,6 @@ class AnalysisStore
     }
 
     /**
-     * Someone checked the binding rules by hand after an incomplete rule check (PROJ-36).
-     * Only an incomplete, not yet acknowledged check can be acknowledged.
-     */
-    public function acknowledgeRuleCheck(string $id, string $ticketNumber, string $staff): bool
-    {
-        return Analysis::query()->where('uuid', $id)->where('ticket_number', $ticketNumber)->where('rule_check', 'incomplete')->whereNull('rule_check_at')
-            ->update(['rule_check_by' => $staff, 'rule_check_at' => now()]) === 1;
-    }
-
-    /**
-     * Whether the draft must not be taken over yet: the rule check is incomplete and nobody acknowledged it.
-     */
-    public function ruleCheckBlocksCopy(string $id): bool
-    {
-        return Analysis::query()->where('uuid', $id)->where('rule_check', 'incomplete')->whereNull('rule_check_at')->exists();
-    }
-
-    /**
      * Note that the reply draft was copied, and whether it differed from the AI's original (PROJ-35).
      */
     public function markReplyCopied(string $id, string $staff, bool $changed): void
