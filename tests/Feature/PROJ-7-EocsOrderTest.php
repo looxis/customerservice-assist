@@ -103,14 +103,16 @@ describe('order number formats', function () {
             zammadArticle(['id' => 3, 'sender' => 'Agent', 'from' => 'Nele', 'body' => '<p>Danke.</p><p>Am 01.10.2026 schrieb X:</p><blockquote>Auftrag 700411247 und LmagQ9PV25</blockquote>', 'created_at' => '2026-10-03T07:00:00.000Z']),
         ]);
 
-        $this->get('/tickets/2137942?bestellungen[0]=')->assertSeeTextInOrder([
-            '402-0000000-0000001', 'Amazon · aus Amazon-Nachricht', 'Bestelldetails aus EOCS abrufen',
-            '7JI-0WC1-6M49', 'looxis.de / Fachhändler · im Ticket gefunden',
-            '30019578', 'LOOXIS-Pro',
-            '700411247', 'looxis.fr',
-            'LmagQ9PV25', 'masterpics',
-            'Andere Bestellnummer eingeben',
-        ]);
+        $this->get('/tickets/2137942?bestellungen[0]=')->assertSee('https://sellercentral.amazon.de/orders-v3/order/402-0000000-0000001', false)
+            ->assertSee('https://sellercentral.amazon.de/orders-v3/order/', false)->assertDontSee('orders-v3/order/7JI-0WC1-6M49', false)
+            ->assertSeeTextInOrder([
+                '402-0000000-0000001', 'Amazon · aus Amazon-Nachricht', 'Bestelldetails aus EOCS abrufen',
+                '7JI-0WC1-6M49', 'looxis.de / Fachhändler · im Ticket gefunden',
+                '30019578', 'LOOXIS-Pro',
+                '700411247', 'looxis.fr',
+                'LmagQ9PV25', 'masterpics',
+                'Andere Bestellnummer eingeben',
+            ]);
 
         Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'eocs.test'));
     });
@@ -172,6 +174,8 @@ describe('loading orders', function () {
                 'In EOCS öffnen', 'Entfernen',
             ])
             ->assertSee('href="https://eocs.test/orders/700001"', false)
+            ->assertSeeText('In Amazon öffnen')
+            ->assertSee('href="https://sellercentral.amazon.de/orders-v3/order/402-0000000-0000001"', false)
             ->assertSee('bg-brand text-white', false)
             ->assertSee('bg-success-500/10', false);
     });
@@ -346,6 +350,8 @@ describe('errors', function () {
         $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000009']]))
             ->assertOk()
             ->assertSeeText('Bestellung 402-0000000-0000009 wurde in EOCS nicht gefunden.')
+            ->assertSeeText('In Amazon öffnen')
+            ->assertSee('orders-v3/order/402-0000000-0000009', false)
             ->assertSeeText('Hallo');
     });
 

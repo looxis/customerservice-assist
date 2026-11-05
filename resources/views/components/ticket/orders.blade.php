@@ -80,8 +80,13 @@
         @foreach ($lookups as $lookup)
             @if (! $lookup->found())
                 <x-alert type="warning">
-                    Bestellung <span class="font-mono">{{ $lookup->number->value }}</span> wurde in EOCS nicht gefunden.
-                    <a href="{{ $url(array_diff($selected, [$lookup->number->value])) }}" class="ml-2 font-semibold underline">Entfernen</a>
+                    <p>Bestellung <span class="font-mono">{{ $lookup->number->value }}</span> wurde in EOCS nicht gefunden.</p>
+                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                        @if (app(\App\Orders\OrderFormats::class)->amazon()->matches($lookup->number->value))
+                            <x-button variant="secondary" :href="'https://sellercentral.amazon.de/orders-v3/order/'.rawurlencode($lookup->number->value)" target="_blank" rel="noopener noreferrer">In Amazon öffnen</x-button>
+                        @endif
+                        <a href="{{ $url(array_diff($selected, [$lookup->number->value])) }}" class="font-semibold underline">Entfernen</a>
+                    </div>
                 </x-alert>
             @else
                 @if (count($lookup->orders) > 1)

@@ -66,6 +66,9 @@
 
     <div class="mt-3 flex flex-wrap items-center gap-3 border-t border-slate-200 pt-3 text-sm">
         <x-button :href="$order->url" target="_blank" rel="noopener noreferrer">In EOCS öffnen</x-button>
+        @if (app(\App\Orders\OrderFormats::class)->amazon()->matches($order->externalNumber))
+            <x-button variant="secondary" :href="'https://sellercentral.amazon.de/orders-v3/order/'.rawurlencode($order->externalNumber)" target="_blank" rel="noopener noreferrer">In Amazon öffnen</x-button>
+        @endif
         <a href="{{ $removeUrl }}" class="font-semibold text-slate-600 hover:text-slate-900">Entfernen</a>
     </div>
 </article>

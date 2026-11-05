@@ -8,7 +8,12 @@
             <p class="font-mono text-sm font-semibold text-slate-900">{{ $number }}</p>
             <p class="mt-0.5 text-xs text-slate-600">{{ implode(' · ', array_filter([$label, $source ? 'aus '.$source : 'im Ticket gefunden'])) }}</p>
         </div>
-        <x-button :href="$loadUrl" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Bestellung wird geladen …' })">Bestelldetails aus EOCS abrufen</x-button>
+        <div class="flex flex-wrap items-center gap-2">
+            <x-button :href="$loadUrl" variant="secondary" x-data x-on:click="$dispatch('loading-start', { title: 'Bestellung wird geladen …' })">Bestelldetails aus EOCS abrufen</x-button>
+            @if (app(\App\Orders\OrderFormats::class)->amazon()->matches($number))
+                <x-button variant="secondary" :href="'https://sellercentral.amazon.de/orders-v3/order/'.rawurlencode($number)" target="_blank" rel="noopener noreferrer">In Amazon öffnen</x-button>
+            @endif
+        </div>
     </div>
     @if ($items !== [])
         <ul class="mt-3 space-y-1 text-sm">
