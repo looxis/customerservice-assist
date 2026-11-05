@@ -2,7 +2,7 @@
 id: POLICY-026
 title: Preisangaben und Dateiaufwand bei Mengenanfragen
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - quote-request

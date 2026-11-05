@@ -2,7 +2,7 @@
 id: POLICY-044
 title: Zahlungsanweisung je Zahlungsart – Rechnung und Lastschrift
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
   - looxis-de

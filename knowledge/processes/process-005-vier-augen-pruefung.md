@@ -2,7 +2,7 @@
 id: PROCESS-005
 title: Vier-Augen-Prüfung bei unklaren Kundenservicefällen
 type: process
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

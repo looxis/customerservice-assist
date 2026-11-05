@@ -2,7 +2,7 @@
 id: PROCESS-001
 title: Nachproduktion mit Wiederverwendung der ursprünglichen Interpretation
 type: process
-status: draft
+status: active
 sales_channels:
 - looxis-de
 - fachhaendler

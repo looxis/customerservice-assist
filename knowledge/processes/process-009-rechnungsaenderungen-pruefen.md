@@ -2,7 +2,7 @@
 id: PROCESS-009
 title: Rechnungsänderungen prüfen und entscheiden
 type: process
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

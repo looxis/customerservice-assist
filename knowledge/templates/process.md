@@ -4,7 +4,7 @@
 id: PROCESS-000
 title:
 type: process
-status: draft
+status: active
 
 customer_types:
 sales_channels:

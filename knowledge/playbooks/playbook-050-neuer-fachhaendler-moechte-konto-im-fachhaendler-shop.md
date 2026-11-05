@@ -2,7 +2,7 @@
 id: PLAYBOOK-050
 title: "Neuer Fachhändler möchte ein Konto im Fachhändler-Shop"
 type: playbook
-status: draft
+status: active
 
 customer_types:
   - b2b-reseller

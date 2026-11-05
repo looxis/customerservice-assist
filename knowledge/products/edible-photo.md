@@ -2,7 +2,7 @@
 id: PRODUCT-001
 title: Essbare Fotos
 type: product
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

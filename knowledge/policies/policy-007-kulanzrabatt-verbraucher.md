@@ -2,7 +2,7 @@
 id: POLICY-007
 title: Kulanzrabatt für Verbraucher bei Kundenfehlern
 type: policy
-status: draft
+status: active
 customer_types:
 - b2c
 categories:

@@ -2,7 +2,7 @@
 id: POLICY-057
 title: Storno und Änderung – Freigabe der Bestellung und Stornierbarkeit
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
   - looxis-de

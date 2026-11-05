@@ -2,7 +2,7 @@
 id: PROCESS-011
 title: Individuellen Mengenauftrag nach Kundenbestätigung abwickeln
 type: process
-status: draft
+status: active
 products: []
 categories:
   - quote-request

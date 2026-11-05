@@ -2,7 +2,7 @@
 id: PERMISSION-002
 title: Regelkonforme Neuproduktion und Ersatzversand ohne Wertgrenze
 type: permission
-status: draft
+status: active
 action:
 - reproduction
 - reshipment

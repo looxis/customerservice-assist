@@ -2,7 +2,7 @@
 id: PLAYBOOK-008
 title: '3D-Glasfoto: Schattenwurf, Lücken oder fehlende Motivbereiche'
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

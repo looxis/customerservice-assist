@@ -2,7 +2,7 @@
 id: POLICY-003
 title: Umgang mit Lieferverzögerungen
 type: policy
-status: draft
+status: active
 customer_types:
   - b2c
 sales_channels:

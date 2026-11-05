@@ -2,7 +2,7 @@
 id: PROCESS-013
 title: Selbstabholung prüfen und intern vorbereiten
 type: process
-status: draft
+status: active
 products: []
 categories:
   - order-process-question

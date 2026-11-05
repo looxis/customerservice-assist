@@ -2,7 +2,7 @@
 id: POLICY-040
 title: Bestellfreigabe und eigener Versand bei Amazon
 type: policy
-status: draft
+status: active
 customer_types:
   - b2c
 sales_channels:

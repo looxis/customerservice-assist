@@ -2,7 +2,7 @@
 id: PROCEDURE-003
 title: Selbstabholung in der gesicherten Abholbox bereitstellen
 type: procedure
-status: draft
+status: active
 products: []
 categories:
   - order-process-question

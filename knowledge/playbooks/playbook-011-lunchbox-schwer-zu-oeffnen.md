@@ -2,7 +2,7 @@
 id: PLAYBOOK-011
 title: Lunchbox mit Holzdeckel lässt sich schwer öffnen oder Deckel klemmt
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

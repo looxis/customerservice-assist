@@ -2,7 +2,7 @@
 id: PLAYBOOK-017
 title: Kunde verlangt Änderung des Rechnungsempfängers
 type: playbook
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

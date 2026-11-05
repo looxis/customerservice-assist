@@ -2,7 +2,7 @@
 id: TONE-009
 title: Mengenangebote und Antworten auf Auftragsanfragen formulieren
 type: tone
-status: draft
+status: active
 products: []
 categories:
   - quote-request

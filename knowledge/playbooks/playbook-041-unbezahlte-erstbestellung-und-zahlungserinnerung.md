@@ -2,7 +2,7 @@
 id: PLAYBOOK-041
 title: Zahlungserinnerung oder Stornowunsch nach fehlgeschlagener Erstbestellung
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
   - looxis-de

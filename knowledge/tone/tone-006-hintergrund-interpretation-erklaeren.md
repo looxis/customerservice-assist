@@ -2,7 +2,7 @@
 id: TONE-006
 title: Interpretation von Hauptmotiv und Hintergrund verständlich erklären
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

@@ -2,7 +2,7 @@
 id: PLAYBOOK-018
 title: '3D-Glasfoto: Motiv wirkt zu klein oder verloren im Glas'
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

@@ -2,7 +2,7 @@
 id: PLAYBOOK-043
 title: Kunde ärgert sich über verschobene Zustellung, braucht die Ware zu einem festen Tag
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

@@ -2,7 +2,7 @@
 id: TONE-004
 title: Freigabe einer neuen 3D-Voransicht nach Reklamation
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

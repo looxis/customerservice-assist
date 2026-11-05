@@ -2,7 +2,7 @@
 id: TONE-007
 title: Nutzungsrechte und abgelehnte Motive neutral kommunizieren
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

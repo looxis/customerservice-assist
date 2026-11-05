@@ -2,7 +2,7 @@
 id: POLICY-015
 title: Zustellanweisungen und Zustelloptionen durch den Empfänger
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

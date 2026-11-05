@@ -2,7 +2,7 @@
 id: PROCESS-015
 title: Neues Lastschriftmandat nach Shopumstellung anfordern
 type: process
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

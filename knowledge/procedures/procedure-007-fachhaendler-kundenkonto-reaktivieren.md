@@ -2,7 +2,7 @@
 id: PROCEDURE-007
 title: Deaktiviertes Fachhändler-Kundenkonto reaktivieren und Zahlungsart ändern
 type: procedure
-status: draft
+status: active
 actions:
   - account-reactivation
 customer_types:

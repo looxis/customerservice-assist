@@ -2,7 +2,7 @@
 id: PROCESS-014
 title: Essbare Fotos – Vier-Augen-Prüfung zurückgesandter Proben
 type: process
-status: draft
+status: active
 customer_types: []
 sales_channels: []
 products:

@@ -2,7 +2,7 @@
 id: TONE-013
 title: Bezeichnung „Glasfoto“ statt „Steine“ oder „Glassteine“
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

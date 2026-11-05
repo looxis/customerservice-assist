@@ -2,7 +2,7 @@
 id: POLICY-037
 title: Essbare Fotos – Geschmacksreklamationen, Proben, Ersatz und Erstattung
 type: policy
-status: draft
+status: active
 customer_types: []
 sales_channels: []
 products:

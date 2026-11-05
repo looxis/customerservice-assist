@@ -2,7 +2,7 @@
 id: PLAYBOOK-015
 title: Amazon-Kunde fordert Rechnung an
 type: playbook
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

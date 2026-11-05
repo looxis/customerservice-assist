@@ -2,7 +2,7 @@
 id: PLAYBOOK-046
 title: Fachhändler möchte die Rechnungsadresse seines Kontos ändern
 type: playbook
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

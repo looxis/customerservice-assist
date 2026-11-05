@@ -2,7 +2,7 @@
 id: PLAYBOOK-013
 title: Schnappverschluss der Lunchbox gebrochen
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

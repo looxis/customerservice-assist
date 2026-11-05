@@ -2,7 +2,7 @@
 id: POLICY-023
 title: Saisonale Einschränkungen bei Mengenanfragen im Weihnachtsgeschäft
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - quote-request

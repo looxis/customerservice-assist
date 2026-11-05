@@ -2,7 +2,7 @@
 id: GLOSSARY-001
 title: Farbwiedergabe und Helligkeit bei Fotodrucken
 type: glossary
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

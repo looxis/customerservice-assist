@@ -2,7 +2,7 @@
 id: POLICY-021
 title: 'Amazon: automatische Rechnungsbereitstellung und erneuter Versand'
 type: policy
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

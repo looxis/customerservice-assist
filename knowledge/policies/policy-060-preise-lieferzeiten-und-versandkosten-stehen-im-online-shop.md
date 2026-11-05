@@ -2,7 +2,7 @@
 id: POLICY-060
 title: Preise, Lieferzeiten, Mengen und Versandkosten stehen im Online-Shop
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

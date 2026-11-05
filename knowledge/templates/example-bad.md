@@ -4,7 +4,7 @@
 id: EXAMPLE-BAD-000
 title:
 type: example-bad
-status: draft
+status: active
 
 customer_types:
 sales_channels:

@@ -2,7 +2,7 @@
 id: PLAYBOOK-042
 title: Fachhändler möchte vom E-Mail-Verteiler abgemeldet werden
 type: playbook
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

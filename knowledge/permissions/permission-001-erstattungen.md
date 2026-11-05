@@ -2,7 +2,7 @@
 id: PERMISSION-001
 title: Reguläre Erstattungen bei ursprünglichem Produktpreis bis 35 Euro
 type: permission
-status: draft
+status: active
 action: refund
 agent_allowed: true
 max_value_eur: 35

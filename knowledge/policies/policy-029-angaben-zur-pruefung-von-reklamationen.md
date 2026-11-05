@@ -2,7 +2,7 @@
 id: POLICY-029
 title: "Erforderliche Angaben zur Prüfung von Reklamationen"
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - complaint

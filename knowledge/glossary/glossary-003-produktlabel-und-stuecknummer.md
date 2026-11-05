@@ -2,7 +2,7 @@
 id: GLOSSARY-003
 title: Produktlabel, interne Auftragsnummer und Stücknummer
 type: glossary
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

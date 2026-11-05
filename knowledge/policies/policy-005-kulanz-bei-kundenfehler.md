@@ -2,7 +2,7 @@
 id: POLICY-005
 title: Kostenpflichtige Kulanz-Neuanfertigung für Privatkunden im Shop
 type: policy
-status: draft
+status: active
 customer_types:
 - b2c
 sales_channels:

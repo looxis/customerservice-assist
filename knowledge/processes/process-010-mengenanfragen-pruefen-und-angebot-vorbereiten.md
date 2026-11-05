@@ -2,7 +2,7 @@
 id: PROCESS-010
 title: Mengenanfragen prüfen und Angebote vorbereiten
 type: process
-status: draft
+status: active
 products: []
 categories:
   - quote-request

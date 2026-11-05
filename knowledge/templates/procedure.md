@@ -4,7 +4,7 @@
 id: PROCEDURE-000
 title:
 type: procedure
-status: draft
+status: active
 
 actions:
 

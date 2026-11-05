@@ -2,7 +2,7 @@
 id: PLAYBOOK-021
 title: Kunde möchte seine Bestellung selbst abholen
 type: playbook
-status: draft
+status: active
 products: []
 categories:
   - order-process-question

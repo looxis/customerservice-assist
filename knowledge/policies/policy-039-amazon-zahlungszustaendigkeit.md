@@ -2,7 +2,7 @@
 id: POLICY-039
 title: Zahlungszuständigkeit und Geldtransfers bei Amazon
 type: policy
-status: draft
+status: active
 customer_types:
   - b2c
 sales_channels:

@@ -2,7 +2,7 @@
 id: POLICY-020
 title: Nachträgliche Rechnungsänderungen außerhalb von Amazon
 type: policy
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

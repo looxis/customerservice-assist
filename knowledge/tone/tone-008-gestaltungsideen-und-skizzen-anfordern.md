@@ -2,7 +2,7 @@
 id: TONE-008
 title: Gestaltungsideen und einfache Skizzen anfordern
 type: tone
-status: draft
+status: active
 products: []
 categories:
   - quote-request

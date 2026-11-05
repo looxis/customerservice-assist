@@ -2,7 +2,7 @@
 id: POLICY-038
 title: Vergangener Anlass und bevorzugte Ersatzlösung
 type: policy
-status: draft
+status: active
 customer_types: []
 sales_channels: []
 products: []

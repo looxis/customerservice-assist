@@ -2,7 +2,7 @@
 id: POLICY-013
 title: Keine Zusammenführung separater Bestellungen
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

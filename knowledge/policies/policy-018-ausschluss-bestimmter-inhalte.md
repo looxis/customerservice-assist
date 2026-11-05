@@ -2,7 +2,7 @@
 id: POLICY-018
 title: Ausschluss bestimmter Inhalte aus ethischen und moralischen Gründen
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

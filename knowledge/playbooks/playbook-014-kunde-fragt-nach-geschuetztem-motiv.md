@@ -2,7 +2,7 @@
 id: PLAYBOOK-014
 title: Kunde fragt nach Verwendung eines möglicherweise geschützten Motivs
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

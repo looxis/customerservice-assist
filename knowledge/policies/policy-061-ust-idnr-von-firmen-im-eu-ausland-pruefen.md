@@ -2,7 +2,7 @@
 id: POLICY-061
 title: USt-IdNr von Firmen im EU-Ausland vor der Änderung prüfen
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
   - looxis-de

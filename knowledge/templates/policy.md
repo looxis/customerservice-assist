@@ -4,7 +4,7 @@
 id: POLICY-000
 title:
 type: policy
-status: draft
+status: active
 
 customer_types:
 sales_channels:

@@ -2,7 +2,7 @@
 id: PLAYBOOK-002
 title: Unterschiedliche Ergebnisse trotz gleicher Vorlage
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 - looxis-de

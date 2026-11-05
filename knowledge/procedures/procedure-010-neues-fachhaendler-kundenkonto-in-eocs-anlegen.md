@@ -2,7 +2,7 @@
 id: PROCEDURE-010
 title: Neues Fachhändler-Kundenkonto in EOCS anlegen und synchronisieren
 type: procedure
-status: draft
+status: active
 actions:
   - account-creation
 customer_types:

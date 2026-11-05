@@ -2,7 +2,7 @@
 id: POLICY-008
 title: Kulanz bei Kundenfehlern von Foto-Fachhändlern
 type: policy
-status: draft
+status: active
 customer_types:
 - b2b-reseller
 sales_channels:

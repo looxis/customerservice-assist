@@ -2,7 +2,7 @@
 id: PLAYBOOK-045
 title: Fachhändler fragt nach Preisliste, Flyer, Broschüre oder Werbematerial
 type: playbook
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

@@ -2,7 +2,7 @@
 id: PLAYBOOK-023
 title: "Reklamation: Gestaltung entspricht der Konfiguration, aber nicht der Kundenerwartung"
 type: playbook
-status: draft
+status: active
 products: []
 categories:
   - complaint

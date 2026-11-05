@@ -2,7 +2,7 @@
 id: POLICY-012
 title: Mindestaufbewahrung von Retouren
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

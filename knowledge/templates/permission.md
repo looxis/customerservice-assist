@@ -4,7 +4,7 @@
 id: PERMISSION-000
 title:
 type: permission
-status: draft
+status: active
 
 customer_types:
 sales_channels:

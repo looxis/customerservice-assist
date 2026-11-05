@@ -2,7 +2,7 @@
 id: POLICY-014
 title: Ergänzung noch unbezahlter und unversandter Aufträge
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

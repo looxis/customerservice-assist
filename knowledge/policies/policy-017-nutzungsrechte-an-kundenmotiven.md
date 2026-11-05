@@ -2,7 +2,7 @@
 id: POLICY-017
 title: Nutzungsrechte an vom Kunden bereitgestellten Motiven
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

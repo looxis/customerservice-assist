@@ -2,7 +2,7 @@
 id: PLAYBOOK-010
 title: Hintergrund oder Bildbereich unerwartet entfernt oder beibehalten
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

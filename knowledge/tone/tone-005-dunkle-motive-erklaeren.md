@@ -2,7 +2,7 @@
 id: TONE-005
 title: Dunkle Motive und geringe Punktdichte verständlich erklären
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

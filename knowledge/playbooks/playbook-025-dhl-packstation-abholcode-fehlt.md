@@ -2,7 +2,7 @@
 id: PLAYBOOK-025
 title: "DHL-Packstation: Abholcode fehlt oder Fach öffnet nicht"
 type: playbook
-status: draft
+status: active
 customer_types: []
 sales_channels: []
 products: []

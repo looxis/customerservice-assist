@@ -4,7 +4,7 @@
 id: TONE-000
 title:
 type: tone
-status: draft
+status: active
 
 customer_types:
 sales_channels:

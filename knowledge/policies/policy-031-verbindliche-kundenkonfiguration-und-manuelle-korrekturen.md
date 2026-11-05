@@ -2,7 +2,7 @@
 id: POLICY-031
 title: "Kundenkonfiguration als Produktionsvorgabe und freiwillige Gestaltungskorrekturen"
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - complaint

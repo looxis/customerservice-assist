@@ -2,7 +2,7 @@
 id: PLAYBOOK-026
 title: "Fototasse: andere Außenfarbe erwartet oder weiße Druckbereiche beanstandet"
 type: playbook
-status: draft
+status: active
 customer_types: []
 sales_channels: []
 products:

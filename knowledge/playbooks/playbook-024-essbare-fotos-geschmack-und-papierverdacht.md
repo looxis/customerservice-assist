@@ -2,7 +2,7 @@
 id: PLAYBOOK-024
 title: Essbare Fotos – Antwort bei Geschmack und Papierverdacht
 type: playbook
-status: draft
+status: active
 customer_types: []
 sales_channels: []
 products:

@@ -2,7 +2,7 @@
 id: POLICY-042
 title: Wirksamkeit von Zahlungsartenänderungen am Kundenkonto
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
   - looxis-de

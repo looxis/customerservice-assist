@@ -2,7 +2,7 @@
 id: TONE-003
 title: Wiederholte Nachrichten und abschließende Entscheidungen
 type: tone
-status: draft
+status: active
 topics:
 - case-closure
 - clear-communication

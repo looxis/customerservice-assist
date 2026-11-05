@@ -2,7 +2,7 @@
 id: POLICY-011
 title: 'masterpics: Adressverantwortung und keine Kulanz bei Unzustellbarkeit'
 type: policy
-status: draft
+status: active
 customer_types:
 - b2b-whitelabel
 sales_channels:

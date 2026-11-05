@@ -2,7 +2,7 @@
 id: POLICY-006
 title: Kulanz-Nachbestellung bei Kundenfehlern auf Amazon
 type: policy
-status: draft
+status: active
 customer_types:
 - b2c
 sales_channels:

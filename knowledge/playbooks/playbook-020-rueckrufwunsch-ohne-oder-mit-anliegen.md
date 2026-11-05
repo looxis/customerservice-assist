@@ -2,7 +2,7 @@
 id: PLAYBOOK-020
 title: "Kunde wünscht Rückruf mit oder ohne konkretes Anliegen"
 type: playbook
-status: draft
+status: active
 products: []
 categories:
   - complaint

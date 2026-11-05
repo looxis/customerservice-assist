@@ -2,7 +2,7 @@
 id: PLAYBOOK-005
 title: 'Zaubertasse: Thermobeschichtung löst sich'
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

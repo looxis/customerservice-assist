@@ -4,7 +4,7 @@
 id: PRODUCT-000
 title:
 type: product
-status: draft
+status: active
 
 customer_types:
 sales_channels:

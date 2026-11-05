@@ -2,7 +2,7 @@
 id: PLAYBOOK-006
 title: Fremdes oder vertauschtes personalisiertes Produkt erhalten
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

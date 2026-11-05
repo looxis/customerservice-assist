@@ -2,7 +2,7 @@
 id: PROCESS-008
 title: Rechnungsanforderungen bearbeiten
 type: process
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

@@ -2,7 +2,7 @@
 id: PERMISSION-005
 title: Erstattungen an Foto-Fachhändler nur mit Geschäftsführerfreigabe
 type: permission
-status: draft
+status: active
 customer_types:
 - b2b-reseller
 sales_channels:

@@ -4,7 +4,7 @@
 id: GLOSSARY-000
 title:
 type: glossary
-status: draft
+status: active
 
 customer_types:
 sales_channels:

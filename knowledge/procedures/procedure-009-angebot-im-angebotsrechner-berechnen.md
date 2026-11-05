@@ -2,7 +2,7 @@
 id: PROCEDURE-009
 title: Mengenanfrage im Angebotsrechner berechnen
 type: procedure
-status: draft
+status: active
 products: []
 categories:
   - quote-request

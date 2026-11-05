@@ -2,7 +2,7 @@
 id: POLICY-043
 title: Offene Bestellung mit Mollie-Zahlung – SEPA-Überweisung, Zahlungsfrist und Stornierung
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
   - looxis-de

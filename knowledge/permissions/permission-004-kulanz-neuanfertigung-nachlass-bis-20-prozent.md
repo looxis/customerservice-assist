@@ -2,7 +2,7 @@
 id: PERMISSION-004
 title: Nachlass bis 20 Prozent auf kostenpflichtige Kulanz-Neuanfertigung
 type: permission
-status: draft
+status: active
 action:
 - reproduction
 agent_allowed: true

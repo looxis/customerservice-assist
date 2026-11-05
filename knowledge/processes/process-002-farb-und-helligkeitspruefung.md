@@ -2,7 +2,7 @@
 id: PROCESS-002
 title: Farb- und Helligkeitsbeanstandungen anhand der Bilddateien prüfen
 type: process
-status: draft
+status: active
 categories:
 - complaint
 topics:

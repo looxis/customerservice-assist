@@ -2,7 +2,7 @@
 id: PLAYBOOK-044
 title: Kunde fragt nach einem passenden Leuchtsockel zum Glasfoto
 type: playbook
-status: draft
+status: active
 
 customer_types:
 sales_channels:

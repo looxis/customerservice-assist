@@ -2,7 +2,7 @@
 id: PLAYBOOK-009
 title: Dunkles oder schwarzes Motiv im Glasfoto kaum sichtbar
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

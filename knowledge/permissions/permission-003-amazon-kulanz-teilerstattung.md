@@ -2,7 +2,7 @@
 id: PERMISSION-003
 title: Amazon-Kulanz-Teilerstattung bei ursprünglichem Produktpreis bis 100 Euro
 type: permission
-status: draft
+status: active
 sales_channels:
 - amazon
 action: refund

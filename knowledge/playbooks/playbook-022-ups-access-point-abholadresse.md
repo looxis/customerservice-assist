@@ -2,7 +2,7 @@
 id: PLAYBOOK-022
 title: "UPS Access Point: Abholadresse und Abholvoraussetzungen"
 type: playbook
-status: draft
+status: active
 products: []
 categories:
   - order-process-question

@@ -2,7 +2,7 @@
 id: PLAYBOOK-016
 title: Kunde verlangt vor Vorauszahlung eine Rechnung
 type: playbook
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

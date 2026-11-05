@@ -2,7 +2,7 @@
 id: PLAYBOOK-019
 title: 'Foto-Fachhändler: Subjektive Beanstandung vor einer Endkundenreaktion'
 type: playbook
-status: draft
+status: active
 customer_types:
 - b2b-reseller
 sales_channels:

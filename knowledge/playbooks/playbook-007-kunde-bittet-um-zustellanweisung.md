@@ -2,7 +2,7 @@
 id: PLAYBOOK-007
 title: Kunde bittet LOOXIS um eine Zustellanweisung
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

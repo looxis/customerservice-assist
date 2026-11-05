@@ -2,7 +2,7 @@
 id: POLICY-009
 title: Zahlungsabwicklung und Teilerstattung auf Amazon
 type: policy
-status: draft
+status: active
 sales_channels:
 - amazon
 categories:

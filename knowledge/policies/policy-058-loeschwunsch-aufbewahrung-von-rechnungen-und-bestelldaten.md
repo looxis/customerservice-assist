@@ -2,7 +2,7 @@
 id: POLICY-058
 title: Löschwunsch – Aufbewahrung von Rechnungen und Bestelldaten
 type: policy
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

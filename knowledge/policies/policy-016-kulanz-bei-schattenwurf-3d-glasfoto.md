@@ -2,7 +2,7 @@
 id: POLICY-016
 title: Kulanz bei Schattenwurf-Reklamationen zu 3D-Glasfotos
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

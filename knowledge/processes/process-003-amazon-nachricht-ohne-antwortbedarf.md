@@ -2,7 +2,7 @@
 id: PROCESS-003
 title: Wiederholte Amazon-Nachrichten ohne weiteren Antwortbedarf abschließen
 type: process
-status: draft
+status: active
 sales_channels:
 - amazon
 categories:

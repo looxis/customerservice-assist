@@ -2,7 +2,7 @@
 id: POLICY-059
 title: Versand- und Lieferangaben sind voraussichtlich, kein Zustelltermin wird garantiert
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

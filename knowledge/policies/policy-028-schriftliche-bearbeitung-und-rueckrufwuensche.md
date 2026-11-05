@@ -2,7 +2,7 @@
 id: POLICY-028
 title: "Schriftliche Bearbeitung und Umgang mit Rückrufwünschen"
 type: policy
-status: draft
+status: active
 products: []
 categories: []
 topics:

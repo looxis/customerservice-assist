@@ -2,7 +2,7 @@
 id: PROCEDURE-006
 title: Teilerstattung einer Amazon-Bestellung in der Sellercentral veranlassen
 type: procedure
-status: draft
+status: active
 actions:
   - partial-refund
 customer_types:

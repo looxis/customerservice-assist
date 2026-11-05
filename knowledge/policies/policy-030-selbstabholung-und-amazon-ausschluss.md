@@ -2,7 +2,7 @@
 id: POLICY-030
 title: Selbstabholung bei LOOXIS und Ausschluss bei Amazon-Bestellungen
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - order-process-question

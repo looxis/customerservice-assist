@@ -2,7 +2,7 @@
 id: POLICY-022
 title: 'Amazon: Rechnungsadresse oder Firmierung auf Kundenwunsch ändern'
 type: policy
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

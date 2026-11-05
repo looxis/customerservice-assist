@@ -2,7 +2,7 @@
 id: POLICY-024
 title: Zahlungsbedingungen bei individuellen Mengenaufträgen
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - quote-request

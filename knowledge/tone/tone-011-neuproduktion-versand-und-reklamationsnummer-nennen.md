@@ -2,7 +2,7 @@
 id: TONE-011
 title: Bei zugesagter Neuproduktion Versand und Reklamationsnummer nennen
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 categories:

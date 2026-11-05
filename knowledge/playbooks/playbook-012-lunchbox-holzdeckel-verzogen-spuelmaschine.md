@@ -2,7 +2,7 @@
 id: PLAYBOOK-012
 title: Holzdeckel der Lunchbox nach Spülmaschine verzogen
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

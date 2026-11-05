@@ -2,7 +2,7 @@
 id: POLICY-019
 title: Rechnungserstellung und automatischer Rechnungsversand außerhalb von Amazon
 type: policy
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

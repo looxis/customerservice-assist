@@ -2,7 +2,7 @@
 id: PROCESS-006
 title: Ergänzung eines bestehenden Auftrags prüfen und abstimmen
 type: process
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

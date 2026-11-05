@@ -2,7 +2,7 @@
 id: PLAYBOOK-048
 title: "Glasfoto: Geschenkbox auf dem Versandweg zerstört, Glas heil"
 type: playbook
-status: draft
+status: active
 
 customer_types:
 sales_channels:

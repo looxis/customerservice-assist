@@ -2,7 +2,7 @@
 id: TONE-001
 title: Interpretationsvorgänge einfach erklären
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 - looxis-de

@@ -2,7 +2,7 @@
 id: POLICY-001
 title: Keine Rücknahme personalisierter Ware allein wegen Nichtgefallen
 type: policy
-status: draft
+status: active
 customer_types:
   - b2c
 sales_channels:

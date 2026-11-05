@@ -2,7 +2,7 @@
 id: PLAYBOOK-027
 title: Amazon-Kunde fragt zu Zahlung, Bestellfreigabe oder Erstattungseingang
 type: playbook
-status: draft
+status: active
 customer_types:
   - b2c
 sales_channels:

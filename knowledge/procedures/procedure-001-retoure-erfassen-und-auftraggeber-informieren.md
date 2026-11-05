@@ -2,7 +2,7 @@
 id: PROCEDURE-001
 title: Retoure erfassen, einlagern und Auftraggeber informieren
 type: procedure
-status: draft
+status: active
 actions:
 - return
 customer_types:

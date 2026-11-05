@@ -2,7 +2,7 @@
 id: GLOSSARY-002
 title: Interpretation, Konfigurations-ID und Produktionsdatei
 type: glossary
-status: draft
+status: active
 customer_types:
 sales_channels:
 - looxis-de

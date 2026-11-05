@@ -2,7 +2,7 @@
 id: POLICY-025
 title: Lieferzeitzusagen bei Mengenanfragen
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - quote-request

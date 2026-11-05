@@ -2,7 +2,7 @@
 id: GLOSSARY-004
 title: Helligkeit, Punktdichte und Sichtbarkeit bei Glasgravuren
 type: glossary
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

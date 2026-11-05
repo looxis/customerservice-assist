@@ -2,7 +2,7 @@
 id: POLICY-034
 title: Berechtigte Reklamationen von Foto-Fachhändlern
 type: policy
-status: draft
+status: active
 customer_types:
 - b2b-reseller
 sales_channels:

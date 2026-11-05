@@ -2,7 +2,7 @@
 id: PLAYBOOK-003
 title: 'Zaubertasse: Kunde meldet eine schwarze Tasse'
 type: playbook
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

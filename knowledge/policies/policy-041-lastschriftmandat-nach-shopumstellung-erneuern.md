@@ -2,7 +2,7 @@
 id: POLICY-041
 title: Lastschriftmandat nach Shopumstellung erneuern
 type: policy
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

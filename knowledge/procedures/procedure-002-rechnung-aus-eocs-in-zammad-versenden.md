@@ -2,7 +2,7 @@
 id: PROCEDURE-002
 title: Rechnung aus EOCS herunterladen und in Zammad versenden
 type: procedure
-status: draft
+status: active
 products: []
 categories:
 - order-process-question

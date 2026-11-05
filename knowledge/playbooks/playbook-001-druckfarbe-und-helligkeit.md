@@ -2,7 +2,7 @@
 id: PLAYBOOK-001
 title: Druck zu dunkel, zu hell oder mit abweichenden Farben
 type: playbook
-status: draft
+status: active
 categories:
 - complaint
 topics:

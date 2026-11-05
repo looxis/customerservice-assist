@@ -2,7 +2,7 @@
 id: PROCESS-007
 title: Freigabe einer neuen 3D-Interpretation nach Reklamation
 type: process
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

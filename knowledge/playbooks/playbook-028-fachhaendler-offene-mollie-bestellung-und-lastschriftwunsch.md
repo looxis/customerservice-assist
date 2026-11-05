@@ -2,7 +2,7 @@
 id: PLAYBOOK-028
 title: Fachhändler kann offene Bestellung nicht bezahlen und wünscht Lastschrift
 type: playbook
-status: draft
+status: active
 customer_types:
   - b2b-reseller
 sales_channels:

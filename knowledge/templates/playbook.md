@@ -4,7 +4,7 @@
 id: PLAYBOOK-000
 title:
 type: playbook
-status: draft
+status: active
 
 customer_types:
 sales_channels:

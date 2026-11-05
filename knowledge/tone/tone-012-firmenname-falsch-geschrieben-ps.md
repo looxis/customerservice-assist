@@ -2,7 +2,7 @@
 id: TONE-012
 title: Firmenname falsch geschrieben, freundliches PS
 type: tone
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

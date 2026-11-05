@@ -2,7 +2,7 @@
 id: POLICY-032
 title: "Kostenfreie Ersatzproduktion ohne Änderungen an der bestellten Konfiguration"
 type: policy
-status: draft
+status: active
 products: []
 categories:
   - complaint

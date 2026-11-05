@@ -2,7 +2,7 @@
 id: POLICY-033
 title: Maßstab bei Zweifel und Kulanzgrundsatz
 type: policy
-status: draft
+status: active
 customer_types:
 sales_channels:
 products:

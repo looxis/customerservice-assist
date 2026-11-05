@@ -34,11 +34,10 @@ Ein Beispiel überschreibt nie eine Policy.
 
 | Status | Bedeutung |
 |---|---|
-| `draft` | Entwurf. Wird von der App mitverwendet und im Ergebnis als Entwurfs-Wissen gekennzeichnet, damit es an Fällen getestet werden kann. |
-| `active` | fachlich geprüft und freigegeben |
+| `active` | gilt und wird von der App verwendet |
 | `deprecated` | gilt nicht mehr, wird nie verwendet; die Datei bleibt wegen ihrer ID erhalten |
 
-Neue Dateien entstehen immer als `draft`. Auf `active` stellt nur der Autor um.
+Neue Dateien entstehen sofort als `active`. Ein Vorgehen, das nur eine Zeit lang getestet wird, bekommt zusätzlich `trial_until` (und `trial_goal`).
 
 ## So entsteht eine Datei
 
@@ -48,7 +47,7 @@ Neue Dateien entstehen immer als `draft`. Auf `active` stellt nur der Autor um.
    - **Im Repository:** `/knowledge <Thema>` in Claude Code aufrufen. Der Skill befragt dich, vergibt die nächste freie ID und legt die Datei ab.
 3. Datei lesen und fachlich prüfen; mit `./vendor/bin/sail artisan knowledge:check` den Aufbau prüfen lassen.
 4. Committen und pushen.
-5. Am Fall in der App testen, nachschärfen, danach `status: active` setzen.
+5. Am Fall in der App testen und bei Bedarf nachschärfen.
 
 Ohne KI: die passende Datei aus `templates/` in den Zielordner kopieren, umbenennen, die Nummer 000 durch die nächste freie ersetzen und ausfüllen.
 
