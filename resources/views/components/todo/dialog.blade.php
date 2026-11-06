@@ -24,9 +24,9 @@
     x-cloak x-show="open"
     @if ($create) x-on:new-todo.window="start('create', {})" @endif
     x-on:edit-todo.window="start('edit', $event.detail)"
-    x-on:keydown.escape.window="open = false"
+    x-on:keydown.escape.window="open = false" x-on:click.self="open = false"
     class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4" role="dialog" aria-modal="true" aria-labelledby="todo-dialog-heading">
-    <form method="POST" x-bind:action="action" x-on:click.outside="open = false" x-on:submit="busy = true"
+    <form method="POST" x-bind:action="action" x-on:submit="busy = true"
           class="w-full max-w-lg space-y-4 rounded-lg bg-white p-6 shadow-1 ring-1 ring-slate-200">
         @csrf
         <input type="hidden" name="_method" value="PATCH" x-bind:disabled="mode !== 'edit'">

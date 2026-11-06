@@ -6,7 +6,9 @@ use App\Todo\TodoStatus;
 use App\Todo\TrackingNotifier;
 use App\Todo\TrackingSchedule;
 use Carbon\CarbonImmutable;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 const TRACK_TEMPLATE = "Guten Tag Erika Beispiel,\n\nIhre Reklamation R1-7KA-0QH8-6AF8 wurde verschickt. Sendungsnummer: [Sendungsnummer] ([Carrier])";
@@ -303,5 +305,40 @@ describe('the history in the list', function () {
         $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))
             ->assertSeeText('Automatisch gesendet')->assertSeeText('00340434161094042557')->assertSeeText('Verlauf der automatischen Prüfung')->assertSeeText('Gesendeter Text')
             ->assertSeeText('Erledigt von Automatik');
+    });
+});
+
+describe('QA: display and registration', function () {
+    test('a ToDo that is watched shows the next check, an ended one says so', function () {
+        $this->withoutVite();
+        $this->travelTo(CarbonImmutable::parse('2026-11-12 12:00:00', 'Europe/Berlin'));
+        trackingTodo(['description' => 'Wird beobachtet', 'created_at' => '2026-11-11 08:00:00']);
+        trackingTodo(['description' => 'Abgelaufen', 'auto_state' => 'expired']);
+
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))
+            ->assertSeeText('Automatische Prüfung: nächste heute 16:16')->assertSeeText('Sendungsnummer fehlt seit 5 Tagen');
+    });
+
+    test('the checks are scheduled at the four fixed times, Monday to Saturday', function () {
+        $events = collect(app(Schedule::class)->events())->filter(fn ($event): bool => str_contains((string) $event->command, 'todos:check-tracking'));
+
+        expect($events->map(fn ($event): string => $event->expression)->sort()->values()->all())
+            ->toBe(['16 16 * * 1-6', '26 11 * * 1-6', '34 18 * * 1-6', '7 16 * * 1-6'])
+            ->and($events->every(fn ($event): bool => $event->timezone === 'Europe/Berlin'))->toBeTrue();
+    });
+
+    test('customer content cannot break out of the list: the sent text is shown escaped', function () {
+        $this->withoutVite();
+        trackingTodo(['auto_state' => 'sent', 'auto_text' => '<script>alert(1)</script>', 'auto_tracking' => 'X1', 'auto_sent_at' => now(), 'status' => TodoStatus::Done, 'completed_at' => now()]);
+
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertDontSee('<script>alert(1)</script>', false)->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
+    });
+
+    test('the sent text and the tracking numbers are stored encrypted', function () {
+        $todo = trackingTodo(['auto_text' => 'Geheimer Text', 'auto_tracking' => 'GEHEIM123']);
+
+        $raw = DB::table('ticket_todos')->where('id', $todo->id)->first();
+
+        expect($raw->auto_text)->not->toContain('Geheimer')->and($raw->auto_tracking)->not->toContain('GEHEIM123');
     });
 });

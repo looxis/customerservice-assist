@@ -4,7 +4,7 @@
     <section aria-labelledby="todos-heading" class="space-y-4">
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h1 id="todos-heading" class="text-lg font-semibold text-slate-900">ToDos</h1>
-            <p class="text-xs text-slate-600">Offene ToDos und erledigte der letzten 12 Monate · {{ $rows->total() }} {{ $rows->total() === 1 ? 'Eintrag' : 'Einträge' }}</p>
+            <x-intro><p class="text-xs text-slate-600">Offene ToDos und erledigte der letzten 12 Monate · {{ $rows->total() }} {{ $rows->total() === 1 ? 'Eintrag' : 'Einträge' }}</p></x-intro>
         </div>
 
         <x-card>
@@ -22,13 +22,27 @@
             </form>
         </x-card>
 
-        <x-card class="p-0">
-            @if ($rows->isEmpty())
-                <p class="p-6 text-sm text-slate-600">Keine ToDos für diese Auswahl.</p>
-            @else
-                <ul class="divide-y divide-slate-100">@foreach ($rows as $todo)<x-todo.row :todo="$todo" />@endforeach</ul>
-            @endif
-        </x-card>
+        @php
+            [$doneRows, $openRows] = $rows->getCollection()->partition(fn ($todo) => $todo->status === \App\Todo\TodoStatus::Done);
+        @endphp
+
+        @if ($rows->isEmpty())
+            <x-card><p class="text-sm text-slate-600">Keine ToDos für diese Auswahl.</p></x-card>
+        @endif
+
+        @if ($openRows->isNotEmpty())
+            <x-card class="p-0">
+                <h2 class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Offen ({{ $openRows->count() }})</h2>
+                <ul class="divide-y divide-slate-100">@foreach ($openRows as $todo)<x-todo.row :todo="$todo" />@endforeach</ul>
+            </x-card>
+        @endif
+
+        @if ($doneRows->isNotEmpty())
+            <x-card class="p-0">
+                <h2 class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Erledigt ({{ $doneRows->count() }})</h2>
+                <ul class="divide-y divide-slate-100">@foreach ($doneRows as $todo)<x-todo.row :todo="$todo" />@endforeach</ul>
+            </x-card>
+        @endif
 
         {{ $rows->links() }}
         <x-todo.dialog />

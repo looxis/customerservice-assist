@@ -5,7 +5,7 @@
 ## Vision
 Customer Service Assist ist eine interne Web-App neben Zammad. Sie bereitet für ein Kundenservice-Ticket einen fachlich begründeten Vorschlag vor: Bewertung, empfohlene Maßnahme, Befugnis, nötige interne Klärungen und einen Antwortentwurf (der bei einer blockierenden internen Klärung erst nach deren Ergebnis entsteht). Grundlage sind das Ticket aus Zammad, die Bestelldaten aus EOCS und eine versionierte Knowledge Base im selben Repository.
 
-Die App entscheidet und sendet nichts selbst. Ein Mensch prüft jeden Vorschlag und gibt jede Kundenantwort frei. Ziel ist, dass das Unternehmenswissen direkt in der Bearbeitung ankommt, statt in den Köpfen einzelner Personen zu stecken.
+Die App entscheidet und sendet nichts selbst. Ein Mensch prüft jeden Vorschlag und gibt jede Kundenantwort frei. Einzige Ausnahme (PROJ-77): die Sendungsnummer einer Reklamation, die die App nach dem Versand automatisch mit einer festen Vorlage nachreicht, wenn der Mitarbeiter es beim ToDo so gewählt hat. Ziel ist, dass das Unternehmenswissen direkt in der Bearbeitung ankommt, statt in den Köpfen einzelner Personen zu stecken.
 
 ## Target Users
 - **Stammkraft im Kundenservice:** bearbeitet den Großteil der Tickets. Braucht weniger Rückfragen bei erfahrenen Kollegen und weniger Folge-Mails bei Reklamationen.
@@ -88,7 +88,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Einführungsmodus: Infotexte nur bei eingeschaltetem Schalter „Einführung“ | In Progress |
 | Durchsicht der Wissensdateien auf überflüssige interne Schritte (gemeinsam, später, Einzelentscheidung je Treffer) | Planned |
 | Vorschlagsformular und Ergebnis weiter entschlacken (Formular nach neuen Nachrichten direkt offen, Zusatzinformationen leer, weniger Hinweise, zusammengehörige Tickets eingeklappt) | In Progress |
-| Sendungsnummer automatisch nachreichen: ToDo „Sendungsnummer nachreichen“ prüft nach X Stunden in EOCS den Versandstatus und verschickt die Sendungsnummer automatisch (berührt das Ziel „Versand nur nach Klick“) | In Progress |
+| Sendungsnummer automatisch nachreichen: ToDo „Sendungsnummer nachreichen“ prüft zu festen Zeiten in EOCS den Versandstatus und verschickt die Sendungsnummer automatisch (erste Ausnahme vom Ziel „Versand nur nach Klick“) | Approved |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
@@ -117,7 +117,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **Qualitätsprinzipien:** kein Erfinden fehlender Fakten, „unklar / noch nicht entscheidbar" ist ein gewünschtes Ergebnis, jede Empfehlung verweist auf Knowledge-IDs, jede Analyse ist reproduzierbar protokolliert (Knowledge-Commit, Prompt-Version, Modell).
 
 ## Non-Goals
-- automatisches Versenden von Kundenantworten (Versand nur durch ausdrücklichen Klick des Mitarbeiters, PROJ-19)
+- automatisches Versenden von Kundenantworten (Versand nur durch ausdrücklichen Klick des Mitarbeiters, PROJ-19); einzige Ausnahme: die Sendungsnummer-Antwort nach Versand einer Reklamation (PROJ-77, Haken je ToDo, nur Deutsch, mit Protokoll)
 - Ersatz von Zammad oder eine eigene gemeinsame Inbox (die Ticketübersicht aus PROJ-67 ist nur eine Sicht: Zammad bleibt führend für Tickets, Status, Zuständigkeit, Kommunikation und Anhänge)
 - automatische Bearbeitung beim E-Mail-Eingang
 - automatische Änderungen an Bestellungen, Gutschriften, Erstattungen oder Ersatzaufträge

@@ -1,6 +1,6 @@
 # PROJ-77: Sendungsnummer automatisch nachreichen
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-11-06
 **Last Updated:** 2026-11-06 (Tech Design)
 
@@ -241,7 +241,44 @@ Keine neuen. Genutzt werden vorhandene Teile: Zeitplaner, EOCS-Zugriff, Zammad-V
 - **Nicht getestet:** Zusammenführung eines Tickets (Verfolgen der Kette) und der Ablauf gegen das echte EOCS/Zammad; beides gehört in die Abnahme (`/qa`).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Geprüft am:** 2026-11-06 · **Ergebnis:** bereit für den Einsatz (keine Critical/High-Bugs)
+
+### Wie geprüft
+Automatisierte Tests gegen simulierte Zammad- und EOCS-Antworten; Prüfung des Codes gegen jedes Kriterium und jeden Randfall des Specs. **Nicht möglich in dieser Umgebung:** Test im Browser (Chrome, Firefox, Safari, 375/768/1440 px) und gegen das echte EOCS/Zammad; beides bleibt für die ersten echten Fälle.
+
+### Akzeptanzkriterien
+| Bereich | Ergebnis |
+|---|---|
+| ToDo und Haken (Standard gesetzt, bei fremder/unbekannter Sprache abgewählt und gesperrt, ohne Nummer keine Automatik, kein ToDo ohne gesendete Antwort) | bestanden (Tests in `PROJ-70-ReplyTodosTest`, `PROJ-70-TicketTodosTest`, Ansicht im Frontend) |
+| Prüfzeitplan (vor 14:00, 14–16 Uhr, ab 16 Uhr, Sonntag, Samstag, 5 Tage, nächste Prüfung) | bestanden (`PROJ-77-TrackingNumberTest`, Block „the schedule“) |
+| Prüfung (nur Reklamation, Bestellung → neueste Reklamation, noch keine Nummer, abgelaufen, von Hand erledigt) | bestanden |
+| Senden (Nummer und Dienstleister, mehrere Sendungen ohne Doppelte, trotz neuer Kundennachricht, Notiz, Ticket geschlossen, ToDo „Automatik“, nie doppelt) | bestanden |
+| Bitte prüfen (Sprache, Dienstleister, offene Platzhalter, leerer Text, fehlender Zugang, Wiederaufnahme der Bearbeitung) | bestanden |
+| Technische Fehler (Zähler, dritter Fehler → Bitte prüfen) | bestanden |
+| Sichtbarkeit (Stand, Grund, Verlauf, gesendeter Text) und Vorlage (Platzhalter) | bestanden |
+| Zusammengeführtes Ticket folgt dem Zielticket | **im Code umgesetzt, nicht automatisch getestet** (offen für die Abnahme mit einem echten Fall) |
+| Nur Notiz/Schließen schlägt nach dem Versand fehl → ToDo bleibt erledigt | im Code umgesetzt (Protokoll „note_failed“), nicht gesondert getestet |
+
+### Sicherheit (Red Team)
+- Ausgaben maskiert (Test mit Skript-Text im gesendeten Text), Sendungsnummern und gesendeter Text verschlüsselt in der Datenbank (getestet).
+- Keine neuen Routen und Formulare; Eingaben laufen über die vorhandenen Form Requests (`reference` max. 120, `auto_send` boolesch). Kein neues Geheimnis; der Token des Mitarbeiters bleibt im Header der Anfrage.
+- Doppelversand: atomare Übernahme je ToDo plus Nachfrage in Zammad (getestet: zweiter Lauf sendet nicht noch einmal).
+- **Hinweis (Entwurfsentscheidung, keine Neuerung):** Ohne Login kann jeder im Netz einen Namen wählen und ToDos bearbeiten. Mit der Automatik kann so auch der Antworttext eines fremden ToDos vor dem Versand geändert werden. Das gilt schon für das Senden aus der App; erst PROJ-15 (Anmeldung) schließt es.
+
+### Regression
+Gesamtlauf der Tests: 2263 Tests, 6 rot. Die sechs betreffen nicht PROJ-77: zwei Tests zu PROJ-56 (Sichtbarkeit der Meldungen, bekannter offener Punkt), je einer zu PROJ-10 (Hinweis „bearbeitet von …“), PROJ-34 (Skript auf der Angebotsseite) und zwei zur Wissensauswahl (`POLICY-009`). Sie gehen vermutlich auf frühere offene Änderungen zurück (Entschlackung PROJ-74/76, Wissensdurchsicht PROJ-75); nicht gegen einen älteren Stand geprüft.
+
+### Bugs
+Keine Critical, High oder Medium gefunden.
+
+### Offen für die ersten echten Fälle
+- Liefert EOCS bei der Reklamationssuche mit `include=shipments` die Sendungen? (Bestellabfrage nutzt dasselbe; sonst zeigt der Kopfbereich „Noch nicht versandt“ und die Automatik findet nichts.)
+- Läuft der Zeitplaner auf dem Server jede Minute (bestehende Einrichtung für PROJ-66)? Die vier neuen Läufe sind in `routes/console.php`.
+- Stichprobe über die erledigten ToDos (Verlauf und gesendeter Text sind sichtbar).
+
+### Entscheidung
+**Bereit für den Einsatz.** Status **Approved**.
 
 ## Deployment
 _To be added by /deploy_
