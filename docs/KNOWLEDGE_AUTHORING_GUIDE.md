@@ -316,6 +316,7 @@ Ein Arbeitsablauf entscheidet nichts. Steht in ihm eine Regel („nur bis 35 Eur
 | `order-confirmation` | Auftrag bestätigen |
 | `pickup` | Selbstabholung |
 | `account-closure` | Kundenkonto eines Fachhändlers schließen |
+| `payment-check` | Zahlungseingang einer Mollie-Bestellung im Mollie-Dashboard prüfen |
 
 Fehlt ein passender Vorgang, nicht selbst erfinden, sondern als neuen Wert vorschlagen. `customer_types`, `sales_channels`, `products` und `categories` funktionieren wie bei allen anderen Typen: Ein Ablauf nur für Amazon bekommt `sales_channels: [amazon]`.
 
@@ -339,6 +340,7 @@ Fehlt „Voraussetzungen", „Arbeitsschritte" oder „Abschlusskontrolle", warn
 | `eocs-kunden` | Kundenliste in EOCS (ohne Suchbegriff) |
 | `vanilo-kunden` | Vanilo-Backend, Seite „Shopper“; die E-Mail-Adresse des Kunden aus dem Ticket ist als Suchbegriff vorbelegt, sonst die Seite ohne Suchbegriff |
 | `mailcoach-listen` | Mailcoach, E-Mail-Listen (ohne Suchbegriff) |
+| `mollie-dashboard` | Mollie-Dashboard (Login; Suche unter „Umsatz“ von Hand) |
 | `angebotsrechner` | die Seite „Angebot berechnen“ in der App (PROJ-34); mit Ticketnummer, wenn der Fall ein Ticket hat |
 
 Regeln: Die Beschriftung ist frei, das Kürzel muss genau stimmen (die Prüfung meldet ein unbekanntes Kürzel als Fehler). Gibt es im Fall kein Ziel (zum Beispiel keine Bestellung geladen), steht nur der Text ohne Knopf; der Satz muss also auch ohne Knopf verständlich sein. Adressen schreibst du nicht in den Ablauf. Ein weiteres Werkzeug ist ein neues Kürzel; es nicht selbst erfinden, sondern vorschlagen.
