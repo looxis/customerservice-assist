@@ -70,7 +70,7 @@ Erste Durchsicht mit Etienne, Entscheidung je Treffer:
 ### Offen, Etienne kommt später darauf zurück
 - PROCESS-011, PROCESS-015, PLAYBOOK-030: EOCS- und Mollie-Klickschritte fehlen (Vorschlag: gemeinsame Arbeitsanleitung, PROCESS-015 zusätzlich PDF-Vorlage für das Mandat). Die Abschnitte „Noch zu klären“ stehen dort bis dahin weiter.
 - PRODUCT `edible-photo`: Kriterien für Material- und Druckeinflüsse gegenüber einem Druckfehler, Grenzen einer Korrektur bei Neuproduktion.
-- POLICY-009: Der Text nennt den Weg „noch nicht freigegeben, nicht anbieten“, obwohl er jetzt als Testphase geführt wird; vor Testbeginn klären, ob er angeboten werden soll.
+- POLICY-009 (erledigt 2026-11-06): Die Rechnung beim kostenpflichtigen Neuversand wird ab jetzt testweise bis 31.03.2027 angeboten; der Text ist angepasst.
 - Nicht durchsucht: Produktdateien und Verfahren außerhalb der Stichworte.
 
 ## Tech Design (Solution Architect)

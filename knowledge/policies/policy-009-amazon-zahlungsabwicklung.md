@@ -49,4 +49,4 @@ Eine rein kostenfreie Ersatzlieferung wird durch diese Zahlungsregel nicht autom
 
 # Rechnung beim kostenpflichtigen Neuversand (Testphase)
 
-Testweise gültig bis 31.03.2027. Eine Rechnung, die einem kostenpflichtigen Neuversand nach Rücksendung eines nicht zustellbaren oder nicht abgeholten Pakets beigelegt wird, ist nur eine unentschiedene Idee auf Vertrauensbasis. Dieser Weg ist noch nicht freigegeben und wird nicht als verfügbare Lösung angeboten.
+Testweise gültig bis 31.03.2027. Bei einem kostenpflichtigen Neuversand nach Rücksendung eines nicht zustellbaren oder nicht abgeholten Pakets wird dem Paket eine Rechnung beigelegt, und der Kunde bezahlt auf Vertrauensbasis. Dieser Weg darf in der Testphase angeboten werden. Er ersetzt keinen Zahlungslink und keine zusätzliche Zahlung über Amazon.
