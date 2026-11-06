@@ -11,6 +11,7 @@
     <textarea
         name="{{ $name }}"
         id="{{ $id }}"
+        data-bwignore
         rows="{{ $rows }}"
         @required($required)
         @if ($error) aria-invalid="true" @endif

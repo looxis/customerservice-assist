@@ -28,7 +28,7 @@
 <section id="ergebnis" aria-labelledby="result-heading" class="scroll-mt-4">
     <x-card>
         <h2 id="result-heading" class="text-base font-semibold text-slate-900">Direkt antworten</h2>
-        <p class="mt-1 text-sm text-slate-600">Ohne KI-Vorschlag, gestartet von {{ $meta['staff'] }}, {{ $time($meta['created_at']) }} Uhr</p>
+        <x-intro><p class="mt-1 text-sm text-slate-600">Ohne KI-Vorschlag, gestartet von {{ $meta['staff'] }}, {{ $time($meta['created_at']) }} Uhr</p></x-intro>
 
         @if (! $isLatest)
             <x-alert type="warning" class="mt-4">

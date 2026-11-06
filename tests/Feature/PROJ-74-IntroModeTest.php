@@ -34,8 +34,8 @@ describe('the switch', function () {
     test('it is off by default and offered in the header next to the advanced mode', function () {
         $html = introPage();
 
-        expect($html)->toContain('Einführung')->toContain('action="'.route('intro-mode.switch').'"')
-            ->and($html)->toMatch('/role="switch" aria-checked="false"[^>]*>\s*<span[^>]*>\s*<span[^>]*><\/span>\s*<\/span>\s*Einführung/');
+        expect($html)->toContain('Hinweise anzeigen')->toContain('action="'.route('intro-mode.switch').'"')
+            ->and($html)->toMatch('/role="switch" aria-checked="false"[^>]*>\s*<span[^>]*>\s*<span[^>]*><\/span>\s*<\/span>\s*Hinweise anzeigen/');
     });
 
     test('switching on sets a cookie for this browser, switching off removes it', function () {
@@ -48,7 +48,7 @@ describe('the switch', function () {
     });
 
     test('with the cookie the switch is shown as on', function () {
-        expect(introPage('1'))->toMatch('/role="switch" aria-checked="true"[^>]*>\s*<span[^>]*>\s*<span[^>]*><\/span>\s*<\/span>\s*Einführung/');
+        expect(introPage('1'))->toMatch('/role="switch" aria-checked="true"[^>]*>\s*<span[^>]*>\s*<span[^>]*><\/span>\s*<\/span>\s*Hinweise anzeigen/');
     });
 });
 

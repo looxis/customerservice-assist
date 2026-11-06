@@ -31,6 +31,14 @@ class OrderFormats
     }
 
     /**
+     * The format for a number typed in by hand that fits no known format: anything goes.
+     */
+    public static function freeform(): OrderNumberFormat
+    {
+        return new OrderNumberFormat('other', 'Sonstiges Format', '*', examples: []);
+    }
+
+    /**
      * The format whose layout the Amazon notice uses for the order number.
      */
     public function amazon(): OrderNumberFormat
@@ -71,6 +79,10 @@ class OrderFormats
                 'examples' => ['700411247'], 'counter_examples' => ['70041124']],
             ['key' => 'masterpics', 'name' => 'masterpics', 'layout' => '**********', 'prefix' => null, 'upper' => false, 'needs' => ['digit', 'lower', 'upper'], 'internal' => false, 'amazon' => false,
                 'examples' => ['LmagQ9PV25'], 'counter_examples' => ['lmagq9pv25']],
+            ['key' => 'manual-pro', 'name' => 'Manuelle Bestellung LOOXIS-Pro', 'layout' => 'MO-PRO-####', 'prefix' => null, 'upper' => true, 'needs' => [], 'internal' => false, 'amazon' => false,
+                'examples' => ['MO-PRO-3619'], 'counter_examples' => ['MO-PRO-361']],
+            ['key' => 'manual', 'name' => 'Manuelle Bestellung', 'layout' => 'MO-####', 'prefix' => null, 'upper' => true, 'needs' => [], 'internal' => false, 'amazon' => false,
+                'examples' => ['MO-3620'], 'counter_examples' => ['MO-362']],
             ['key' => 'eocs-id', 'name' => 'EOCS-ID', 'layout' => '######', 'prefix' => null, 'upper' => false, 'needs' => [], 'internal' => true, 'amazon' => false,
                 'examples' => ['753194'], 'counter_examples' => ['75319']],
         ];

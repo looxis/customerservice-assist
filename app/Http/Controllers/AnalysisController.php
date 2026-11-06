@@ -540,7 +540,7 @@ class AnalysisController extends Controller
         $numbers = [];
 
         foreach ((array) $request->input('bestellungen', []) as $value) {
-            $number = is_string($value) ? $detector->normalize($value) : null;
+            $number = is_string($value) ? $detector->normalize($value, true) : null;
 
             if ($number !== null) {
                 $numbers[$number->value] ??= $number;

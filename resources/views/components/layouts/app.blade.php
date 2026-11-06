@@ -17,7 +17,7 @@
     <title>{{ $title }} – {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex h-dvh overflow-hidden">
+<body class="flex h-dvh overflow-clip">
     <aside class="hidden w-[250px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
         <div class="flex h-[60px] shrink-0 items-center px-6">
             {{-- The name on two lines so it is never cut off: the last word goes to the second line, a trailing "App" is left out. --}}
@@ -57,9 +57,26 @@
         <x-sidebar-stats :stats="$stats" />
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-clip">
         <header class="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 md:px-8">
-            <h1 class="min-w-0 truncate font-display text-lg font-semibold text-slate-900">{{ $title }}</h1>
+            <div class="flex min-w-0 items-center gap-2">
+                <h1 class="min-w-0 truncate font-display text-lg font-semibold text-slate-900">{{ $title }}</h1>
+                @if (preg_match('/^Ticket#(\d+)$/', (string) $title, $ticketMatch))
+                    <button type="button" x-data="{ copied: false }" aria-label="Ticketnummer {{ $ticketMatch[1] }} kopieren" title="Ticketnummer kopieren"
+                            x-on:click="
+                                const number = '{{ $ticketMatch[1] }}';
+                                try { await navigator.clipboard.writeText(number) } catch (error) {
+                                    const field = Object.assign(document.createElement('textarea'), { value: number });
+                                    document.body.appendChild(field); field.select(); document.execCommand('copy'); field.remove();
+                                }
+                                copied = true; setTimeout(() => copied = false, 2000)"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-md p-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand">
+                        <span x-show="! copied"><x-icon name="doc" size="16" /></span>
+                        <span x-show="copied" x-cloak class="text-success-700"><x-icon name="check" size="16" /></span>
+                        <span x-show="copied" x-cloak role="status" class="text-success-700">Kopiert</span>
+                    </button>
+                @endif
+            </div>
             <div class="flex shrink-0 items-center gap-3">
                 <form method="POST" action="{{ route('advanced-mode.switch') }}">
                     @csrf
@@ -80,7 +97,7 @@
                         <span @class(['relative inline-flex h-5 w-9 shrink-0 rounded-full transition', 'bg-brand' => $introModeActive, 'bg-slate-300' => ! $introModeActive])>
                             <span @class(['absolute top-0.5 size-4 rounded-full bg-white shadow-1 transition', 'left-4.5' => $introModeActive, 'left-0.5' => ! $introModeActive])></span>
                         </span>
-                        Einführung
+                        Hinweise anzeigen
                     </button>
                 </form>
                 @if ($testModeAvailable)
@@ -121,5 +138,10 @@
     </div>
 
     <x-loading-overlay />
+    {{-- An anchor jump (#ergebnis) must scroll <main> only, never the page itself, or the header slips out of view. --}}
+    <script>
+        const keepHeader = () => { document.scrollingElement.scrollTop = 0; document.scrollingElement.scrollLeft = 0 };
+        window.addEventListener('scroll', keepHeader);
+    </script>
 </body>
 </html>

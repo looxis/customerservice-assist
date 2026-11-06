@@ -13,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class AddOrderRequest extends FormRequest
 {
-    public const string MESSAGE = 'Unbekanntes Format. Erwartet z. B. 402-4907715-1581912 oder 7JI-0WC1-6M49.';
+    public const string MESSAGE = 'Bitte eine Bestellnummer eingeben (höchstens 40 Zeichen).';
 
     public const string EMPTY = 'Bitte eine Bestellnummer eingeben.';
 
@@ -29,7 +29,7 @@ class AddOrderRequest extends FormRequest
     {
         return [
             'bestellnummer' => ['required', 'string', 'max:40', function (string $attribute, mixed $value, Closure $fail): void {
-                if (app(OrderNumberDetector::class)->normalize((string) $value) === null) {
+                if (app(OrderNumberDetector::class)->normalize((string) $value, true) === null) {
                     $fail(self::MESSAGE);
                 }
             }],
@@ -72,6 +72,6 @@ class AddOrderRequest extends FormRequest
 
     public function orderNumber(): string
     {
-        return app(OrderNumberDetector::class)->normalize($this->validated('bestellnummer'))->value;
+        return app(OrderNumberDetector::class)->normalize($this->validated('bestellnummer'), true)->value;
     }
 }

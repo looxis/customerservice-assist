@@ -11,6 +11,7 @@
     <select
         name="{{ $name }}"
         id="{{ $id }}"
+        data-bwignore
         @required($required)
         @if ($error) aria-invalid="true" @endif
         @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif

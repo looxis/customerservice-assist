@@ -12,6 +12,7 @@
         type="{{ $type }}"
         name="{{ $name }}"
         id="{{ $id }}"
+        data-bwignore
         value="{{ old($key, $value) }}"
         @required($required)
         @if ($error) aria-invalid="true" @endif

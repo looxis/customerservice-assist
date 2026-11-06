@@ -174,7 +174,7 @@ describe('formats', function () {
     test('a stored value that is no longer usable falls back on the defaults', function () {
         Setting::query()->create(['group_key' => 'order_formats', 'value' => [['key' => 'x', 'name' => '', 'layout' => '?', 'examples' => []]], 'version' => 1, 'changed_by' => 'Etienne']);
 
-        expect(array_map(fn ($format) => $format->key, app(OrderFormats::class)->all()))->toBe(['amazon', 'vanilo', 'looxis-pro', 'looxis-fr', 'masterpics', 'eocs-id']);
+        expect(array_map(fn ($format) => $format->key, app(OrderFormats::class)->all()))->toBe(['amazon', 'vanilo', 'looxis-pro', 'looxis-fr', 'masterpics', 'manual-pro', 'manual', 'eocs-id']);
     });
 
     test('the Amazon notice uses the layout of the Amazon format', function () {

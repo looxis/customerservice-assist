@@ -40,7 +40,7 @@ class CaseLinksBuilder
         $numbers = [];
 
         foreach (array_slice($orderNumbers, 0, OrderNumberDetector::MAX_SUGGESTIONS) as $value) {
-            $order = $this->detector->normalize($value);
+            $order = $this->detector->normalize($value, true);
 
             if ($order !== null) {
                 $numbers[$order->value] = $order;

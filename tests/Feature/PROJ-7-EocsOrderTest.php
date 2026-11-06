@@ -318,8 +318,16 @@ describe('typing in a number', function () {
             ->assertRedirect(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001', '7JI-0WC1-6M49']]));
     });
 
-    test('an unknown format goes back with the message at the field and keeps the selection', function () {
-        $this->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => '12345', 'bestellungen' => ['402-0000000-0000001']]))
+    test('a number of any format is accepted when typed by hand', function () {
+        $this->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => 'MO-PRO-3619', 'bestellungen' => ['402-0000000-0000001']]))
+            ->assertRedirect(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001', 'MO-PRO-3619']]));
+
+        $this->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => 'Sonder 77/a']))
+            ->assertSessionHasNoErrors();
+    });
+
+    test('an overlong input goes back with the message at the field and keeps the selection', function () {
+        $this->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => str_repeat('1', 41), 'bestellungen' => ['402-0000000-0000001']]))
             ->assertRedirect(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
             ->assertSessionHasErrors(['bestellnummer' => AddOrderRequest::MESSAGE]);
     });
@@ -328,7 +336,7 @@ describe('typing in a number', function () {
         ticketWith('<p>Hallo</p>');
 
         $this->followingRedirects()
-            ->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => 'quatsch']))
+            ->get(route('tickets.orders.add', ['number' => '2137942', 'bestellnummer' => str_repeat('x', 41)]))
             ->assertSeeText(AddOrderRequest::MESSAGE)
             ->assertSee('aria-invalid="true"', false);
     });

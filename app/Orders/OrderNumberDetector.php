@@ -42,9 +42,10 @@ class OrderNumberDetector
     }
 
     /**
-     * Clean a typed or pasted order number; null when no known format fits.
+     * Clean a typed or pasted order number; null when no known format fits. With $any (numbers typed by an
+     * employee) every other non-empty entry counts as a number of a free format.
      */
-    public function normalize(string $input): ?OrderNumber
+    public function normalize(string $input, bool $any = false): ?OrderNumber
     {
         foreach ($this->formats() as $format) {
             $parsed = $format->parse($input);
@@ -52,6 +53,12 @@ class OrderNumberDetector
             if ($parsed !== null) {
                 return new OrderNumber($parsed['number'], $format, $parsed['claim'] === null ? [] : [$parsed['claim']]);
             }
+        }
+
+        $value = trim(preg_replace('/[\s\x{00A0}]+/u', ' ', $input) ?? '');
+
+        if ($any && $value !== '' && mb_strlen($value) <= 40 && preg_match('/[\x00-\x1F]/', $value) !== 1) {
+            return new OrderNumber($value, OrderFormats::freeform());
         }
 
         return null;

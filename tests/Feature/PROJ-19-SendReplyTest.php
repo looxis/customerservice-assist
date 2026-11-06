@@ -92,7 +92,7 @@ describe('the offer', function () {
     test('with a token the block shows recipient, subject, signature with the full name and the hint', function () {
         $id = sendAnalysis();
 
-        $html = test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('Antwort versenden')->assertSeeText('erika@example.org')->assertSeeText('wird über Zammad versendet', false)->getContent();
+        $html = test()->withCookie('staff_name', 'Nele')->withCookie('intro_mode', '1')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('Antwort versenden')->assertSeeText('erika@example.org')->assertSeeText('wird über Zammad versendet', false)->getContent();
 
         expect($html)->toContain('Re: Motiv erscheint nicht')->toContain('Nele Gorka')->toContain('LOOXIS GmbH')->toContain('Ticket schließen')->not->toContain('nele-secret-token');
     });
@@ -561,7 +561,7 @@ describe('attachments (PROJ-61)', function () {
     test('the send block offers files and the paste hint', function () {
         $id = sendAnalysis();
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()
+        $this->withCookie('staff_name', 'Nele')->withCookie('intro_mode', '1')->get('/tickets/2137942?analyse='.$id)->assertOk()
             ->assertSeeText('Datei anhängen')
             ->assertSeeText('Strg+V')
             ->assertSeeText('zusammen höchstens 5 MB')
