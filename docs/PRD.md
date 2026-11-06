@@ -88,6 +88,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Einführungsmodus: Infotexte nur bei eingeschaltetem Schalter „Einführung“ | In Progress |
 | Durchsicht der Wissensdateien auf überflüssige interne Schritte (gemeinsam, später, Einzelentscheidung je Treffer) | Planned |
 | Vorschlagsformular und Ergebnis weiter entschlacken (Formular nach neuen Nachrichten direkt offen, Zusatzinformationen leer, weniger Hinweise, zusammengehörige Tickets eingeklappt) | In Progress |
+| Sendungsnummer automatisch nachreichen: ToDo „Sendungsnummer nachreichen“ prüft nach X Stunden in EOCS den Versandstatus und verschickt die Sendungsnummer automatisch (berührt das Ziel „Versand nur nach Klick“) | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 

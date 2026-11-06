@@ -4,9 +4,18 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-06
+
+- ToDos: Häufige ToDos (Sendungsnummer nachreichen, (Teil-)Erstattung, Nachforschungsauftrag Versand) per Auswahl anlegen, mit vorbereiteter Antwort an den Kunden. Zuständig „Alle“ ist der Standard, „Wartet auf Ereignis“ steht jetzt im Feld „Fällig“. Die Antworttexte lassen sich unter Einstellungen > Mail-Anzeige ändern.
+- Benutzeroberfläche deutlich schlanker gestaltet. Nutzung vereinfacht. Hinweise die erfahrene Nutzer nicht benötigen, sind ausgeblendet und können oben rechts über "Hinweise anzeigen" wieder eingeblendet werden.
+
 ## 2026-11-04
 
+- Neue ToDos zu Tickets: Folgeaufgaben (z. B. Gutschrift nach Versand) legst du am Ticket oder beim Senden der Antwort an, auch wenn das Ticket danach geschlossen wird. Sie stehen auf der Startseite und unter „ToDos“. Beim Senden kannst du das Ticket jetzt auch offen lassen und eine interne Notiz mitgeben
+
 - Tickets können auch ohne KI-Einsatz direkt beantwortet werden
+
+- Gutscheincodes für looxis.de sind im Wissen hinterlegt (5€ willkommen, 10%, 20% und 30%) Diese müssen über das Info Fenster "angefordert" werden.
 
 ## 2026-11-03
 
