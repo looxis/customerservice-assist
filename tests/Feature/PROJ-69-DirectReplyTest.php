@@ -3,6 +3,7 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Models\Analysis;
 use App\Models\TrackedTicket;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -21,6 +22,16 @@ beforeEach(function () {
         'zammad.test/api/v1/tickets/51234' => Http::response(['id' => 51234, 'number' => '2137942']),
     ]);
 });
+
+function fakeClosedTicket(): void
+{
+    Http::swap(new Factory);
+    Http::fake(['eocs.test/*' => Http::response(['data' => []])]);
+    fakeZammad(ticket: ['state' => 'closed'], extra: [
+        'zammad.test/api/v1/users/me' => Http::response(['id' => 501, 'firstname' => 'Nele', 'lastname' => 'Gorka', 'login' => 'nele']),
+        'zammad.test/api/v1/tickets/51234' => Http::response(['id' => 51234, 'number' => '2137942']),
+    ]);
+}
 
 function startDirectReply(string $staff = 'Nele'): mixed
 {
@@ -41,6 +52,22 @@ describe('the buttons', function () {
             ->getContent();
 
         expect(substr_count($html, route('tickets.manual-reply', ['number' => '2137942'])))->toBe(2);
+    });
+
+    test('a closed ticket offers "Manuelle Nachricht senden" and no close button', function () {
+        fakeClosedTicket();
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
+            ->assertSeeText('Manuelle Nachricht senden')
+            ->assertDontSeeText('Ohne Antwort schließen');
+    });
+
+    test('a closed ticket gets a manual draft too', function () {
+        fakeClosedTicket();
+
+        $id = manualId(startDirectReply());
+
+        expect(Analysis::query()->where('uuid', $id)->value('status'))->toBe('manual');
     });
 
     test('no button without a personal token', function () {

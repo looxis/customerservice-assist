@@ -1,4 +1,4 @@
-@props(['ticket', 'canDelete' => false, 'canClose' => false, 'advanced' => false])
+@props(['ticket', 'canDelete' => false, 'canClose' => false, 'canReply' => false, 'advanced' => false])
 
 {{-- Header of a loaded ticket (PROJ-6). --}}
 <x-card>
@@ -91,13 +91,15 @@
         <x-button :href="route('tickets.show', array_filter(['number' => $ticket->number, 'bestellungen' => request()->query('bestellungen')]))" variant="secondary" title="Lädt das Ticket und die Bestellungen neu aus Zammad und EOCS, zum Beispiel wenn der Kunde inzwischen geantwortet hat." x-data x-on:click="$dispatch('loading-start', { title: 'Ticket wird aktualisiert …' })">
             <x-icon name="refresh" size="16" /> Aktualisieren
         </x-button>
-        @if ($canClose)
+        @if ($canClose || $canReply)
             <form method="POST" action="{{ route('tickets.manual-reply', ['number' => $ticket->number]) }}">
                 @csrf
                 <x-button type="submit" variant="secondary" title="Ohne Vorschlag direkt eine Antwort schreiben und senden (kein KI-Aufruf).">
-                    <x-icon name="edit" size="16" /> Direkt antworten
+                    <x-icon name="edit" size="16" /> {{ $ticket->closed ? 'Manuelle Nachricht senden' : 'Direkt antworten' }}
                 </x-button>
             </form>
+        @endif
+        @if ($canClose)
             <x-button variant="danger" x-data x-on:click="$dispatch('close-ticket')">
                 <x-icon name="x-circle" size="16" /> Ohne Antwort schließen
             </x-button>

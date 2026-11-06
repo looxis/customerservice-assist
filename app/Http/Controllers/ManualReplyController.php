@@ -14,7 +14,7 @@ class ManualReplyController extends Controller
 {
     /**
      * Open the reply view of a ticket without a language model call (PROJ-69): an empty draft the employee writes
-     * and sends like a proposal.
+     * and sends like a proposal. Also for a closed ticket, as a further message to the customer.
      */
     public function __invoke(string $number, StartManualReplyRequest $request, ZammadClient $zammad, AnalysisStore $store, StaffDirectory $staff): RedirectResponse
     {
@@ -24,8 +24,8 @@ class ManualReplyController extends Controller
             return redirect()->route('tickets.show', ['number' => $number])->with('error', $exception->problem->message($number));
         }
 
-        if ($ticket->closed) {
-            return redirect()->route('tickets.show', ['number' => $number])->with('error', "Ticket#{$number} ist geschlossen.");
+        if ($ticket->mergedIntoNumber !== null) {
+            return redirect()->route('tickets.show', ['number' => $number])->with('error', "Ticket#{$number} wurde zusammengeführt. Bitte in Ticket#{$ticket->mergedIntoNumber} antworten.");
         }
 
         $newest = collect($ticket->articles)->reject(fn ($article): bool => $article->kind === ArticleKind::Internal)->last()?->id;

@@ -32,7 +32,8 @@
         @endif
 
         @php($canCloseTicket = ($canCloseTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
-        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
+        @php($canReplyToClosed = ($canCloseTickets ?? false) && $ticket->closed && $ticket->mergedIntoNumber === null && $ticket->rewoundTo === null)
+        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-reply="$canReplyToClosed" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []" :claim-references="$claimReferences ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
