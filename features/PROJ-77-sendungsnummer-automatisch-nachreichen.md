@@ -1,8 +1,8 @@
 # PROJ-77: Sendungsnummer automatisch nachreichen
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-06
-**Last Updated:** 2026-11-06
+**Last Updated:** 2026-11-06 (Tech Design)
 
 ## Dependencies
 - Requires: PROJ-70 (ToDos; häufige ToDos, Reklamationsnummer am ToDo in `external_ref`, vorbereitete Antwort), PROJ-7 (Bestellung und Reklamationsaufträge samt Sendungen aus EOCS), PROJ-19 (Antwort über Zammad senden, Token und Signatur je Mitarbeiter), PROJ-27 (Einstellungen mit Verlauf: Vorlagentext), PROJ-67/68 (Ticket-Eingang, Zusammenführung und Schließen)
@@ -119,9 +119,9 @@ Obergrenze: 5 Kalendertage ab dem Anlegen, Sonntage zählen nicht mit. Danach en
 - Zeitzone: Europe/Berlin für Zeitplan, Anzeige und Obergrenze.
 
 ## Open Questions
-- [ ] Welche Zeiten gelten, wenn ein ToDo am Sonntag angelegt wird? Annahme: wie „ab 16:00“, erste Prüfung am Montag um 11:26.
-- [ ] Wo steht der Haken „automatisch senden“ im Dialog „ToDo anlegen“ der ToDo-Übersicht, wenn dort kein Fall bekannt ist (keine Sprache, keine Reklamationsnummer)? Annahme: Haken nur sichtbar, wenn eine Nummer eingetragen ist; der Dialog bekommt dafür ein Feld „Reklamations- oder Bestellnummer“.
-- [ ] Wann endet die Prüfung bei Wochenenden genau (5 Kalendertage ohne Sonntage ab dem Anlegen)? Annahme wie beschrieben; bei Bedarf im Architekturschritt konkretisieren.
+- [x] (entschieden) Welche Zeiten gelten, wenn ein ToDo am Sonntag angelegt wird? Annahme: wie „ab 16:00“, erste Prüfung am Montag um 11:26.
+- [x] (im Architekturschritt entschieden) Wo steht der Haken „automatisch senden“ im Dialog „ToDo anlegen“ der ToDo-Übersicht, wenn dort kein Fall bekannt ist (keine Sprache, keine Reklamationsnummer)? Annahme: Haken nur sichtbar, wenn eine Nummer eingetragen ist; der Dialog bekommt dafür ein Feld „Reklamations- oder Bestellnummer“.
+- [x] (entschieden) Wann endet die Prüfung bei Wochenenden genau (5 Kalendertage ohne Sonntage ab dem Anlegen)? Annahme wie beschrieben; bei Bedarf im Architekturschritt konkretisieren.
 - [ ] Ein Hauptschalter für den Notfall wurde bewusst nicht aufgenommen; nach den ersten Stichproben neu bewerten.
 
 ## Decision Log
@@ -146,12 +146,85 @@ Obergrenze: 5 Kalendertage ab dem Anlegen, Sonntage zählen nicht mit. Danach en
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Geplante Läufe mit vier festen Zeiten (Mo–Sa) statt Termin je ToDo | Zeitplaner existiert; feste Zeiten verteilen die Last auf EOCS und sind zentral änderbar | 2026-11-06 |
+| Zeitplanregel in einer eigenen, testbaren Klasse (Anlegezeit + Zeitpunkt → dran oder nicht) | Zeitfälle (vor 14, 14–16, ab 16, Sonntag, 5 Tage) sind fehleranfällig; mit vorgegebener Uhrzeit sauber testbar | 2026-11-06 |
+| Versand über die bestehenden Zammad-Versandteile (Token des Anlegers, Signatur, Nachfrage nach Abbruch) | Gleiches Verhalten und gleiche Sicherungen wie PROJ-19; keine zweite Versandlogik | 2026-11-06 |
+| Antwort direkt aus der Vorlage ohne Antwortvorschlag | Es gibt keine Analyse dahinter; wie „Direkt antworten“ (PROJ-69) | 2026-11-06 |
+| Spalten am ToDo für Haken, Sprache, Stand, Zähler und Versanddaten; Prüfprotokoll als eigene Tabelle | Die Anzeige und die Stichprobe brauchen den Verlauf in der App; der Inhalt eines Vorschlags wird nach der Aufbewahrungsfrist gelöscht | 2026-11-06 |
+| Gesendeter Text und Sendungsnummern am ToDo verschlüsselt | Enthalten Kundendaten, wie die übrigen ToDo-Texte (PROJ-70) | 2026-11-06 |
+| Atomare Übernahme je ToDo vor dem Senden | Zwei Läufe oder Neustarts dürfen nie zweimal an den Kunden senden | 2026-11-06 |
+| Keine Änderung an Policies, Middleware oder neuen Paketen | Kein neuer Zugriffsweg: Läufe starten im Zeitplaner, die Oberfläche bleibt wie PROJ-70 | 2026-11-06 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+Backend nötig: ja (Datenbank, geplante Läufe, Zugriff auf EOCS und Zammad). Keine neuen Pakete.
+
+### A) Bausteine (Übersicht)
+```
+Anlegen des ToDos (vorhanden, PROJ-70)
++-- Ergebnisseite: Sendeformular, ToDo-Zeile „Sendungsnummer nachreichen“
+|   +-- NEU: Haken „Sendungsnummer automatisch senden“ (vorab gesetzt; abgewählt + Hinweis bei Sprache nicht Deutsch / unbekannt)
++-- Dialog „ToDo anlegen / bearbeiten“ (ToDo-Übersicht)
+|   +-- NEU: Feld „Reklamations- oder Bestellnummer“ und derselbe Haken (nur mit Nummer sichtbar)
+
+Geplanter Lauf (NEU, Mo–Sa, 4 feste Zeiten)
++-- Auswahl: welche ToDos sind zu diesem Zeitpunkt dran (Zeitplan, 5-Tage-Grenze)
++-- Prüfung je ToDo
+|   +-- Sendungen der Reklamation aus EOCS holen (vorhanden, PROJ-70)
+|   +-- Entscheidung: senden / „Bitte prüfen“ / weiter warten / Fehler zählen
+|   +-- Senden: Antwort aus Vorlage, im Namen des Mitarbeiters, interne Notiz, Ticket schließen, ToDo erledigen
++-- Protokoll je Prüfung (Verlauf des ToDos)
+
+Anzeige (vorhanden, erweitert)
++-- ToDo-Zeile: Stand „nächste Prüfung …“, „automatisch gesendet …“, „Bitte prüfen: Grund“, „fehlt seit 5 Tagen“
++-- Verlauf je ToDo (Prüfungen, Ergebnis)
++-- „Bitte prüfen“ öffnet die vorbereitete Antwort (vorhandener Weg aus PROJ-70)
+```
+
+### B) Daten (einfach beschrieben)
+Am vorhandenen ToDo kommen Angaben dazu:
+- **Automatisch senden:** ja/nein (Haken).
+- **Sprache des Kunden** zum Zeitpunkt des Anlegens (aus dem Antwortvorschlag; gespeichert, weil der Inhalt des Vorschlags nach der Aufbewahrungsfrist geleert wird).
+- **Stand der Automatik:** wartet / gesendet / bitte prüfen / abgelaufen (5 Tage) / beendet (von Hand erledigt).
+- **Grund** bei „Bitte prüfen“ (Text), Zahl der Prüfungen, Zahl der technischen Fehler in Folge, Zeitpunkt der letzten Prüfung.
+- **Versand:** Zeitpunkt, die gesendeten Sendungsnummern und der gesendete Text (verschlüsselt, wie die anderen ToDo-Texte).
+- Die **Reklamations- oder Bestellnummer** liegt schon am ToDo (PROJ-70).
+
+Neu ist ein **Prüfprotokoll**: je Prüfung eine Zeile mit ToDo, Zeitpunkt, Ergebnis (noch nichts / gesendet / bitte prüfen / Fehler) und kurzer Notiz. Es wird zusammen mit dem ToDo gelöscht und dient dem Verlauf in der Anzeige.
+
+Die Einstellung (Vorlagentext) existiert bereits (PROJ-70, Einstellungen > Mail-Anzeige). Alles Neue liegt in der Datenbank der App; in Zammad und EOCS wird nichts gespeichert außer der gesendeten Antwort samt interner Notiz.
+
+### C) Ablauf der Prüfung (Entscheidungsfolge)
+1. Der Lauf startet zu 11:26, 16:07, 16:16 und 18:34 (nur Mo–Sa, Zeitzone Berlin).
+2. Dran ist ein ToDo nur, wenn: Haken gesetzt, noch offen, Stand „wartet“, Nummer vorhanden, und der Zeitplan diesen Zeitpunkt für sein Anlegedatum vorsieht (16:07 nur für ToDos von vor 14:00, 18:34 nur für ToDos von vor 16:00, 11:26 und 16:16 erst ab dem Folgetag). Sind seit dem Anlegen 5 Tage ohne Sonntage vergangen, wird nicht mehr geprüft und der Stand auf „abgelaufen“ gesetzt.
+3. Sendungen der Reklamation aus EOCS holen. Steht am ToDo nur die Originalbestellung, wird die neueste Reklamation gesucht (nie die Sendungen der Originalbestellung).
+4. Keine Sendungsnummer → Protokoll „noch nichts“, nächster Zeitpunkt.
+5. Sendungsnummer da → Schutzregeln in dieser Reihenfolge: Sprache Deutsch, jede Nummer mit Dienstleister, Zugang des Mitarbeiters gültig, Text ohne offene Platzhalter. Fehlt etwas → „Bitte prüfen“ mit Grund, die Antwort wird wie beim bisherigen „Erledigen mit Kundenbenachrichtigung“ vorbereitet.
+6. Sonst senden: ToDo wird atomar „in Versand“ gesetzt (nur ein Lauf gewinnt), Antwort an die Kundenadresse des Tickets (bei Zusammenführung das Zielticket), interne Notiz, Ticket schließen, ToDo erledigt mit Kennzeichen „automatisch“.
+7. Technischer Fehler (EOCS, Zammad) → Fehler zählen, beim dritten in Folge „Bitte prüfen: technischer Fehler“. Kam die Antwort in Zammad schon an, gilt das ToDo als erledigt, auch wenn Notiz oder Schließen scheitern (der Schritt wird am ToDo vermerkt).
+
+Doppelversand ist ausgeschlossen: atomare Übernahme je ToDo plus Nachfrage in Zammad, ob die Antwort nach einem Abbruch schon angekommen ist (wie beim Senden in PROJ-19).
+
+### D) Technische Entscheidungen (für das Produktteam)
+- **Geplante Läufe statt einzelner Termine je ToDo:** Die App hat schon einen Zeitplaner (PROJ-11, 60, 64, 66). Vier feste Läufe passen zum Wunsch nach festen, ungeraden Zeiten und erzeugen keine zusätzliche Infrastruktur.
+- **Zeitplan als kleine, getestete Regel**, nicht als Termin im ToDo: Der Lauf entscheidet aus Anlegezeit, heutigem Datum und Uhrzeit, ob ein ToDo dran ist. Das ist leicht zu testen (feste Uhrzeiten vorgeben) und ändert sich zentral.
+- **Versand über den vorhandenen Weg zu Zammad** (PROJ-19), nicht über einen neuen: gleicher Zugang je Mitarbeiter, gleiche Signatur, gleiche Nachfrage bei Abbruch. Der Unterschied: kein Antwortvorschlag dahinter, daher wird die Antwort direkt aus der Vorlage zusammengesetzt (ein „Direkt antworten“ wie PROJ-69).
+- **Sprache am ToDo speichern**, weil sie später nicht mehr sicher ermittelbar ist (Aufbewahrungsfrist der Vorschläge).
+- **Reklamation über die vorhandene EOCS-Abfrage** (PROJ-70, Sendungen mit der Reklamationssuche): kein neuer Zugriff.
+- **Eigenes Prüfprotokoll** statt Logdatei: Die Anzeige und die Stichprobe des Auftraggebers brauchen Verlauf je ToDo in der App.
+- **Autorisierung:** wie PROJ-70 (feste Namensliste, kein Login); der Versand verwendet den Token des Anlegers. Keine Änderung an Policies oder Middleware.
+
+### E) Abhängigkeiten (Pakete)
+Keine neuen. Genutzt werden vorhandene Teile: Zeitplaner, EOCS-Zugriff, Zammad-Versand, Einstellungen mit Verlauf, ToDo-Verwaltung.
+
+### F) Offene Punkte aus dem Spec, hier entschieden
+- Dialog „ToDo anlegen“ der Übersicht bekommt ein Feld „Reklamations- oder Bestellnummer“; der Haken erscheint nur, wenn eine Nummer eingetragen ist. Eine dort angelegte Bestellung ohne Sprache gilt als „Sprache unbekannt“ und sendet nicht automatisch (Haken abgewählt, Hinweis).
+- Sonntags angelegte ToDos: erste Prüfung Montag 11:26.
+- Die 5 Tage zählen Kalendertage ohne Sonntage ab dem Anlegetag; am sechsten Prüftag wird nicht mehr geprüft.
+
 
 ## QA Test Results
 _To be added by /qa_
