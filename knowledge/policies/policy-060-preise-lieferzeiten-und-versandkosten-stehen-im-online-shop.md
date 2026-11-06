@@ -57,6 +57,6 @@ Beträge und Fristen, die ein anderes Wissensdokument ausdrücklich als Regel fe
 
 - Preise, Lieferzeiten, Mengen, Versandkosten oder Freigrenzen aus dem Gedächtnis oder dem Wissen nennen oder schätzen.
 
-# Noch zu klären
+# Amazon
 
-- Gilt die Regel auch für Amazon (dort stehen die Angaben im Amazon-Angebot)?
+Die Regel gilt auch für Amazon. Dort stehen die Angaben im Amazon-Angebot; der Kundenservice verweist darauf.

@@ -71,7 +71,6 @@ Ist die USt-IdNr nicht gültig und bestellt der Kunde trotzdem mehrwertsteuerfre
 - Eine Änderung für eine EU-Firma übernehmen, ohne die Nummer geprüft zu haben.
 - Eine nicht geprüfte Nummer als gültig bezeichnen.
 
-# Noch zu klären
+# Fälle ohne feste Regel
 
-- Wie wird mit bereits aufgegebenen Bestellungen einer Firma verfahren, deren Nummer sich nachträglich als ungültig erweist?
-- Wird das Prüfergebnis im Ticket oder in EOCS vermerkt?
+Für bereits aufgegebene Bestellungen einer Firma, deren Nummer sich nachträglich als ungültig erweist, und für den Umgang mit dem Prüfergebnis gibt es keine feste Regel. Beides wird von Fall zu Fall mit der Geschäftsführung geklärt. Der Kundenservice sagt dem Kunden dazu nichts zu.

@@ -1,8 +1,8 @@
 # PROJ-75: Durchsicht der Wissensdateien auf überflüssige interne Schritte
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-11-05
-**Last Updated:** 2026-11-05
+**Last Updated:** 2026-11-06
 
 ## Dependencies
 - Requires: PROJ-73 (Ergebnisansicht entschlacken, „Schritte für diesen Fall“ entfallen)
@@ -59,6 +59,19 @@
 
 ---
 <!-- Sections below are added by subsequent skills -->
+
+## Implementation Notes (2026-11-06)
+Erste Durchsicht mit Etienne, Entscheidung je Treffer:
+- Behalten: PLAYBOOK-029 (Neuversand veranlasst der Mitarbeiter), POLICY-005, POLICY-006.
+- Gekürzt: PROCESS-001 (Schritt 4 in Schritt 3 aufgenommen), PROCESS-007 (Schritt 6 ohne „veranlassen“), PROCESS-015 (Schritt 8 verweist auf POLICY-042), PLAYBOOK-046 (Wirksamkeit im Shop verweist auf POLICY-042).
+- „Noch zu klären“ entschieden: POLICY-052 (Abschnitt entfernt, PROCEDURE-004 deckt das Schließen ab), POLICY-060 (gilt auch für Amazon), POLICY-061 (Fälle ohne feste Regel: von Fall zu Fall mit der Geschäftsführung), POLICY-009 (vorläufig bis 2027-03-31, Bewertung im Gespräch mit den Kollegen).
+- Skill `knowledge` fragt bei internen Schritten, ob sie automatisch laufen.
+
+### Offen, Etienne kommt später darauf zurück
+- PROCESS-011, PROCESS-015, PLAYBOOK-030: EOCS- und Mollie-Klickschritte fehlen (Vorschlag: gemeinsame Arbeitsanleitung, PROCESS-015 zusätzlich PDF-Vorlage für das Mandat). Die Abschnitte „Noch zu klären“ stehen dort bis dahin weiter.
+- PRODUCT `edible-photo`: Kriterien für Material- und Druckeinflüsse gegenüber einem Druckfehler, Grenzen einer Korrektur bei Neuproduktion.
+- POLICY-009: Der Text nennt den Weg „noch nicht freigegeben, nicht anbieten“, obwohl er jetzt als Testphase geführt wird; vor Testbeginn klären, ob er angeboten werden soll.
+- Nicht durchsucht: Produktdateien und Verfahren außerhalb der Stichworte.
 
 ## Tech Design (Solution Architect)
 _To be added by /architecture_

@@ -3,6 +3,8 @@ id: POLICY-009
 title: Zahlungsabwicklung und Teilerstattung auf Amazon
 type: policy
 status: active
+trial_until: 2027-03-31
+trial_goal: "Ob die Rechnung beim kostenpflichtigen Neuversand auf Vertrauensbasis funktioniert und hilft, entscheiden wir im Gespräch mit den Kollegen."
 sales_channels:
 - amazon
 categories:
@@ -45,6 +47,6 @@ Die Teilerstattung ist erst möglich, nachdem die Ware der neuen Bestellung vers
 
 Eine rein kostenfreie Ersatzlieferung wird durch diese Zahlungsregel nicht automatisch zu einer kostenpflichtigen Neubestellung.
 
-# Noch zu klären
+# Rechnung beim kostenpflichtigen Neuversand (Testphase)
 
-Eine Rechnung, die einem kostenpflichtigen Neuversand nach Rücksendung eines nicht zustellbaren oder nicht abgeholten Pakets beigelegt wird, ist nur eine unentschiedene Idee auf Vertrauensbasis. Dieser Weg ist noch nicht freigegeben und wird nicht als verfügbare Lösung angeboten.
+Testweise gültig bis 31.03.2027. Eine Rechnung, die einem kostenpflichtigen Neuversand nach Rücksendung eines nicht zustellbaren oder nicht abgeholten Pakets beigelegt wird, ist nur eine unentschiedene Idee auf Vertrauensbasis. Dieser Weg ist noch nicht freigegeben und wird nicht als verfügbare Lösung angeboten.
