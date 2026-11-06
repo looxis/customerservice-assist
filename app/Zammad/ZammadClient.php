@@ -258,6 +258,69 @@ class ZammadClient
     }
 
     /**
+     * One page of the tickets created in a period, oldest first, as IDs (PROJ-78). Only the groups named here are left
+     * out, not the groups of the ticket sync.
+     *
+     * @param  list<string>  $excludedGroups
+     * @return array{ids: list<int>, total: int}
+     *
+     * @throws ZammadException
+     */
+    public function createdTicketsPage(CarbonImmutable $from, CarbonImmutable $to, int $page, array $excludedGroups = []): array
+    {
+        $query = "created_at:[{$from->toIso8601ZuluString()} TO {$to->toIso8601ZuluString()}]";
+
+        foreach ($excludedGroups as $group) {
+            $query .= ' AND NOT group.name:"'.str_replace('"', '', $group).'"';
+        }
+
+        $result = $this->get('tickets/search', ['query' => $query, 'page' => $page, 'per_page' => self::SYNC_PAGE_SIZE, 'sort_by' => 'created_at', 'order_by' => 'asc', 'with_total_count' => 'true']);
+
+        if (! is_array($result['records'] ?? null) || ! isset($result['total_count'])) {
+            throw new ZammadException(ZammadProblem::Unavailable);
+        }
+
+        return [
+            'ids' => array_values(array_map(fn (array $record): int => (int) $record['id'], array_filter($result['records'], fn (mixed $record): bool => is_array($record) && isset($record['id'])))),
+            'total' => (int) $result['total_count'],
+        ];
+    }
+
+    /**
+     * The first message of the customer: an e-mail or web message with text, not a phone note and not one of ours (PROJ-78).
+     *
+     * @throws ZammadException
+     */
+    public function firstCustomerArticle(int $ticketId, ?int $customerId): ?TicketArticle
+    {
+        $articles = $this->get("ticket_articles/by_ticket/{$ticketId}", ['expand' => 'true']);
+        $customer = $customerId !== null ? $this->customer($customerId) : null;
+        $this->orders = [];
+
+        foreach ($this->articles($articles, $customerId, $customer['email'] ?? null) as $article) {
+            if ($article->kind === ArticleKind::Customer && ! $article->automatic && ! in_array($article->type, ['phone', 'note'], true) && $article->hasText()) {
+                return $article;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The tags of a ticket (PROJ-78).
+     *
+     * @return list<string>
+     *
+     * @throws ZammadException
+     */
+    public function ticketTags(int $ticketId): array
+    {
+        $tags = $this->get('tags', ['object' => 'Ticket', 'o_id' => $ticketId])['tags'] ?? [];
+
+        return array_values(array_filter(is_array($tags) ? $tags : [], 'is_string'));
+    }
+
+    /**
      * The name of a Zammad user, only for display (PROJ-66).
      *
      * @throws ZammadException

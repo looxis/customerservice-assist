@@ -28,3 +28,6 @@ Schedule::command('tickets:purge')->dailyAt('04:00');
 foreach (['26 11', '7 16', '16 16', '34 18'] as $time) {
     Schedule::command('todos:check-tracking')->cron("{$time} * * 1-6")->timezone('Europe/Berlin')->withoutOverlapping(30);
 }
+
+// PROJ-78: empty the message texts of the ticket tagging after the retention period.
+Schedule::command('labeling:purge')->dailyAt('04:15');

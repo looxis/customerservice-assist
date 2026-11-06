@@ -41,6 +41,7 @@ return [
         'summary' => resource_path('prompts/summary.md'),
         'translation' => resource_path('prompts/translation.md'),
         'router' => resource_path('prompts/router.md'),
+        'labeling' => resource_path('prompts/labeling.md'),
     ],
 
     /*

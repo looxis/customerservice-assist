@@ -1,5 +1,5 @@
 <x-layouts.app title="Beschriftung: Tickets" width="6xl">
-    <x-labeling.nav :$preview />
+    <x-labeling.nav />
 
     <x-card>
         <form method="GET" action="{{ route('labeling.tickets') }}" class="flex flex-wrap items-end gap-4">
@@ -40,28 +40,29 @@
                         @foreach ($rows as $row)
                             <tr>
                                 <td class="px-4 py-3 align-top">
-                                    <a href="{{ rtrim((string) config('services.zammad.url'), '/') }}/#ticket/zoom/{{ $row['id'] }}" target="_blank" rel="noopener" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $row['number'] }}</a>
+                                    <a href="{{ rtrim((string) config('services.zammad.url'), '/') }}/#ticket/zoom/{{ $row['zammad_id'] }}" target="_blank" rel="noopener" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $row['number'] }}</a>
                                     <span class="block text-xs text-slate-600">{{ $row['group'] }} · {{ $row['source'] }}</span>
                                 </td>
                                 <td class="max-w-md px-4 py-3 align-top text-slate-900">{{ \Illuminate\Support\Str::limit($row['excerpt'], 110) }}</td>
                                 <td class="px-4 py-3 align-top">
-                                    <x-badge compact tone="info">{{ $row['suggestion']->label() }}</x-badge>
+                                    @if ($row['suggestion'])<x-badge compact tone="info">{{ $row['suggestion']->label() }}</x-badge>@else<x-badge compact>Keine Kategorie</x-badge>@endif
                                     <span class="block text-xs text-slate-600">Konfidenz {{ (int) round($row['confidence'] * 100) }} %</span>
                                 </td>
                                 <td class="px-4 py-3 align-top">
                                     @if ($row['decision'])
-                                        <x-badge compact tone="success">{{ $row['decision']->label() }}</x-badge>
+                                        <x-badge compact tone="success">{{ $row['decision'] }}</x-badge>
                                     @else
                                         <x-badge compact>Offen</x-badge>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 align-top">
                                     @if ($row['tag'])
-                                        <span class="font-mono text-xs text-slate-900">{{ $row['decision']->tag($row['test']) }}</span>
+                                        <span class="font-mono text-xs text-slate-900">{{ $row['tag_value'] }}</span>
                                         <span class="block text-xs text-slate-600">{{ $row['tag'] }}</span>
                                     @else
                                         <span class="text-slate-600">–</span>
                                     @endif
+                                    @if ($row['tag_problem'])<span class="block text-xs text-danger-700">{{ $row['tag_problem'] }}</span>@endif
                                     @if ($row['test'])<x-badge compact tone="warning">Test</x-badge>@endif
                                 </td>
                             </tr>

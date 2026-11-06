@@ -49,8 +49,10 @@
     </p>
 
     @if ($row['locked'])
-        <x-alert type="error">Die Quote der letzten Stichproben liegt unter {{ $minRate }} %. Es werden keine weiteren Tags automatisch geschrieben.</x-alert>
-    @elseif (! $row['released'])
+        <x-alert type="error">Die Quote der letzten Stichproben lag unter {{ $minRate }} %. Es werden keine Tags mehr automatisch geschrieben, bis neue Stichproben wieder reichen.</x-alert>
+    @endif
+
+    @if (! $row['released'])
         <form method="POST" action="{{ route('labeling.categories.release', ['category' => $category->value]) }}">
             @csrf
             <x-button type="submit" :disabled="! $canRelease">Freigeben</x-button>

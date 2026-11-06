@@ -1,32 +1,36 @@
 <x-layouts.app title="Beschriftung" width="6xl">
-    <x-labeling.nav :$preview />
+    <x-labeling.nav />
 
-    @if ($categories->sum(fn (array $row): int => $row['open'] + $row['confirmed'] + $row['corrected'] + $row['automatic']) === 0)
+    @if ($captured === 0)
         <x-card>
             <p class="text-sm text-slate-600">Noch keine Tickets erfasst. Starte unten den Abruf, danach die Klassifikation.</p>
         </x-card>
     @else
         <section aria-label="Kategorien" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($categories as $row)
-                <x-labeling.category-card :$row />
+                <x-labeling.category-card :$row :min-cases="$settings['min_cases']" :min-rate="$settings['min_rate']" :target="$settings['target']" />
             @endforeach
         </section>
+
+        @if ($references['total'] > 0)
+            <p class="text-sm text-slate-600">Referenz: {{ $references['hits'] }} von {{ $references['total'] }} Tickets, die schon vor der Beschriftung ein <span class="font-mono">train:</span>-Tag hatten, hat das Modell richtig eingeordnet.</p>
+        @endif
     @endif
 
     <x-card class="space-y-5">
         <h2 class="text-base font-semibold text-slate-900">Läufe</h2>
 
-        <form method="POST" action="{{ route('labeling.runs.store') }}" x-data="{ kind: 'abruf', dry: true, busy: false }" x-on:submit="busy = true" class="space-y-4">
+        <form method="POST" action="{{ route('labeling.runs.store') }}" x-data="{ kind: 'fetch', dry: true, busy: false }" x-on:submit="busy = true" class="space-y-4">
             @csrf
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-select name="kind" label="Lauf" x-model="kind">
-                    <option value="abruf">Abruf aller Tickets</option>
-                    <option value="klassifikation">Klassifikation</option>
-                    <option value="neu-klassifizieren">Neu klassifizieren (Tickets ohne Tag)</option>
+                    <option value="fetch">Abruf aller Tickets</option>
+                    <option value="classify">Klassifikation</option>
+                    <option value="reclassify">Neu klassifizieren (Tickets ohne Tag)</option>
                     <option value="tags">Tags schreiben</option>
                 </x-select>
 
-                <x-input name="excluded_groups" label="Gruppen vom Pool ausnehmen" hint="Kommagetrennt, z. B. Spam. Leer heißt: alle Gruppen." x-show="kind === 'abruf'" />
+                <x-input name="excluded_groups" label="Gruppen vom Pool ausnehmen" hint="Kommagetrennt, z. B. Spam. Leer heißt: alle Gruppen." :value="$settings['excluded_groups']" x-show="kind === 'fetch'" />
             </div>
 
             <label x-show="kind === 'tags'" x-cloak class="flex items-center gap-2 text-sm text-slate-900">
@@ -52,7 +56,8 @@
                             <th scope="col" class="py-2 pr-4">Start</th>
                             <th scope="col" class="py-2 pr-4">Stand</th>
                             <th scope="col" class="py-2 pr-4">Zähler</th>
-                            <th scope="col" class="py-2">Admin</th>
+                            <th scope="col" class="py-2 pr-4">Admin</th>
+                            <th scope="col" class="py-2"><span class="sr-only">Aktion</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -60,9 +65,17 @@
                             <tr>
                                 <td class="py-2 pr-4 text-slate-900">{{ $run['kind'] }}</td>
                                 <td class="py-2 pr-4 text-slate-900">{{ $run['started'] }}</td>
-                                <td class="py-2 pr-4"><x-badge compact :tone="$run['state'] === 'läuft' ? 'info' : 'success'">{{ ucfirst($run['state']) }}</x-badge></td>
+                                <td class="py-2 pr-4"><x-badge compact :tone="match ($run['state']) { 'läuft' => 'info', 'fertig' => 'success', 'abgebrochen' => 'neutral', default => 'danger' }">{{ ucfirst($run['state']) }}</x-badge></td>
                                 <td class="py-2 pr-4 text-slate-900">{{ $run['counter'] }}</td>
-                                <td class="py-2 text-slate-900">{{ $run['admin'] }}</td>
+                                <td class="py-2 pr-4 text-slate-900">{{ $run['admin'] }}</td>
+                                <td class="py-2 text-right">
+                                    @if ($run['active'])
+                                        <form method="POST" action="{{ route('labeling.runs.cancel', ['run' => $run['id']]) }}">
+                                            @csrf
+                                            <x-button type="submit" variant="secondary">Abbrechen</x-button>
+                                        </form>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -75,12 +88,13 @@
         <form method="POST" action="{{ route('labeling.settings.update') }}" class="grid gap-4 sm:grid-cols-2">
             @csrf
             @method('PATCH')
-            <x-input name="target" type="number" label="Zielwert je Kategorie" hint="Bestätigte oder getaggte Tickets" value="100" min="1" />
-            <x-input name="min_cases" type="number" label="Stichprobenfälle für die Freigabe" value="50" min="1" />
-            <x-input name="min_rate" type="number" label="Nötige Trefferquote (%)" value="95" min="50" max="100" />
-            <x-input name="sample_share" type="number" label="Stichprobenanteil (%)" hint="Anteil der eindeutigen Vorschläge, den du prüfst" value="15" min="1" max="100" />
-            <x-input name="confidence" type="number" step="0.01" label="Konfidenz-Schwelle" hint="Darunter gilt ein Vorschlag nicht als eindeutig" value="0.85" min="0" max="1" />
-            <x-input name="examples" type="number" label="Beispiele je Kategorie im Prompt" value="8" min="0" max="20" />
+            <x-input name="target" type="number" label="Zielwert je Kategorie" hint="Bestätigte oder getaggte Tickets" :value="$settings['target']" min="1" />
+            <x-input name="min_cases" type="number" label="Stichprobenfälle für die Freigabe" :value="$settings['min_cases']" min="1" />
+            <x-input name="min_rate" type="number" label="Nötige Trefferquote (%)" :value="$settings['min_rate']" min="50" max="100" />
+            <x-input name="sample_share" type="number" label="Stichprobenanteil (%)" hint="Anteil der eindeutigen Vorschläge, den du prüfst" :value="$settings['sample_share']" min="1" max="100" />
+            <x-input name="confidence" type="number" step="0.01" label="Konfidenz-Schwelle" hint="Darunter gilt ein Vorschlag nicht als eindeutig" :value="$settings['confidence']" min="0" max="1" />
+            <x-input name="examples" type="number" label="Beispiele je Kategorie im Prompt" :value="$settings['examples']" min="0" max="20" />
+            <input type="hidden" name="excluded_groups" value="{{ $settings['excluded_groups'] }}">
             <div class="sm:col-span-2">
                 <x-button type="submit" variant="secondary">Speichern</x-button>
             </div>

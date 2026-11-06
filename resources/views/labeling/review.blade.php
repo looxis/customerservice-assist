@@ -1,5 +1,5 @@
 <x-layouts.app title="Beschriftung: Prüfen" width="5xl">
-    <x-labeling.nav :$preview />
+    <x-labeling.nav />
 
     <nav class="flex flex-wrap gap-2" aria-label="Warteschlangen">
         @foreach ($queues as $key => $info)
@@ -28,10 +28,11 @@
                   if (button && ! busy) { $event.preventDefault(); button.click() }
               ">
             @csrf
+            <input type="hidden" name="queue" value="{{ $queue }}">
             <x-card class="space-y-5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-2">
-                        <a href="{{ rtrim((string) config('services.zammad.url'), '/') }}/#ticket/zoom/{{ $ticket['id'] }}" target="_blank" rel="noopener" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $ticket['number'] }}</a>
+                        <a href="{{ rtrim((string) config('services.zammad.url'), '/') }}/#ticket/zoom/{{ $ticket['zammad_id'] }}" target="_blank" rel="noopener" class="font-mono text-brand hover:text-brand-hover">Ticket#{{ $ticket['number'] }}</a>
                         <span class="text-sm text-slate-600">{{ $ticket['created'] }} · {{ $ticket['group'] }}</span>
                         <x-badge compact :tone="$ticket['test'] ? 'warning' : 'neutral'">{{ $ticket['test'] ? 'Testmenge' : 'Training' }}</x-badge>
                     </div>

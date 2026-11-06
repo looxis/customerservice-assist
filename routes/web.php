@@ -87,15 +87,16 @@ Route::patch('/produktfragen', [ProductQuestionController::class, 'update'])->mi
 Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
 
-// PROJ-78: ticket tagging for training data (admins only). The actions answer "not connected yet" until the backend exists.
+// PROJ-78: ticket tagging for training data (admins only).
 Route::get('/beschriftung', [LabelingController::class, 'index'])->name('labeling.index');
 Route::get('/beschriftung/pruefen', [LabelingController::class, 'review'])->name('labeling.review');
 Route::get('/beschriftung/tickets', [LabelingController::class, 'tickets'])->name('labeling.tickets');
 Route::middleware('staff.selected')->group(function (): void {
-    Route::post('/beschriftung/laeufe', [LabelingController::class, 'pending'])->name('labeling.runs.store');
-    Route::post('/beschriftung/kategorien/{category}/freigabe', [LabelingController::class, 'pending'])->name('labeling.categories.release');
-    Route::post('/beschriftung/tickets/{ticket}/entscheidung', [LabelingController::class, 'pending'])->whereNumber('ticket')->name('labeling.reviews.store');
-    Route::patch('/beschriftung/einstellungen', [LabelingController::class, 'pending'])->name('labeling.settings.update');
+    Route::post('/beschriftung/laeufe', [LabelingController::class, 'storeRun'])->name('labeling.runs.store');
+    Route::post('/beschriftung/laeufe/{run}/abbrechen', [LabelingController::class, 'cancelRun'])->whereNumber('run')->name('labeling.runs.cancel');
+    Route::post('/beschriftung/kategorien/{category}/freigabe', [LabelingController::class, 'release'])->name('labeling.categories.release');
+    Route::post('/beschriftung/tickets/{ticket}/entscheidung', [LabelingController::class, 'storeDecision'])->whereNumber('ticket')->name('labeling.reviews.store');
+    Route::patch('/beschriftung/einstellungen', [LabelingController::class, 'updateSettings'])->name('labeling.settings.update');
 });
 
 Route::get('/dhl-retoure', [DhlReturnController::class, 'index'])->name('dhl-return.index');

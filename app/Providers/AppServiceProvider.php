@@ -61,6 +61,10 @@ class AppServiceProvider extends ServiceProvider
         // Saved values of the settings page (PROJ-50) are laid over the configuration of the knowledge base.
         $this->app->booted(fn () => $this->app->make(KnowledgeValues::class)->apply());
 
+        // PROJ-78: the background runs of the ticket tagging pace their calls to the language model and to Zammad.
+        RateLimiter::for('labeling-model', fn (): Limit => Limit::perMinute((int) config('labeling.calls_per_minute')));
+        RateLimiter::for('labeling-zammad', fn (): Limit => Limit::perMinute((int) config('labeling.zammad_per_minute')));
+
         RateLimiter::for('language-model', fn (Request $request): Limit => Limit::perMinute((int) config('analysis.calls_per_minute'))
             ->by((app(StaffDirectory::class)->current($request) ?? '').'|'.$request->ip())
             ->response(fn (Request $request): RedirectResponse => LocalRedirect::back($request, route('tickets.analyze'))
