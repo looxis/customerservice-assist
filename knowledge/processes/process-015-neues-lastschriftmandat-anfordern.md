@@ -54,7 +54,7 @@ Der Kunde bittet um Rückkehr zur Lastschrift oder um eine neue Mandatsvorlage.
 5. Beim Eingang prüfen, ob das Dokument ausgefüllt, unterschrieben und lesbar ist. Fehlt etwas, gezielt um Ergänzung oder eine besser lesbare Aufnahme bitten.
 6. Das zurückgesandte Mandat an Kerstin zur Hinterlegung in EOCS am Kunden geben.
 7. Nachdem Kerstin das Mandat in EOCS am Kunden hinterlegt hat, die Umstellung durch Etienne oder Christian durchführen lassen. Die Hinterlegung muss vor der Umstellung erfolgt sein.
-8. Prüfen, dass die Änderung in EOCS vorgenommen und mit dem Online-Shop synchronisiert ist. Die Wirksamkeit und die Behandlung bestehender Bestellungen richten sich nach POLICY-042.
+8. Wirksamkeit der Umstellung und Behandlung bestehender Bestellungen nach POLICY-042 prüfen.
 
 # Ergebnis
 

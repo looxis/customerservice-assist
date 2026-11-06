@@ -58,8 +58,7 @@ Die Nachbestellung mit Bezug zur vorhandenen Interpretation ist derzeit nur per 
 
 1. Den Originalauftrag intern zuordnen. Fehlt die Zuordnung, den Kunden um Angaben zum ursprünglichen Auftrag bitten.
 2. Die ursprüngliche Konfigurations-ID und die zugehörige Interpretation beziehungsweise Produktionsdatei zuordnen. Die Begriffe und die Bedeutung von Dateiduplikaten sind in GLOSSARY-002 beschrieben.
-3. Den Folgeauftrag durch den Kundenservice anlegen und ausdrücklich mit dem Originalvorgang und der ursprünglichen Interpretation verknüpfen.
-4. Die Nachproduktion auf dieser Grundlage veranlassen; keinen neuen Interpretationsvorgang auslösen.
+3. Den Folgeauftrag durch den Kundenservice anlegen und ausdrücklich mit dem Originalvorgang und der ursprünglichen Interpretation verknüpfen. Mit dem Folgeauftrag ist die Nachproduktion angestoßen; keinen neuen Interpretationsvorgang auslösen.
 
 # Vorrang
 

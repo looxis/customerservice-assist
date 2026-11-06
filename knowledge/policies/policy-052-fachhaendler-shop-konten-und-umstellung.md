@@ -122,10 +122,6 @@ Ein deaktiviertes Konto wird nur nach Rücksprache mit dem Kunden wieder aktivie
 
 # Grenzen
 
-- Keine Dauer und keine Voraussetzungen für die Anlage oder Übernahme eines Kontos zusagen (die Schritte stehen unten als offen).
+- Keine Dauer und keine Voraussetzungen für die Anlage oder Übernahme eines Kontos zusagen (Schritte: PROCEDURE-010 für die Anlage, PROCEDURE-007 für die Reaktivierung, PROCEDURE-004 für das Schließen).
 - Passwörter weder einsehen noch ändern.
 - Keine Preise der neuen Preisliste nennen, die nicht vorliegen.
-
-# Noch zu klären
-
-- Die internen Systemschritte, mit denen LOOXIS ein Fachhändler-Konto löscht (die Neuanlage steht in PROCEDURE-010, die Reaktivierung in PROCEDURE-007).

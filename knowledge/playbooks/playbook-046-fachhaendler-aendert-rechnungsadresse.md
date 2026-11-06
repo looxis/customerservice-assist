@@ -51,7 +51,7 @@ Ein Händler möchte seine Rechnungsadresse ändern (Firmenname oder Geschäftsb
 # Empfohlene Maßnahme
 
 1. Der Händler kann die Rechnungsadresse im Online-Shop nicht selbst ändern. Der Kundenservice nimmt die Änderung vor.
-2. Die Änderung wird in EOCS vorgenommen und mit dem Online-Shop (Vanilo) synchronisiert.
+2. Die Änderung wird in EOCS vorgenommen; wann sie im Online-Shop (Vanilo) wirksam ist, regelt POLICY-042.
 3. Die geänderte Rechnungsadresse gilt ab der nächsten Bestellung. Eine rückwirkende Änderung ist nicht möglich: Bereits ausgestellte Rechnungen und aufgegebene Bestellungen werden nicht geändert.
 4. Dem Händler die Änderung bestätigen und ihn bitten, die Rechnungsadresse im Online-Shop noch einmal zu prüfen, spätestens bevor er die nächste Bestellung abgibt oder bestätigt.
 

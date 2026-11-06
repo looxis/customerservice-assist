@@ -75,7 +75,7 @@ Besteht bei der räumlichen Beurteilung Unsicherheit, nicht raten. Nach PROCESS-
 3. Die von der 3D-Software erzeugte Voransicht der fertigen Produktionsdatei aus vier Perspektiven verwenden.
 4. Diese Voransicht dem Kunden per E-Mail zur Prüfung und Freigabe schicken.
 5. Den Kunden ausdrücklich um eine schriftliche Freigabe als Antwort auf genau diese E-Mail bitten.
-6. Die Belaserung erst veranlassen, wenn eine eindeutige schriftliche Freigabe vorliegt.
+6. Erst bei einer eindeutigen schriftlichen Freigabe mit der Belaserung fortfahren.
 
 # Form der Freigabe
 
