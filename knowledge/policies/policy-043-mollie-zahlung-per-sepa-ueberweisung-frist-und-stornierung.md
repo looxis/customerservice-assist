@@ -14,7 +14,7 @@ categories:
 topics:
   - payment-processing
   - order-release
-summary: "Ein Kunde kann eine Bestellung mit Zahlungsabwicklung über Mollie nicht bezahlen, zum Beispiel weil PayPal nicht funktioniert oder ihm Kontodaten fehlen. Klärt: Die klassische SEPA-Überweisung über Mollie ist eine zulässige Option und kein Wechsel der Zahlungsabwicklung; Kontodaten, Betrag und Zahlungsreferenz stammen nur aus der Mollie-Zahlungsanweisung; je Shop gibt es eine automatische Zahlungserinnerung nach 15 Minuten (looxis.de), keine (Fachhändler) oder einen wiederverwendbaren Zahlungslink (looxis-pro.com, manuelle Bestellungen); eine nicht rechtzeitig bezahlte Bestellung gilt als nicht freigegeben, kann weder manuell freigegeben noch in der Zahlungsart geändert werden und muss neu ausgelöst werden; Fristen allgemein einige Tage, nach Fristablauf eingehende Zahlungen retourniert Mollie; die Frage nach einer Rückkehr zur Lastschrift wird getrennt beantwortet. Gilt auch, wenn der Kunde schon überwiesen hat und fragt, wo seine Zahlung bleibt oder ob eine kürzere Frist (zum Beispiel 24 Stunden) abgelaufen ist: Dann ist der Zahlungseingang bei Mollie maßgeblich, den LOOXIS im Mollie-Dashboard prüft."
+summary: "Ein Kunde kann eine Bestellung mit Zahlungsabwicklung über Mollie nicht bezahlen, zum Beispiel weil PayPal nicht funktioniert oder ihm Kontodaten fehlen. Klärt: Die klassische SEPA-Überweisung über Mollie ist eine zulässige Option und kein Wechsel der Zahlungsabwicklung; Kontodaten, Betrag und Zahlungsreferenz stammen nur aus der Mollie-Zahlungsanweisung; je Shop gibt es eine automatische Zahlungserinnerung nach 15 Minuten (looxis.de), keine (Fachhändler) oder einen wiederverwendbaren Zahlungslink (looxis-pro.com, manuelle Bestellungen); eine nicht rechtzeitig bezahlte Bestellung gilt als nicht freigegeben, kann weder manuell freigegeben noch in der Zahlungsart geändert werden und muss neu ausgelöst werden; Fristen allgemein einige Tage, nach Fristablauf eingehende Zahlungen retourniert Mollie; die Frage nach einer Rückkehr zur Lastschrift wird getrennt beantwortet. Gilt auch, wenn der Kunde schon überwiesen hat und fragt, wo seine Zahlung bleibt oder ob die Frist schon abgelaufen ist: Dann ist der Zahlungseingang bei Mollie maßgeblich, den LOOXIS im Mollie-Dashboard prüft."
 retrieval: binding
 triggers:
   - Paypal
@@ -48,6 +48,7 @@ related_knowledge:
   - PLAYBOOK-028
   - POLICY-057
   - PLAYBOOK-041
+  - PROCEDURE-011
 ---
 
 Gilt für Bestellungen im Online-Shop (looxis-de, fachhaendler, looxis-pro), deren Zahlung über Mollie abgewickelt wird.
@@ -78,9 +79,9 @@ Bei Rechnung und Lastschrift ist die Zahlungsanweisung eindeutig festgelegt (POL
 
 Hat der Kunde per SEPA-Überweisung über Mollie gezahlt und ist der Zahlungseingang noch nicht registriert:
 
-- Der Kunde hat für die SEPA-Überweisung mehrere Tage Zeit; maßgeblich ist die Frist in der Mollie-Zahlungsanweisung. Eine feste Reservierung von 24 Stunden oder eine andere vom Kunden genannte kurze Frist ist nicht der Maßstab und wird nicht bestätigt. Die Zahl der Tage wird nicht genannt.
+- Der Kunde hat für die SEPA-Überweisung mehrere Tage Zeit; maßgeblich ist die Frist in der Mollie-Zahlungsanweisung. Nennt der Kunde eine andere, kürzere Frist, wird sie nicht bestätigt. Die Zahl der Tage wird nicht genannt.
 - LOOXIS hat keinen Einblick in den Banktransfer selbst. Sichtbar ist nur, ob Mollie den Zahlungseingang registriert hat. Der Kundenservice sagt nicht, die Überweisung sei „unterwegs“ oder „angekommen“.
-- Ob Mollie die Zahlung registriert hat und ob die vom Kunden genannte Referenznummer zur Bestellung gehört, prüfen Mitarbeiter im Mollie-Dashboard: einloggen, unter „Umsatz“ die Bestellnummer suchen, die gefundene Bestellung anklicken, die Details ansehen. Die Referenznummer wird dem Kunden nur bestätigt, wenn sie dort zur Bestellung passt.
+- Ob Mollie die Zahlung registriert hat und ob die vom Kunden genannte Referenznummer zur Bestellung gehört, prüfen Mitarbeiter im Mollie-Dashboard (PROCEDURE-011). Die Referenznummer wird dem Kunden nur bestätigt, wenn sie dort zur Bestellung passt.
 - Der Kunde prüft in seiner Überweisung, ob IBAN, Betrag und Zahlungsreferenz genau so übernommen wurden, wie Mollie sie in der Zahlungsanweisung zu dieser Bestellung nennt.
 - Sobald Mollie die Zahlung bestätigt, wird die Bestellung freigegeben (POLICY-057). Bis dahin wird sie nicht produziert und nicht verschickt.
 - Dass die Zahlung weiterhin möglich ist, sagt die Antwort nur, wenn Verlauf, Bestelldaten oder Mollie-Dashboard zeigen, dass die Bestellung offen und nicht storniert ist; sonst als interne Klärung vorsehen.
@@ -109,7 +110,7 @@ Kunde hat nach Ablauf der Frist überwiesen:
 
 Zahlungseingang noch nicht registriert (Referenznummer geprüft und passend):
 
-„Ihre Bestellung ist bei uns registriert, der Zahlungseingang wurde bisher allerdings noch nicht registriert. Die von Ihnen genannte Referenznummer ist korrekt. Für eine SEPA-Überweisung über Mollie haben Sie mehrere Tage Zeit; maßgeblich ist die Frist in der Zahlungsanweisung von Mollie, nicht eine Frist von 24 Stunden. Bitte prüfen Sie noch einmal in Ihrer Überweisung, ob IBAN, Betrag und Zahlungsreferenz genau so übernommen wurden, wie Mollie sie in der Zahlungsanweisung zu Ihrer Bestellung angibt. Wir sehen den Banktransfer selbst nicht, sondern erst, wenn Mollie den Zahlungseingang registriert hat. Sobald Mollie die Zahlung bestätigt, wird die Bestellung freigegeben; bis dahin wird sie nicht produziert und nicht verschickt. Geht die Zahlung nicht innerhalb der Frist ein, verfällt die Zahlungsoption und die Bestellung wird automatisch storniert.“
+„Ihre Bestellung ist bei uns registriert, der Zahlungseingang wurde bisher allerdings noch nicht registriert. Die von Ihnen genannte Referenznummer ist korrekt. Für eine SEPA-Überweisung über Mollie haben Sie mehrere Tage Zeit; maßgeblich ist die Frist in der Zahlungsanweisung von Mollie. Bitte prüfen Sie noch einmal in Ihrer Überweisung, ob IBAN, Betrag und Zahlungsreferenz genau so übernommen wurden, wie Mollie sie in der Zahlungsanweisung zu Ihrer Bestellung angibt. Wir sehen den Banktransfer selbst nicht, sondern erst, wenn Mollie den Zahlungseingang registriert hat. Sobald Mollie die Zahlung bestätigt, wird die Bestellung freigegeben; bis dahin wird sie nicht produziert und nicht verschickt. Geht die Zahlung nicht innerhalb der Frist ein, verfällt die Zahlungsoption und die Bestellung wird automatisch storniert.“
 
 # Grenzen
 
