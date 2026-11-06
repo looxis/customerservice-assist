@@ -1,6 +1,6 @@
 # PROJ-78: Tickets für Trainingsdaten klassifizieren und taggen
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-06
 **Last Updated:** 2026-11-06
 
@@ -240,6 +240,16 @@ Wie die Ticket-Übersicht: Nur Admins (bestehende Admin-Liste, ausgewählter Nut
 
 ### G) Pakete
 Keine neuen Pakete.
+
+## Implementation Notes (Frontend, 2026-11-06)
+- **Seiten (nur Admins, 403 für andere):** `/beschriftung` (Kategorie-Karten mit Kennzahlen und Freigabe, Läufe, Einstellungen), `/beschriftung/pruefen` (Warteschlangen, Prüfkarte, Tastenkürzel 1–7, 0 = keine, Enter = bestätigen), `/beschriftung/tickets` (Liste mit Filter Vorschlag und Zuordnung). Seitenleisten-Eintrag „Beschriftung“ im Admin-Block.
+- **Testmenge in der Prüfansicht:** Vorschlag und Textstellen-Markierung sind verborgen, es gibt kein „Bestätigen“ (Spec: vollständig selbst entscheiden).
+- **Neue Komponenten:** `x-labeling.nav` (Unternavigation, Vorschau-Hinweis), `x-labeling.category-card`.
+- **Kategorien:** Enum `App\Labeling\LabelCategory` (Label, Kurzregel, Tag `train:`/`test:`), vom Backend wiederzuverwenden.
+- **Vorschau-Stand:** Zahlen, Tickets und Läufe kommen aus `App\Labeling\PreviewData` (erfundene Daten) und sind im Seitenkopf als Vorschau gekennzeichnet. Alle Aktionen (Lauf starten, Freigabe, Entscheidung, Einstellungen speichern) haben Routen und Formulare mit CSRF, antworten aber über `LabelingController::pending()` mit „noch nicht angeschlossen“. Das Backend ersetzt `PreviewData` und `pending()`.
+- **Abweichung:** Fortschrittsbalken als `<progress>`-Element, weil Inline-Styles verboten sind.
+- **Tests:** `tests/Feature/PROJ-78-LabelingPagesTest.php` (Zugriff, Seiten, Testmenge, Filter, Platzhalteraktion).
+- **Noch offen fürs Backend:** Standardwerte der Einstellungen sind Platzhalter (Ziel 100, 50 Fälle, 95 %, 15 %, Konfidenz 0,85, 8 Beispiele); Zähler „Fortschritt“ und Warteschlangenlängen kommen aus echten Daten; Ladezustand der Läufe (Fortschritt aktualisieren) ist noch statisch.
 
 ## QA Test Results
 _To be added by /qa_

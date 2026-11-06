@@ -41,6 +41,7 @@
             @if ($ticketOverviewAvailable)
                 <x-nav-item :href="route('ticket-overview.index')" icon="doc" :active="request()->routeIs('ticket-overview.*')">Ticket-Übersicht</x-nav-item>
                 <x-nav-item :href="route('analysis-overview.index')" icon="text" :active="request()->routeIs('analysis-overview.*')">Vorschläge</x-nav-item>
+                <x-nav-item :href="route('labeling.index')" icon="grid" :active="request()->routeIs('labeling.*')">Beschriftung</x-nav-item>
             @endif
             <x-nav-item :href="route('knowledge-gaps.index')" icon="warning" :active="request()->routeIs('knowledge-gaps.*')">Wissenslücken @if ($openGapCount > 0)<span class="ml-2 rounded-full bg-warning-500/15 px-2 text-xs font-semibold text-warning-700">{{ $openGapCount }}</span>@endif</x-nav-item>
             @if ($testModeAvailable)

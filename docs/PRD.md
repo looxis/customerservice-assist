@@ -89,7 +89,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Durchsicht der Wissensdateien auf überflüssige interne Schritte (gemeinsam, später, Einzelentscheidung je Treffer) | Planned |
 | Vorschlagsformular und Ergebnis weiter entschlacken (Formular nach neuen Nachrichten direkt offen, Zusatzinformationen leer, weniger Hinweise, zusammengehörige Tickets eingeklappt) | In Progress |
 | Sendungsnummer automatisch nachreichen: ToDo „Sendungsnummer nachreichen“ prüft zu festen Zeiten in EOCS den Versandstatus und verschickt die Sendungsnummer automatisch (erste Ausnahme vom Ziel „Versand nur nach Klick“) | Approved |
-| Tickets für Trainingsdaten klassifizieren und taggen (PROJ-78): erste Kundennachricht aller Zammad-Tickets per LLM in sieben Kategorien einordnen, Unklares und Stichproben prüfen, `train:<kategorie>` als Tag nach Zammad schreiben; Export und Laya-Training nicht Teil | Architected |
+| Tickets für Trainingsdaten klassifizieren und taggen (PROJ-78): erste Kundennachricht aller Zammad-Tickets per LLM in sieben Kategorien einordnen, Unklares und Stichproben prüfen, `train:<kategorie>` als Tag nach Zammad schreiben; Export und Laya-Training nicht Teil | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
