@@ -3,8 +3,26 @@ import scopeFields from './scope-fields';
 import imageViewer from './image-viewer';
 import returnLabel from './return-label';
 import quote from './quote';
+import applyTodoPreset from './todo-preset';
 
 window.Alpine = Alpine;
+
+/**
+ * Keeps the Bitwarden autofill menu away from all form controls, including the
+ * ones Alpine renders later (it shows a stray icon on non-login fields).
+ */
+const markBitwardenIgnore = (root) => {
+    root.querySelectorAll?.('input, textarea, select').forEach((field) => field.setAttribute('data-bwignore', ''));
+};
+
+markBitwardenIgnore(document);
+new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) {
+            node.matches('input, textarea, select') ? node.setAttribute('data-bwignore', '') : markBitwardenIgnore(node);
+        }
+    }));
+}).observe(document.documentElement, { childList: true, subtree: true });
 
 /**
  * The staff name chosen in this browser (PROJ-5). The header and the hint on
@@ -94,6 +112,7 @@ Alpine.data('scopeFields', scopeFields);
 Alpine.data('imageViewer', imageViewer);
 Alpine.data('returnLabel', returnLabel);
 Alpine.data('quote', quote);
+Alpine.magic('todoPreset', () => applyTodoPreset);
 
 // Records (key, name, …) of the knowledge values on the settings page (PROJ-50).
 Alpine.data('recordList', (config) => ({

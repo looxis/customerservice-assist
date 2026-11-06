@@ -42,7 +42,7 @@ class TodoBoard
     public function counts(?string $name): array
     {
         return [
-            'meine' => $name === null ? 0 : TicketTodo::query()->unfinished()->where('assignee', $name)->count(),
+            'meine' => $name === null ? 0 : TicketTodo::query()->unfinished()->whereIn('assignee', [$name, TodoRules::EVERYONE])->count(),
             'alle' => TicketTodo::query()->unfinished()->count(),
             'ueberfaellig' => TicketTodo::query()->overdue()->count(),
         ];
@@ -56,7 +56,7 @@ class TodoBoard
         $query = TicketTodo::query()->unfinished();
 
         match ($view) {
-            'meine' => $query->where('assignee', $name ?? ''),
+            'meine' => $query->whereIn('assignee', [$name ?? '', TodoRules::EVERYONE]),
             'ueberfaellig' => $query->overdue(),
             default => null,
         };
@@ -82,7 +82,7 @@ class TodoBoard
         };
 
         if ($assignee !== null && $assignee !== '') {
-            $query->where('assignee', $assignee);
+            $query->whereIn('assignee', [$assignee, TodoRules::EVERYONE]);
         }
 
         return $this->ordered($query->orderByRaw("status = 'done'"))->paginate(self::PAGE_SIZE)->withQueryString();

@@ -54,7 +54,9 @@
             todos: [],
             warning: '',
         },
-        addTodo() { this.send.todos.push({ description: '', assignee: @js(app(\App\Staff\StaffDirectory::class)->current(request()) ?? ''), due_in: '', kind: 'direct', waiting_for: '', notify_customer: false, notify_hint: '' }) },
+        todoPresets: @js(\App\Todo\TodoRules::presets($result['todo_context'] ?? [])),
+        todoText(todo) { return [todo.preset, todo.description.trim()].filter((part) => part !== '').join(' – ') },
+        addTodo() { this.send.todos.push({ preset: '', previous: '', description: '', assignee: @js(\App\Todo\TodoRules::EVERYONE), due_in: '', waiting_for: '', notify_customer: false, notify_hint: '' }) },
         sendReady: @js($send['state'] === 'ready'),
         returnLabel: @js($result['return_label'] ?? null),
         async linkLabel(label) {
@@ -123,8 +125,14 @@
                 if (this.send.after === 'reminder') { form.append('days', this.send.days) }
                 form.append('confirm_newer', confirmNewer === true ? '1' : '0');
                 form.append('note', this.send.note);
-                this.send.todos.filter((todo) => todo.description.trim() !== '').forEach((todo, index) => {
-                    ['description', 'assignee', 'due_in', 'kind', 'waiting_for', 'notify_hint'].forEach((key) => form.append(`todos[${index}][${key}]`, todo[key] ?? ''));
+                this.send.todos.filter((todo) => this.todoText(todo) !== '').forEach((todo, index) => {
+                    form.append(`todos[${index}][description]`, this.todoText(todo));
+                    const waiting = todo.due_in === 'waiting';
+                    form.append(`todos[${index}][kind]`, waiting ? 'waiting' : 'direct');
+                    form.append(`todos[${index}][due_in]`, waiting ? '' : todo.due_in);
+                    form.append(`todos[${index}][waiting_for]`, waiting ? todo.waiting_for : '');
+                    ['assignee'].forEach((key) => form.append(`todos[${index}][${key}]`, todo[key] ?? ''));
+                    form.append(`todos[${index}][notify_hint]`, todo.notify_customer ? todo.notify_hint : '');
                     form.append(`todos[${index}][notify_customer]`, todo.notify_customer ? '1' : '0');
                 });
                 this.send.files.forEach((file) => form.append('files[]', file, file.name));
@@ -218,7 +226,9 @@
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 class="text-sm font-semibold text-slate-900">Antwortentwurf @if ($language)<span class="font-normal text-slate-600">({{ $language }})</span>@endif</h3>
         <p class="text-xs text-slate-600" aria-live="polite">
+            @if ($manual)<x-intro>@endif
             <span x-text="edited" @if (! $result['reply_edited']) x-cloak @endif>{{ $result['reply_edited'] }}</span>
+            @if ($manual)</x-intro>@endif
             <span x-show="status === 'saving'" x-cloak> · wird gespeichert …</span>
             <span x-show="status === 'saved'" x-cloak class="text-success-700"> · Gespeichert</span>
             <span x-show="status === 'error'" x-cloak class="text-danger-700"> · Nicht gespeichert – wird erneut versucht</span>
@@ -292,7 +302,7 @@
                 <div x-show="! send.sent" class="space-y-3">
                     <h3 class="text-sm font-semibold text-slate-900">Antwort versenden</h3>
                     <div>
-                        <label for="send-to" class="block text-sm font-medium text-slate-900">An <span class="font-normal text-slate-600">(aus dem Ticket vorbelegt, bei Bedarf ändern, z. B. bei Kontaktformularen)</span></label>
+                        <label for="send-to" class="block text-sm font-medium text-slate-900">An <x-intro><span class="font-normal text-slate-600">(aus dem Ticket vorbelegt, bei Bedarf ändern, z. B. bei Kontaktformularen)</span></x-intro></label>
                         <input id="send-to" type="email" x-model="send.to" maxlength="254" autocomplete="off" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
                     </div>
                     <div>
@@ -300,11 +310,11 @@
                         <input id="send-subject" type="text" x-model="send.subject" maxlength="300" autocomplete="off" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
                     </div>
                     <div>
-                        <label for="send-signature" class="block text-sm font-medium text-slate-900">Signatur <span class="font-normal text-slate-600">(wird unter den Antworttext gesetzt)</span></label>
+                        <label for="send-signature" class="block text-sm font-medium text-slate-900">Signatur <x-intro><span class="font-normal text-slate-600">(wird unter den Antworttext gesetzt)</span></x-intro></label>
                         <textarea id="send-signature" x-model="send.signature" rows="4" maxlength="600" class="mt-1 field-sizing-content block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
                     </div>
                     <div>
-                        <p class="block text-sm font-medium text-slate-900">Anhänge <span class="font-normal text-slate-600">(PDF, PNG, JPG, WebP · bis zu 5 Dateien, zusammen höchstens 5 MB)</span></p>
+                        <p class="block text-sm font-medium text-slate-900">Anhänge <x-intro><span class="font-normal text-slate-600">(PDF, PNG, JPG, WebP · bis zu 5 Dateien, zusammen höchstens 5 MB)</span></x-intro></p>
                         <ul x-show="send.files.length > 0" x-cloak class="mt-1 space-y-1 text-sm" aria-label="Anhänge der Antwort">
                             <template x-for="(file, index) in send.files" :key="file.name + index">
                                 <li class="flex flex-wrap items-center gap-x-3 text-slate-900">
@@ -317,15 +327,10 @@
                         <div class="mt-2 flex flex-wrap items-center gap-3">
                             <input type="file" x-ref="files" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" class="sr-only" tabindex="-1" aria-hidden="true" x-on:change="addFiles($event.target.files); $event.target.value = ''">
                             <x-button variant="secondary" x-on:click="$refs.files.click()"><x-icon name="upload" size="16" /> Datei anhängen</x-button>
-                            <span class="text-xs text-slate-600">Einen Screenshot aus der Zwischenablage fügst du mit Strg+V ein oder mit der rechten Maustaste → Einfügen. Der Cursor muss dazu im Antworttext, im Betreff oder in der Signatur stehen.</span>
+                            <x-intro><span class="text-xs text-slate-600">Einen Screenshot aus der Zwischenablage fügst du mit Strg+V ein oder mit der rechten Maustaste → Einfügen. Der Cursor muss dazu im Antworttext, im Betreff oder in der Signatur stehen.</span></x-intro>
                         </div>
                         <p x-show="send.fileError !== ''" x-cloak role="alert" class="mt-1 text-sm font-medium text-danger-700" x-text="send.fileError"></p>
                     </div>
-                    <details class="text-sm">
-                        <summary class="cursor-pointer font-medium text-slate-700">Vorschau der Nachricht</summary>
-                        <p class="mt-2 whitespace-pre-line rounded-md bg-white p-3 text-slate-900 ring-1 ring-slate-200 ring-inset" x-text="message"></p>
-                        <p x-show="send.files.length > 0" x-cloak class="mt-2 text-slate-900"><span class="font-medium">Anhänge:</span> <span x-text="send.files.map((file) => file.name).join(', ')"></span></p>
-                    </details>
                     <fieldset>
                         <legend class="text-sm font-medium text-slate-900">Danach</legend>
                         <div class="mt-1 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-900">
@@ -336,28 +341,31 @@
                         </div>
                     </fieldset>
                     <div>
-                        <label for="send-note" class="block text-sm font-medium text-slate-900">Interne Notiz <span class="font-normal text-slate-600">(optional, nur in Zammad sichtbar, nicht für den Kunden)</span></label>
+                        <label for="send-note" class="block text-sm font-medium text-slate-900">Interne Notiz <x-intro><span class="font-normal text-slate-600">(optional, nur in Zammad sichtbar, nicht für den Kunden)</span></x-intro></label>
                         <textarea id="send-note" x-model="send.note" rows="2" maxlength="2000" class="mt-1 field-sizing-content block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-slate-900">ToDos zu dieser Antwort <span class="font-normal text-slate-600">(bleiben offen, auch wenn das Ticket geschlossen wird)</span></p>
+                        <p class="text-sm font-medium text-slate-900">ToDos zu diesem Ticket <x-intro><span class="font-normal text-slate-600">(bleiben offen, auch wenn das Ticket geschlossen wird)</span></x-intro></p>
                         <ul class="mt-2 space-y-3" x-show="send.todos.length > 0" x-cloak>
                             <template x-for="(todo, index) in send.todos" :key="index">
                                 <li class="space-y-2 rounded-md bg-white p-3 ring-1 ring-slate-200 ring-inset">
-                                    <textarea x-model="todo.description" rows="2" maxlength="1000" placeholder="Was ist noch zu tun? z. B. Teilerstattung nach Versand der neuen Bestellung" x-bind:aria-label="'ToDo ' + (index + 1)" class="block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+                                    <select x-model="todo.preset" x-on:change="$todoPreset(todo, todoPresets, todo.previous); todo.previous = todo.preset" x-bind:aria-label="'Häufiges ToDo ' + (index + 1)" class="block w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-8 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                                        <option value="">Etwas anderes (Freitext)</option>
+                                        @foreach (\App\Todo\TodoRules::presets() as $preset)<option value="{{ $preset['label'] }}">{{ $preset['label'] }}</option>@endforeach
+                                    </select>
+                                    <textarea x-model="todo.description" rows="2" maxlength="900" x-bind:placeholder="todo.preset ? 'Zusätzliche Angaben (optional), z. B. Betrag oder Prozentsatz' : 'Was ist noch zu tun? z. B. Teilerstattung nach Versand der neuen Bestellung'" x-bind:aria-label="'ToDo ' + (index + 1)" class="block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
                                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-900">
                                         <label class="inline-flex items-center gap-2">Zuständig
                                             <select x-model="todo.assignee" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand">
-                                                @foreach (app(\App\Staff\StaffDirectory::class)->names() as $staffName)<option value="{{ $staffName }}">{{ $staffName }}</option>@endforeach
+                                                @foreach (\App\Todo\TodoRules::assignees() as $staffName)<option value="{{ $staffName }}">{{ $staffName }}</option>@endforeach
                                             </select></label>
                                         <label class="inline-flex items-center gap-2">Fällig
-                                            <select x-model="todo.due_in" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand"><option value="">ohne Frist</option><option value="1">in 1 Tag</option><option value="3">in 3 Tagen</option><option value="7">in 7 Tagen</option></select></label>
-                                        <label class="inline-flex items-center gap-2"><input type="checkbox" x-bind:checked="todo.kind === 'waiting'" x-on:change="todo.kind = $event.target.checked ? 'waiting' : 'direct'" class="rounded text-brand focus:ring-brand"> Wartet auf Ereignis</label>
+                                            <select x-model="todo.due_in" class="rounded-md border-0 py-1 pl-2 pr-7 text-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand"><option value="">ohne Frist</option><option value="waiting">wartet auf Ereignis</option><option value="1">in 1 Tag</option><option value="3">in 3 Tagen</option><option value="7">in 7 Tagen</option></select></label>
                                         <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.notify_customer" class="rounded text-brand focus:ring-brand"> Kunde danach informieren</label>
                                         <button type="button" x-on:click="send.todos.splice(index, 1)" class="font-semibold text-slate-600 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand">Entfernen</button>
                                     </div>
-                                    <input x-show="todo.kind === 'waiting'" x-cloak type="text" x-model="todo.waiting_for" maxlength="255" placeholder="Worauf wird gewartet? z. B. Versand der Ersatzbestellung" aria-label="Worauf wird gewartet?" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
-                                    <input x-show="todo.notify_customer" x-cloak type="text" x-model="todo.notify_hint" maxlength="1000" placeholder="Hinweis für die spätere Antwort, z. B. Sendungsnummer mitteilen" aria-label="Hinweis für die spätere Antwort" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                                    <input x-show="todo.due_in === 'waiting'" x-cloak type="text" x-model="todo.waiting_for" maxlength="255" placeholder="Worauf wird gewartet? z. B. Versand der Ersatzbestellung" aria-label="Worauf wird gewartet?" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                                    <textarea x-show="todo.notify_customer" x-cloak x-model="todo.notify_hint" rows="5" maxlength="1000" placeholder="Entwurf der späteren Antwort an den Kunden; du prüfst und sendest ihn später selbst" aria-label="Entwurf der späteren Antwort" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
                                 </li>
                             </template>
                         </ul>
@@ -374,7 +382,7 @@
                     <div class="flex flex-wrap items-center gap-3">
                         <x-button x-on:click="sendReply(false)" x-bind:disabled="send.busy || text.trim() === '' || send.subject.trim() === '' || send.to.trim() === ''"><x-icon name="chat" size="16" /> <span x-text="send.busy ? 'Wird gesendet …' : 'Antwort versenden'">Antwort versenden</span></x-button>
                     </div>
-                    <p class="text-xs text-slate-600">Die Antwort wird über Zammad versendet und erscheint dort im Ticketverlauf. Gesendet wird der Antwortentwurf oben (änderbar) mit der Signatur. Anhänge werden mitgesendet und nicht in der App gespeichert.</p>
+                    <x-intro><p class="text-xs text-slate-600">Die Antwort wird über Zammad versendet und erscheint dort im Ticketverlauf. Gesendet wird der Antwortentwurf oben (änderbar) mit der Signatur. Anhänge werden mitgesendet und nicht in der App gespeichert.</p></x-intro>
                 </div>
             @endif
         </section>

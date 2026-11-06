@@ -28,7 +28,7 @@ final class SettingsRegistry
         return [
             'mail' => [
                 'title' => 'Mail-Anzeige',
-                'description' => 'Wie Nachrichten im Ticketverlauf bereinigt werden: Links, Signaturen, Fußtexte, Zitate und die Amazon-Nachricht.',
+                'description' => 'Wie Nachrichten im Ticketverlauf bereinigt werden: Links, Signaturen, Fußtexte, Zitate und die Amazon-Nachricht; dazu die Signatur und die vorbereiteten Antworten der ToDos.',
                 'route' => 'settings.mail',
             ],
             'values' => [
@@ -114,6 +114,8 @@ final class SettingsRegistry
         return self::$groups ??= collect([
             ...$groups,
             new SettingGroup('reply_signature', 'mail', 'Signatur für Antworten', 'Wird beim Versenden einer Antwort aus der App unter den Antworttext gesetzt (PROJ-19). {Name} steht für den vollen Namen des Mitarbeiters. Der Mitarbeiter kann die Signatur vor dem Senden ändern. Zunächst nur auf Deutsch.', SettingGroup::SIGNATURE, fn (): string => "Mit freundlichen Grüßen\n{Name}\nLOOXIS GmbH", maxLength: 600),
+            new SettingGroup('todo_reply_shipping', 'mail', 'ToDo-Antwort: Sendungsnummer nachreichen', 'Entwurf der späteren Antwort, wenn beim ToDo „Sendungsnummer nachreichen“ gewählt wird. Platzhalter in eckigen Klammern: [Anrede] (Guten Tag), [Name] (Kundenname laut Ticket), [Bestellung/Reklamation] und [Nummer] werden beim Anlegen des ToDos aus dem Fall eingesetzt, soweit bekannt. [Sendungsnummer] und [Carrier] bleiben stehen und werden später ergänzt. Darunter kommt beim Senden die Signatur. Zunächst nur auf Deutsch.', SettingGroup::TEMPLATE, fn (): string => TodoReplyTexts::shipping(), maxLength: 1000, placeholders: TodoReplyTexts::SHIPPING_PLACEHOLDERS),
+            new SettingGroup('todo_reply_refund', 'mail', 'ToDo-Antwort: (Teil-)Erstattung', 'Entwurf der späteren Antwort, wenn beim ToDo „(Teil-)Erstattung vornehmen“ gewählt wird. Platzhalter in eckigen Klammern: [Anrede], [Name], [Bestellung/Reklamation] und [Nummer] werden beim Anlegen des ToDos eingesetzt, soweit bekannt; [Betrag] bleibt stehen und wird vor dem Senden ergänzt. Zunächst nur auf Deutsch.', SettingGroup::TEMPLATE, fn (): string => TodoReplyTexts::refund(), maxLength: 1000, placeholders: TodoReplyTexts::REFUND_PLACEHOLDERS),
             new SettingGroup('mail_hosts', 'mail', 'Zugelassene Adressen', 'Links zu diesen Adressen (samt Unterseiten wie www.) bleiben als Text sichtbar oder klickbar. Jeder andere Link wird durch „[Link entfernt]“ ersetzt. „*“ steht am Ende für eine Länderendung (.de, .it, .co.uk); klickbar gilt nur für https.', SettingGroup::HOSTS, fn (): array => MailDefaults::hosts()),
             new SettingGroup('mail_signatures', 'mail', 'Unsere Signaturen', 'Unsere eigenen Signaturen ohne Zammad-Markierung (z. B. bei Amazon), die am Ende unserer Nachrichten ausgeblendet werden. Eine Variante je Feld, mehrere Zeilen erlaubt.', SettingGroup::LINES, fn (): array => MailDefaults::signatures(), maxLength: 600),
             new SettingGroup('mail_footers', 'mail', 'Fußtexte', 'Ab diesem Text wird der Rest einer Mail als Fußbereich ausgeblendet (Groß-/Kleinschreibung und Zeilenumbrüche egal), z. B. der Hinweistext von Amazon.', SettingGroup::TEXTS, fn (): array => MailDefaults::footers(), minLength: 15),

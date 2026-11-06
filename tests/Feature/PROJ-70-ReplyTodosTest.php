@@ -192,6 +192,6 @@ describe('the reply form', function () {
         $id = todoSendAnalysis();
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()
-            ->assertSeeText('ToDos zu dieser Antwort')->assertSeeText('Interne Notiz')->assertSeeText('Ticket offen lassen')->assertSeeText('ToDo hinzufügen');
+            ->assertSeeText('ToDos zu diesem Ticket')->assertSeeText('Interne Notiz')->assertSeeText('Ticket offen lassen')->assertSeeText('ToDo hinzufügen');
     });
 });

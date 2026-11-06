@@ -2,9 +2,9 @@
 @props(['ticketNumber' => null])
 
 @php
-    $names = app(\App\Staff\StaffDirectory::class)->names();
-    $current = app(\App\Staff\StaffDirectory::class)->current(request());
-    $blank = ['id' => null, 'description' => '', 'assignee' => $current ?? '', 'due_in' => '', 'due_label' => null, 'kind' => 'direct', 'waiting_for' => '', 'notify_customer' => false, 'notify_hint' => '', 'ticket' => $ticketNumber];
+    $names = \App\Todo\TodoRules::assignees();
+    $presets = \App\Todo\TodoRules::presets();
+    $blank = ['id' => null, 'preset' => '', 'previous' => '', 'description' => '', 'assignee' => \App\Todo\TodoRules::EVERYONE, 'due_in' => '', 'due_label' => null, 'waiting_for' => '', 'notify_customer' => false, 'notify_hint' => '', 'ticket' => $ticketNumber];
     $create = $ticketNumber ? route('tickets.todos.store', ['number' => $ticketNumber]) : null;
 @endphp
 
@@ -16,8 +16,9 @@
 @endif
 
 <div x-data="{
-        open: false, mode: 'create', todo: @js($blank), names: @js($names), token: '', busy: false,
-        start(mode, todo) { this.mode = mode; this.todo = { ...@js($blank), ...todo }; if (! this.names.includes(this.todo.assignee)) { this.todo.assignee = '' } this.token = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()); this.busy = false; this.open = true; this.$nextTick(() => this.$refs.description.focus()) },
+        open: false, mode: 'create', todo: @js($blank), names: @js($names), presets: @js($presets), token: '', busy: false,
+        start(mode, todo) { this.mode = mode; this.todo = { ...@js($blank), ...todo }; if (this.todo.due_in === 'keep' && this.todo.kind === 'waiting') { this.todo.due_in = 'waiting' } if (! this.names.includes(this.todo.assignee)) { this.todo.assignee = '' } this.token = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()); this.busy = false; this.open = true; this.$nextTick(() => this.$refs.description.focus()) },
+        get text() { return [this.todo.preset, this.todo.description.trim()].filter((part) => part !== '').join(' – ') },
         get action() { return this.mode === 'create' ? @js($create) : @js(url('/todos')) + '/' + this.todo.id },
     }"
     x-cloak x-show="open"
@@ -32,10 +33,20 @@
         <input type="hidden" name="request_token" x-bind:value="token" x-bind:disabled="mode !== 'create'">
         <h2 id="todo-dialog-heading" class="text-base font-semibold text-slate-900" x-text="mode === 'create' ? 'ToDo anlegen' : 'ToDo bearbeiten (Ticket#' + todo.ticket + ')'"></h2>
 
-        <div>
-            <label for="todo-description" class="block text-sm font-medium text-slate-900">Beschreibung</label>
-            <textarea id="todo-description" name="description" x-ref="description" x-model="todo.description" rows="3" maxlength="1000" required
-                      class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+        <div class="space-y-2">
+            <div x-show="mode === 'create'">
+                <label for="todo-preset" class="block text-sm font-medium text-slate-900">Häufiges ToDo</label>
+                <select id="todo-preset" x-model="todo.preset" x-on:change="$todoPreset(todo, presets, todo.previous); todo.previous = todo.preset" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                    <option value="">Etwas anderes (Freitext)</option>
+                    @foreach ($presets as $preset)<option value="{{ $preset['label'] }}">{{ $preset['label'] }}</option>@endforeach
+                </select>
+            </div>
+            <div>
+                <label for="todo-description" class="block text-sm font-medium text-slate-900" x-text="todo.preset ? 'Zusätzliche Angaben (optional)' : 'Beschreibung'">Beschreibung</label>
+                <textarea id="todo-description" x-ref="description" x-model="todo.description" rows="3" maxlength="900" x-bind:required="! todo.preset"
+                          class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+                <input type="hidden" name="description" x-bind:value="text">
+            </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
@@ -48,9 +59,10 @@
             </div>
             <div>
                 <label for="todo-due" class="block text-sm font-medium text-slate-900">Fällig</label>
-                <select id="todo-due" name="due_in" x-model="todo.due_in" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                <select id="todo-due" x-model="todo.due_in" class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
                     <option value="keep" x-show="mode === 'edit'" x-bind:disabled="mode !== 'edit'" x-text="todo.due_label ? 'Unverändert (' + todo.due_label + ')' : 'Unverändert (ohne Frist)'"></option>
                     <option value="">Ohne Frist</option>
+                    <option value="waiting">Wartet auf Ereignis</option>
                     <option value="1">In 1 Tag</option>
                     <option value="3">In 3 Tagen</option>
                     <option value="7">In 7 Tagen</option>
@@ -58,24 +70,19 @@
             </div>
         </div>
 
-        <fieldset>
-            <legend class="text-sm font-medium text-slate-900">Art</legend>
-            <div class="mt-1 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-900">
-                <label class="inline-flex items-center gap-2"><input type="radio" name="kind" value="direct" x-model="todo.kind" class="text-brand focus:ring-brand"> Direkt bearbeitbar</label>
-                <label class="inline-flex items-center gap-2"><input type="radio" name="kind" value="waiting" x-model="todo.kind" class="text-brand focus:ring-brand"> Wartet auf Ereignis</label>
-            </div>
-        </fieldset>
-        <div x-show="todo.kind === 'waiting'" x-cloak>
+        <input type="hidden" name="due_in" x-bind:value="todo.due_in === 'waiting' ? '' : todo.due_in">
+        <input type="hidden" name="kind" x-bind:value="todo.due_in === 'waiting' ? 'waiting' : 'direct'">
+        <div x-show="todo.due_in === 'waiting'" x-cloak>
             <label for="todo-waiting" class="block text-sm font-medium text-slate-900">Worauf wird gewartet?</label>
-            <input id="todo-waiting" type="text" name="waiting_for" x-model="todo.waiting_for" maxlength="255" x-bind:required="todo.kind === 'waiting'" placeholder="z. B. Versand der Ersatzbestellung"
+            <input id="todo-waiting" type="text" name="waiting_for" x-model="todo.waiting_for" maxlength="255" x-bind:required="todo.due_in === 'waiting'" placeholder="z. B. Versand der Ersatzbestellung"
                    class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
         </div>
 
         <div class="space-y-2">
             <label class="inline-flex items-center gap-2 text-sm text-slate-900"><input type="hidden" name="notify_customer" value="0"><input type="checkbox" name="notify_customer" value="1" x-model="todo.notify_customer" class="rounded text-brand focus:ring-brand"> Kunde nach Erledigung informieren</label>
             <div x-show="todo.notify_customer" x-cloak>
-                <label for="todo-hint" class="block text-sm font-medium text-slate-900">Hinweis für die Antwort <span class="font-normal text-slate-600">(wird als Entwurf vorbereitet, du prüfst und sendest)</span></label>
-                <textarea id="todo-hint" name="notify_hint" x-model="todo.notify_hint" rows="3" maxlength="1000" placeholder="z. B. Sendungsnummer der Ersatzbestellung mitteilen"
+                <label for="todo-hint" class="block text-sm font-medium text-slate-900">Entwurf der späteren Antwort <span class="font-normal text-slate-600">(wird vorbereitet, du prüfst und sendest)</span></label>
+                <textarea id="todo-hint" name="notify_hint" x-model="todo.notify_hint" rows="6" maxlength="1000" placeholder="Text der Antwort an den Kunden"
                           class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
             </div>
         </div>

@@ -17,7 +17,6 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
-use App\Todo\TodoBoard;
 use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
@@ -51,7 +50,7 @@ class TicketController extends Controller
      * Show a ticket, always fresh from Zammad, with the orders chosen in the
      * address freshly loaded from EOCS.
      */
-    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery, AnalysisStore $store, TodoBoard $todos): Response
+    public function show(string $number, Request $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, AnalysisPanel $panel, TestMode $testMode, Translator $translator, TicketActivityLog $activity, StaffDirectory $staff, ReplyDelivery $delivery, AnalysisStore $store): Response
     {
         try {
             $ticket = $zammad->ticket($number);
@@ -93,6 +92,7 @@ class TicketController extends Controller
 
         if (is_array($analysis['result'] ?? null)) {
             $analysis['result']['send'] = $delivery->offer($analysis['result'], $ticket, $staff->current($request));
+            $analysis['result']['todo_context'] = $this->todoContext($ticket, $selected, $this->claimReferences($suggestions));
         }
 
         return response()->view('tickets.show', [
@@ -111,8 +111,25 @@ class TicketController extends Controller
             'orderProblem' => $orderProblem,
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
-            'ticketTodos' => $todos->forTicket($ticket->id),
         ]);
+    }
+
+    /**
+     * What the case tells for the prepared replies of the ToDos (PROJ-70): the customer's name and the claim, or else the first order.
+     *
+     * @param  list<OrderNumber>  $selected
+     * @param  list<string>  $claims
+     * @return array{name: string, kind: string, number: string}
+     */
+    private function todoContext(Ticket $ticket, array $selected, array $claims): array
+    {
+        $name = trim((string) $ticket->customerName);
+
+        return [
+            'name' => $name === '' || str_contains($name, '@') || mb_strlen($name) > 80 ? '' : $name,
+            'kind' => $claims === [] ? 'order' : 'claim',
+            'number' => $claims[0] ?? ($selected[0]->value ?? ''),
+        ];
     }
 
     /**
@@ -177,7 +194,7 @@ class TicketController extends Controller
         $orders = [];
 
         foreach ($values as $value) {
-            $order = $detector->normalize($value);
+            $order = $detector->normalize($value, true);
 
             if ($order !== null) {
                 $orders[$order->value] ??= $order;

@@ -2,7 +2,7 @@
 @props(['todo', 'showTicket' => true])
 
 @php
-    $listed = app(\App\Staff\StaffDirectory::class)->isListed($todo->assignee);
+    $listed = $todo->assignee === \App\Todo\TodoRules::EVERYONE || app(\App\Staff\StaffDirectory::class)->isListed($todo->assignee);
     $done = $todo->status === \App\Todo\TodoStatus::Done;
     $pending = $todo->status === \App\Todo\TodoStatus::NotifyPending;
     $overdue = $todo->isOverdue();

@@ -4,6 +4,9 @@ use App\Analysis\AnalysisStore;
 use App\Models\Analysis;
 use App\Models\TicketTodo;
 use App\Models\TrackedTicket;
+use App\Settings\SettingsRegistry;
+use App\Settings\SettingsStore;
+use App\Todo\TodoRules;
 use App\Todo\TodoStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -97,6 +100,20 @@ describe('the lists', function () {
         $this->withCookie('staff_name', 'Nele')->get('/?todos=ueberfaellig')->assertSeeText('Überfälliges von Cara')->assertSeeText('Überfällig seit')->assertDontSeeText('Meins offen');
     });
 
+    test('a ToDo for everyone shows up in the view of each employee', function () {
+        TicketTodo::factory()->create(['description' => 'Für alle da', 'assignee' => 'Alle']);
+        TicketTodo::factory()->create(['description' => 'Von Cara offen', 'assignee' => 'Cara']);
+
+        $this->withCookie('staff_name', 'Nele')->get('/')->assertSeeText('Für alle da')->assertSeeText('Meine (1)')->assertDontSeeText('Von Cara offen');
+        $this->withCookie('staff_name', 'Cara')->get(route('todos.index', ['zustaendig' => 'Cara']))->assertSeeText('Für alle da')->assertSeeText('Von Cara offen');
+        createTodo(['assignee' => 'Alle'])->assertSessionHasNoErrors();
+        expect(TicketTodo::query()->latest('id')->first()->assignee)->toBe('Alle');
+    });
+
+    test('the dialog and the list offer the frequent ToDos', function () {
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSee('Sendungsnummer nachreichen')->assertSee('Nachforschungsauftrag Versand');
+    });
+
     test('ToDos stay when the ticket is closed or not in the ticket list', function () {
         TrackedTicket::factory()->create(['number' => '2137942', 'zammad_id' => 51234, 'state' => 'closed', 'is_closed' => true]);
         TicketTodo::factory()->create(['description' => 'Nach dem Schließen', 'zammad_id' => 51234, 'ticket_number' => '2137942']);
@@ -135,16 +152,6 @@ describe('the lists', function () {
 
         $this->get(route('todos.index'))->assertOk()->assertViewHas('rows', fn ($rows): bool => $rows->count() === 100 && $rows->total() === 101 && $rows->lastPage() === 2);
         $this->get(route('todos.index', ['page' => 2]))->assertViewHas('rows', fn ($rows): bool => $rows->count() === 1);
-    });
-
-    test('the ticket page lists its ToDos, open ones first, finished ones collapsed', function () {
-        fakeZammad();
-        TicketTodo::factory()->create(['zammad_id' => 51234, 'ticket_number' => '2137942', 'description' => 'Noch offen']);
-        TicketTodo::factory()->done()->create(['zammad_id' => 51234, 'ticket_number' => '2137942', 'description' => 'Schon erledigt']);
-        TicketTodo::factory()->create(['zammad_id' => 1, 'description' => 'Anderes Ticket']);
-
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
-            ->assertSeeTextInOrder(['ToDos zu diesem Ticket', 'Noch offen', '1 erledigt', 'Schon erledigt'])->assertDontSeeText('Anderes Ticket');
     });
 });
 
@@ -337,5 +344,24 @@ describe('QA fixes', function () {
         $html = $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->assertOk()->assertSeeText('Antwort öffnen')->getContent();
 
         expect($html)->not->toContain('#antwort-versenden');
+    });
+});
+
+describe('the prepared replies', function () {
+    test('the texts come from the settings and the case fills in what it knows', function () {
+        app(SettingsStore::class)->save('todo_reply_shipping', '[Anrede] [Name], Nr. [Nummer] ([Bestellung/Reklamation]), [Sendungsnummer] bei [Carrier]', 'Etienne');
+
+        $presets = TodoRules::presets(['name' => 'Erika Beispiel', 'kind' => 'claim', 'number' => 'R1-7KA-0QH8-6AF8']);
+
+        expect($presets[0]['hint'])->toBe('Guten Tag Erika Beispiel, Nr. R1-7KA-0QH8-6AF8 (Reklamation), [Sendungsnummer] bei [Carrier]')
+            ->and(TodoRules::presets([])[1]['hint'])->toContain("Guten Tag,\n\nwir haben die Erstattung")->toContain('[Nummer]');
+    });
+
+    test('only the known placeholders are allowed in the texts', function () {
+        $group = SettingsRegistry::group('todo_reply_shipping');
+
+        expect($group->errors($group->default()))->toBe([])
+            ->and($group->errors('Guten Tag, [Kundennummer] ist unbekannt'))->not->toBe([])
+            ->and($group->errors('Guten Tag, [Name wurde nicht geschlossen und der Text ist lang genug'))->not->toBe([]);
     });
 });
