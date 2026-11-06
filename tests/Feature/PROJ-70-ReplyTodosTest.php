@@ -84,6 +84,21 @@ describe('ToDos with the reply', function () {
         expect(TicketTodo::query()->first()->external_ref)->toBe('R1-7KA-0QH8-6AF8');
     });
 
+    test('starts the automatic check for a German customer when the switch is on (PROJ-77)', function () {
+        $id = todoSendAnalysis();
+
+        todoSend($id, ['todos' => [
+            ['description' => 'Sendungsnummer nachreichen', 'kind' => 'waiting', 'waiting_for' => 'Sendungsnummer', 'reference' => 'R1-7KA-0QH8-6AF8', 'auto_send' => '1'],
+            ['description' => 'Ohne Haken', 'kind' => 'direct', 'reference' => 'R1-7KA-0QH8-6AF8', 'auto_send' => '0'],
+            ['description' => 'Ohne Nummer', 'kind' => 'direct', 'auto_send' => '1'],
+        ]])->assertOk();
+
+        $todos = TicketTodo::query()->orderBy('id')->get();
+        expect($todos[0]->auto_send)->toBeTrue()->and($todos[0]->auto_state)->toBe('watching')->and($todos[0]->customer_language)->toBe('Deutsch')
+            ->and($todos[1]->auto_send)->toBeFalse()->and($todos[1]->auto_state)->toBeNull()
+            ->and($todos[2]->auto_send)->toBeFalse();
+    });
+
     test('sends the reply, closes the ticket and creates the ToDos', function () {
         $id = todoSendAnalysis();
 

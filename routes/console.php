@@ -23,3 +23,8 @@ Schedule::command('zammad:sync-recent')->everyMinute()->withoutOverlapping(30);
 Schedule::command('zammad:reconcile-open')->hourly()->withoutOverlapping(60);
 Schedule::command('zammad:reconcile-open --all')->dailyAt('02:30')->withoutOverlapping(60);
 Schedule::command('tickets:purge')->dailyAt('04:00');
+
+// PROJ-77: look for the tracking numbers of the ToDos at fixed times, Monday to Saturday (Berlin time).
+foreach (['26 11', '7 16', '16 16', '34 18'] as $time) {
+    Schedule::command('todos:check-tracking')->cron("{$time} * * 1-6")->timezone('Europe/Berlin')->withoutOverlapping(30);
+}

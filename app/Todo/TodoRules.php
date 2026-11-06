@@ -79,6 +79,7 @@ class TodoRules
             $prefix.'notify_customer' => ['nullable', 'boolean'],
             $prefix.'notify_hint' => ['nullable', 'string', 'max:1000'],
             $prefix.'reference' => ['nullable', 'string', 'max:120'],
+            $prefix.'auto_send' => ['nullable', 'boolean'],
         ];
     }
 

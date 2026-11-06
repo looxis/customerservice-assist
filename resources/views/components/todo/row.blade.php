@@ -43,6 +43,17 @@
             @elseif ($todo->notify_customer && ! $done)<x-badge compact>Kunde wird informiert</x-badge>@endif
             @if ($done)<span>Erledigt von {{ $todo->completed_by ?? '–' }}{{ $todo->completed_at ? ' am '.$todo->completed_at->setTimezone('Europe/Berlin')->format('d.m.Y') : '' }}{{ $todo->notify_skipped ? ' (Kunde nicht informiert)' : '' }}</span>@endif
         </p>
+        @if ($todo->auto_send && $todo->autoChecks->isNotEmpty() || $auto === 'sent')
+            <details class="text-xs text-slate-600">
+                <summary class="cursor-pointer font-medium text-slate-700">Verlauf der automatischen Prüfung ({{ $todo->auto_checks }})</summary>
+                <ul class="mt-1 space-y-0.5">
+                    @foreach ($todo->autoChecks->take(20) as $check)
+                        <li>{{ $check->checked_at->setTimezone('Europe/Berlin')->format('d.m. H:i') }} · {{ ['none' => 'noch keine Sendungsnummer', 'sent' => 'gesendet', 'review' => 'bitte prüfen', 'error' => 'Fehler', 'expired' => 'beendet', 'note_failed' => 'Notiz fehlgeschlagen'][$check->result] ?? $check->result }}@if ($check->note) · {{ $check->note }}@endif</li>
+                    @endforeach
+                </ul>
+                @if ($auto === 'sent' && $todo->auto_text)<p class="mt-2 font-medium text-slate-700">Gesendeter Text</p><p class="whitespace-pre-line text-slate-900">{{ $todo->auto_text }}</p>@endif
+            </details>
+        @endif
     </div>
 
     <div class="flex flex-wrap items-center justify-end gap-2" x-data>

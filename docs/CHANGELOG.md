@@ -7,6 +7,7 @@
 ## 2026-11-06
 
 - ToDos: Häufige ToDos (Sendungsnummer nachreichen, (Teil-)Erstattung, Nachforschungsauftrag Versand) per Auswahl anlegen, mit vorbereiteter Antwort an den Kunden. Zuständig „Alle“ ist der Standard, „Wartet auf Ereignis“ steht jetzt im Feld „Fällig“. Die Antworttexte lassen sich unter Einstellungen > Mail-Anzeige ändern.
+- Sendungsnummer automatisch: Beim ToDo „Sendungsnummer nachreichen“ prüft die App ab dem Anlegen Montag bis Samstag (11:26, 16:07, 16:16, 18:34 Uhr) in EOCS, ob die Reklamation versendet wurde, und sendet dem Kunden die Sendungsnummer in deinem Namen. Das ToDo wird dann erledigt (von „Automatik“) und das Ticket geschlossen. Mit dem Haken „Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden“ lässt sich das je ToDo abschalten. Bei Unklarheiten (z. B. fremde Sprache) steht am ToDo „Bitte prüfen“.
 - Reklamationen: Nennt der Antwortvorschlag eine Reklamationsnummer, ist das ToDo „Sendungsnummer nachreichen“ schon vorbereitet und verwendet diese Nummer. Versanddienstleister und Sendungsnummer der Reklamation stehen jetzt bei der Bestellung.
 - Benutzeroberfläche deutlich schlanker gestaltet. Nutzung vereinfacht. Hinweise die erfahrene Nutzer nicht benötigen, sind ausgeblendet und können oben rechts über "Hinweise anzeigen" wieder eingeblendet werden.
 

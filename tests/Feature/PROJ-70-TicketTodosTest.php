@@ -378,6 +378,34 @@ describe('the prepared replies', function () {
     });
 });
 
+describe('the automatic reply switch (PROJ-77)', function () {
+    test('a ToDo created in the dialog is never sent automatically: the language is unknown', function () {
+        createTodo(['reference' => 'R1-7KA-0QH8-6AF8', 'auto_send' => '1'])->assertSessionHasNoErrors();
+
+        $todo = TicketTodo::query()->latest('id')->first();
+        expect($todo->external_ref)->toBe('R1-7KA-0QH8-6AF8')->and($todo->auto_send)->toBeFalse()->and($todo->auto_state)->toBeNull();
+    });
+
+    test('switching the automatic reply on or off for a German customer starts or stops the check', function () {
+        $todo = TicketTodo::factory()->create(['external_ref' => 'R1-7KA-0QH8-6AF8', 'customer_language' => 'Deutsch', 'auto_send' => true, 'auto_state' => 'watching']);
+        $fields = ['description' => 'x', 'assignee' => 'Nele', 'kind' => 'direct', 'due_in' => 'keep', 'reference' => 'R1-7KA-0QH8-6AF8'];
+
+        $this->withCookie('staff_name', 'Nele')->patch(route('todos.update', $todo), [...$fields, 'auto_send' => '0'])->assertSessionHas('success');
+        expect($todo->refresh()->auto_send)->toBeFalse()->and($todo->auto_state)->toBeNull();
+
+        $this->withCookie('staff_name', 'Nele')->patch(route('todos.update', $todo), [...$fields, 'auto_send' => '1'])->assertSessionHas('success');
+        expect($todo->refresh()->auto_send)->toBeTrue()->and($todo->auto_state)->toBe('watching');
+    });
+
+    test('a ToDo that asks for a look keeps that state when it is saved with the switch still on', function () {
+        $todo = TicketTodo::factory()->create(['external_ref' => 'R1-7KA-0QH8-6AF8', 'customer_language' => 'Deutsch', 'auto_send' => true, 'auto_state' => 'review', 'auto_reason' => 'Grund']);
+
+        $this->withCookie('staff_name', 'Nele')->patch(route('todos.update', $todo), ['description' => 'x', 'assignee' => 'Nele', 'kind' => 'direct', 'due_in' => 'keep', 'reference' => 'R1-7KA-0QH8-6AF8', 'auto_send' => '1'])->assertSessionHas('success');
+
+        expect($todo->refresh()->auto_state)->toBe('review')->and($todo->auto_reason)->toBe('Grund');
+    });
+});
+
 describe('the number of the shipment', function () {
     function caseContext(string $reply, array $claims = [], array $ticketClaims = []): array
     {
