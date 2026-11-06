@@ -4,11 +4,11 @@
 @php
     $names = \App\Todo\TodoRules::assignees();
     $presets = \App\Todo\TodoRules::presets();
-    $blank = ['id' => null, 'preset' => '', 'previous' => '', 'description' => '', 'assignee' => \App\Todo\TodoRules::EVERYONE, 'due_in' => '', 'due_label' => null, 'waiting_for' => '', 'notify_customer' => false, 'notify_hint' => '', 'ticket' => $ticketNumber];
+    $blank = ['id' => null, 'preset' => '', 'previous' => '', 'description' => '', 'assignee' => \App\Todo\TodoRules::EVERYONE, 'due_in' => '', 'due_label' => null, 'waiting_for' => '', 'notify_customer' => false, 'notify_hint' => '', 'reference' => '', 'auto_send' => false, 'german' => false, 'ticket' => $ticketNumber];
     $create = $ticketNumber ? route('tickets.todos.store', ['number' => $ticketNumber]) : null;
 @endphp
 
-@if ($errors->hasAny(['description', 'assignee', 'due_in', 'kind', 'waiting_for', 'notify_hint']))
+@if ($errors->hasAny(['description', 'assignee', 'due_in', 'kind', 'waiting_for', 'notify_hint', 'reference']))
     <x-alert type="error" role="alert">
         <p class="font-semibold">Das ToDo wurde nicht gespeichert.</p>
         <ul class="mt-1 list-disc pl-5">@foreach (collect($errors->all())->unique() as $message)<li>{{ $message }}</li>@endforeach</ul>
@@ -84,6 +84,19 @@
                 <label for="todo-hint" class="block text-sm font-medium text-slate-900">Entwurf der späteren Antwort <span class="font-normal text-slate-600">(wird vorbereitet, du prüfst und sendest)</span></label>
                 <textarea id="todo-hint" name="notify_hint" x-model="todo.notify_hint" rows="6" maxlength="1000" placeholder="Text der Antwort an den Kunden"
                           class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <div>
+                <label for="todo-reference" class="block text-sm font-medium text-slate-900">Reklamations- oder Bestellnummer <span class="font-normal text-slate-600">(optional)</span></label>
+                <input id="todo-reference" type="text" name="reference" x-model="todo.reference" maxlength="120" placeholder="z. B. R1-7KA-0QH8-6AF8"
+                       class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 font-mono text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+            </div>
+            <div x-show="todo.reference.trim() !== ''" x-cloak class="space-y-1 text-sm text-slate-900">
+                <input type="hidden" name="auto_send" x-bind:value="todo.auto_send && todo.german ? '1' : '0'">
+                <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.auto_send" x-bind:disabled="! todo.german" class="rounded text-brand focus:ring-brand"> Sendungsnummer automatisch senden</label>
+                <p x-show="! todo.german" class="text-slate-600">Die Sprache des Kunden ist hier nicht bekannt oder nicht Deutsch: Die App sendet nicht von selbst. Am Antwortvorschlag im Ticket lässt sich das ToDo mit Automatik anlegen.</p>
             </div>
         </div>
 

@@ -122,6 +122,10 @@ describe('the lists', function () {
         $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSee('Sendungsnummer nachreichen')->assertSee('Nachforschungsauftrag Versand');
     });
 
+    test('the dialog offers the number and the switch for the automatic shipment reply', function () {
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSee('Reklamations- oder Bestellnummer')->assertSee('Sendungsnummer automatisch senden');
+    });
+
     test('ToDos stay when the ticket is closed or not in the ticket list', function () {
         TrackedTicket::factory()->create(['number' => '2137942', 'zammad_id' => 51234, 'state' => 'closed', 'is_closed' => true]);
         TicketTodo::factory()->create(['description' => 'Nach dem Schließen', 'zammad_id' => 51234, 'ticket_number' => '2137942']);

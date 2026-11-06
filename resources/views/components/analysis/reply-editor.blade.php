@@ -3,6 +3,7 @@
 @php
     $language = $result['result']['reply']['language'] ?? null;
     $send = $result['send'] ?? ['state' => 'hidden'];
+    $german = $language !== null && str_starts_with(mb_strtolower(trim((string) $language)), 'deutsch');
 @endphp
 
 {{-- Editable reply draft (PROJ-10): saved in the background while typing,
@@ -55,9 +56,10 @@
             warning: '',
         },
         todoContext: @js($result['todo_context'] ?? []),
+        todoGerman: @js($german),
         todoPresets: @js(\App\Todo\TodoRules::presets($result['todo_context'] ?? [])),
         todoText(todo) { return [todo.preset, todo.description.trim()].filter((part) => part !== '').join(' – ') },
-        addTodo() { this.send.todos.push({ preset: '', previous: '', reference: '', description: '', assignee: @js(\App\Todo\TodoRules::EVERYONE), due_in: '', waiting_for: '', notify_customer: false, notify_hint: '' }) },
+        addTodo() { this.send.todos.push({ preset: '', previous: '', reference: '', auto_send: false, description: '', assignee: @js(\App\Todo\TodoRules::EVERYONE), due_in: '', waiting_for: '', notify_customer: false, notify_hint: '' }) },
         sendReady: @js($send['state'] === 'ready'),
         returnLabel: @js($result['return_label'] ?? null),
         async linkLabel(label) {
@@ -94,6 +96,7 @@
             this.$todoPreset(todo, this.todoPresets, todo.previous);
             todo.previous = todo.preset;
             todo.reference = this.todoPresets.find((preset) => preset.label === todo.preset)?.tracking ? (this.todoContext.number ?? '') : '';
+            todo.auto_send = todo.reference !== '' && this.todoGerman;
         },
         sizeLabel(bytes) { return bytes >= 1048576 ? (bytes / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB' },
         get filesSize() { return this.send.files.reduce((sum, file) => sum + file.size, 0) },
@@ -143,6 +146,7 @@
                     ['assignee'].forEach((key) => form.append(`todos[${index}][${key}]`, todo[key] ?? ''));
                     form.append(`todos[${index}][notify_hint]`, todo.notify_customer ? todo.notify_hint : '');
                     form.append(`todos[${index}][reference]`, todo.reference ?? '');
+                    form.append(`todos[${index}][auto_send]`, todo.reference && todo.auto_send && this.todoGerman ? '1' : '0');
                     form.append(`todos[${index}][notify_customer]`, todo.notify_customer ? '1' : '0');
                 });
                 this.send.files.forEach((file) => form.append('files[]', file, file.name));
@@ -376,6 +380,11 @@
                                     </div>
                                     <input x-show="todo.due_in === 'waiting'" x-cloak type="text" x-model="todo.waiting_for" maxlength="255" placeholder="Worauf wird gewartet? z. B. Versand der Ersatzbestellung" aria-label="Worauf wird gewartet?" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
                                     <textarea x-show="todo.notify_customer" x-cloak x-model="todo.notify_hint" rows="5" maxlength="1000" placeholder="Entwurf der späteren Antwort an den Kunden; du prüfst und sendest ihn später selbst" aria-label="Entwurf der späteren Antwort" class="block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
+                                    <div x-show="todo.reference !== ''" x-cloak class="space-y-1 text-sm text-slate-900">
+                                        <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.auto_send" x-bind:disabled="! todoGerman" class="rounded text-brand focus:ring-brand"> Sendungsnummer automatisch senden <span class="font-mono text-xs text-slate-600" x-text="'(' + todo.reference + ')'"></span></label>
+                                        <p x-show="! todoGerman" class="text-slate-600">Der Kunde schreibt nicht auf Deutsch oder die Sprache ist unbekannt: Die App sendet nicht von selbst, sondern bereitet die Antwort vor und meldet „Bitte prüfen“.</p>
+                                        <x-intro><p x-show="todoGerman" class="text-slate-600">Sobald in EOCS eine Sendungsnummer vorliegt, sendet die App den Entwurf oben in deinem Namen, schließt das Ticket und erledigt das ToDo. Geprüft wird Montag bis Samstag; nach 5 Tagen ohne Sendungsnummer meldet sich das ToDo.</p></x-intro>
+                                    </div>
                                 </li>
                             </template>
                         </ul>

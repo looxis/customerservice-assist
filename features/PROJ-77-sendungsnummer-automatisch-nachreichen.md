@@ -1,6 +1,6 @@
 # PROJ-77: Sendungsnummer automatisch nachreichen
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-06
 **Last Updated:** 2026-11-06 (Tech Design)
 
@@ -225,6 +225,12 @@ Keine neuen. Genutzt werden vorhandene Teile: Zeitplaner, EOCS-Zugriff, Zammad-V
 - Sonntags angelegte ToDos: erste Prüfung Montag 11:26.
 - Die 5 Tage zählen Kalendertage ohne Sonntage ab dem Anlegetag; am sechsten Prüftag wird nicht mehr geprüft.
 
+
+## Implementation Notes (Frontend, 2026-11-06)
+- **Sendeformular** (`components/analysis/reply-editor.blade.php`): Bei „Sendungsnummer nachreichen“ erscheint der Haken „Sendungsnummer automatisch senden“ mit der Nummer, vorab gesetzt, wenn der Antwortentwurf Deutsch ist; sonst abgewählt, gesperrt und mit Hinweis. Das Formular schickt `reference` und `auto_send` je ToDo-Zeile.
+- **Dialog** (`components/todo/dialog.blade.php`): Feld „Reklamations- oder Bestellnummer“ und derselbe Haken (nur mit Nummer sichtbar). Ohne bekannte Sprache ist der Haken gesperrt (Dialog kennt die Sprache nur beim Bearbeiten, sobald das Backend sie liefert).
+- **Anzeige** (`components/todo/row.blade.php`): Markierungen „Automatische Prüfung: nächste …“, „Bitte prüfen: Grund“, „Sendungsnummer fehlt seit 5 Tagen“, „Automatisch gesendet am … · Nummer“. Sie lesen Felder, die das Backend liefert (`auto_state`, `auto_reason`, `auto_next_label`, `auto_sent_at`, `auto_tracking`, `auto_send`, `customer_language`); bis dahin bleiben sie unsichtbar.
+- **Backend offen:** Felder und Tabelle, Annahme von `reference` und `auto_send` in den Eingaben, Läufe, Prüfung, Versand, Prüfverlauf-Ansicht.
 
 ## QA Test Results
 _To be added by /qa_

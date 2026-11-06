@@ -6,6 +6,7 @@
     $done = $todo->status === \App\Todo\TodoStatus::Done;
     $pending = $todo->status === \App\Todo\TodoStatus::NotifyPending;
     $overdue = $todo->isOverdue();
+    $auto = $todo->auto_state ?? null;
     $edit = [
         'id' => $todo->id,
         'description' => $todo->description,
@@ -16,6 +17,9 @@
         'waiting_for' => $todo->waiting_for,
         'notify_customer' => $todo->notify_customer,
         'notify_hint' => $todo->notify_hint,
+        'reference' => $todo->external_ref ?? '',
+        'auto_send' => (bool) ($todo->auto_send ?? false),
+        'german' => str_starts_with(mb_strtolower(trim((string) ($todo->customer_language ?? ''))), 'deutsch'),
         'ticket' => $todo->ticket_number,
     ];
 @endphp
@@ -31,6 +35,10 @@
                 <x-badge compact :tone="$overdue ? 'danger' : 'neutral'">{{ $overdue ? 'Überfällig seit' : 'Fällig' }} {{ $todo->due_on->format('d.m.Y') }}</x-badge>
             @endif
             @if ($todo->kind === \App\Todo\TodoKind::Waiting)<x-badge compact tone="info">Wartet auf: {{ $todo->waiting_for }}</x-badge>@endif
+            @if ($auto === 'watching')<x-badge compact tone="info">Automatische Prüfung{{ ($todo->auto_next_label ?? null) ? ': nächste '.$todo->auto_next_label : '' }}</x-badge>
+            @elseif ($auto === 'review')<x-badge compact tone="warning">Bitte prüfen: {{ $todo->auto_reason ?? 'Grund unbekannt' }}</x-badge>
+            @elseif ($auto === 'expired')<x-badge compact tone="warning">Sendungsnummer fehlt seit 5 Tagen</x-badge>
+            @elseif ($auto === 'sent')<x-badge compact tone="success">Automatisch gesendet{{ ($todo->auto_sent_at ?? null) ? ' am '.$todo->auto_sent_at->setTimezone('Europe/Berlin')->format('d.m. \u\m H:i') : '' }}{{ ($todo->auto_tracking ?? null) ? ' · '.$todo->auto_tracking : '' }}</x-badge>@endif
             @if ($pending)<x-badge compact tone="warning">Benachrichtigung offen</x-badge>
             @elseif ($todo->notify_customer && ! $done)<x-badge compact>Kunde wird informiert</x-badge>@endif
             @if ($done)<span>Erledigt von {{ $todo->completed_by ?? '–' }}{{ $todo->completed_at ? ' am '.$todo->completed_at->setTimezone('Europe/Berlin')->format('d.m.Y') : '' }}{{ $todo->notify_skipped ? ' (Kunde nicht informiert)' : '' }}</span>@endif
