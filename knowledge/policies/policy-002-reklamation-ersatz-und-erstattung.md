@@ -18,7 +18,7 @@ related_knowledge:
 - PLAYBOOK-006
 - POLICY-037
 - POLICY-038
-summary: "Gilt bei Reklamationen von Privatkunden: Ersatz oder Erstattung nach Mangel. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
+summary: "Gilt bei Reklamationen von Privatkunden: bei bestätigtem Problem Ersatz, Erstattung nur als Sonderfall; solange das Problem ungeklärt ist, wird keine Erstattung erwähnt oder bestätigt. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
 retrieval: core
 triggers:
 exclude_triggers:
@@ -32,9 +32,20 @@ Gilt für Privatkunden auf allen Vertriebskanälen. Bestätigte Anwendungsfälle
 
 Bei einer berechtigten Reklamation ist die bevorzugte Lösung eine kostenfreie Neuproduktion mit anschließendem Ersatzversand.
 
-Bei einem eindeutigen groben eigenen Fehler kann stattdessen eine Erstattung in Betracht gezogen werden, wenn der Kunde diese ausdrücklich verlangt. Ob beispielsweise eine Verwechslung oder eine falsch umgesetzte Personalisierung als grober Fehler einzustufen ist, hängt von den tatsächlichen Auswirkungen ab; nicht jeder kleine Ausführungsfehler erfüllt diese Ausnahme. Ein Erstattungswunsch allein begründet noch keine Erstattung.
+Bei einem bestätigten Problem lautet die Lösung immer Ersatz. Eine Erstattung ist keine gleichwertige Option, sondern ein seltener Sonderfall.
 
-Verlangt der Kunde keine Erstattung, wird eine passende Ersatzlösung angeboten. Eine lediglich vermutete Erstattungsabsicht ist kein Anlass, von sich aus eine Erstattung anzubieten.
+# Solange das Problem ungeklärt ist
+
+Solange nicht feststeht, was das Problem ist (kein Foto, keine konkrete Beschreibung, Mangel nicht bestätigt), wird eine Erstattung weder in Betracht gezogen noch kommentiert oder bestätigt, auch wenn der Kunde sie verlangt:
+
+- Empfehlung und Begründung nennen keine Erstattung als mögliche Lösung, nur „den Fall prüfen“.
+- Der Antwortentwurf greift den Erstattungswunsch nicht auf, erklärt keinen Erstattungsweg (auch nicht über Amazon) und bittet nur um die Angaben zur Klärung der Beanstandung.
+
+# Sonderfall Erstattung
+
+Erst bei bestätigtem Problem kann stattdessen eine Erstattung in Betracht gezogen werden, wenn ein eindeutiger grober eigener Fehler vorliegt und der Kunde diese ausdrücklich verlangt. Ob ein Fehler grob ist, hängt von den tatsächlichen Auswirkungen ab; nicht jeder kleine Ausführungsfehler erfüllt diese Ausnahme. Ein Erstattungswunsch allein begründet keine Erstattung.
+
+Eine vermutete Erstattungsabsicht ist kein Anlass, von sich aus eine Erstattung anzubieten.
 
 # Vergangener Anlass und produktspezifische Prüfung
 
@@ -52,7 +63,7 @@ Eine Reklamation zu Qualität, gelieferter Ware oder Umsetzung der Personalisier
 2. Feststellen, ob ein Mangel, ein eindeutiger eigener Fehler oder eine noch ungeklärte Beanstandung vorliegt.
 3. Bei Interpretationsspielraum, etwa „Druck zu dunkel“ oder „einen Millimeter außerhalb der Mitte“, keine automatische Fehleranerkennung und keine automatische Erstattung vornehmen. Die tatsächliche Abweichung prüfen. Für Helligkeit und Ausrichtung sind keine numerischen Toleranzen festgelegt; die Abweichung wird im Einzelfall bewertet (PROCESS-002).
 4. Bei erforderlicher Korrektur bevorzugt kostenfreie Neuproduktion und Ersatzversand anbieten.
-5. Bei ausdrücklichem Erstattungswunsch und eindeutigem grobem eigenem Fehler eine Erstattung als mögliche Lösung prüfen.
+5. Nur bei bestätigtem Problem, ausdrücklichem Erstattungswunsch und eindeutigem grobem eigenem Fehler eine Erstattung als mögliche Lösung prüfen; vorher nicht erwähnen.
 
 # Befugnis
 
