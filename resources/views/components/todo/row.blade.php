@@ -56,11 +56,11 @@
         @endif
     </div>
 
-    <div class="flex flex-wrap items-center justify-end gap-2" x-data>
+    <div class="flex flex-wrap items-center justify-end gap-2" x-data="{ edit: @js($edit) }">
         @if ($done)
             <form method="POST" action="{{ route('todos.reopen', $todo) }}">@csrf<x-button type="submit" variant="secondary"><x-icon name="refresh" size="16" /> Wieder öffnen</x-button></form>
         @else
-            <x-button variant="secondary" x-on:click="$dispatch('edit-todo', @js($edit))">Bearbeiten</x-button>
+            <x-button variant="secondary" x-on:click="$dispatch('edit-todo', edit)">Bearbeiten</x-button>
             @if ($pending)
                 <form method="POST" action="{{ route('todos.complete', $todo) }}">@csrf<x-button type="submit"><x-icon name="chat" size="16" /> Antwort öffnen</x-button></form>
             @endif

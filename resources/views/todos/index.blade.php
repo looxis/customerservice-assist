@@ -23,7 +23,8 @@
         </x-card>
 
         @php
-            [$doneRows, $openRows] = $rows->getCollection()->partition(fn ($todo) => $todo->status === \App\Todo\TodoStatus::Done);
+            [$doneRows, $unfinished] = $rows->getCollection()->partition(fn ($todo) => $todo->status === \App\Todo\TodoStatus::Done);
+            [$autoRows, $openRows] = $unfinished->partition(fn ($todo) => (bool) $todo->auto_send);
         @endphp
 
         @if ($rows->isEmpty())
@@ -34,6 +35,13 @@
             <x-card class="p-0">
                 <h2 class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Offen ({{ $openRows->count() }})</h2>
                 <ul class="divide-y divide-slate-100">@foreach ($openRows as $todo)<x-todo.row :todo="$todo" />@endforeach</ul>
+            </x-card>
+        @endif
+
+        @if ($autoRows->isNotEmpty())
+            <x-card class="p-0">
+                <h2 class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Automatisiert offen ({{ $autoRows->count() }})</h2>
+                <ul class="divide-y divide-slate-100">@foreach ($autoRows as $todo)<x-todo.row :todo="$todo" />@endforeach</ul>
             </x-card>
         @endif
 
