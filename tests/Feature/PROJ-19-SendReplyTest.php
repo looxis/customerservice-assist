@@ -102,7 +102,7 @@ describe('the offer', function () {
         $html = test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->getContent();
         expect($html)->toContain('id="antwort-versenden"')->not->toMatch('/x-on:click="copy\(\)"/');
 
-        $this->articles = [zammadArticle(['id' => 1, 'type' => 'phone', 'body' => '<p>Anruf</p>'])];
+        $this->articles = [zammadArticle(['id' => 1, 'type' => 'phone', 'from' => 'Erika Beispiel', 'body' => '<p>Anruf</p>'])];
         $blocked = sendAnalysis();
         $html = test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$blocked)->assertOk()->getContent();
         expect($html)->not->toContain('id="antwort-versenden"')->toMatch('/x-on:click="copy\(\)"/');
@@ -119,12 +119,18 @@ describe('the offer', function () {
     });
 
     test('a ticket without a usable customer message offers nothing to send, and the server refuses', function () {
-        $this->articles = [zammadArticle(['id' => 1, 'type' => 'phone', 'body' => '<p>Anruf</p>'])];
+        $this->articles = [zammadArticle(['id' => 1, 'type' => 'phone', 'from' => 'Erika Beispiel', 'body' => '<p>Anruf</p>'])];
         $id = sendAnalysis();
 
         test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942?analyse='.$id)->assertOk()->assertSeeText('keine Kundennachricht mit eindeutiger Antwortadresse');
         sendReply($id)->assertStatus(409);
         expect(putRequests())->toBe([]);
+    });
+
+    test('a ticket split off a mail keeps the type phone, its address still counts', function () {
+        $this->articles = [zammadArticle(['id' => 1, 'type' => 'phone', 'from' => 'Timo <relay@marketplace.amazon.de>', 'body' => '<p>Frage</p>'])];
+
+        expect(ReplyTarget::for(app(ZammadClient::class)->ticket('2137942'))->to)->toBe('relay@marketplace.amazon.de');
     });
 
     test('an address with umlauts in the domain is sent in the form mail servers accept', function () {

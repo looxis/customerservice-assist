@@ -11,14 +11,19 @@ final readonly class ReplyTarget
     public function __construct(public string $to, public string $subject, public ?string $inReplyTo) {}
 
     /**
-     * Null when there is no customer message to answer by mail (empty ticket, phone note, no usable address).
+     * Null when there is no customer message to answer by mail (empty ticket, phone note without address, no usable address).
      */
     public static function for(Ticket $ticket): ?self
     {
         $last = null;
 
         foreach ($ticket->articles as $article) {
-            if ($article->kind === ArticleKind::Customer && ! $article->automatic && ! in_array($article->type, ['phone', 'note'], true)) {
+            if ($article->kind !== ArticleKind::Customer || $article->automatic) {
+                continue;
+            }
+
+            // A phone note has no sender address, unless the ticket was split off a mail: the copy keeps the type "phone" and the address.
+            if (! in_array($article->type, ['phone', 'note'], true) || self::address($article->replyTo) !== null || self::address($article->from) !== null) {
                 $last = $article;
             }
         }
