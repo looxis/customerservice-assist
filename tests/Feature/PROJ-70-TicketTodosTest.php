@@ -123,7 +123,7 @@ describe('the lists', function () {
     });
 
     test('the dialog offers the number and the switch for the automatic shipment reply', function () {
-        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSee('Reklamations- oder Bestellnummer')->assertSee('Sendungsnummer automatisch senden');
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSee('Reklamations- oder Bestellnummer')->assertSee('Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden');
     });
 
     test('ToDos stay when the ticket is closed or not in the ticket list', function () {

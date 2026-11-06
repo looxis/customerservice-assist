@@ -32,7 +32,7 @@ Bei Reklamationen sagt die Antwort an den Kunden zu, dass die neu gefertigte War
 - Anmeldung und Rechte je Benutzer (PROJ-15)
 
 ## Ablauf in Kürze
-1. Der Mitarbeiter legt das ToDo „Sendungsnummer nachreichen“ an (PROJ-70, auf der Ergebnisseite oder im Dialog). Der Haken „Sendungsnummer automatisch senden“ ist vorab gesetzt. Die Reklamationsnummer steht am ToDo.
+1. Der Mitarbeiter legt das ToDo „Sendungsnummer nachreichen“ an (PROJ-70, auf der Ergebnisseite oder im Dialog). Der Haken „Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden“ ist vorab gesetzt. Die Reklamationsnummer steht am ToDo.
 2. Die App prüft zu festen Zeiten in EOCS, ob die Reklamation versendet wurde.
 3. Liegt eine Sendungsnummer samt Versanddienstleister vor, sendet die App die Antwort aus der Vorlage im Namen des Mitarbeiters, setzt eine interne Notiz, schließt das Ticket und erledigt das ToDo mit dem Kennzeichen „automatisch“.
 4. Wo sie nicht senden darf, bereitet sie die Antwort vor und markiert das ToDo mit „Bitte prüfen“ und dem Grund.
@@ -53,7 +53,7 @@ Obergrenze: 5 Kalendertage ab dem Anlegen, Sonntage zählen nicht mit. Danach en
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
 ### ToDo und Haken
-- [ ] Angenommen der Mitarbeiter wählt beim Anlegen „Sendungsnummer nachreichen“, wenn das ToDo angelegt wird, dann ist der Haken „Sendungsnummer automatisch senden“ vorab gesetzt und er kann ihn abwählen.
+- [ ] Angenommen der Mitarbeiter wählt beim Anlegen „Sendungsnummer nachreichen“, wenn das ToDo angelegt wird, dann ist der Haken „Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden“ vorab gesetzt und er kann ihn abwählen.
 - [ ] Angenommen der Antwortvorschlag ist in einer anderen Sprache als Deutsch oder die Sprache ist unbekannt, wenn das ToDo angelegt wird, dann ist der Haken abgewählt und ein Hinweis nennt den Grund.
 - [ ] Angenommen der Haken ist abgewählt, wenn die Prüfzeit kommt, dann prüft die App dieses ToDo nicht; es verhält sich wie in PROJ-70.
 - [ ] Angenommen ein ToDo hat keine Reklamationsnummer oder Bestellnummer am ToDo (z. B. vor PROJ-77 angelegt oder von Hand), wenn die Prüfzeit kommt, dann wird es nicht automatisch behandelt.
@@ -166,7 +166,7 @@ Backend nötig: ja (Datenbank, geplante Läufe, Zugriff auf EOCS und Zammad). Ke
 ```
 Anlegen des ToDos (vorhanden, PROJ-70)
 +-- Ergebnisseite: Sendeformular, ToDo-Zeile „Sendungsnummer nachreichen“
-|   +-- NEU: Haken „Sendungsnummer automatisch senden“ (vorab gesetzt; abgewählt + Hinweis bei Sprache nicht Deutsch / unbekannt)
+|   +-- NEU: Haken „Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden“ (vorab gesetzt; abgewählt + Hinweis bei Sprache nicht Deutsch / unbekannt)
 +-- Dialog „ToDo anlegen / bearbeiten“ (ToDo-Übersicht)
 |   +-- NEU: Feld „Reklamations- oder Bestellnummer“ und derselbe Haken (nur mit Nummer sichtbar)
 
@@ -227,7 +227,7 @@ Keine neuen. Genutzt werden vorhandene Teile: Zeitplaner, EOCS-Zugriff, Zammad-V
 
 
 ## Implementation Notes (Frontend, 2026-11-06)
-- **Sendeformular** (`components/analysis/reply-editor.blade.php`): Bei „Sendungsnummer nachreichen“ erscheint der Haken „Sendungsnummer automatisch senden“ mit der Nummer, vorab gesetzt, wenn der Antwortentwurf Deutsch ist; sonst abgewählt, gesperrt und mit Hinweis. Das Formular schickt `reference` und `auto_send` je ToDo-Zeile.
+- **Sendeformular** (`components/analysis/reply-editor.blade.php`): Bei „Sendungsnummer nachreichen“ erscheint der Haken „Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden“ mit der Nummer, vorab gesetzt, wenn der Antwortentwurf Deutsch ist; sonst abgewählt, gesperrt und mit Hinweis. Das Formular schickt `reference` und `auto_send` je ToDo-Zeile.
 - **Dialog** (`components/todo/dialog.blade.php`): Feld „Reklamations- oder Bestellnummer“ und derselbe Haken (nur mit Nummer sichtbar). Ohne bekannte Sprache ist der Haken gesperrt (Dialog kennt die Sprache nur beim Bearbeiten, sobald das Backend sie liefert).
 - **Anzeige** (`components/todo/row.blade.php`): Markierungen „Automatische Prüfung: nächste …“, „Bitte prüfen: Grund“, „Sendungsnummer fehlt seit 5 Tagen“, „Automatisch gesendet am … · Nummer“. Sie lesen Felder, die das Backend liefert (`auto_state`, `auto_reason`, `auto_next_label`, `auto_sent_at`, `auto_tracking`, `auto_send`, `customer_language`); bis dahin bleiben sie unsichtbar.
 - **Backend offen:** Felder und Tabelle, Annahme von `reference` und `auto_send` in den Eingaben, Läufe, Prüfung, Versand, Prüfverlauf-Ansicht.

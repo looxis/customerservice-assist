@@ -95,7 +95,7 @@
             </div>
             <div x-show="todo.reference.trim() !== ''" x-cloak class="space-y-1 text-sm text-slate-900">
                 <input type="hidden" name="auto_send" x-bind:value="todo.auto_send && todo.german ? '1' : '0'">
-                <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.auto_send" x-bind:disabled="! todo.german" class="rounded text-brand focus:ring-brand"> Sendungsnummer automatisch senden</label>
+                <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.auto_send" x-bind:disabled="! todo.german" class="rounded text-brand focus:ring-brand"> Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden</label>
                 <p x-show="! todo.german" class="text-slate-600">Die Sprache des Kunden ist hier nicht bekannt oder nicht Deutsch: Die App sendet nicht von selbst. Am Antwortvorschlag im Ticket lässt sich das ToDo mit Automatik anlegen.</p>
             </div>
         </div>
