@@ -36,7 +36,7 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 - [x] Angenommen ich melde dasselbe Dokument ein zweites Mal, dann ersetzt die neue Meldung meine offene; eine Person zählt je Dokument nur einmal.
 - [x] Angenommen ein Dokument hat mindestens 3 offene Meldungen von mindestens 2 Personen, dann trägt es „Mehrfach zur Prüfung gemeldet“ (Quelle im Ergebnis, Wissensübersicht, Dokumentseite); geschlossene Meldungen zählen nicht; abgeschaltet wird nichts.
 - [x] Angenommen ich bin Admin, wenn ich bei den Wissenslücken den Reiter „Zur Prüfung“ öffne, dann sehe ich je Dokument die Meldungen mit Person, Datum, Grund, Kommentar und Ticket, den Hinweis „seit einer Meldung geändert“, und kann „Geprüft, bleibt“ wählen (schließt nur die Meldungen dieses Dokuments), „Für den KI-Chat kopieren“ (Dokument, Meldungen und Inhalt) und zum Dokument wechseln (dort „Als veraltet markieren“).
-- [x] Angenommen ich bin kein Admin, dann ist der Reiter und das Schließen verboten (403); eine unbekannte oder ungültige Dokument-ID, ein ungültiger Grund oder ein zu langer Kommentar wird abgelehnt; mehr als 20 Meldungen pro Minute werden gebremst.
+- [x] Angenommen ich bin kein Admin, dann sehe ich den Reiter „Zur Prüfung“ mit den Meldungen (Person, Datum, Grund, Kommentar, Ticket), aber ohne „Geprüft, bleibt“ und „Für den KI-Chat kopieren“; das Schließen ist verboten (403) (Entscheidung 2026-11-06, vorher war der Reiter nur für Admins); eine unbekannte oder ungültige Dokument-ID, ein ungültiger Grund oder ein zu langer Kommentar wird abgelehnt; mehr als 20 Meldungen pro Minute werden gebremst.
 - [x] Angenommen der Kommentar enthält Fallangaben, dann ist er verschlüsselt gespeichert und wird mit den übrigen Inhalten nach der Aufbewahrungsfrist gelöscht.
 
 ## Acceptance Criteria – Schritt 3
@@ -103,7 +103,7 @@ Manche Vorgehensweisen werden bewusst nur eine Zeit lang getestet („das machen
 
 **Sicherheit (Red Team)**
 - Markup in einem Kommentar erscheint für Admins als Text (maskiert).
-- Kommentare und der Reiter „Zur Prüfung“ sind für Nicht-Admins nicht erreichbar (403), die Dokumentseite zeigt Nicht-Admins nur den Zähler, nie Kommentare.
+- Der Reiter „Zur Prüfung“ ist seit 2026-11-06 für alle sichtbar (mit Kommentaren), die Aktionen sind nur für Admins (403 beim Schließen); die Dokumentseite zeigt Nicht-Admins weiterhin nur den Zähler, nie Kommentare.
 - Die Entscheidung zur Testphase kann keine Datei außerhalb der Wissensbasis erreichen (Pfade wie `../../.env` werden abgelehnt, die App vergleicht nur mit eingelesenen Dokumenten); Vorlagen können nicht entschieden werden.
 - Melden ist auf 20 je Minute gebremst; ID, Grund, Kommentarlänge und Ticketnummer werden geprüft; Kommentare sind verschlüsselt gespeichert und werden nach der Aufbewahrungsfrist gelöscht.
 - Bekannte, bewusst akzeptierte Grenze ohne Login: Wer einen anderen Namen wählt, kann in dessen Namen melden und als Admin gelten.

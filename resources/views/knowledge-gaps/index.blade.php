@@ -65,7 +65,7 @@
     @endif
 
     @if ($status === 'review')
-        <p class="text-sm text-slate-600">Wissen, das Mitarbeiter als möglicherweise veraltet gemeldet haben. Eine Meldung schaltet nichts ab; ihr entscheidet, ob das Dokument bleibt, überarbeitet wird oder entfällt.</p>
+        <p class="text-sm text-slate-600">Wissen, das Mitarbeiter als möglicherweise veraltet gemeldet haben. Eine Meldung schaltet nichts ab; Admins entscheiden, ob das Dokument bleibt, überarbeitet wird oder entfällt.</p>
         @forelse ($reviews as $row)
             <x-card>
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -94,16 +94,18 @@
                     <summary class="cursor-pointer font-medium text-slate-700 hover:text-slate-900">Belege zum Dokument</summary>
                     <x-knowledge.usage :usage="$reviewUsage($row['id'])" />
                 </details>
-                <div class="mt-4 flex flex-wrap items-start gap-3" x-data="{ copied: false }">
-                    <form method="POST" action="{{ route('knowledge.review.resolve', ['documentId' => $row['id']]) }}">
-                        @csrf
-                        <x-button type="submit" variant="secondary">Geprüft, bleibt</x-button>
-                    </form>
-                    <textarea x-ref="text" readonly class="sr-only" aria-hidden="true" tabindex="-1">{{ $reviewChatText($row['id']) }}</textarea>
-                    <x-button variant="secondary" x-on:click="navigator.clipboard.writeText($refs.text.value).then(() => { copied = true; setTimeout(() => copied = false, 2500) })">Für den KI-Chat kopieren</x-button>
-                    <span x-show="copied" x-cloak role="status" class="self-center text-sm font-medium text-success-700">Kopiert</span>
-                    @if ($row['path'])<a href="{{ route('knowledge.show', ['path' => $row['path']]) }}" class="self-center text-sm font-semibold text-brand hover:text-brand-hover">Dokument öffnen (dort: Als veraltet markieren)</a>@endif
-                </div>
+                @if ($isAdmin)
+                    <div class="mt-4 flex flex-wrap items-start gap-3" x-data="{ copied: false }">
+                        <form method="POST" action="{{ route('knowledge.review.resolve', ['documentId' => $row['id']]) }}">
+                            @csrf
+                            <x-button type="submit" variant="secondary">Geprüft, bleibt</x-button>
+                        </form>
+                        <textarea x-ref="text" readonly class="sr-only" aria-hidden="true" tabindex="-1">{{ $reviewChatText($row['id']) }}</textarea>
+                        <x-button variant="secondary" x-on:click="navigator.clipboard.writeText($refs.text.value).then(() => { copied = true; setTimeout(() => copied = false, 2500) })">Für den KI-Chat kopieren</x-button>
+                        <span x-show="copied" x-cloak role="status" class="self-center text-sm font-medium text-success-700">Kopiert</span>
+                        @if ($row['path'])<a href="{{ route('knowledge.show', ['path' => $row['path']]) }}" class="self-center text-sm font-semibold text-brand hover:text-brand-hover">Dokument öffnen (dort: Als veraltet markieren)</a>@endif
+                    </div>
+                @endif
             </x-card>
         @empty
             <x-card><p class="text-sm text-slate-600">Es liegen keine Meldungen zur Prüfung vor.</p></x-card>

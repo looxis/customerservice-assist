@@ -135,11 +135,11 @@ describe('the buttons', function () {
 });
 
 describe('the admin tab', function () {
-    test('only admins see the reports', function () {
+    test('everyone sees the reports, only admins get the actions', function () {
         reportDocument();
 
-        test()->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index', ['status' => 'review']))->assertForbidden();
-        test()->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'review']))->assertOk()->assertSeeText('Zur Prüfung (1)')->assertSeeText('POLICY-001')->assertSeeText('Kunden reagieren verärgert.')->assertSeeText('Hilft nicht / führt nicht zum Ziel');
+        test()->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index', ['status' => 'review']))->assertOk()->assertSeeText('Zur Prüfung (1)')->assertSeeText('Kunden reagieren verärgert.')->assertDontSeeText('Geprüft, bleibt')->assertDontSeeText('Für den KI-Chat kopieren');
+        test()->withCookie('staff_name', 'Etienne')->get(route('knowledge-gaps.index', ['status' => 'review']))->assertOk()->assertSeeText('Zur Prüfung (1)')->assertSeeText('Geprüft, bleibt')->assertSeeText('Für den KI-Chat kopieren')->assertSeeText('POLICY-001')->assertSeeText('Kunden reagieren verärgert.')->assertSeeText('Hilft nicht / führt nicht zum Ziel');
     });
 
     test('the tab says so when nothing is reported', function () {

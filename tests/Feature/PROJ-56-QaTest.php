@@ -25,14 +25,14 @@ describe('QA: red team', function () {
         expect($html)->not->toContain('<script>alert(1)</script>')->not->toContain('<img src=x')->toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     });
 
-    test('the reports are not visible to ordinary staff, not even their comments', function () {
+    test('the document page shows ordinary staff only the counter, the review tab lists the reports without actions', function () {
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'active'])]);
         KnowledgeReviewFlag::query()->create(['document_id' => 'POLICY-001', 'staff_name' => 'Cara', 'reason' => 'other', 'comment' => 'Geheimer Kommentar', 'status' => 'open']);
 
         $page = test()->withCookie('staff_name', 'Nele')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->assertOk()->getContent();
 
         expect($page)->not->toContain('Geheimer Kommentar');
-        test()->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index', ['status' => 'review']))->assertForbidden();
+        test()->withCookie('staff_name', 'Nele')->get(route('knowledge-gaps.index', ['status' => 'review']))->assertOk()->assertSeeText('Geheimer Kommentar')->assertDontSeeText('Geprüft, bleibt');
     });
 
     test('the decision cannot reach a file outside the knowledge base', function () {
