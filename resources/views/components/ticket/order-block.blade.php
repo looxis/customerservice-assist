@@ -58,6 +58,11 @@
                         @if ($claim->orderedAt)<span class="text-slate-600">vom {{ $claim->orderedAt->format('d.m.Y') }}</span>@endif
                         @if ($claim->statusName)<x-badge compact :tone="\App\Eocs\EocsOrder::tone($claim->statusColor)">{{ $claim->statusName }}</x-badge>@endif
                         <a href="{{ $claim->url }}" target="_blank" rel="noopener noreferrer" class="font-medium text-brand hover:text-brand-hover">In EOCS öffnen</a>
+                        @forelse ($claim->shipments as $shipment)
+                            <span class="w-full text-slate-600">Versand: {{ $shipment->carrier ?? '–' }}@if ($shipment->trackingNumber), Sendungsnummer <span class="font-mono text-slate-900">{{ $shipment->trackingNumber }}</span>@endif @if ($shipment->shippedAt) · {{ $shipment->shippedAt->format('d.m.Y') }}@endif @if ($shipment->delivered) · zugestellt @endif</span>
+                        @empty
+                            <span class="w-full text-slate-600">Noch nicht versandt</span>
+                        @endforelse
                     </li>
                 @endforeach
             </ul>

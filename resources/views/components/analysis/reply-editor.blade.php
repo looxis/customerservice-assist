@@ -54,9 +54,10 @@
             todos: [],
             warning: '',
         },
+        todoContext: @js($result['todo_context'] ?? []),
         todoPresets: @js(\App\Todo\TodoRules::presets($result['todo_context'] ?? [])),
         todoText(todo) { return [todo.preset, todo.description.trim()].filter((part) => part !== '').join(' – ') },
-        addTodo() { this.send.todos.push({ preset: '', previous: '', description: '', assignee: @js(\App\Todo\TodoRules::EVERYONE), due_in: '', waiting_for: '', notify_customer: false, notify_hint: '' }) },
+        addTodo() { this.send.todos.push({ preset: '', previous: '', reference: '', description: '', assignee: @js(\App\Todo\TodoRules::EVERYONE), due_in: '', waiting_for: '', notify_customer: false, notify_hint: '' }) },
         sendReady: @js($send['state'] === 'ready'),
         returnLabel: @js($result['return_label'] ?? null),
         async linkLabel(label) {
@@ -85,7 +86,15 @@
                 this.send.fileError = 'Das Retourenlabel konnte nicht als Anhang geladen werden. Bitte über „Herunterladen“ speichern und von Hand anhängen.';
             }
         },
-        init() { this.attachLabel(this.returnLabel) },
+        init() {
+            this.attachLabel(this.returnLabel);
+            if (this.todoContext.preselect) { this.addTodo(); this.send.todos[0].preset = 'Sendungsnummer nachreichen'; this.pickTodoPreset(this.send.todos[0]) }
+        },
+        pickTodoPreset(todo) {
+            this.$todoPreset(todo, this.todoPresets, todo.previous);
+            todo.previous = todo.preset;
+            todo.reference = this.todoPresets.find((preset) => preset.label === todo.preset)?.tracking ? (this.todoContext.number ?? '') : '';
+        },
         sizeLabel(bytes) { return bytes >= 1048576 ? (bytes / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB' },
         get filesSize() { return this.send.files.reduce((sum, file) => sum + file.size, 0) },
         addFiles(list) {
@@ -133,6 +142,7 @@
                     form.append(`todos[${index}][waiting_for]`, waiting ? todo.waiting_for : '');
                     ['assignee'].forEach((key) => form.append(`todos[${index}][${key}]`, todo[key] ?? ''));
                     form.append(`todos[${index}][notify_hint]`, todo.notify_customer ? todo.notify_hint : '');
+                    form.append(`todos[${index}][reference]`, todo.reference ?? '');
                     form.append(`todos[${index}][notify_customer]`, todo.notify_customer ? '1' : '0');
                 });
                 this.send.files.forEach((file) => form.append('files[]', file, file.name));
@@ -349,7 +359,7 @@
                         <ul class="mt-2 space-y-3" x-show="send.todos.length > 0" x-cloak>
                             <template x-for="(todo, index) in send.todos" :key="index">
                                 <li class="space-y-2 rounded-md bg-white p-3 ring-1 ring-slate-200 ring-inset">
-                                    <select x-model="todo.preset" x-on:change="$todoPreset(todo, todoPresets, todo.previous); todo.previous = todo.preset" x-bind:aria-label="'Häufiges ToDo ' + (index + 1)" class="block w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-8 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
+                                    <select x-model="todo.preset" x-on:change="pickTodoPreset(todo)" x-bind:aria-label="'Häufiges ToDo ' + (index + 1)" class="block w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-8 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
                                         <option value="">Etwas anderes (Freitext)</option>
                                         @foreach (\App\Todo\TodoRules::presets() as $preset)<option value="{{ $preset['label'] }}">{{ $preset['label'] }}</option>@endforeach
                                     </select>

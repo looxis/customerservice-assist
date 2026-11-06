@@ -55,6 +55,7 @@ class TodoService
                 'zammad_id' => $zammadId,
                 'ticket_number' => $number,
                 'due_on' => self::dueDate($fields['due_in'] ?? null),
+                'external_ref' => trim((string) ($fields['reference'] ?? '')) ?: null,
                 'status' => TodoStatus::Open,
                 'source' => $source,
                 'source_analysis_uuid' => $analysis,

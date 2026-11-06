@@ -9,6 +9,9 @@ use Carbon\CarbonImmutable;
  */
 final readonly class EocsClaim
 {
+    /**
+     * @param  list<EocsShipment>  $shipments
+     */
     public function __construct(
         public int $id,
         public string $externalNumber,
@@ -16,5 +19,6 @@ final readonly class EocsClaim
         public ?string $statusName,
         public ?string $statusColor,
         public string $url,
+        public array $shipments = [],
     ) {}
 }

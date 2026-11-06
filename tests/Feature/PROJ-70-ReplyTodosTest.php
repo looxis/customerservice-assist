@@ -76,6 +76,14 @@ function todoPuts(): array
 }
 
 describe('ToDos with the reply', function () {
+    test('keeps the claim number the shipment belongs to at the ToDo', function () {
+        $id = todoSendAnalysis();
+
+        todoSend($id, ['todos' => [['description' => 'Sendungsnummer nachreichen', 'kind' => 'waiting', 'waiting_for' => 'Sendungsnummer', 'reference' => 'R1-7KA-0QH8-6AF8']]])->assertOk();
+
+        expect(TicketTodo::query()->first()->external_ref)->toBe('R1-7KA-0QH8-6AF8');
+    });
+
     test('sends the reply, closes the ticket and creates the ToDos', function () {
         $id = todoSendAnalysis();
 

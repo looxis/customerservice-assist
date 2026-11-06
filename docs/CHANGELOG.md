@@ -7,6 +7,7 @@
 ## 2026-11-06
 
 - ToDos: Häufige ToDos (Sendungsnummer nachreichen, (Teil-)Erstattung, Nachforschungsauftrag Versand) per Auswahl anlegen, mit vorbereiteter Antwort an den Kunden. Zuständig „Alle“ ist der Standard, „Wartet auf Ereignis“ steht jetzt im Feld „Fällig“. Die Antworttexte lassen sich unter Einstellungen > Mail-Anzeige ändern.
+- Reklamationen: Nennt der Antwortvorschlag eine Reklamationsnummer, ist das ToDo „Sendungsnummer nachreichen“ schon vorbereitet und verwendet diese Nummer. Versanddienstleister und Sendungsnummer der Reklamation stehen jetzt bei der Bestellung.
 - Benutzeroberfläche deutlich schlanker gestaltet. Nutzung vereinfacht. Hinweise die erfahrene Nutzer nicht benötigen, sind ausgeblendet und können oben rechts über "Hinweise anzeigen" wieder eingeblendet werden.
 
 ## 2026-11-04

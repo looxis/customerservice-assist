@@ -715,6 +715,11 @@ class CaseAnalyzer
 
             foreach ($order->claims as $claim) {
                 $lines[] = "Reklamationsauftrag {$claim->externalNumber}".($claim->orderedAt ? ' vom '.$claim->orderedAt->format('d.m.Y') : '').', Status: '.($claim->statusName ?? '–');
+
+                foreach ($claim->shipments as $shipment) {
+                    $lines[] = '  Versand der Reklamation: '.($shipment->carrier ?? '–').($shipment->trackingNumber ? ", Sendungsnummer {$shipment->trackingNumber}" : '')
+                        .($shipment->shippedAt ? ', versandt am '.$shipment->shippedAt->format('d.m.Y') : '').($shipment->delivered ? ', zugestellt' : '');
+                }
             }
         }
 

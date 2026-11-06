@@ -290,6 +290,17 @@ describe('complaint orders', function () {
         expect($html)->toContain('href="https://eocs.test/orders/700101"');
     });
 
+    test('the shipment of a follow-up order is shown with its tracking number', function () {
+        ticketWith('<p>Hallo</p>');
+        fakeEocs([
+            eocsOrder(),
+            eocsOrder(['id' => 700101, 'external_order_id' => 'R1-402-0000000-0000001', 'origin_order_id' => 700001, 'shipments' => ['data' => [['carrier' => ['name' => 'DHL'], 'tracking_no' => 'CLAIM123DE', 'created_at' => '24.09.2026 09:00', 'delivered' => null]]]]),
+        ]);
+
+        $this->get(route('tickets.show', ['number' => '2137942', 'bestellungen' => ['402-0000000-0000001']]))
+            ->assertSeeTextInOrder(['R1-402-0000000-0000001', 'Versand: DHL', 'Sendungsnummer CLAIM123DE']);
+    });
+
     test('follow-up orders are asked one first, then in batches of five until there are no more', function () {
         ticketWith('<p>Hallo</p>');
         $claims = array_map(fn (int $n): array => eocsOrder(['id' => 700100 + $n, 'external_order_id' => "R{$n}-402-0000000-0000001", 'origin_order_id' => 700001]), range(1, 6));

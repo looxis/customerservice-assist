@@ -253,5 +253,10 @@ Kein Critical- oder High-Bug. **Behoben (2026-11-04):** BUG-1 (Markierung „Zus
 ### Entscheidung
 **Bereit für den Einsatz** (keine Critical/High-Bugs). BUG-1 und BUG-2 wurden behoben und mit Tests abgesichert (2026-11-04). Status **Approved**.
 
+## Nachträge (2026-11-06)
+- **Häufige ToDos:** Auswahl „Sendungsnummer nachreichen“, „(Teil-)Erstattung vornehmen“, „Nachforschungsauftrag Versand“ im Sendeformular und im ToDo-Dialog; setzt „Wartet auf Ereignis“, „Kunde informieren“ und den Entwurf der späteren Antwort (Texte unter Einstellungen > Mail-Anzeige, Platzhalter in eckigen Klammern). Zuständig „Alle“ ist Standard; „Wartet auf Ereignis“ ist eine Auswahl im Feld „Fällig“.
+- **Reklamationsnummer:** Hat der Fall eine Reklamation, gilt deren Nummer (`R1-…`) statt der Originalbestellung: zuerst die Nummer aus dem Antworttext, sonst die neueste Reklamation der Bestellung in EOCS, sonst die des Tickets (`App\Todo\TodoCaseContext`). Nennt der Antworttext eine Reklamation, ist „Sendungsnummer nachreichen“ im Sendeformular vorbelegt (nichts gespeichert vor dem Senden). Die Nummer steht am ToDo in `external_ref` (Grundlage für PROJ-77).
+- **Versand der Reklamation:** `EocsClient::claims()` lädt die Sendungen mit; Kopfbereich und KI-Kontext zeigen Versanddienstleister und Sendungsnummer der Reklamation.
+
 ## Deployment
 _To be added by /deploy_

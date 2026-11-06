@@ -97,7 +97,7 @@ class EocsClient
 
                 foreach ($open as $order) {
                     foreach ($range as $n) {
-                        $requests[] = $this->prepare($pool->as("{$order->id}-R{$n}"))->get('orders', ['filter[external_order_id]' => "R{$n}-{$order->externalNumber},exact"]);
+                        $requests[] = $this->prepare($pool->as("{$order->id}-R{$n}"))->get('orders', ['filter[external_order_id]' => "R{$n}-{$order->externalNumber},exact", 'include' => 'shipments']);
                     }
                 }
 
@@ -122,6 +122,7 @@ class EocsClient
                             statusName: $candidate['status_name'] ?? null,
                             statusColor: $candidate['state']['color'] ?? null,
                             url: $this->orderUrl((int) $candidate['id']),
+                            shipments: $this->shipments($candidate),
                         );
                         $foundLast = $foundLast || $n === end($range);
                     }
@@ -325,13 +326,7 @@ class EocsClient
             statusName: $order['status_name'] ?? null,
             statusColor: $order['state']['color'] ?? null,
             invoiceNumber: $order['invoice']['document_number'] ?? null,
-            shipments: array_map(fn (array $shipment): EocsShipment => new EocsShipment(
-                carrier: $shipment['carrier']['name'] ?? null,
-                method: $shipment['shipping_method']['name'] ?? null,
-                trackingNumber: isset($shipment['tracking_no']) ? (string) $shipment['tracking_no'] : null,
-                shippedAt: $this->time($shipment['created_at'] ?? null, 'd.m.Y H:i'),
-                delivered: ! empty($shipment['delivered']),
-            ), array_values(array_filter($order['shipments']['data'] ?? [], 'is_array'))),
+            shipments: $this->shipments($order),
             items: array_map(fn (array $item): EocsOrderItem => new EocsOrderItem(
                 itemNumber: isset($item['item']['item_id']) ? (string) $item['item']['item_id'] : null,
                 name: trim((string) ($item['item']['name'] ?? $item['data']['title'] ?? 'Position')),
@@ -348,6 +343,21 @@ class EocsClient
             deliveryAddress: $this->deliveryAddress((array) ($order['shipping'] ?? [])),
             shippingAddress: EocsShippingAddress::fromShipping((array) ($order['shipping'] ?? [])),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $order
+     * @return list<EocsShipment>
+     */
+    private function shipments(array $order): array
+    {
+        return array_map(fn (array $shipment): EocsShipment => new EocsShipment(
+            carrier: $shipment['carrier']['name'] ?? null,
+            method: $shipment['shipping_method']['name'] ?? null,
+            trackingNumber: isset($shipment['tracking_no']) ? (string) $shipment['tracking_no'] : null,
+            shippedAt: $this->time($shipment['created_at'] ?? null, 'd.m.Y H:i'),
+            delivered: ! empty($shipment['delivered']),
+        ), array_values(array_filter($order['shipments']['data'] ?? [], 'is_array')));
     }
 
     /**

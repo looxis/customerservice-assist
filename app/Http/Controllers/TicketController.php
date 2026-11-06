@@ -17,6 +17,7 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Todo\TodoCaseContext;
 use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
@@ -92,7 +93,7 @@ class TicketController extends Controller
 
         if (is_array($analysis['result'] ?? null)) {
             $analysis['result']['send'] = $delivery->offer($analysis['result'], $ticket, $staff->current($request));
-            $analysis['result']['todo_context'] = $this->todoContext($ticket, $selected, $this->claimReferences($suggestions));
+            $analysis['result']['todo_context'] = app(TodoCaseContext::class)->build($ticket, $selected, $lookups, $this->claimReferences($suggestions), (string) ($analysis['result']['reply_text'] ?? ''));
         }
 
         return response()->view('tickets.show', [
@@ -112,24 +113,6 @@ class TicketController extends Controller
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
         ]);
-    }
-
-    /**
-     * What the case tells for the prepared replies of the ToDos (PROJ-70): the customer's name and the claim, or else the first order.
-     *
-     * @param  list<OrderNumber>  $selected
-     * @param  list<string>  $claims
-     * @return array{name: string, kind: string, number: string}
-     */
-    private function todoContext(Ticket $ticket, array $selected, array $claims): array
-    {
-        $name = trim((string) $ticket->customerName);
-
-        return [
-            'name' => $name === '' || str_contains($name, '@') || mb_strlen($name) > 80 ? '' : $name,
-            'kind' => $claims === [] ? 'order' : 'claim',
-            'number' => $claims[0] ?? ($selected[0]->value ?? ''),
-        ];
     }
 
     /**

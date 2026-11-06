@@ -21,7 +21,7 @@ class TodoRules
      * draft of the later reply (a text from the settings); the employee can change everything afterwards.
      *
      * @param  array{name?: string|null, kind?: string|null, number?: string|null}  $context  What the case already tells for the placeholders of the texts.
-     * @return list<array{label: string, waiting: bool, waiting_for: string, notify: bool, hint: string}>
+     * @return list<array{label: string, tracking?: bool, waiting: bool, waiting_for: string, notify: bool, hint: string}>
      */
     public static function presets(array $context = []): array
     {
@@ -30,6 +30,7 @@ class TodoRules
         return [
             [
                 'label' => 'Sendungsnummer nachreichen',
+                'tracking' => true,
                 'waiting' => true,
                 'waiting_for' => 'Sendungsnummer des Pakets',
                 'notify' => true,
@@ -77,6 +78,7 @@ class TodoRules
             $prefix.'waiting_for' => ['nullable', 'required_if:'.$prefix.'kind,'.TodoKind::Waiting->value, 'string', 'max:255'],
             $prefix.'notify_customer' => ['nullable', 'boolean'],
             $prefix.'notify_hint' => ['nullable', 'string', 'max:1000'],
+            $prefix.'reference' => ['nullable', 'string', 'max:120'],
         ];
     }
 

@@ -1,13 +1,21 @@
 <?php
 
 use App\Analysis\AnalysisStore;
+use App\Eocs\EocsClaim;
+use App\Eocs\EocsOrder;
+use App\Eocs\OrderLookup;
 use App\Models\Analysis;
 use App\Models\TicketTodo;
 use App\Models\TrackedTicket;
+use App\Orders\OrderNumber;
+use App\Orders\OrderNumberDetector;
 use App\Settings\SettingsRegistry;
 use App\Settings\SettingsStore;
+use App\Todo\TodoCaseContext;
 use App\Todo\TodoRules;
 use App\Todo\TodoStatus;
+use App\Zammad\Ticket;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -363,5 +371,32 @@ describe('the prepared replies', function () {
         expect($group->errors($group->default()))->toBe([])
             ->and($group->errors('Guten Tag, [Kundennummer] ist unbekannt'))->not->toBe([])
             ->and($group->errors('Guten Tag, [Name wurde nicht geschlossen und der Text ist lang genug'))->not->toBe([]);
+    });
+});
+
+describe('the number of the shipment', function () {
+    function caseContext(string $reply, array $claims = [], array $ticketClaims = []): array
+    {
+        $order = new OrderNumber('7KA-0QH8-6AF8', app(OrderNumberDetector::class)->normalize('7KA-0QH8-6AF8')->format);
+        $eocsOrder = new EocsOrder(1, '7KA-0QH8-6AF8', null, null, null, null, null, null, [], [], array_map(fn (string $number): EocsClaim => new EocsClaim(1, $number, null, null, null, 'https://eocs.test/1'), $claims), 'https://eocs.test/1', [], null);
+        $ticket = new Ticket('2137942', 51234, 'Titel', 'open', false, null, null, 'Erika Beispiel', null, CarbonImmutable::now(), [], 'https://zammad.test/1');
+
+        return app(TodoCaseContext::class)->build($ticket, [$order], [new OrderLookup($order, [$eocsOrder])], $ticketClaims, $reply);
+    }
+
+    test('the claim number named in the reply text wins and preselects the ToDo', function () {
+        $context = caseContext('Der Auftrag läuft unter der Nummer R1-7KA-0QH8-6AF8.');
+
+        expect($context)->toMatchArray(['number' => 'R1-7KA-0QH8-6AF8', 'kind' => 'claim', 'preselect' => true, 'name' => 'Erika Beispiel']);
+    });
+
+    test('without a claim in the text the newest claim from EOCS is used and nothing is preselected', function () {
+        $context = caseContext('Wir prüfen das.', ['R1-7KA-0QH8-6AF8', 'R2-7KA-0QH8-6AF8']);
+
+        expect($context)->toMatchArray(['number' => 'R2-7KA-0QH8-6AF8', 'kind' => 'claim', 'preselect' => false]);
+    });
+
+    test('without any claim the order number is used', function () {
+        expect(caseContext('Wir prüfen das.'))->toMatchArray(['number' => '7KA-0QH8-6AF8', 'kind' => 'order', 'preselect' => false]);
     });
 });
