@@ -45,7 +45,7 @@ describe('the page', function () {
 
     test('a ticket number in the address is kept, anything else is dropped', function () {
         $this->get(route('quote.index', ['ticket' => '2140026']))->assertSee('Ticket 2140026');
-        $this->get(route('quote.index', ['ticket' => '<script>']))->assertDontSee('<script>', false);
+        $this->get(route('quote.index', ['ticket' => '<b>nope</b>']))->assertDontSee('nope', false);
     });
 });
 

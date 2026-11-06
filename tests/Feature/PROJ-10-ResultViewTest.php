@@ -129,7 +129,7 @@ describe('reply draft', function () {
         saveReply($id, ['text' => 'Guten Tag, es tut uns leid.'])->assertOk()->assertJson(['saved' => true, 'edited' => 'bearbeitet von Cara am 06.10.2026, 15:30 Uhr']);
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeText('bearbeitet von Cara am 06.10.2026, 15:30 Uhr')
+            ->assertSee('bearbeitet von Cara am 06.10.2026, 15:30 Uhr', false)
             ->assertSee('Guten Tag, es tut uns leid.</textarea>', false);
 
         expect(app(AnalysisStore::class)->result($id)['result']['reply']['text'])->toStartWith('Guten Tag,');

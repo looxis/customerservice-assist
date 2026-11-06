@@ -59,6 +59,12 @@ function migrationResult(string $group, string $text, array $products = [], stri
                 unset($front['when']);
             }
         }
+        foreach (['trial_until', 'last_reviewed'] as $dateKey) {
+            if (isset($front[$dateKey]) && is_int($front[$dateKey])) {
+                $front[$dateKey] = gmdate('Y-m-d', $front[$dateKey]);
+            }
+        }
+
         $files[$relative] = "---\n".Yaml::dump($front, 4, 2)."---\n".$parts[2];
     }
 
