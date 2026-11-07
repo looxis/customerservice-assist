@@ -6,6 +6,7 @@ use App\Labeling\LabelCategory;
 use App\Labeling\LabelClassifier;
 use App\Labeling\LabelingSettings;
 use App\Labeling\LabelStats;
+use App\Labeling\LabelTagging;
 use App\Models\LabelPrediction;
 use App\Models\LabelRelease;
 use App\Models\LabelReview;
@@ -77,6 +78,15 @@ function lblAnswer(array $overrides = []): array
 }
 
 describe('retrieval', function () {
+    it('tags spam plainly as spam and recognizes the tag on existing tickets', function () {
+        expect(LabelCategory::Spam->tag())->toBe('spam')
+            ->and(LabelCategory::Spam->tag(true))->toBe('test:spam')
+            ->and(LabelCategory::Wismo->tag())->toBe('train:wismo')
+            ->and(LabelTagging::existing(['vip', 'spam']))->toBe(['tag' => 'spam', 'category' => LabelCategory::Spam, 'test' => false])
+            ->and(preg_match(LabelTagging::PATTERN, 'spam'))->toBe(1)
+            ->and(preg_match(LabelTagging::PATTERN, 'spamfilter'))->toBe(0);
+    });
+
     it('ignores the dry-run flag for runs other than writing tags', function () {
         lblZammad();
 
@@ -172,11 +182,12 @@ describe('classification', function () {
 
         $prediction = app(LabelClassifier::class)->classify($ticket);
 
-        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-1')->and($prediction->model)->not->toBe('')
+        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-2')->and($prediction->model)->not->toBe('')
             ->and($ticket->refresh()->state)->toBe('classified');
     });
 
     it('sorts a proposal into its review queue', function (array $answer, string $text, string $split, ?string $queue) {
+        app(LabelingSettings::class)->save(['sample_share' => 0]);
         LabelAgent::fake([lblAnswer($answer)]);
         $ticket = lblMake(['text' => $text, 'split' => $split, 'state' => 'captured']);
 
@@ -279,7 +290,7 @@ describe('review', function () {
     it('refuses an unknown category', function () {
         $ticket = lblMake();
 
-        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'spam'])->assertSessionHasErrors('category');
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'werbung'])->assertSessionHasErrors('category');
         expect(LabelReview::query()->count())->toBe(0);
     });
 });
@@ -333,7 +344,7 @@ describe('release', function () {
     });
 
     it('answers 404 for an unknown category', function () {
-        lblAdmin()->post('/beschriftung/kategorien/spam/freigabe')->assertNotFound();
+        lblAdmin()->post('/beschriftung/kategorien/werbung/freigabe')->assertNotFound();
     });
 });
 

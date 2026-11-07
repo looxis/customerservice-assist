@@ -125,6 +125,7 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Achte Kategorie „Spam“ mit dem Tag `spam` (ohne Präfix `train:`); in der Testmenge `test:spam`; Prompt-Version labeling-2 | Wunsch des Auftraggebers beim Prüfen echter Tickets (2026-11-07); ein vorhandenes `spam`-Tag zählt wie ein `train:`-Tag als Referenz | 2026-11-07 |
 | Modul in CSA, aber abgeschottet (`app/Labeling/`, eigene Tabellen und Routen) | Zammad-Client, LLM-Aufruf, Admin-Prüfung und Layout sind vorhanden; Rückbau bleibt einfach | 2026-11-06 |
 | Nur die erste eingehende Kundennachricht wird klassifiziert | Antworten und Rückmeldungen enthalten kein neues Anliegen; ein Tag je Ticket genügt | 2026-11-06 |
 | Tag `train:<kategorie>`, höchstens eines je Ticket, kein Tag bei „keine“ | Das externe Export-Skript filtert nach `train:*`; „keine“ ist ein gültiges Ergebnis | 2026-11-06 |
@@ -167,7 +168,7 @@ Ja. Es gibt eine Datenbank (Tickets, Vorschläge, Entscheidungen, Freigaben), Hi
 ### A) Oberfläche (Seite „Beschriftung“, nur Admins)
 ```
 Beschriftung (/beschriftung)  [Admin-Block der Seitenleiste, neben Ticket-Übersicht]
-+-- Kennzahlen je Kategorie (sieben Karten)
++-- Kennzahlen je Kategorie (acht Karten)
 |   +-- bestätigt / korrigiert / automatisch getaggt / offen
 |   +-- Trefferquote der Stichprobe, Zielwert, Stand der Freigabe
 |   +-- Knopf „Freigeben“ bzw. Hinweis „gesperrt“

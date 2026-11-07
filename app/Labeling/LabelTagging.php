@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
  */
 class LabelTagging
 {
-    public const string PATTERN = '/^(train|test):/';
+    public const string PATTERN = '/^((train|test):|spam$)/';
 
     public function __construct(
         private readonly ZammadClient $zammad,
@@ -48,6 +48,10 @@ class LabelTagging
     public static function existing(array $tags): ?array
     {
         foreach ($tags as $tag) {
+            if ($tag === LabelCategory::Spam->tag()) {
+                return ['tag' => $tag, 'category' => LabelCategory::Spam, 'test' => false];
+            }
+
             if (preg_match('/^(train|test):(.+)$/', $tag, $match) && ($category = LabelCategory::tryFrom($match[2])) !== null) {
                 return ['tag' => $tag, 'category' => $category, 'test' => $match[1] === 'test'];
             }

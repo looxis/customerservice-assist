@@ -46,7 +46,7 @@ it('keeps the labeling pages from everyone but admins', function (string $url) {
     $this->withCookie('staff_name', 'Nele')->get($url)->assertForbidden();
 })->with(['/beschriftung', '/beschriftung/pruefen', '/beschriftung/tickets']);
 
-it('shows the overview to admins with the seven categories', function () {
+it('shows the overview to admins with the eight categories', function () {
     $this->withCookie('staff_name', 'Etienne')->get('/beschriftung')->assertOk()->assertSeeText('Noch keine Tickets erfasst');
 
     lblTicket();
@@ -55,7 +55,8 @@ it('shows the overview to admins with the seven categories', function () {
         ->assertOk()
         ->assertSeeText('train:wismo')
         ->assertSeeText('train:technischer-support')
-        ->assertSeeText('train:produkt-frage');
+        ->assertSeeText('train:produkt-frage')
+        ->assertSeeText('Spam');
 });
 
 it('lists the sidebar entry only for admins', function () {
