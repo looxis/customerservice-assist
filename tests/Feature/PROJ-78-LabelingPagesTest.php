@@ -81,6 +81,14 @@ it('shows a ticket of the review queue with its suggestion', function () {
         ->assertSee('data-key="Enter"', false);
 });
 
+it('keeps the decision buttons enabled while submitting so the chosen category is sent', function () {
+    lblTicket([], ['queue' => 'zweifel']);
+
+    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung/pruefen')
+        ->assertOk()
+        ->assertDontSee('x-bind:disabled="busy"', false);
+});
+
 it('says so when a queue is empty', function () {
     $this->withCookie('staff_name', 'Etienne')->get('/beschriftung/pruefen?warteschlange=storno')->assertOk()->assertSeeText('nichts mehr zu prüfen');
 });

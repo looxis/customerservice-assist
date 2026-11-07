@@ -21,7 +21,7 @@
 
         <form method="POST" action="{{ route('labeling.reviews.store', ['ticket' => $ticket['id']]) }}"
               x-data="{ busy: false, pick: null }"
-              x-on:submit="busy = true"
+              x-on:submit="if (busy) { $event.preventDefault(); return } busy = true"
               x-on:keydown.window="
                   if ($event.target.closest('input, textarea, select') || $event.ctrlKey || $event.metaKey || $event.altKey) return;
                   const button = $el.querySelector('[data-key=\'' + $event.key + '\']');
@@ -29,6 +29,9 @@
               ">
             @csrf
             <input type="hidden" name="queue" value="{{ $queue }}">
+            @if ($errors->any())
+                <x-alert type="error" class="mb-4">Die Entscheidung konnte nicht gespeichert werden: {{ $errors->first() }}</x-alert>
+            @endif
             <x-card class="space-y-5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-2">
@@ -58,7 +61,7 @@
                     </div>
                 @endif
 
-                <fieldset class="space-y-3" x-bind:disabled="busy">
+                <fieldset class="space-y-3" x-bind:class="busy && 'pointer-events-none opacity-60'" x-bind:aria-busy="busy">
                     <legend class="text-sm font-medium text-slate-900">Entscheidung</legend>
 
                     @unless ($ticket['test'])
