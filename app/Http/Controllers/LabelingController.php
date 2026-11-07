@@ -126,7 +126,7 @@ class LabelingController extends Controller
             $settings->save(['excluded_groups' => trim((string) $request->input('excluded_groups'))]);
         }
 
-        $runner->start((string) $request->input('kind'), (string) $staff->current($request), ['dry_run' => $request->boolean('dry_run')]);
+        $runner->start((string) $request->input('kind'), (string) $staff->current($request), ['dry_run' => $request->input('kind') === 'tags' && $request->boolean('dry_run')]);
 
         return back()->with('success', 'Der Lauf wurde gestartet.');
     }

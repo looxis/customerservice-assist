@@ -1,5 +1,21 @@
 <x-layouts.app title="Beschriftung" width="6xl">
+    @if (collect($runs)->contains('active', true))
+        <div x-data x-init="setInterval(() => { if (! document.activeElement?.closest('input, select, textarea')) { location.reload() } }, 10000)"></div>
+    @endif
     <x-labeling.nav />
+
+    <x-collapsible title="Ablauf und Hinweise" :open="$captured === 0" id="ablauf-hinweis">
+        <div class="space-y-2 text-sm text-slate-900">
+            <p>Du musst vorab nichts in Zammad klassifizieren. Bereits vorhandene <span class="font-mono">train:</span>-Tags werden beim Abruf automatisch als Referenz übernommen.</p>
+            <ol class="list-decimal space-y-1 pl-5">
+                <li><strong>Abruf aller Tickets</strong> starten (unten unter „Läufe“). Das kostet nur Zammad-Aufrufe, keine KI.</li>
+                <li><strong>Klassifikation</strong> starten. Das Modell schlägt je Ticket eine Kategorie vor. Das kostet KI-Aufrufe und lässt sich mit „Abbrechen“ stoppen.</li>
+                <li>Unter <strong>Prüfen</strong> Vorschläge bestätigen oder korrigieren, zuerst die Zweifelsfälle, dazwischen Stichproben. Bestätigte Tickets werden automatisch als Beispiele im Prompt genutzt.</li>
+                <li>Zuletzt <strong>Tags schreiben</strong>, zuerst als Trockenlauf, danach wirklich nach Zammad.</li>
+            </ol>
+            <p>Der Abruf holt alle Tickets ab dem Stichtag <span class="font-mono">LABELING_EARLIEST</span> (Standard 2019-01-01). Für einen kleinen Test setze den Stichtag auf die letzten Wochen.</p>
+        </div>
+    </x-collapsible>
 
     @if ($captured === 0)
         <x-card>
@@ -34,7 +50,7 @@
             </div>
 
             <label x-show="kind === 'tags'" x-cloak class="flex items-center gap-2 text-sm text-slate-900">
-                <input type="checkbox" name="dry_run" value="1" x-model="dry" class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
+                <input type="checkbox" name="dry_run" value="1" x-model="dry" x-bind:disabled="kind !== 'tags'" class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
                 Trockenlauf: zeigt nur, welche Tags geschrieben würden
             </label>
             <p x-show="kind === 'tags' && ! dry" x-cloak class="text-sm text-warning-700">Schreibt die Tags wirklich nach Zammad, mit deinem Zammad-Token.</p>

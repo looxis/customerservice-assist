@@ -77,6 +77,14 @@ function lblAnswer(array $overrides = []): array
 }
 
 describe('retrieval', function () {
+    it('ignores the dry-run flag for runs other than writing tags', function () {
+        lblZammad();
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch', 'dry_run' => '1'])->assertSessionHas('success');
+
+        expect(LabelRun::query()->sole()->options)->toBe(['dry_run' => false]);
+    });
+
     it('captures only the first customer message of a ticket', function () {
         lblZammad();
 
