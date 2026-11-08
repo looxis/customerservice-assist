@@ -13,6 +13,15 @@ class ExampleSelector
     private const int MAX_EXAMPLE_LENGTH = 700;
 
     /**
+     * Decisions whose meaning changed with labeling-4 (storno held address changes, none held payments and
+     * invoices): made before this time (UTC), they are no examples until an admin decides on the ticket again.
+     */
+    private const array REDEFINED_BEFORE = [
+        'storno' => '2026-11-08 11:14:24',
+        LabelTicket::NONE => '2026-11-08 11:14:24',
+    ];
+
+    /**
      * @return array{text: string, ids: list<int>}
      */
     public function forPrompt(int $perCategory): array
@@ -30,6 +39,7 @@ class ExampleSelector
                 ->where('split', 'training')
                 ->whereIn('decision_origin', ['zweifel', 'stichprobe', 'korrektur'])
                 ->whereNotNull('text')
+                ->when(isset(self::REDEFINED_BEFORE[$category]), fn ($query) => $query->where('decided_at', '>=', self::REDEFINED_BEFORE[$category]))
                 ->with('latestPrediction')
                 ->latest('decided_at')
                 ->limit($perCategory * 4)

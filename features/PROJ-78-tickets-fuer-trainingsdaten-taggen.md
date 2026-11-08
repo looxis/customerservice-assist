@@ -305,6 +305,7 @@ Keine neuen Pakete.
 - Warteschlange `storno` nimmt auch Vorschläge `adressaenderung` auf (beide grenzen an WISMO).
 - „Neu klassifizieren“ nimmt jetzt alle Tickets in `classified`/`failed` ohne geschriebenes Tag, auch entschiedene; nicht erfasste (`captured`) bleiben beim Lauf „Klassifikation“. Weicht der neue Vorschlag (`keine` eingeschlossen) bei einem entschiedenen Ticket (nicht Referenz `vorhanden`, auch Testmenge) von der Entscheidung ab, erhält er die Warteschlange `abweichung`. Die Entscheidung bleibt bis zur Prüfung stehen, ihr Tag wird solange nicht geschrieben (`LabelTicket::hasOpenDeviation()`). Ein Ticket verlässt die Warteschlange, sobald es eine Prüfung zu genau diesem Vorschlag gibt, auch wenn die alte Entscheidung bestätigt wird (Herkunft `korrektur` bzw. `test`).
 - Prüfkarte zeigt in dieser Warteschlange „Bisherige Entscheidung“.
+- Prompt-Beispiele: Entscheidungen `storno` und `keine` von vor der Umstellung (2026-11-08, 12:14 Uhr) sind keine Beispiele mehr, weil sie Adressänderungen bzw. Mahnungen und Rechnungsfragen enthalten und der neuen Abgrenzung widersprechen würden. Nach einer erneuten Entscheidung zählen sie wieder.
 - Für den Bestand: Lauf „Neu klassifizieren“ starten, danach die Warteschlange „Abweichung von früherer Entscheidung“ durchgehen.
 
 ## QA Test Results
