@@ -73,7 +73,7 @@ Zusätzliche Zahlungen und die Abwicklung kostenpflichtiger Kulanzlösungen rege
 # Grenzen
 
 - Keine bestimmte Zahlungsursache, Zahlungsmethode oder Zahlungsvereinbarung vermuten.
-- Keine Zahlung als eingegangen, offen oder fehlgeschlagen bestätigen.
+- Keine Zahlung als eingegangen, offen oder fehlgeschlagen bestätigen. Ausnahme: Ein Mitarbeiter hat den Stand im Amazon-Backend geprüft und nennt ihn in den Zusätzlichen Informationen (zum Beispiel „Zahlung steht noch aus“). Diese geprüfte Angabe darf der Kunde als Tatsache erfahren; die Zuständigkeit bleibt bei Amazon (siehe PLAYBOOK-027).
 - Keine Änderung der Zahlungsmethode als garantiert erfolgreiche Lösung darstellen.
 - Keine Bearbeitung oder Beschleunigung des Geldtransfers durch LOOXIS zusagen.
 

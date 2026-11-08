@@ -67,7 +67,7 @@ Wird die Amazon-Bestellnummer des Kunden (gültiges Amazon-Format wie 306-877092
 
 Deshalb gilt: Es braucht **keine interne Klärung vor der Antwort**. Direkt mit der Vorlage „Nach Prüfung: Bestellung liegt LOOXIS nicht vor“ antworten, ohne einen dieser Gründe als Tatsache zu behaupten (nicht „storniert“, nicht „noch nicht freigegeben“, nicht „unbezahlt“). Auch eine automatische Notiz im Ticket wie „WISMO erkannt. Bestellnummer … wurde in EOCS nicht gefunden. Bitte manuell prüfen.“ ist kein Grund, die Antwort aufzuschieben.
 
-Optional und nicht blockierend: Wer Zugang zum Amazon-Backend hat, kann dort den Status der Bestellung ansehen (zurückgehalten, storniert durch Kunden oder Amazon, freigegeben). Dann die Antwort entsprechend präzisieren; die Zahlungsklärung bleibt bei Amazon. Nicht alle Mitarbeiter haben diesen Zugang; ohne ihn wird nach der Vorlage geantwortet. Der Vorschlag soll diese Prüfung als freiwilligen Hinweis nennen, nicht als Voraussetzung.
+Optional und nicht blockierend: Wer Zugang zum Amazon-Backend hat, kann dort den Status der Bestellung ansehen (zurückgehalten, storniert durch Kunden oder Amazon, freigegeben). Dann die Antwort entsprechend präzisieren; die Zahlungsklärung bleibt bei Amazon. Nennt der Mitarbeiter in den Zusätzlichen Informationen das Ergebnis dieser Prüfung, ist es eine geprüfte Tatsache und hat Vorrang vor der Vorlage „Grund nicht behaupten“: Der Grund steht dann in der Antwort (Vorlage „Geprüft: Zahlung steht bei Amazon noch aus“ unten). Nicht alle Mitarbeiter haben diesen Zugang; ohne ihn wird nach der Vorlage geantwortet. Der Vorschlag soll diese Prüfung als freiwilligen Hinweis nennen, nicht als Voraussetzung.
 
 Ist die Bestellnummer nicht erkennbar oder kein gültiges Amazon-Format (möglicher Tippfehler), nach der Amazon-Bestellnummer fragen.
 
@@ -95,6 +95,10 @@ Nach Prüfung: Bestellung liegt LOOXIS nicht vor (in EOCS nicht gefunden):
 
 Schreibt der Kunde, dass es dringend ist, zusätzlich: „Sobald Ihre Bestellung bei uns eingegangen ist, wird sie wie bei uns üblich zügig und schnellstmöglich bearbeitet, produziert und verschickt.“ Den Hinweis auf die Reihenfolge des Eingangs bei LOOXIS (POLICY-040) nicht ungefragt nennen; er gilt als Hintergrund, nicht als Kundenaussage. Fragt der Kunde nach einem Vorrang oder einem Liefertermin, bleibt es bei der Reihenfolge des Eingangs und ohne Terminzusage.
 
+Geprüft: Zahlung steht bei Amazon noch aus (der Mitarbeiter hat es im Amazon-Backend gesehen und in den Zusätzlichen Informationen genannt):
+
+„Ihre Bestellung wird von Amazon derzeit zurückgehalten, weil die Zahlung noch aussteht. Darauf haben wir keinen Einfluss und können auch keine Details einsehen. Bitte wenden Sie sich zur Klärung direkt an den Amazon-Kundenservice. Sobald Amazon die Bestellung freigegeben hat und sie bei uns eingegangen ist, bearbeiten wir sie.“ Bei Dringlichkeit den Satz zur zügigen Bearbeitung nach Eingang ergänzen, ohne Liefertermin.
+
 Nach Prüfung: Bestellung bei LOOXIS eingegangen:
 
 „Ihre Bestellung ist bei uns zur Bearbeitung eingegangen.“ Anschließend den belegten Bearbeitungs- oder Versandstand nennen. „Die Zahlungsaufforderung klären Sie bitte direkt mit Amazon. Wir können Ihren Zahlungsstatus bei Amazon nicht einsehen oder verändern.“
@@ -109,5 +113,5 @@ Erstattung nachweislich veranlasst:
 
 # No-Gos
 
-Keine Ursache einer Zahlungsaufforderung erfinden und keine bereits erfolgreiche Zahlung oder einen Kontoeingang aus internen Bestell- oder Erstattungsdaten ableiten. Die Grenzen für Zahlungsangaben stehen in POLICY-039; die Grenzen für Freigabe und Bearbeitungsreihenfolge in POLICY-040.
+Keine Ursache einer Zahlungsaufforderung erfinden (eine vom Mitarbeiter geprüfte und genannte Ursache ist nicht erfunden) und keine bereits erfolgreiche Zahlung oder einen Kontoeingang aus internen Bestell- oder Erstattungsdaten ableiten. Die Grenzen für Zahlungsangaben stehen in POLICY-039; die Grenzen für Freigabe und Bearbeitungsreihenfolge in POLICY-040.
 

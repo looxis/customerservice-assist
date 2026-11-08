@@ -54,7 +54,7 @@ Gilt für Privatkunden im Vertriebskanal Amazon und für die von LOOXIS selbst p
 
 Amazon hält grundsätzlich jede Kundenbestellung mindestens 30 Minuten zurück, bevor sie an LOOXIS übermittelt wird. Während der Rückhaltephase kann der Kunde die Bestellung bei Amazon sofort und ohne Einschränkungen oder Mitwirkung von LOOXIS stornieren.
 
-**Folgerung für Anfragen:** Wird eine Amazon-Bestellnummer mit gültigem Format in EOCS nicht gefunden, liegt die Bestellung LOOXIS nicht vor: möglicherweise ist sie noch nicht freigegeben, möglicherweise hat sie der Kunde innerhalb der 30 Minuten storniert oder Amazon hat sie nach einer Frist (z. B. 14 Tage) wegen einer ungeklärten Zahlung storniert. Mitarbeiter mit Amazon-Zugang können das nachsehen, andere nicht. Es braucht deshalb keine interne Klärung vor der Antwort; sie lautet „liegt uns derzeit nicht zur Bearbeitung vor“ (Vorlage siehe PLAYBOOK-027), ohne einen Grund als Tatsache zu nennen.
+**Folgerung für Anfragen:** Wird eine Amazon-Bestellnummer mit gültigem Format in EOCS nicht gefunden, liegt die Bestellung LOOXIS nicht vor: möglicherweise ist sie noch nicht freigegeben, möglicherweise hat sie der Kunde innerhalb der 30 Minuten storniert oder Amazon hat sie nach einer Frist (z. B. 14 Tage) wegen einer ungeklärten Zahlung storniert. Mitarbeiter mit Amazon-Zugang können das nachsehen, andere nicht. Es braucht deshalb keine interne Klärung vor der Antwort; sie lautet „liegt uns derzeit nicht zur Bearbeitung vor“ (Vorlage siehe PLAYBOOK-027), ohne einen Grund als Tatsache zu nennen. Hat ein Mitarbeiter den Grund im Amazon-Backend geprüft und in den Zusätzlichen Informationen genannt (zum Beispiel „Zahlung steht noch aus“), gilt das als geprüfte Tatsache und wird dem Kunden genannt.
 
 LOOXIS kann währenddessen im Amazon-Backend erkennen, dass eine Bestellung existiert, sie aber nicht abrufen und keine Bestelldetails einsehen. Erst nach Freigabe und Eingang bei LOOXIS kann die Bestellung bearbeitet werden.
 
@@ -82,7 +82,7 @@ Mit der Freigabe ist die Auszahlung an LOOXIS über Amazon nach der beschriebene
 
 # Grenzen
 
-- Eine bei LOOXIS noch nicht abrufbare Bestellung nicht allein deshalb als storniert oder unbezahlt bezeichnen.
+- Eine bei LOOXIS noch nicht abrufbare Bestellung nicht allein deshalb als storniert oder unbezahlt bezeichnen. Ausgenommen ist ein Grund, den ein Mitarbeiter im Amazon-Backend geprüft und in den Zusätzlichen Informationen genannt hat.
 - Keine Freigabe nach genau 30 Minuten oder sofortige Produktion nach einer Zahlung zusagen.
 - Keine bevorzugte Bearbeitung wegen eines älteren Amazon-Bestelldatums zusagen.
 - Den tatsächlichen Paketdienst nur anhand der konkreten Versanddaten nennen.
