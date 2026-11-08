@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * The lists of ticket ToDos (PROJ-70): the open ones on the start page, everything of the last 12 months on the ToDo page.
+ * The lists of ticket ToDos (PROJ-70): the open ones that people work on on the start page (the automatic ones only on the ToDo page), everything of the last 12 months on the ToDo page.
  */
 class TodoBoard
 {
@@ -42,9 +42,9 @@ class TodoBoard
     public function counts(?string $name): array
     {
         return [
-            'meine' => $name === null ? 0 : TicketTodo::query()->unfinished()->whereIn('assignee', [$name, TodoRules::EVERYONE])->count(),
-            'alle' => TicketTodo::query()->unfinished()->count(),
-            'ueberfaellig' => TicketTodo::query()->overdue()->count(),
+            'meine' => $name === null ? 0 : TicketTodo::query()->manual()->unfinished()->whereIn('assignee', [$name, TodoRules::EVERYONE])->count(),
+            'alle' => TicketTodo::query()->manual()->unfinished()->count(),
+            'ueberfaellig' => TicketTodo::query()->manual()->overdue()->count(),
         ];
     }
 
@@ -53,7 +53,7 @@ class TodoBoard
      */
     public function start(string $view, ?string $name): array
     {
-        $query = TicketTodo::query()->unfinished();
+        $query = TicketTodo::query()->manual()->unfinished();
 
         match ($view) {
             'meine' => $query->whereIn('assignee', [$name ?? '', TodoRules::EVERYONE]),
@@ -104,6 +104,6 @@ class TodoBoard
      */
     public function ticketsWithOpen(iterable $zammadIds): array
     {
-        return TicketTodo::query()->unfinished()->whereIn('zammad_id', collect($zammadIds)->all())->distinct()->pluck('zammad_id')->map(fn (mixed $id): int => (int) $id)->all();
+        return TicketTodo::query()->manual()->unfinished()->whereIn('zammad_id', collect($zammadIds)->all())->distinct()->pluck('zammad_id')->map(fn (mixed $id): int => (int) $id)->all();
     }
 }

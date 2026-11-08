@@ -80,6 +80,16 @@ class TicketTodo extends Model
     }
 
     /**
+     * ToDos that people work on, without those the app handles itself (automatic sending of the tracking number).
+     *
+     * @param  Builder<TicketTodo>  $query
+     */
+    public function scopeManual(Builder $query): void
+    {
+        $query->where('auto_send', false);
+    }
+
+    /**
      * @param  Builder<TicketTodo>  $query
      */
     public function scopeOverdue(Builder $query): void

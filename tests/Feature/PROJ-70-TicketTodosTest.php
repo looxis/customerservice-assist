@@ -108,6 +108,14 @@ describe('the lists', function () {
         $this->withCookie('staff_name', 'Nele')->get('/?todos=ueberfaellig')->assertSeeText('Überfälliges von Cara')->assertSeeText('Überfällig seit')->assertDontSeeText('Meins offen');
     });
 
+    test('automatic ToDos stay off the start page and out of its counts, the ToDo page lists them', function () {
+        TicketTodo::factory()->create(['description' => 'Von Hand zu erledigen', 'assignee' => 'Nele']);
+        TicketTodo::factory()->create(['description' => 'Läuft automatisch', 'assignee' => 'Nele', 'auto_send' => true]);
+
+        $this->withCookie('staff_name', 'Nele')->get('/')->assertOk()->assertSeeText('Von Hand zu erledigen')->assertDontSeeText('Läuft automatisch')->assertSeeText('Meine (1)')->assertSeeText('Alle offen (1)');
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSeeText('Läuft automatisch')->assertSeeText('Automatisiert offen');
+    });
+
     test('a ToDo for everyone shows up in the view of each employee', function () {
         TicketTodo::factory()->create(['description' => 'Für alle da', 'assignee' => 'Alle']);
         TicketTodo::factory()->create(['description' => 'Von Cara offen', 'assignee' => 'Cara']);
