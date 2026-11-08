@@ -77,9 +77,12 @@ class ClassifyLabelTicket implements ShouldQueue
         $runner->count($run, true);
     }
 
+    /**
+     * A ticket removed in the meantime stays removed.
+     */
     public function failed(): void
     {
-        LabelTicket::query()->whereKey($this->labelTicketId)->update(['state' => 'failed', 'problem' => 'Klassifikation fehlgeschlagen']);
+        LabelTicket::query()->whereKey($this->labelTicketId)->where('state', '!=', LabelTicket::EXCLUDED)->update(['state' => 'failed', 'problem' => 'Klassifikation fehlgeschlagen']);
         $run = LabelRun::query()->find($this->runId);
 
         if ($run !== null) {

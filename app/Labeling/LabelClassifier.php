@@ -56,6 +56,13 @@ class LabelClassifier
             'output_tokens' => $result['output_tokens'],
         ]);
 
+        // Removed while the model answered: the removal wins and the proposal is dropped.
+        if (LabelTicket::query()->whereKey($ticket->id)->where('state', LabelTicket::EXCLUDED)->exists()) {
+            $prediction->delete();
+
+            return $prediction;
+        }
+
         $ticket->update(['state' => 'classified', 'problem' => null]);
 
         return $prediction;

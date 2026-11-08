@@ -360,6 +360,43 @@ describe('classification', function () {
         expect($ids)->toBe([$open->id, $decided->id, $failed->id]);
     });
 
+    it('leaves tickets without text out of every run', function () {
+        Queue::fake();
+        $kept = lblMake();
+        lblMake(['state' => 'failed', 'text' => null]);
+        lblMake(['state' => 'captured', 'text' => null]);
+
+        app(LabelRunner::class)->start('reclassify', 'Etienne');
+        app(LabelRunner::class)->start('classify', 'Etienne');
+
+        $ids = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
+        expect($ids)->toBe([$kept->id]);
+    });
+
+    it('keeps a ticket removed when its classification fails afterwards', function () {
+        $ticket = lblMake();
+        $ticket->exclude('Etienne');
+        $run = LabelRun::query()->create(['kind' => 'reclassify', 'state' => 'running', 'admin' => 'Etienne', 'total' => 1]);
+
+        (new ClassifyLabelTicket($run->id, $ticket->id))->failed();
+
+        expect($ticket->refresh())->state->toBe(LabelTicket::EXCLUDED)->problem->toBe('Entfernt');
+    });
+
+    it('drops the proposal of a ticket removed while the model answered', function () {
+        $ticket = lblMake(['state' => 'captured']);
+        $ticket->predictions()->delete();
+        LabelAgent::fake(function () use ($ticket) {
+            LabelTicket::query()->find($ticket->id)->exclude('Etienne');
+
+            return lblAnswer();
+        });
+
+        app(LabelClassifier::class)->classify($ticket);
+
+        expect($ticket->refresh()->state)->toBe(LabelTicket::EXCLUDED)->and(LabelPrediction::query()->count())->toBe(0);
+    });
+
     it('takes confirmed tickets as examples but never the test set or the references', function () {
         LabelAgent::fake(function (string $prompt) {
             return lblAnswer();
