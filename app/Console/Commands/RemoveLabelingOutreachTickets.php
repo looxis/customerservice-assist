@@ -49,7 +49,7 @@ class RemoveLabelingOutreachTickets extends Command
 
             $checked++;
 
-            if ($checked % 100 === 0) {
+            if ($checked % 50 === 0) {
                 $this->line("{$checked} geprüft, {$removed} entfernt, {$failed} fehlgeschlagen (letzte ID {$ticket->id})");
             }
 
