@@ -26,8 +26,9 @@ Die App durchsucht alle Zammad-Tickets, lässt ein Frontier-LLM die **erste Kund
 | `train:technischer-support` | Funktion des Online-Shops: Passwort vergessen, Login, Konfigurator, Bild-Upload, technischer Fehler auf der Zahlungsseite |
 | `train:produkt-frage` | Funktionsweise oder Eigenschaften eines Produkts, vor oder nach dem Kauf, ohne Preis-/Mengen-/Angebotsbezug |
 | `spam` | Unerwünschte Werbung, Phishing, Massenmails (Tag ohne Präfix, Testmenge `test:spam`) |
+| `train:sonstiges` | Eindeutiges Kundenanliegen, das in keine der übrigen Kategorien passt (bis 2026-11-08 „keine“ ohne Tag). Damit lernt Laya, dass nicht jede Mail in eine der zehn Fachkategorien gehört |
 
-Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gültiges Ergebnis).
+Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder Signatur), entfernt oder vom Admin als **„Unsicher, nicht verwenden“** markiert sind.
 
 ## User Stories
 - Als Admin (Etienne) möchte ich alle Zammad-Tickets automatisch auf ihre erste Kundennachricht klassifizieren lassen, damit ich nicht Hunderte Tickets von Hand heraussuchen muss.
@@ -36,6 +37,7 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 - Als Admin möchte ich, dass eindeutige Tickets einer Kategorie erst automatisch getaggt werden, nachdem eine Stichprobe die Qualität belegt hat, damit keine unsichere Zuordnung in Zammad landet.
 - Als Admin möchte ich, dass meine Bestätigungen und Korrekturen als Beispiele in die weitere Klassifikation einfließen, damit das LLM aus meinen Entscheidungen weitere Tickets selbstständig findet.
 - Als Admin möchte ich eine separat und vollständig geprüfte Testmenge, damit die Qualität später unabhängig vom Training messbar ist.
+- Als Admin möchte ich ein Ticket als „Unsicher, nicht verwenden“ markieren, wenn ich es selbst nicht sicher einordnen kann, damit kein unsicheres Label in die Trainingsdaten gelangt und ich trotzdem sehe, an welchen Kategoriegrenzen ich oft unsicher bin.
 
 ## Out of Scope
 - Export der Tickets (`.eml`, JSONL), Pseudonymisierung, Laya-Format und Training (separat, später, anhand der Tags)
@@ -72,7 +74,11 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 ### Prüfen
 - [ ] Angenommen es gibt Vorschläge, wenn der Admin die Prüfansicht öffnet, dann sieht er in dieser Reihenfolge: Abweichungen von früheren Entscheidungen, unklar/mehrere Anliegen, niedrige Konfidenz, alle Vorschläge `storno` und `adressaenderung`, alle Mails mit dem Wort „Storno“ mit anderer Einstufung als `wismo`, Stichprobe der übrigen
 - [ ] Angenommen ein Ticket ist in der Prüfansicht, wenn der Admin es ansieht, dann erscheinen bereinigter Text, Vorschlag mit Begründung, Textstelle und ein Link nach Zammad
-- [ ] Angenommen der Admin prüft ein Ticket, wenn er „bestätigen“, eine andere Kategorie oder „keine“ wählt, dann wird die Entscheidung mit Name und Zeit gespeichert und das nächste Ticket erscheint
+- [ ] Angenommen der Admin prüft ein Ticket, wenn er „bestätigen“, eine andere Kategorie oder „Sonstiges“ wählt, dann wird die Entscheidung mit Name und Zeit gespeichert und das nächste Ticket erscheint
+- [ ] Angenommen der Admin ist sich bei einem Ticket unsicher, wenn er „Unsicher, nicht verwenden“ wählt (Taste `u`), dann wird das mit Name und Zeit gespeichert, das Ticket verlässt die Warteschlange und das nächste erscheint
+- [ ] Angenommen ein Ticket ist als „unsicher“ markiert, dann erhält es kein Tag (Training wie Test), dient nie als Prompt-Beispiel, zählt nicht in die Trefferquote der Stichprobe und kommt durch „Neu klassifizieren“ nicht als Abweichung zurück
+- [ ] Angenommen es gibt „unsicher“ markierte Tickets, wenn der Admin die Kennzahlen ansieht, dann sieht er je Kategorie (nach dem Vorschlag der KI) die Zahl der unsicheren Tickets und kann sie in der Ticket-Liste filtern und nachträglich doch entscheiden
+- [ ] Angenommen ein bereits getaggtes Ticket wird nachträglich als „unsicher“ markiert, wenn die App taggt, dann wird sein `train:*`- bzw. `test:*`-Tag entfernt
 - [ ] Angenommen ein Ticket gehört zur Testmenge, wenn es geprüft wird, dann muss der Admin es vollständig selbst entscheiden; es wird nie als Beispiel für den Prompt genutzt und nie automatisch getaggt
 - [ ] Angenommen der Admin hat gerade eine Entscheidung getroffen, wenn er sich geirrt hat, dann kann er sie in der Prüfansicht nachträglich ändern
 
@@ -86,7 +92,10 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 
 ### Tags schreiben
 - [ ] Angenommen ein Trainingsticket ist bestätigt oder automatisch freigegeben, wenn die App taggt, dann wird in Zammad genau das Tag `train:<kategorie>` mit dem Zammad-Token des angemeldeten Admins hinzugefügt; bei einem Testticket genau das Tag `test:<kategorie>` (nur nach Bestätigung durch den Admin)
-- [ ] Angenommen ein Ticket hat Ergebnis „keine“, wenn der Lauf taggt, dann erhält es kein `train:*`-Tag
+- [ ] Angenommen ein Ticket ist als „Sonstiges“ entschieden oder in einer freigegebenen Kategorie „Sonstiges“ eindeutig vorgeschlagen, wenn der Lauf taggt, dann erhält es `train:sonstiges` (Testmenge nach Bestätigung `test:sonstiges`); „Sonstiges“ hat wie jede Kategorie eine eigene Karte, Stichprobe, Trefferquote und Freigabe
+- [ ] Angenommen ein Ticket ist nicht klassifizierbar, entfernt oder als „unsicher“ markiert, wenn der Lauf taggt, dann erhält es kein Tag
+- [ ] Angenommen ein Ticket wurde vor der Umstellung auf `zahlung` und `adressaenderung` (2026-11-08, 12:14 Uhr) als „Sonstiges“ (damals „keine“) oder `storno` entschieden, wenn der Lauf taggt, dann erhält es kein Tag, bis es erneut geprüft ist
+- [ ] Angenommen es gibt solche alten Entscheidungen, wenn der Admin den Lauf „Alte Entscheidungen prüfen“ startet, dann klassifiziert die App nur diese Tickets neu (kein anderes Ticket); stimmt der neue Vorschlag mit der Entscheidung überein, gilt sie als geprüft und wird getaggt, weicht er ab, kommt das Ticket in die Warteschlange „Abweichung von früherer Entscheidung“
 - [ ] Angenommen der Admin korrigiert ein bereits getaggtes Ticket, wenn er die Kategorie ändert, dann wird das alte `train:*`-Tag entfernt und das neue gesetzt
 - [ ] Angenommen jeder Tag ist in der App als „bestätigt“ oder „automatisch“ vermerkt, wenn der Admin die Liste ansieht, dann kann er danach filtern
 - [ ] Angenommen der Admin startet einen Trockenlauf, wenn er ihn auslöst, dann zeigt die App, welche Tags geschrieben würden, schreibt aber nichts
@@ -107,6 +116,8 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 - Zwei Admins prüfen dasselbe Ticket gleichzeitig: die später gespeicherte Entscheidung gilt, die frühere bleibt im Verlauf sichtbar
 - Sehr seltene Kategorie (z. B. `storno`) erreicht den Zielwert auch nach dem ganzen Pool nicht: Kennzahl zeigt es an, kein Auffüllen durch zweifelhafte Fälle
 - Sehr viele Tickets: Abruf und Klassifikation laufen im Hintergrund in Abschnitten, mit Anzeige des Fortschritts und Abbruchmöglichkeit
+- Der Admin ist bei einem Ticket der Testmenge unsicher: es erhält kein `test:*`-Tag; die Testmenge wird dadurch etwas „leichter“ als der echte Eingang, die Zahl der unsicheren Tickets zeigt, wie stark
+- Viele „unsicher“ an derselben Grenze (z. B. Storno gegen Adressänderung): Hinweis, die Abgrenzung im Prompt zu schärfen, statt nur auszusortieren; die App zieht daraus selbst keine Folgerung
 
 ## Technical Requirements (optional)
 - Security: nur Admins; geschrieben werden nur Tags; Zammad-Token je Mitarbeiter aus `config/staff.php`
@@ -129,6 +140,9 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| „keine“ wird zur vollwertigen Kategorie „Sonstiges“ mit Tag `train:sonstiges` / `test:sonstiges`, eigener Stichprobe und Freigabe | Laya sieht im Betrieb auch Mails außerhalb der zehn Fachkategorien; ohne diese Klasse würde es jede Mail in eine Fachkategorie pressen. Bei rund 25 000 Tickets wäre Einzelbestätigung zu aufwendig, deshalb dieselbe Freigabe wie bei den anderen | 2026-11-08 |
+| Neue Entscheidung „Unsicher, nicht verwenden“ (Taste `u`): kein Tag, kein Beispiel, nicht in der Trefferquote, je Kategorie gezählt | Unsichere Labels schaden dem Training mehr als fehlende Beispiele; „Sonstiges“ und „Entfernen“ passen dafür nicht (vermischen bzw. löschen die Daten) | 2026-11-08 |
+| Alte Entscheidungen „keine“ (47) und `storno` (65) von vor 12:14 Uhr werden erst nach erneuter Prüfung getaggt, über einen gezielten Lauf nur für diese Tickets | Sie können Rechnungsfragen bzw. Adressänderungen enthalten; ein erneutes „Neu klassifizieren“ aller rund 2 000 Tickets will Etienne vermeiden | 2026-11-08 |
 | Seitenleiste und Seitentitel heißen „Ticket-Klassifikation“ statt „Beschriftung“; die Adresse `/beschriftung` bleibt | Wunsch des Auftraggebers | 2026-11-08 |
 | `storno` getrennt in `storno` (Artikel, Menge, Motiv, Konfiguration ändern oder stornieren, in der Regel nicht möglich) und `adressaenderung` (Lieferadresse, möglich bis zum Versand, danach über die Sendungsnummer beim Paketdienst, bei Rücklauf Neuversand an die korrigierte Adresse) | Beide Vorgänge haben eine ganz andere Folge; Wunsch des Auftraggebers beim Prüfen echter Tickets | 2026-11-08 |
 | Neue Kategorie `zahlung` (Zahlung und Rechnung, ohne Erstattungsforderungen); Rechnungsfragen nicht mehr „keine“; Prompt-Version labeling-4 | Viele Zahlungs- und Rechnungsmails landeten in „keine“; Erstattungsforderungen folgen weiter dem Anlass (Reklamation, WISMO, Storno) | 2026-11-08 |
@@ -137,7 +151,7 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 | Achte Kategorie „Spam“ mit dem Tag `spam` (ohne Präfix `train:`); in der Testmenge `test:spam`; Prompt-Version labeling-2 | Wunsch des Auftraggebers beim Prüfen echter Tickets (2026-11-07); ein vorhandenes `spam`-Tag zählt wie ein `train:`-Tag als Referenz | 2026-11-07 |
 | Modul in CSA, aber abgeschottet (`app/Labeling/`, eigene Tabellen und Routen) | Zammad-Client, LLM-Aufruf, Admin-Prüfung und Layout sind vorhanden; Rückbau bleibt einfach | 2026-11-06 |
 | Nur die erste eingehende Kundennachricht wird klassifiziert | Antworten und Rückmeldungen enthalten kein neues Anliegen; ein Tag je Ticket genügt | 2026-11-06 |
-| Tag `train:<kategorie>`, höchstens eines je Ticket, kein Tag bei „keine“ | Das externe Export-Skript filtert nach `train:*`; „keine“ ist ein gültiges Ergebnis | 2026-11-06 |
+| Tag `train:<kategorie>`, höchstens eines je Ticket, kein Tag bei „keine“ (seit 2026-11-08 `train:sonstiges`, siehe oben) | Das externe Export-Skript filtert nach `train:*`; „keine“ ist ein gültiges Ergebnis | 2026-11-06 |
 | Sieben Kategorien jetzt fest (seit 2026-11-08 zehn, siehe oben) | Prompt, Prüfoberfläche und Tags hängen daran; spätere Umbenennung kostet Tag-Änderungen in Zammad | 2026-11-06 |
 | Entscheidend ist der Anlass, nicht das Wort „Storno“ | Viele WISMO-Mails (Amazon) enthalten „Storno“; Storno ist nach Bestätigung grundsätzlich nicht möglich, die spätere Antwort betrifft den Lieferstatus | 2026-11-06 |
 | `bestellung` nur für eindeutige Bestellungen; Änderung und Storno als `storno` | Trennt die tatsächliche Bestellung von Folgevorgängen und Rückfragen | 2026-11-06 |
@@ -189,7 +203,7 @@ Ticket-Klassifikation (/beschriftung)  [Admin-Block der Seitenleiste, neben Tick
 +-- Prüfansicht
 |   +-- Warteschlange in fester Reihenfolge (siehe Spec)
 |   +-- Karte: bereinigter Text, Vorschlag mit Begründung, Textstelle, Zammad-Link
-|   +-- Knöpfe: bestätigen / andere Kategorie / keine
+|   +-- Knöpfe: bestätigen / andere Kategorie / Sonstiges / Unsicher, nicht verwenden
 +-- Ticket-Liste mit Filtern (Kategorie, Quelle, bestätigt/automatisch, Test/Training)
 +-- Einstellungen der Seite
     +-- ausgeschlossene Gruppen, Konfidenz-Schwelle, Stichprobenanteil, Zielwert
