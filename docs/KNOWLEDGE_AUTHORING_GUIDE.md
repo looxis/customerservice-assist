@@ -30,7 +30,7 @@ Du schreibst nur, was der Autor dir sagt oder bestätigt. Fehlt eine Angabe (ein
 
 ## Wohin gehört welches Wissen?
 
-**Grundsatz:** In `knowledge/` steht, **was wir tun und wer es darf**. In ProductForge (dem Produktkatalog) steht, **wie das Produkt ist**. Fallfakten (Foto geprüft, Kunde am Telefon …) gehören in keins von beiden, sondern in das Feld „Zusätzliche Informationen“ der App; sie werden nicht gespeichert.
+**Grundsatz:** In `knowledge/` steht, **was wir tun und wer es darf**. In ProductForge (dem Produktkatalog) steht, **wie das Produkt ist**. Fallfakten (Foto geprüft, Kunde am Telefon …) gehören in keins von beiden, sondern in das Feld „Zusätzliche Informationen“ der App; sie werden nicht gespeichert. Was der Mitarbeiter dort einträgt, hat immer Vorrang vor dem Wissen: Verbote wie „nicht als Tatsache nennen“ gelten nur für Ungeprüftes, geprüfte Angaben des Mitarbeiters darf die App dem Kunden nennen.
 
 ### Drei Fragen, in dieser Reihenfolge
 
