@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-11-06
-**Last Updated:** 2026-11-06
+**Last Updated:** 2026-11-08
 
 ## Dependencies
 - Requires: PROJ-6 (Zammad-Ticket laden), PROJ-9 (Fallanalyse per LLM, LLM-Aufruf), PROJ-27/PROJ-31 (Einstellungen, Prompt- und Modellverwaltung, falls dort versioniert), PROJ-19 (Zammad-Token je Mitarbeiter zum Schreiben)
@@ -20,9 +20,12 @@ Die App durchsucht alle Zammad-Tickets, lässt ein Frontier-LLM die **erste Kund
 | `train:reklamation` | Mangel oder Beschwerde zu gelieferter Ware |
 | `train:angebotsanfrage` | Anfrage nach Angebot, Preis oder Menge; auch Produktfragen mit Preis-/Mengen-/Angebotsbezug |
 | `train:bestellung` | Nur eindeutige Bestellungen: „hiermit bestelle ich“, „danke für das Angebot, bitte fertigen“, „bitte wie besprochen liefern“ |
-| `train:storno` | Storno oder Änderung einer aufgegebenen Bestellung, **ohne** dass der Lieferstatus der Grund ist („falsch bestellt, bitte stornieren“, „Lieferadresse ändern“) |
-| `train:technischer-support` | Funktion des Online-Shops: Passwort vergessen, Login, Konfigurator, Bild-Upload |
+| `train:storno` | Storno oder Änderung der bestellten Artikel bzw. ihrer Konfiguration (Artikel, Menge, Größe, Motiv, Gravur, Personalisierung), **ohne** dass der Lieferstatus der Grund ist („falsch bestellt, bitte stornieren“, „bitte den Namen anders schreiben“); auch „Ware nicht mehr gewollt, bitte Geld zurück“ ohne Mangel. In der Regel nicht möglich |
+| `train:adressaenderung` | Lieferadresse ändern oder korrigieren, vor oder nach dem Versand, auch eine Sendung auf dem Rückweg, die mit korrigierter Adresse neu versendet werden soll. Vor dem Versand möglich, danach über die Sendungsnummer beim Paketdienst. Die reine Frage „wo ist mein Paket“ bleibt `wismo` |
+| `train:zahlung` | Zahlung und Rechnung: Zahlungseingang, Zahlungsart, Überweisung, Mahnung, Stand einer bereits zugesagten Erstattung ohne Mangel- oder Lieferanlass, Rechnungsanforderung, fehlende Rechnung. **Keine Erstattungsforderung**: wegen Mangel `reklamation`, wegen nicht angekommener Sendung `wismo`, weil nicht mehr gewollt `storno`. Technischer Fehler auf der Zahlungsseite bleibt `technischer-support` |
+| `train:technischer-support` | Funktion des Online-Shops: Passwort vergessen, Login, Konfigurator, Bild-Upload, technischer Fehler auf der Zahlungsseite |
 | `train:produkt-frage` | Funktionsweise oder Eigenschaften eines Produkts, vor oder nach dem Kauf, ohne Preis-/Mengen-/Angebotsbezug |
+| `spam` | Unerwünschte Werbung, Phishing, Massenmails (Tag ohne Präfix, Testmenge `test:spam`) |
 
 Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gültiges Ergebnis).
 
@@ -67,7 +70,7 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 - [ ] Angenommen der LLM-Aufruf schlägt fehl, wenn der Job läuft, dann wird das Ticket mit Fehlerstand vermerkt, später erneut versucht und der Lauf nicht abgebrochen
 
 ### Prüfen
-- [ ] Angenommen es gibt Vorschläge, wenn der Admin die Prüfansicht öffnet, dann sieht er in dieser Reihenfolge: unklar/mehrere Anliegen, niedrige Konfidenz, alle Vorschläge `storno`, alle Mails mit dem Wort „Storno“ mit anderer Einstufung als `wismo`, Stichprobe der übrigen
+- [ ] Angenommen es gibt Vorschläge, wenn der Admin die Prüfansicht öffnet, dann sieht er in dieser Reihenfolge: Abweichungen von früheren Entscheidungen, unklar/mehrere Anliegen, niedrige Konfidenz, alle Vorschläge `storno` und `adressaenderung`, alle Mails mit dem Wort „Storno“ mit anderer Einstufung als `wismo`, Stichprobe der übrigen
 - [ ] Angenommen ein Ticket ist in der Prüfansicht, wenn der Admin es ansieht, dann erscheinen bereinigter Text, Vorschlag mit Begründung, Textstelle und ein Link nach Zammad
 - [ ] Angenommen der Admin prüft ein Ticket, wenn er „bestätigen“, eine andere Kategorie oder „keine“ wählt, dann wird die Entscheidung mit Name und Zeit gespeichert und das nächste Ticket erscheint
 - [ ] Angenommen ein Ticket gehört zur Testmenge, wenn es geprüft wird, dann muss der Admin es vollständig selbst entscheiden; es wird nie als Beispiel für den Prompt genutzt und nie automatisch getaggt
@@ -79,6 +82,7 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 - [ ] Angenommen eine Kategorie ist noch nicht freigegeben, wenn Tickets klassifiziert sind, dann wird kein Tag geschrieben, außer für vom Admin bestätigte Tickets
 - [ ] Angenommen die Trefferquote einer freigegebenen Kategorie fällt in neuen Stichproben unter die Schwelle, wenn die Kennzahlen aktualisiert werden, dann wird die Freigabe gesperrt und es werden keine weiteren automatischen Tags geschrieben
 - [ ] Angenommen die Wiederholung einer Klassifikation mit anderen Beispielen, wenn sie bereits getaggte Tickets betrifft, dann ändert sie dort keine Tags von selbst
+- [ ] Angenommen ein Ticket ist schon entschieden, wenn „Neu klassifizieren“ einen abweichenden Vorschlag liefert, dann bleibt die Entscheidung stehen, das Ticket erscheint in der Warteschlange „Abweichung von früherer Entscheidung“ mit der bisherigen Entscheidung, und sein Tag wird erst nach der erneuten Prüfung geschrieben; stimmt der Vorschlag überein, muss nichts geprüft werden
 
 ### Tags schreiben
 - [ ] Angenommen ein Trainingsticket ist bestätigt oder automatisch freigegeben, wenn die App taggt, dann wird in Zammad genau das Tag `train:<kategorie>` mit dem Zammad-Token des angemeldeten Admins hinzugefügt; bei einem Testticket genau das Tag `test:<kategorie>` (nur nach Bestätigung durch den Admin)
@@ -125,11 +129,16 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Seitenleiste und Seitentitel heißen „Ticket-Klassifikation“ statt „Beschriftung“; die Adresse `/beschriftung` bleibt | Wunsch des Auftraggebers | 2026-11-08 |
+| `storno` getrennt in `storno` (Artikel, Menge, Motiv, Konfiguration ändern oder stornieren, in der Regel nicht möglich) und `adressaenderung` (Lieferadresse, möglich bis zum Versand, danach über die Sendungsnummer beim Paketdienst, bei Rücklauf Neuversand an die korrigierte Adresse) | Beide Vorgänge haben eine ganz andere Folge; Wunsch des Auftraggebers beim Prüfen echter Tickets | 2026-11-08 |
+| Neue Kategorie `zahlung` (Zahlung und Rechnung, ohne Erstattungsforderungen); Rechnungsfragen nicht mehr „keine“; Prompt-Version labeling-4 | Viele Zahlungs- und Rechnungsmails landeten in „keine“; Erstattungsforderungen folgen weiter dem Anlass (Reklamation, WISMO, Storno) | 2026-11-08 |
+| Zehn Kategorien sind nicht zu viele | Jede führt zu einer anderen Folgehandlung, hat genug Fälle im Pool und lässt sich in einem Satz abgrenzen; Preis: eigene Stichproben je Kategorie bis zur Freigabe | 2026-11-08 |
+| Bereits entschiedene Tickets: neu klassifizieren, nur Abweichungen prüfen | Noch kein Tag in Zammad geschrieben; Etienne prüft nur, wo der neue Vorschlag von seiner Entscheidung abweicht | 2026-11-08 |
 | Achte Kategorie „Spam“ mit dem Tag `spam` (ohne Präfix `train:`); in der Testmenge `test:spam`; Prompt-Version labeling-2 | Wunsch des Auftraggebers beim Prüfen echter Tickets (2026-11-07); ein vorhandenes `spam`-Tag zählt wie ein `train:`-Tag als Referenz | 2026-11-07 |
 | Modul in CSA, aber abgeschottet (`app/Labeling/`, eigene Tabellen und Routen) | Zammad-Client, LLM-Aufruf, Admin-Prüfung und Layout sind vorhanden; Rückbau bleibt einfach | 2026-11-06 |
 | Nur die erste eingehende Kundennachricht wird klassifiziert | Antworten und Rückmeldungen enthalten kein neues Anliegen; ein Tag je Ticket genügt | 2026-11-06 |
 | Tag `train:<kategorie>`, höchstens eines je Ticket, kein Tag bei „keine“ | Das externe Export-Skript filtert nach `train:*`; „keine“ ist ein gültiges Ergebnis | 2026-11-06 |
-| Sieben Kategorien jetzt fest | Prompt, Prüfoberfläche und Tags hängen daran; spätere Umbenennung kostet Tag-Änderungen in Zammad | 2026-11-06 |
+| Sieben Kategorien jetzt fest (seit 2026-11-08 zehn, siehe oben) | Prompt, Prüfoberfläche und Tags hängen daran; spätere Umbenennung kostet Tag-Änderungen in Zammad | 2026-11-06 |
 | Entscheidend ist der Anlass, nicht das Wort „Storno“ | Viele WISMO-Mails (Amazon) enthalten „Storno“; Storno ist nach Bestätigung grundsätzlich nicht möglich, die spätere Antwort betrifft den Lieferstatus | 2026-11-06 |
 | `bestellung` nur für eindeutige Bestellungen; Änderung und Storno als `storno` | Trennt die tatsächliche Bestellung von Folgevorgängen und Rückfragen | 2026-11-06 |
 | `technischer-support` nur für Funktion des Online-Shops, Produktfragen als `produkt-frage` | Klare Trennung zwischen Shop und Produkt | 2026-11-06 |
@@ -165,10 +174,10 @@ Passt keine Kategorie, erhält das Ticket **kein** Tag („keine“ ist ein gül
 ### Backend nötig?
 Ja. Es gibt eine Datenbank (Tickets, Vorschläge, Entscheidungen, Freigaben), Hintergrundaufgaben und Zugriffe auf Zammad und das LLM. Keine neue Anmeldung: Admin sind die Nutzer aus der vorhandenen Admin-Liste.
 
-### A) Oberfläche (Seite „Beschriftung“, nur Admins)
+### A) Oberfläche (Seite „Ticket-Klassifikation“, nur Admins)
 ```
-Beschriftung (/beschriftung)  [Admin-Block der Seitenleiste, neben Ticket-Übersicht]
-+-- Kennzahlen je Kategorie (acht Karten)
+Ticket-Klassifikation (/beschriftung)  [Admin-Block der Seitenleiste, neben Ticket-Übersicht]
++-- Kennzahlen je Kategorie (zehn Karten)
 |   +-- bestätigt / korrigiert / automatisch getaggt / offen
 |   +-- Trefferquote der Stichprobe, Zielwert, Stand der Freigabe
 |   +-- Knopf „Freigeben“ bzw. Hinweis „gesperrt“
@@ -265,6 +274,38 @@ Keine neuen Pakete.
 - **Neue Umgebungsvariablen** (optional, Vorgaben im Code): `LABELING_MODEL`, `LABELING_EARLIEST` (Standard 2019-01-01), `LABELING_CALLS_PER_MINUTE` (30), `LABELING_ZAMMAD_PER_MINUTE` (120). `.env.example` kann die Zeilen nicht von Claude erhalten (Zugriff gesperrt), Etienne ergänzt sie bei Bedarf.
 - **Tests:** `PROJ-78-LabelingPagesTest.php`, `PROJ-78-LabelingFlowTest.php` (Abruf, Klassifikation, Prüfung, Freigabe/Sperre, Tags, Läufe, Einstellungen, Aufbewahrung, Kennzahlen). Gesamte Suite: 2332 bestanden, 2 übersprungen.
 - **Noch offen für QA / Betrieb:** Pilotlauf mit echten Zammad-Daten (Abruf-Dauer, Qualität des Prompts, Standardwerte), Queue-Worker nach dem Deploy neu starten.
+
+### Nachtrag: Betreff und Absender (2026-11-07)
+- Anlass Ticket 21479: Nachricht allein („was stand auf der Tasse?“) war nicht einzuordnen, der Betreff „Produktanfrage des Amazon-Kunden …“ hätte es gezeigt.
+- `labeling_tickets` hat neu `subject` (Ticket-Betreff) und `sender` (Absender der ersten Kundennachricht), beide verschlüsselt und werden mit dem Text geleert (`labeling:purge`).
+- Beides geht als „Absender:“/„Betreff:“ vor dem Text an die KI (Prompt `labeling-3`), steht in den Beispielen und wird auf der Seite „Prüfen“ über der Nachricht angezeigt.
+- Bereits erfasste Tickets haben beide Felder leer (Anzeige „–“); sie werden nicht nachgeladen.
+
+### Nachtrag: Tickets entfernen (2026-11-07)
+- Anlass: ein eigenes Testticket tauchte in der Warteschlange auf. Auf der Seite „Prüfen“ gibt es unter der Entscheidung zwei Knöpfe (Admins, mit Rückfrage): „Entfernen und nicht mehr abrufen“ und „Entfernen und in Zammad löschen“.
+- Entfernen löscht Text, Betreff, Absender, Vorschläge und Prüfungen; übrig bleibt eine Markierung (`state = excluded`, Zammad-ID und Nummer), damit spätere Abrufe das Ticket überspringen. Die Markierung erscheint nicht in Zählern und Ticketliste.
+- Zammad zuerst: Löschen läuft mit dem persönlichen Token des Admins (`DELETE /api/v1/tickets/{id}`, braucht Admin-Recht für Tickets). Schlägt es fehl, bleibt hier alles unverändert; ein bereits fehlendes Ticket zählt als gelöscht.
+
+### Nachtrag: Absenderfilter (2026-11-07)
+- Anlass: automatische Mails von Amazon (Hinweise zu Bestellungen, Bounces) landen heute im Ticketsystem, werden später aber vorher weggefiltert und sind deshalb keine Trainingsdaten.
+- Einstellung „Absenderfilter“ (`excluded_senders`, Adressen oder Teile wie `@amazon.it`, Komma oder Zeilenumbruch), Startwert: non-rispondere@amazon.it, noreply@amazon.com, donotreply@amazon.com, atoz-guarantee-no-reply@amazon.com, mailer-daemon@eu-central-1.amazonses.com, do-not-reply@amazon.es, mail@wecreateyour.com, auto-communication@amazon.com.
+- `SenderFilter`: beim Erfassen (`CaptureLabelTicket`) entsteht nur eine Markierung (`excluded`), beim Speichern der Einstellungen werden bereits erfasste Tickets entfernt, ebenso beim Nachladen der Absender (`labeling:backfill-headers`). Tickets mit vorhandenem Tag (`source = vorhanden`) bleiben unberührt.
+- Tickets, die vor dem Nachtrag „Betreff und Absender“ erfasst wurden, haben noch keinen Absender und werden erst nach `labeling:backfill-headers` gefiltert.
+
+### Nachtrag: Antworten auf unsere Mails (2026-11-08)
+- Anlass: Tickets, in denen wir zuerst geschrieben haben und der Kunde nur geantwortet hat, sind keine „ersten Kundenmails“ und taugen nicht als Trainingsdaten.
+- Erkennung: Vor der ersten Kundennachricht steht eine E-Mail von uns (Absender „Agent“, Typ E-Mail, nicht automatisch, nicht intern). `ZammadClient::firstCustomerContact()` liefert dafür neben der Nachricht das Kennzeichen `contacted_first`.
+- Neue Abrufe legen solche Tickets nur als Markierung (`excluded`, „Entfernt (zuerst von uns kontaktiert)“) an; Tickets mit vorhandenem Tag bleiben unberührt.
+- Bereits erfasste Tickets: `labeling:remove-outreach` (Zammad pro Ticket neu lesen, `--dry-run` zählt nur, `--after=<ID>` setzt fort). Bereits in Zammad geschriebene Tags bleiben dort bestehen; der Befehl meldet deren Zahl.
+
+### Nachtrag: Adressänderung, Zahlung, Abweichungen (2026-11-08)
+- Seitenleiste und Seitentitel „Ticket-Klassifikation“ (Adresse `/beschriftung` unverändert).
+- `LabelCategory`: neu `Adressaenderung` (`train:adressaenderung`) und `Zahlung` (`train:zahlung`), Reihenfolge wismo, reklamation, angebotsanfrage, bestellung, storno, adressaenderung, zahlung, technischer-support, produkt-frage, spam. Tastenkürzel über `key()`: 1–9 für die ersten neun, `s` für Spam, 0 bleibt „keine“. Der Strukturrahmen der KI übernimmt die Werte aus dem Enum.
+- Prompt `labeling-4`: Abgrenzung storno/adressaenderung/zahlung, Erstattungsforderungen folgen dem Anlass, Rechnungsfragen nicht mehr „keine“.
+- Warteschlange `storno` nimmt auch Vorschläge `adressaenderung` auf (beide grenzen an WISMO).
+- „Neu klassifizieren“ nimmt jetzt alle Tickets in `classified`/`failed` ohne geschriebenes Tag, auch entschiedene; nicht erfasste (`captured`) bleiben beim Lauf „Klassifikation“. Weicht der neue Vorschlag (`keine` eingeschlossen) bei einem entschiedenen Ticket (nicht Referenz `vorhanden`, auch Testmenge) von der Entscheidung ab, erhält er die Warteschlange `abweichung`. Die Entscheidung bleibt bis zur Prüfung stehen, ihr Tag wird solange nicht geschrieben (`LabelTicket::hasOpenDeviation()`). Ein Ticket verlässt die Warteschlange, sobald es eine Prüfung zu genau diesem Vorschlag gibt, auch wenn die alte Entscheidung bestätigt wird (Herkunft `korrektur` bzw. `test`).
+- Prüfkarte zeigt in dieser Warteschlange „Bisherige Entscheidung“.
+- Für den Bestand: Lauf „Neu klassifizieren“ starten, danach die Warteschlange „Abweichung von früherer Entscheidung“ durchgehen.
 
 ## QA Test Results
 _To be added by /qa_

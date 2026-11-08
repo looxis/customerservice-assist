@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Jobs\Middleware\SkipInactiveLabelRun;
 use App\Labeling\LabelRunner;
 use App\Labeling\LabelTagging;
 use App\Models\LabelRun;
@@ -21,7 +22,12 @@ class PushLabelTag implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries = 3;
+    /**
+     * Waiting for the rate limit releases a job and counts as an attempt, so only the exceptions are limited.
+     */
+    public int $tries = 0;
+
+    public int $maxExceptions = 3;
 
     public function __construct(public int $runId, public int $labelTicketId) {}
 
@@ -38,7 +44,7 @@ class PushLabelTag implements ShouldQueue
      */
     public function middleware(): array
     {
-        return [new RateLimited('labeling-zammad')];
+        return [new SkipInactiveLabelRun, new RateLimited('labeling-zammad')];
     }
 
     public function handle(LabelTagging $tagging, StaffDirectory $staff, LabelRunner $runner): void

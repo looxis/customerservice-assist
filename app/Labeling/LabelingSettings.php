@@ -5,12 +5,12 @@ namespace App\Labeling;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The values of the settings area on the page "Beschriftung" (PROJ-78): what an admin saved, else the start value.
+ * The values of the settings area on the page "Ticket-Klassifikation" (PROJ-78): what an admin saved, else the start value.
  */
 class LabelingSettings
 {
     /**
-     * @return array{target: int, min_cases: int, min_rate: int, sample_share: int, confidence: float, examples: int, test_share: int, excluded_groups: string}
+     * @return array{target: int, min_cases: int, min_rate: int, sample_share: int, confidence: float, examples: int, test_share: int, excluded_groups: string, excluded_senders: string}
      */
     public function all(): array
     {
@@ -26,6 +26,7 @@ class LabelingSettings
             'examples' => (int) $values['examples'],
             'test_share' => (int) $values['test_share'],
             'excluded_groups' => (string) $values['excluded_groups'],
+            'excluded_senders' => (string) $values['excluded_senders'],
         ];
     }
 

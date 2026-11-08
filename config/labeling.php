@@ -7,7 +7,7 @@ return [
     | Ticket Tagging for Training Data (PROJ-78)
     |--------------------------------------------------------------------------
     |
-    | The admin page "Beschriftung" classifies the first customer message of every Zammad ticket and writes
+    | The admin page "Ticket-Klassifikation" classifies the first customer message of every Zammad ticket and writes
     | the tag train:<category> (test:<category> for the test set). The values under "defaults" are the start
     | values of the settings on that page.
     |
@@ -39,5 +39,6 @@ return [
         'examples' => 8,
         'test_share' => 20,
         'excluded_groups' => '',
+        'excluded_senders' => 'non-rispondere@amazon.it, noreply@amazon.com, donotreply@amazon.com, atoz-guarantee-no-reply@amazon.com, mailer-daemon@eu-central-1.amazonses.com, do-not-reply@amazon.es, mail@wecreateyour.com, auto-communication@amazon.com',
     ],
 ];

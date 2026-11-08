@@ -32,9 +32,26 @@ class LabelTagWriter
     }
 
     /**
+     * Deletes a ticket in Zammad for good, for test tickets that do not belong in the training data. Needs a token
+     * with admin rights for tickets; a missing ticket counts as deleted.
+     *
      * @throws ReplyException
      */
-    private function send(string $token, string $path, int $ticketId, string $tag): void
+    public function deleteTicket(string $token, int $ticketId): void
+    {
+        try {
+            $this->send($token, "tickets/{$ticketId}", $ticketId, '', 'delete');
+        } catch (ReplyException $exception) {
+            if ($exception->problem !== ReplyProblem::NotFound) {
+                throw $exception;
+            }
+        }
+    }
+
+    /**
+     * @throws ReplyException
+     */
+    private function send(string $token, string $path, int $ticketId, string $tag, string $method = 'post'): void
     {
         $config = config('services.zammad');
 
@@ -45,12 +62,15 @@ class LabelTagWriter
         $timeout = max(1, (int) $config['timeout']);
 
         try {
-            $response = Http::baseUrl(rtrim((string) $config['url'], '/').'/api/v1/')
+            $request = Http::baseUrl(rtrim((string) $config['url'], '/').'/api/v1/')
                 ->withHeaders(['Authorization' => 'Token token='.$token])
                 ->acceptJson()
                 ->connectTimeout($timeout)
-                ->timeout($timeout)
-                ->post($path, ['object' => 'Ticket', 'o_id' => $ticketId, 'item' => $tag]);
+                ->timeout($timeout);
+
+            $response = $method === 'delete'
+                ? $request->delete($path)
+                : $request->post($path, ['object' => 'Ticket', 'o_id' => $ticketId, 'item' => $tag]);
         } catch (ConnectionException) {
             Log::warning('Zammad tag: connection problem.');
 

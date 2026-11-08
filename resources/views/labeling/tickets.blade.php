@@ -1,4 +1,4 @@
-<x-layouts.app title="Beschriftung: Tickets" width="6xl">
+<x-layouts.app title="Ticket-Klassifikation: Tickets" width="6xl">
     <x-labeling.nav />
 
     <x-card>

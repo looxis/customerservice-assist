@@ -22,7 +22,7 @@ class PurgeLabelingTexts extends Command
         $emptied = LabelTicket::query()
             ->whereNotNull('text')
             ->whereRaw('coalesce(last_activity_at, updated_at) < ?', [$before])
-            ->update(['text' => null]);
+            ->update(['text' => null, 'subject' => null, 'sender' => null]);
 
         Log::info('Ticket tagging texts purged', compact('emptied'));
         $this->info("Geleert: {$emptied} Nachrichtentexte.");

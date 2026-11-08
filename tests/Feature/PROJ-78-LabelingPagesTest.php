@@ -4,6 +4,7 @@ use App\Labeling\LabelAgent;
 use App\Models\LabelPrediction;
 use App\Models\LabelTicket;
 use Illuminate\JsonSchema\JsonSchemaTypeFactory;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->withoutVite();
@@ -46,7 +47,7 @@ it('keeps the labeling pages from everyone but admins', function (string $url) {
     $this->withCookie('staff_name', 'Nele')->get($url)->assertForbidden();
 })->with(['/beschriftung', '/beschriftung/pruefen', '/beschriftung/tickets']);
 
-it('shows the overview to admins with the eight categories', function () {
+it('shows the overview to admins with the ten categories', function () {
     $this->withCookie('staff_name', 'Etienne')->get('/beschriftung')->assertOk()->assertSeeText('Noch keine Tickets erfasst');
 
     lblTicket();
@@ -56,11 +57,13 @@ it('shows the overview to admins with the eight categories', function () {
         ->assertSeeText('train:wismo')
         ->assertSeeText('train:technischer-support')
         ->assertSeeText('train:produkt-frage')
+        ->assertSeeText('train:adressaenderung')
+        ->assertSeeText('train:zahlung')
         ->assertSeeText('Spam');
 });
 
 it('lists the sidebar entry only for admins', function () {
-    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung')->assertSee(route('labeling.index'));
+    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung')->assertSee(route('labeling.index'))->assertSeeText('Ticket-Klassifikation');
     $this->withCookie('staff_name', 'Nele')->get('/')->assertDontSee(route('labeling.index'));
 });
 
@@ -80,6 +83,36 @@ it('shows a ticket of the review queue with its suggestion', function () {
         ->assertOk()
         ->assertSeeText('Unklar')
         ->assertSee('data-key="Enter"', false);
+});
+
+it('gives every category its own key, spam the key s and none the key 0', function () {
+    lblTicket([], ['queue' => 'zweifel']);
+
+    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung/pruefen')
+        ->assertOk()
+        ->assertSee('data-key="9"', false)
+        ->assertSee('data-key="s"', false)
+        ->assertSee('data-key="0"', false)
+        ->assertDontSee('data-key="10"', false);
+});
+
+it('shows the previous decision of a ticket in the queue abweichung', function () {
+    lblTicket(['decision' => 'storno', 'decision_origin' => 'zweifel'], ['category' => 'adressaenderung', 'queue' => 'abweichung']);
+
+    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung/pruefen?warteschlange=abweichung')
+        ->assertOk()
+        ->assertSeeText('Bisherige Entscheidung')
+        ->assertSeeText('Storno / Änderung der Bestellung')
+        ->assertSeeText('Adressänderung');
+});
+
+it('shows subject and sender on the review page', function () {
+    lblTicket(['subject' => 'Produktanfrage des Amazon-Kunden', 'sender' => 'Cristiano <cristiano@marketplace.amazon.it>'], ['queue' => 'konfidenz']);
+
+    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung/pruefen')
+        ->assertOk()
+        ->assertSeeText('Produktanfrage des Amazon-Kunden')
+        ->assertSee('cristiano@marketplace.amazon.it');
 });
 
 it('keeps the decision buttons enabled while submitting so the chosen category is sent', function () {
@@ -122,4 +155,51 @@ it('has an agent whose schema lists all categories and none', function () {
 
     expect($schema)->toHaveKeys(['category', 'unclear', 'multiple_concerns', 'confidence', 'reason', 'evidence'])
         ->and(LabelPrediction::query()->count())->toBe(0);
+});
+
+it('removes a ticket from the tagging and keeps only a marker that later retrievals skip', function () {
+    $ticket = lblTicket(['subject' => 'Test', 'sender' => 'etienne@example.test']);
+
+    $this->withCookie('staff_name', 'Etienne')
+        ->post(route('labeling.tickets.exclude', $ticket), ['queue' => 'test'])
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    $ticket->refresh();
+    expect($ticket->state)->toBe(LabelTicket::EXCLUDED)
+        ->and($ticket->text)->toBeNull()
+        ->and($ticket->predictions()->count())->toBe(0);
+
+    $this->withCookie('staff_name', 'Etienne')->get('/beschriftung/tickets')->assertOk()->assertSeeText('Kein Ticket entspricht diesem Filter.');
+});
+
+it('deletes the ticket in Zammad before removing it when asked to', function () {
+    config(['staff.zammad_tokens' => ['Etienne' => 'secret-token']]);
+    $ticket = lblTicket();
+    Http::fake(['zammad.test/api/v1/tickets/'.$ticket->zammad_id => Http::response('', 200)]);
+
+    $this->withCookie('staff_name', 'Etienne')
+        ->post(route('labeling.tickets.exclude', $ticket), ['delete_in_zammad' => '1'])
+        ->assertSessionHas('success');
+
+    Http::assertSent(fn ($request) => $request->method() === 'DELETE' && str_ends_with($request->url(), '/tickets/'.$ticket->zammad_id));
+    expect($ticket->refresh()->state)->toBe(LabelTicket::EXCLUDED);
+});
+
+it('keeps the ticket when Zammad refuses to delete it', function () {
+    config(['staff.zammad_tokens' => ['Etienne' => 'secret-token']]);
+    $ticket = lblTicket();
+    Http::fake(['zammad.test/*' => Http::response('', 403)]);
+
+    $this->withCookie('staff_name', 'Etienne')
+        ->post(route('labeling.tickets.exclude', $ticket), ['delete_in_zammad' => '1'])
+        ->assertSessionHas('error');
+
+    expect($ticket->refresh()->state)->toBe('classified');
+});
+
+it('keeps non-admins from removing tickets', function () {
+    $ticket = lblTicket();
+
+    $this->withCookie('staff_name', 'Nele')->post(route('labeling.tickets.exclude', $ticket))->assertForbidden();
 });

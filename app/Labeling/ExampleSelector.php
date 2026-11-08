@@ -39,7 +39,7 @@ class ExampleSelector
 
             foreach ($tickets as $ticket) {
                 $ids[] = $ticket->id;
-                $blocks[] = '- Kategorie '.$category.': "'.str_replace("\n", ' ', mb_substr((string) $ticket->text, 0, self::MAX_EXAMPLE_LENGTH)).'"';
+                $blocks[] = '- Kategorie '.$category.': '.(filled($ticket->subject) ? 'Betreff "'.str_replace("\n", ' ', $ticket->subject).'", ' : '').'Text "'.str_replace("\n", ' ', mb_substr((string) $ticket->text, 0, self::MAX_EXAMPLE_LENGTH)).'"';
             }
         }
 

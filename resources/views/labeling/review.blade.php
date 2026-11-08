@@ -1,4 +1,4 @@
-<x-layouts.app title="Beschriftung: Prüfen" width="5xl">
+<x-layouts.app title="Ticket-Klassifikation: Prüfen" width="5xl">
     <x-labeling.nav />
 
     <nav class="flex flex-wrap gap-2" aria-label="Warteschlangen">
@@ -42,9 +42,24 @@
                     <span class="text-sm text-slate-600">Noch {{ $ticket['remaining'] }} in dieser Warteschlange</span>
                 </div>
 
+                <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                    <dt class="text-slate-600">Betreff</dt>
+                    <dd class="break-words font-medium text-slate-900">{{ $ticket['subject'] ?? '–' }}</dd>
+                    <dt class="text-slate-600">Absender</dt>
+                    <dd class="break-all text-slate-900">{{ $ticket['sender'] ?? '–' }}</dd>
+                </dl>
+
                 <blockquote class="whitespace-pre-line rounded-md bg-slate-50 p-4 text-sm text-slate-900 ring-1 ring-inset ring-slate-200">
                     @if ($parts && ! $ticket['test']){{ $parts[0] }}<mark class="rounded bg-warning-500/20 px-0.5 text-slate-900">{{ $ticket['evidence'] }}</mark>{{ $parts[1] }}@else{{ $ticket['text'] }}@endif
                 </blockquote>
+
+                @if ($ticket['previous'] !== null)
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="text-slate-600">Bisherige Entscheidung:</span>
+                        <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
+                        <span class="text-slate-600">Der neue Vorschlag weicht davon ab. Wähle die Kategorie, die gilt.</span>
+                    </div>
+                @endif
 
                 @if ($ticket['test'])
                     <x-alert type="warning">Testmenge: Der Vorschlag ist verborgen. Entscheide selbst, es gibt kein „Bestätigen“.</x-alert>
@@ -69,9 +84,9 @@
                     @endunless
 
                     <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                        @foreach ($categories as $index => $category)
-                            <x-button type="submit" variant="secondary" name="category" :value="$category->value" :data-key="(string) ($index + 1)" class="justify-start" :title="$category->description()">
-                                <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">{{ $index + 1 }}</span>
+                        @foreach ($categories as $category)
+                            <x-button type="submit" variant="secondary" name="category" :value="$category->value" :data-key="$category->key()" class="justify-start" :title="$category->description()">
+                                <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">{{ $category->key() }}</span>
                                 {{ $category->label() }}
                             </x-button>
                         @endforeach
@@ -84,5 +99,25 @@
                 </fieldset>
             </x-card>
         </form>
+
+        <x-card class="space-y-3">
+            <h2 class="text-sm font-medium text-slate-900">Gehört nicht in die Trainingsdaten?</h2>
+            <p class="text-sm text-slate-600">Zum Beispiel ein Testticket. Das Ticket wird aus der App entfernt (Text, Vorschlag und Entscheidungen werden gelöscht) und bei späteren Abrufen übersprungen.</p>
+            <div class="flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('labeling.tickets.exclude', ['ticket' => $ticket['id']]) }}"
+                      x-data x-on:submit="if (! confirm('Ticket#{{ $ticket['number'] }} aus der App entfernen und künftig nicht mehr abrufen? In Zammad bleibt es unverändert.')) $event.preventDefault()">
+                    @csrf
+                    <input type="hidden" name="queue" value="{{ $queue }}">
+                    <x-button type="submit" variant="secondary">Entfernen und nicht mehr abrufen</x-button>
+                </form>
+                <form method="POST" action="{{ route('labeling.tickets.exclude', ['ticket' => $ticket['id']]) }}"
+                      x-data x-on:submit="if (! confirm('Ticket#{{ $ticket['number'] }} auch in Zammad endgültig löschen? Das lässt sich nicht rückgängig machen.')) $event.preventDefault()">
+                    @csrf
+                    <input type="hidden" name="queue" value="{{ $queue }}">
+                    <input type="hidden" name="delete_in_zammad" value="1">
+                    <x-button type="submit" variant="danger">Entfernen und in Zammad löschen</x-button>
+                </form>
+            </div>
+        </x-card>
     @endif
 </x-layouts.app>

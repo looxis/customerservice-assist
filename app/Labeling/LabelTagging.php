@@ -31,10 +31,10 @@ class LabelTagging
     {
         return LabelTicket::query()
             ->where(fn ($query) => $query->whereNotNull('decision')->orWhere(fn ($open) => $open->whereNull('decision')->where('state', 'classified')->where('split', 'training')))
-            ->with('latestPrediction')
+            ->with(['latestPrediction', 'reviews:id,label_ticket_id,label_prediction_id'])
             ->get()
             ->filter(fn (LabelTicket $ticket): bool => $ticket->decision !== null
-                ? $ticket->decision_origin !== 'vorhanden' && $ticket->tagPending()
+                ? $ticket->decision_origin !== 'vorhanden' && $ticket->tagPending() && ! $ticket->hasOpenDeviation()
                 : $this->stats->mayTagAutomatically($ticket))
             ->values();
     }

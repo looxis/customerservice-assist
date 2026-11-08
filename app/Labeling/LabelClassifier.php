@@ -32,9 +32,7 @@ class LabelClassifier
         $settings = $this->settings->all();
         $prompt = Prompt::load('labeling');
         $examples = $this->examples->forPrompt($settings['examples']);
-        $text = mb_substr((string) $ticket->text, 0, (int) config('labeling.max_text_length'));
-
-        $result = $this->model->ask(new LabelAgent($prompt->text.$examples['text']), "Erste Nachricht des Kunden:\n\n".$text, self::modelName(), 'labeling', $ticket->number);
+        $result = $this->model->ask(new LabelAgent($prompt->text.$examples['text']), $ticket->classifierInput((int) config('labeling.max_text_length')), self::modelName(), 'labeling', $ticket->number);
         $data = $result['data'];
 
         $category = LabelCategory::tryFrom((string) ($data['category'] ?? ''))?->value;
@@ -50,7 +48,7 @@ class LabelClassifier
             'confidence' => $confidence,
             'reason' => trim((string) ($data['reason'] ?? '')),
             'evidence' => trim((string) ($data['evidence'] ?? '')),
-            'queue' => $ticket->isTest() ? null : $this->queue($ticket, $category, $unclear, $multiple, $confidence, $settings),
+            'queue' => $this->queue($ticket, $category, $unclear, $multiple, $confidence, $settings),
             'model' => self::modelName(),
             'prompt_version' => $prompt->version.($examples['ids'] === [] ? '' : '+B'.count($examples['ids'])),
             'example_ids' => $examples['ids'],
@@ -65,21 +63,26 @@ class LabelClassifier
 
     /**
      * Which review queue a proposal belongs to, null for a clear one that no admin has to look at. A clear
-     * proposal lands in the random sample with the chance set on the page.
+     * proposal lands in the random sample with the chance set on the page. A decided ticket comes back only
+     * when the new proposal differs from the decision; a ticket of the test set is reviewed in its own queue.
      *
      * @param  array<string, mixed>  $settings
      */
     private function queue(LabelTicket $ticket, ?string $category, bool $unclear, bool $multiple, float $confidence, array $settings): ?string
     {
-        // A ticket that carried a tag already, or that an admin decided on, is not reviewed again.
+        // A ticket that carried a tag already is a reference and is never reviewed again.
         if ($ticket->decision !== null) {
+            return $ticket->decision_origin !== 'vorhanden' && $ticket->decision !== ($category ?? LabelTicket::NONE) ? 'abweichung' : null;
+        }
+
+        if ($ticket->isTest()) {
             return null;
         }
 
         return match (true) {
             $unclear || $multiple => 'zweifel',
             $confidence < $settings['confidence'] || $category === null => 'konfidenz',
-            $category === LabelCategory::Storno->value => 'storno',
+            in_array($category, [LabelCategory::Storno->value, LabelCategory::Adressaenderung->value], true) => 'storno',
             $category !== LabelCategory::Wismo->value && str_contains(mb_strtolower((string) $ticket->text), 'storno') => 'storno-wort',
             random_int(1, 100) <= $settings['sample_share'] => 'stichprobe',
             default => null,

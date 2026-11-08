@@ -25,6 +25,7 @@ class StartLabelRunRequest extends FormRequest
         return [
             'kind' => ['required', Rule::in(array_keys(LabelRun::KINDS))],
             'dry_run' => ['nullable', 'boolean'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'excluded_groups' => ['nullable', 'string', 'max:500'],
         ];
     }

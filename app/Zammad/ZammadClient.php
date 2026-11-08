@@ -293,17 +293,35 @@ class ZammadClient
      */
     public function firstCustomerArticle(int $ticketId, ?int $customerId): ?TicketArticle
     {
+        return $this->firstCustomerContact($ticketId, $customerId)['article'];
+    }
+
+    /**
+     * The first customer message of a ticket and whether a mail of ours came before it, which makes that message
+     * the answer to our own inquiry (PROJ-78).
+     *
+     * @return array{article: ?TicketArticle, contacted_first: bool}
+     *
+     * @throws ZammadException
+     */
+    public function firstCustomerContact(int $ticketId, ?int $customerId): array
+    {
         $articles = $this->get("ticket_articles/by_ticket/{$ticketId}", ['expand' => 'true']);
         $customer = $customerId !== null ? $this->customer($customerId) : null;
         $this->orders = [];
+        $contactedFirst = false;
 
         foreach ($this->articles($articles, $customerId, $customer['email'] ?? null) as $article) {
+            if ($article->kind === ArticleKind::Agent && ! $article->automatic && $article->type === 'email') {
+                $contactedFirst = true;
+            }
+
             if ($article->kind === ArticleKind::Customer && ! $article->automatic && ! in_array($article->type, ['phone', 'note'], true) && $article->hasText()) {
-                return $article;
+                return ['article' => $article, 'contacted_first' => $contactedFirst];
             }
         }
 
-        return null;
+        return ['article' => null, 'contacted_first' => false];
     }
 
     /**

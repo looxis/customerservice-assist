@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Jobs\Middleware\SkipInactiveLabelRun;
 use App\Labeling\LabelingSettings;
 use App\Labeling\LabelRunner;
 use App\Models\LabelRun;
@@ -20,7 +21,12 @@ class FetchLabelWindow implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries = 5;
+    /**
+     * Waiting for the rate limit releases a job and counts as an attempt, so only the exceptions are limited.
+     */
+    public int $tries = 0;
+
+    public int $maxExceptions = 5;
 
     public int $timeout = 120;
 
@@ -39,7 +45,7 @@ class FetchLabelWindow implements ShouldQueue
      */
     public function middleware(): array
     {
-        return [new RateLimited('labeling-zammad')];
+        return [new SkipInactiveLabelRun, new RateLimited('labeling-zammad')];
     }
 
     public function handle(ZammadClient $zammad, LabelingSettings $settings, LabelRunner $runner): void

@@ -9,7 +9,7 @@ use App\Models\LabelTicket;
 use Illuminate\Support\Collection;
 
 /**
- * The figures per category for the page "Beschriftung" and the rules of the release (PROJ-78).
+ * The figures per category for the page "Ticket-Klassifikation" and the rules of the release (PROJ-78).
  */
 class LabelStats
 {

@@ -3,9 +3,11 @@
 namespace App\Jobs;
 
 use App\Analysis\TicketContext;
+use App\Jobs\Middleware\SkipInactiveLabelRun;
 use App\Labeling\LabelingSettings;
 use App\Labeling\LabelRunner;
 use App\Labeling\LabelTagging;
+use App\Labeling\SenderFilter;
 use App\Models\LabelRun;
 use App\Models\LabelTicket;
 use App\Zammad\ZammadClient;
@@ -22,7 +24,12 @@ class CaptureLabelTicket implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries = 5;
+    /**
+     * Waiting for the rate limit releases a job and counts as an attempt, so only the exceptions are limited.
+     */
+    public int $tries = 0;
+
+    public int $maxExceptions = 5;
 
     public function __construct(public int $runId, public int $zammadId) {}
 
@@ -39,10 +46,10 @@ class CaptureLabelTicket implements ShouldQueue
      */
     public function middleware(): array
     {
-        return [new RateLimited('labeling-zammad')];
+        return [new SkipInactiveLabelRun, new RateLimited('labeling-zammad')];
     }
 
-    public function handle(ZammadClient $zammad, LabelingSettings $settings, LabelRunner $runner): void
+    public function handle(ZammadClient $zammad, LabelingSettings $settings, LabelRunner $runner, SenderFilter $senders): void
     {
         $run = LabelRun::query()->find($this->runId);
 
@@ -66,7 +73,7 @@ class CaptureLabelTicket implements ShouldQueue
             }
 
             $tags = $zammad->ticketTags($this->zammadId);
-            $article = $zammad->firstCustomerArticle($this->zammadId, $head->customerId);
+            ['article' => $article, 'contacted_first' => $contactedFirst] = $zammad->firstCustomerContact($this->zammadId, $head->customerId);
         } catch (ZammadException $exception) {
             if ($exception->problem === ZammadProblem::NotFound) {
                 $runner->count($run, false);
@@ -78,6 +85,27 @@ class CaptureLabelTicket implements ShouldQueue
         }
 
         $existing = LabelTagging::existing($tags);
+
+        $filteredBySender = $senders->matches($article?->from);
+
+        if ($existing === null && ($filteredBySender || $contactedFirst)) {
+            LabelTicket::query()->create([
+                'zammad_id' => $this->zammadId,
+                'number' => $head->number,
+                'zammad_created_at' => $head->createdAt,
+                'source' => 'pool',
+                'split' => 'training',
+                'state' => LabelTicket::EXCLUDED,
+                'problem' => $filteredBySender ? 'Entfernt (Absenderfilter)' : 'Entfernt (zuerst von uns kontaktiert)',
+                'decided_by' => $filteredBySender ? 'Absenderfilter' : 'Erstkontakt durch uns',
+                'last_activity_at' => now(),
+            ]);
+
+            $runner->count($run, true);
+
+            return;
+        }
+
         $test = $existing !== null ? $existing['test'] : abs(crc32('labeling-'.$this->zammadId)) % 100 < $settings->all()['test_share'];
 
         LabelTicket::query()->create([
@@ -86,6 +114,8 @@ class CaptureLabelTicket implements ShouldQueue
             'group_name' => $head->group,
             'article_id' => $article?->id,
             'text' => $article === null ? null : TicketContext::plainText($article),
+            'subject' => $head->title === '(ohne Betreff)' ? null : $head->title,
+            'sender' => $article?->from,
             'zammad_created_at' => $head->createdAt,
             'source' => $existing === null ? 'pool' : 'vorhanden',
             'split' => $test ? 'test' : 'training',

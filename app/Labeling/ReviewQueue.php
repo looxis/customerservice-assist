@@ -11,9 +11,10 @@ use Illuminate\Database\Eloquent\Builder;
 class ReviewQueue
 {
     public const array LABELS = [
+        'abweichung' => 'Abweichung von früherer Entscheidung',
         'zweifel' => 'Unklar / mehrere Anliegen',
         'konfidenz' => 'Niedrige Konfidenz',
-        'storno' => 'Vorschläge „Storno“',
+        'storno' => 'Vorschläge „Storno“ und „Adressänderung“',
         'storno-wort' => 'Wort „Storno“, nicht WISMO',
         'stichprobe' => 'Stichprobe',
         'test' => 'Testmenge',
@@ -37,6 +38,17 @@ class ReviewQueue
      */
     public function query(string $queue): Builder
     {
+        if ($queue === 'abweichung') {
+            // Decided tickets whose newest proposal differs and was not reviewed yet; the decision stays meanwhile.
+            return LabelTicket::query()
+                ->whereNotNull('decision')
+                ->where('state', 'classified')
+                ->whereNotNull('text')
+                ->whereHas('latestPrediction', fn ($query) => $query->where('queue', 'abweichung')->whereNotExists(fn ($reviews) => $reviews
+                    ->from('labeling_reviews')
+                    ->whereColumn('labeling_reviews.label_prediction_id', 'labeling_predictions.id')));
+        }
+
         $base = LabelTicket::query()->whereNull('decision')->where('state', 'classified')->whereNotNull('text');
 
         if ($queue === 'test') {

@@ -8,6 +8,7 @@ use App\Jobs\PushLabelTag;
 use App\Models\LabelRun;
 use App\Models\LabelTicket;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Starts and counts the runs of the ticket tagging (PROJ-78): retrieval, classification and writing the tags.
@@ -30,8 +31,9 @@ class LabelRunner
 
         match ($kind) {
             'fetch' => $this->startFetch($run),
-            'classify' => $this->startClassify($run, LabelTicket::query()->where('state', 'captured')->pluck('id')->all()),
-            'reclassify' => $this->startClassify($run, LabelTicket::query()->whereNull('decision')->whereNull('tag_value')->whereIn('state', ['captured', 'classified', 'failed'])->pluck('id')->all()),
+            'classify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->where('state', 'captured'), $options['limit'] ?? null)),
+            // Decided tickets too: a new proposal that differs from the decision goes to the queue "abweichung".
+            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->whereNull('tag_value')->whereIn('state', ['classified', 'failed']), $options['limit'] ?? null)),
             'tags' => $this->startTags($run, (bool) ($options['dry_run'] ?? true)),
         };
 
@@ -84,6 +86,19 @@ class LabelRunner
         }
 
         $this->finishIfDone($run->refresh());
+    }
+
+    /**
+     * The IDs with the tickets of the training set first: only they land in a review queue, so an interrupted run
+     * leaves something to review (the index on state and split would otherwise list the test set first).
+     *
+     * @param  Builder<LabelTicket>  $query
+     * @param  int|null  $limit  Takes only this many tickets, null for all
+     * @return list<int>
+     */
+    private function trainingFirst(Builder $query, ?int $limit = null): array
+    {
+        return $query->orderByRaw("split = 'test'")->orderBy('id')->when($limit !== null, fn ($query) => $query->limit($limit))->pluck('id')->all();
     }
 
     private function startTags(LabelRun $run, bool $dry): void

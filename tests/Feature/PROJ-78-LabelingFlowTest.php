@@ -1,12 +1,16 @@
 <?php
 
+use App\Jobs\ClassifyLabelTicket;
+use App\Jobs\Middleware\SkipInactiveLabelRun;
 use App\Labeling\ExampleSelector;
 use App\Labeling\LabelAgent;
 use App\Labeling\LabelCategory;
 use App\Labeling\LabelClassifier;
 use App\Labeling\LabelingSettings;
+use App\Labeling\LabelRunner;
 use App\Labeling\LabelStats;
 use App\Labeling\LabelTagging;
+use App\Labeling\ReviewQueue;
 use App\Models\LabelPrediction;
 use App\Models\LabelRelease;
 use App\Models\LabelReview;
@@ -16,6 +20,7 @@ use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     $this->withoutVite();
@@ -82,6 +87,8 @@ describe('retrieval', function () {
         expect(LabelCategory::Spam->tag())->toBe('spam')
             ->and(LabelCategory::Spam->tag(true))->toBe('test:spam')
             ->and(LabelCategory::Wismo->tag())->toBe('train:wismo')
+            ->and(LabelCategory::Adressaenderung->tag())->toBe('train:adressaenderung')
+            ->and(LabelCategory::Zahlung->tag(true))->toBe('test:zahlung')
             ->and(LabelTagging::existing(['vip', 'spam']))->toBe(['tag' => 'spam', 'category' => LabelCategory::Spam, 'test' => false])
             ->and(preg_match(LabelTagging::PATTERN, 'spam'))->toBe(1)
             ->and(preg_match(LabelTagging::PATTERN, 'spamfilter'))->toBe(0);
@@ -108,6 +115,64 @@ describe('retrieval', function () {
 
         $run = LabelRun::query()->sole();
         expect($run->state)->toBe('done')->and($run->total)->toBe(1)->and($run->done)->toBe(1);
+    });
+
+    it('captures subject and sender of the first customer message', function () {
+        lblZammad(head: ['title' => 'Produktanfrage des Amazon-Kunden Cristiano']);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch'])->assertRedirect();
+
+        $ticket = LabelTicket::query()->sole();
+        expect($ticket->subject)->toBe('Produktanfrage des Amazon-Kunden Cristiano')->and($ticket->sender)->not->toBeEmpty();
+        expect($ticket->classifierInput(1000))->toContain('Betreff: Produktanfrage des Amazon-Kunden Cristiano')->toContain('Absender: ')->toContain('Wo bleibt mein Paket');
+    });
+
+    it('skips tickets where we wrote first and the customer only answered', function () {
+        lblZammad(articles: [
+            zammadArticle(['id' => 1, 'sender' => 'Agent', 'from' => 'Kundenservice <info@example.com>', 'body' => '<p>Welches Motiv möchten Sie?</p>', 'created_at' => '2026-10-01T06:00:00.000Z']),
+            zammadArticle(['id' => 2, 'body' => '<p>Das zweite bitte.</p>']),
+        ]);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch'])->assertRedirect();
+
+        $ticket = LabelTicket::query()->sole();
+        expect($ticket->state)->toBe(LabelTicket::EXCLUDED)->and($ticket->text)->toBeNull();
+    });
+
+    it('removes captured tickets that answer a mail of ours with the outreach command', function () {
+        lblZammad(articles: [
+            zammadArticle(['id' => 1, 'sender' => 'Agent', 'from' => 'Kundenservice <info@example.com>', 'body' => '<p>Welches Motiv möchten Sie?</p>', 'created_at' => '2026-10-01T06:00:00.000Z']),
+            zammadArticle(['id' => 2, 'body' => '<p>Das zweite bitte.</p>']),
+        ]);
+        $outreach = lblMake(['zammad_id' => 51234]);
+
+        $this->artisan('labeling:remove-outreach', ['--pause' => 0])->assertSuccessful();
+
+        expect($outreach->fresh()->state)->toBe(LabelTicket::EXCLUDED)->and($outreach->fresh()->text)->toBeNull();
+    });
+
+    it('skips mails of filtered senders and keeps only a marker', function () {
+        lblZammad(articles: [zammadArticle(['id' => 1, 'from' => 'Amazon <non-rispondere@amazon.it>', 'body' => '<p>Azione richiesta per l\'ordine</p>'])]);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch'])->assertRedirect();
+
+        $ticket = LabelTicket::query()->sole();
+        expect($ticket->state)->toBe(LabelTicket::EXCLUDED)->and($ticket->text)->toBeNull()->and($ticket->sender)->toBeNull();
+    });
+
+    it('removes captured tickets of a new sender when the filter is saved', function () {
+        $amazon = LabelTicket::query()->create(['zammad_id' => 1, 'number' => '1', 'text' => 'Hinweis', 'sender' => 'Amazon <NoReply@amazon.com>', 'state' => 'classified', 'source' => 'pool', 'split' => 'training']);
+        $customer = LabelTicket::query()->create(['zammad_id' => 2, 'number' => '2', 'text' => 'Wo ist mein Paket?', 'sender' => 'Erika <erika@example.org>', 'state' => 'classified', 'source' => 'pool', 'split' => 'training']);
+        $tagged = LabelTicket::query()->create(['zammad_id' => 3, 'number' => '3', 'text' => 'Hinweis', 'sender' => 'noreply@amazon.com', 'state' => 'classified', 'source' => 'vorhanden', 'split' => 'training']);
+
+        lblAdmin()->patch('/beschriftung/einstellungen', [
+            'target' => 100, 'min_cases' => 50, 'min_rate' => 95, 'sample_share' => 15, 'confidence' => 0.85, 'examples' => 8,
+            'excluded_senders' => "noreply@amazon.com\n@example.invalid",
+        ])->assertSessionHas('success');
+
+        expect($amazon->refresh()->state)->toBe(LabelTicket::EXCLUDED)->and($amazon->text)->toBeNull()
+            ->and($customer->refresh()->state)->toBe('classified')
+            ->and($tagged->refresh()->state)->toBe('classified');
     });
 
     it('does not capture a ticket twice', function () {
@@ -175,6 +240,40 @@ describe('retrieval', function () {
 });
 
 describe('classification', function () {
+    it('drops the jobs of a cancelled run before they wait for the rate limit', function () {
+        $run = LabelRun::query()->create(['kind' => 'classify', 'state' => 'cancelled', 'admin' => 'Etienne']);
+        $ran = false;
+
+        (new SkipInactiveLabelRun)->handle(new ClassifyLabelTicket($run->id, 1), function () use (&$ran): void {
+            $ran = true;
+        });
+
+        expect($ran)->toBeFalse();
+    });
+
+    it('classifies only as many tickets as the limit says', function () {
+        Queue::fake();
+        lblMake(['state' => 'captured', 'split' => 'test']);
+        $first = lblMake(['state' => 'captured', 'split' => 'training']);
+        lblMake(['state' => 'captured', 'split' => 'training']);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'classify', 'limit' => '1'])->assertSessionHasNoErrors();
+
+        $order = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
+        expect($order)->toBe([$first->id])->and(LabelRun::query()->sole()->total)->toBe(1);
+    });
+
+    it('classifies the training set before the test set', function () {
+        Queue::fake();
+        $test = lblMake(['state' => 'captured', 'split' => 'test']);
+        $training = lblMake(['state' => 'captured', 'split' => 'training']);
+
+        app(LabelRunner::class)->start('classify', 'Etienne');
+
+        $order = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
+        expect($order)->toBe([$training->id, $test->id]);
+    });
+
     it('files the proposal with model and prompt version', function () {
         LabelAgent::fake([lblAnswer()]);
         $ticket = lblMake(['state' => 'captured']);
@@ -182,7 +281,7 @@ describe('classification', function () {
 
         $prediction = app(LabelClassifier::class)->classify($ticket);
 
-        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-2')->and($prediction->model)->not->toBe('')
+        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-4')->and($prediction->model)->not->toBe('')
             ->and($ticket->refresh()->state)->toBe('classified');
     });
 
@@ -197,7 +296,9 @@ describe('classification', function () {
         'several concerns' => [['multiple_concerns' => true], 'Hallo', 'training', 'zweifel'],
         'low confidence' => [['confidence' => 0.5], 'Hallo', 'training', 'konfidenz'],
         'no category' => [['category' => 'keine'], 'Hallo', 'training', 'konfidenz'],
-        'storno' => [['category' => 'storno'], 'Bitte Adresse ändern', 'training', 'storno'],
+        'storno' => [['category' => 'storno'], 'Bitte stornieren', 'training', 'storno'],
+        'address change' => [['category' => 'adressaenderung'], 'Bitte Adresse ändern', 'training', 'storno'],
+        'payment' => [['category' => 'zahlung'], 'Die Rechnung fehlt', 'training', null],
         'storno word, not wismo' => [['category' => 'reklamation'], 'Ich möchte Storno', 'training', 'storno-wort'],
         'storno word, wismo' => [['category' => 'wismo', 'confidence' => 0.99], 'Storno wegen Lieferung', 'training', null],
         'clear' => [[], 'Wo bleibt mein Paket?', 'training', null],
@@ -217,6 +318,46 @@ describe('classification', function () {
         $ticket = lblMake(['state' => 'captured', 'decision' => 'wismo', 'decision_origin' => 'vorhanden']);
 
         expect(app(LabelClassifier::class)->classify($ticket)->queue)->toBeNull();
+    });
+
+    it('puts a decided ticket into the queue abweichung when the new proposal differs', function (string $split, string $decision, array $answer) {
+        LabelAgent::fake([lblAnswer($answer)]);
+        $ticket = lblMake(['split' => $split, 'decision' => $decision, 'decision_origin' => $split === 'test' ? 'test' : 'zweifel']);
+
+        expect(app(LabelClassifier::class)->classify($ticket)->queue)->toBe('abweichung')->and($ticket->refresh()->decision)->toBe($decision);
+    })->with([
+        'storno now address change' => ['training', 'storno', ['category' => 'adressaenderung']],
+        'none now payment' => ['training', 'keine', ['category' => 'zahlung']],
+        'payment now none' => ['training', 'zahlung', ['category' => 'keine']],
+        'test set' => ['test', 'keine', ['category' => 'zahlung']],
+    ]);
+
+    it('leaves a decided ticket out of every queue when the new proposal agrees', function () {
+        LabelAgent::fake([lblAnswer(['category' => 'keine', 'unclear' => true])]);
+        $ticket = lblMake(['decision' => 'keine', 'decision_origin' => 'zweifel']);
+
+        expect(app(LabelClassifier::class)->classify($ticket)->queue)->toBeNull();
+    });
+
+    it('never puts a reference into the queue abweichung', function () {
+        LabelAgent::fake([lblAnswer(['category' => 'reklamation'])]);
+        $ticket = lblMake(['decision' => 'wismo', 'decision_origin' => 'vorhanden']);
+
+        expect(app(LabelClassifier::class)->classify($ticket)->queue)->toBeNull();
+    });
+
+    it('reclassifies classified tickets with and without decision, but neither captured nor tagged ones', function () {
+        Queue::fake();
+        $open = lblMake();
+        $decided = lblMake(['decision' => 'storno', 'decision_origin' => 'zweifel']);
+        $failed = lblMake(['state' => 'failed']);
+        lblMake(['state' => 'captured']);
+        lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel', 'tag_value' => 'train:wismo']);
+
+        app(LabelRunner::class)->start('reclassify', 'Etienne');
+
+        $ids = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
+        expect($ids)->toBe([$open->id, $decided->id, $failed->id]);
     });
 
     it('takes confirmed tickets as examples but never the test set or the references', function () {
@@ -285,6 +426,18 @@ describe('review', function () {
         lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'reklamation']);
 
         expect(LabelReview::query()->count())->toBe(2)->and($ticket->refresh()->decision)->toBe('reklamation')->and($ticket->decision_origin)->toBe('korrektur');
+    });
+
+    it('takes a deviation out of its queue once an admin decided, also when the decision stays', function () {
+        $ticket = lblMake(['decision' => 'storno', 'decision_origin' => 'zweifel'], ['category' => 'adressaenderung', 'queue' => 'abweichung']);
+        $queue = app(ReviewQueue::class);
+
+        expect($queue->query('abweichung')->pluck('id')->all())->toBe([$ticket->id]);
+
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'storno', 'queue' => 'abweichung']);
+
+        expect($queue->query('abweichung')->count())->toBe(0)
+            ->and($ticket->refresh()->decision)->toBe('storno')->and($ticket->decision_origin)->toBe('korrektur');
     });
 
     it('refuses an unknown category', function () {
@@ -377,6 +530,17 @@ describe('writing tags', function () {
 
         Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), 'tags/add') && $request['item'] === 'test:reklamation');
         expect($ticket->refresh()->tag_value)->toBe('test:reklamation');
+    });
+
+    it('holds back the tag of a ticket while its deviation is open', function () {
+        lblZammad();
+        $ticket = lblMake(['decision' => 'storno', 'decision_origin' => 'zweifel', 'zammad_id' => 51234], ['category' => 'adressaenderung', 'queue' => 'abweichung']);
+
+        expect(app(LabelTagging::class)->pending())->toBeEmpty();
+
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'adressaenderung']);
+
+        expect(app(LabelTagging::class)->pending()->pluck('id')->all())->toBe([$ticket->id]);
     });
 
     it('writes no tag for the decision none', function () {

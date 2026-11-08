@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Analysis\AnalysisException;
 use App\Analysis\AnalysisProblem;
+use App\Jobs\Middleware\SkipInactiveLabelRun;
 use App\Labeling\LabelClassifier;
 use App\Labeling\LabelRunner;
 use App\Models\LabelRun;
@@ -19,7 +20,12 @@ class ClassifyLabelTicket implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries = 4;
+    /**
+     * Waiting for the rate limit releases a job and counts as an attempt, so only the exceptions are limited.
+     */
+    public int $tries = 0;
+
+    public int $maxExceptions = 4;
 
     public function __construct(public int $runId, public int $labelTicketId) {}
 
@@ -36,7 +42,7 @@ class ClassifyLabelTicket implements ShouldQueue
      */
     public function middleware(): array
     {
-        return [new RateLimited('labeling-model')];
+        return [new SkipInactiveLabelRun, new RateLimited('labeling-model')];
     }
 
     public function handle(LabelClassifier $classifier, LabelRunner $runner): void

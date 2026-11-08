@@ -1,4 +1,4 @@
-<x-layouts.app title="Beschriftung" width="6xl">
+<x-layouts.app title="Ticket-Klassifikation" width="6xl">
     @if (collect($runs)->contains('active', true))
         <div x-data x-init="setInterval(() => { if (! document.activeElement?.closest('input, select, textarea')) { location.reload() } }, 10000)"></div>
     @endif
@@ -29,7 +29,7 @@
         </section>
 
         @if ($references['total'] > 0)
-            <p class="text-sm text-slate-600">Referenz: {{ $references['hits'] }} von {{ $references['total'] }} Tickets, die schon vor der Beschriftung ein <span class="font-mono">train:</span>-Tag hatten, hat das Modell richtig eingeordnet.</p>
+            <p class="text-sm text-slate-600">Referenz: {{ $references['hits'] }} von {{ $references['total'] }} Tickets, die schon vor der Klassifikation ein <span class="font-mono">train:</span>-Tag hatten, hat das Modell richtig eingeordnet.</p>
         @endif
     @endif
 
@@ -42,12 +42,16 @@
                 <x-select name="kind" label="Lauf" x-model="kind">
                     <option value="fetch">Abruf aller Tickets</option>
                     <option value="classify">Klassifikation</option>
-                    <option value="reclassify">Neu klassifizieren (Tickets ohne Tag)</option>
+                    <option value="reclassify">Neu klassifizieren (alle klassifizierten Tickets ohne Tag)</option>
                     <option value="tags">Tags schreiben</option>
                 </x-select>
 
+                <x-input name="limit" type="number" label="Höchstens so viele Tickets" hint="Leer heißt: alle offenen. Trainingstickets kommen zuerst." min="1" x-show="kind === 'classify' || kind === 'reclassify'" x-cloak x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+
                 <x-input name="excluded_groups" label="Gruppen vom Pool ausnehmen" hint="Kommagetrennt, z. B. Spam. Leer heißt: alle Gruppen." :value="$settings['excluded_groups']" x-show="kind === 'fetch'" />
             </div>
+
+            <p x-show="kind === 'reclassify'" x-cloak class="text-sm text-slate-600">Auch Tickets mit Entscheidung werden neu eingeordnet. Die Entscheidung bleibt stehen; weicht der neue Vorschlag ab, erscheint das Ticket unter „Prüfen“ in „Abweichung von früherer Entscheidung“.</p>
 
             <label x-show="kind === 'tags'" x-cloak class="flex items-center gap-2 text-sm text-slate-900">
                 <input type="checkbox" name="dry_run" value="1" x-model="dry" x-bind:disabled="kind !== 'tags'" class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
@@ -111,6 +115,9 @@
             <x-input name="confidence" type="number" step="0.01" label="Konfidenz-Schwelle" hint="Darunter gilt ein Vorschlag nicht als eindeutig" :value="$settings['confidence']" min="0" max="1" />
             <x-input name="examples" type="number" label="Beispiele je Kategorie im Prompt" :value="$settings['examples']" min="0" max="20" />
             <input type="hidden" name="excluded_groups" value="{{ $settings['excluded_groups'] }}">
+            <div class="sm:col-span-2">
+                <x-textarea name="excluded_senders" label="Absenderfilter" hint="Mails von diesen Absendern werden nicht abgerufen und bereits erfasste beim Speichern entfernt. Volle Adressen oder Teile wie @amazon.it, durch Komma oder Zeilenumbruch getrennt." :value="$settings['excluded_senders']" rows="4" />
+            </div>
             <div class="sm:col-span-2">
                 <x-button type="submit" variant="secondary">Speichern</x-button>
             </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ExcludeLabelTicketRequest;
 use App\Http\Requests\StartLabelRunRequest;
 use App\Http\Requests\StoreLabelDecisionRequest;
 use App\Http\Requests\UpdateLabelSettingsRequest;
@@ -9,12 +10,16 @@ use App\Labeling\LabelCategory;
 use App\Labeling\LabelingSettings;
 use App\Labeling\LabelRunner;
 use App\Labeling\LabelStats;
+use App\Labeling\LabelTagWriter;
 use App\Labeling\ReviewQueue;
 use App\Labeling\ReviewRecorder;
+use App\Labeling\SenderFilter;
 use App\Models\LabelRun;
 use App\Models\LabelTicket;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Zammad\ReplyException;
+use App\Zammad\ReplyProblem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -31,7 +36,7 @@ class LabelingController extends Controller
         return view('labeling.index', [
             'categories' => $stats->categories(),
             'references' => $stats->references(),
-            'captured' => LabelTicket::query()->count(),
+            'captured' => LabelTicket::query()->where('state', '!=', LabelTicket::EXCLUDED)->count(),
             'settings' => $settings->all(),
             'runs' => LabelRun::query()->latest('id')->limit(10)->get()->map(fn (LabelRun $run): array => [
                 'id' => $run->id,
@@ -69,6 +74,8 @@ class LabelingController extends Controller
                 'created' => $ticket->zammad_created_at?->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr',
                 'group' => $ticket->group_name ?? '–',
                 'test' => $ticket->isTest(),
+                'subject' => $ticket->subject,
+                'sender' => $ticket->sender,
                 'text' => (string) $ticket->text,
                 'evidence' => (string) $prediction?->evidence,
                 'suggestion' => $prediction?->categoryEnum(),
@@ -76,6 +83,7 @@ class LabelingController extends Controller
                 'unclear' => (bool) $prediction?->unclear,
                 'multiple' => (bool) $prediction?->multiple_concerns,
                 'reason' => (string) $prediction?->reason,
+                'previous' => $ticket->decision === null ? null : ($ticket->decidedCategory()?->label() ?? 'Keine Kategorie'),
                 'remaining' => $queues[$queue]['count'],
             ],
             'categories' => LabelCategory::cases(),
@@ -92,6 +100,7 @@ class LabelingController extends Controller
         ];
 
         $rows = LabelTicket::query()
+            ->where('state', '!=', LabelTicket::EXCLUDED)
             ->with('latestPrediction')
             ->when(LabelCategory::tryFrom($filters['kategorie']) !== null, fn ($query) => $query->whereHas('latestPrediction', fn ($prediction) => $prediction->where('category', $filters['kategorie'])))
             ->when(in_array($filters['zuordnung'], ['training', 'test'], true), fn ($query) => $query->where('split', $filters['zuordnung']))
@@ -126,7 +135,10 @@ class LabelingController extends Controller
             $settings->save(['excluded_groups' => trim((string) $request->input('excluded_groups'))]);
         }
 
-        $runner->start((string) $request->input('kind'), (string) $staff->current($request), ['dry_run' => $request->input('kind') === 'tags' && $request->boolean('dry_run')]);
+        $runner->start((string) $request->input('kind'), (string) $staff->current($request), [
+            'dry_run' => $request->input('kind') === 'tags' && $request->boolean('dry_run'),
+            ...(in_array($request->input('kind'), ['classify', 'reclassify'], true) && $request->filled('limit') ? ['limit' => $request->integer('limit')] : []),
+        ]);
 
         return back()->with('success', 'Der Lauf wurde gestartet.');
     }
@@ -156,11 +168,42 @@ class LabelingController extends Controller
         return redirect()->route('labeling.review', array_filter(['warteschlange' => $request->validated('queue')]));
     }
 
-    public function updateSettings(UpdateLabelSettingsRequest $request, LabelingSettings $settings): RedirectResponse
+    /**
+     * Takes a ticket out of the ticket tagging for good (test tickets, wrong tickets): its texts and predictions are
+     * deleted, a bare marker stays so that later retrievals skip it. With "delete_in_zammad" the ticket is deleted in
+     * Zammad first and kept untouched here if that fails.
+     */
+    public function exclude(ExcludeLabelTicketRequest $request, StaffDirectory $staff, LabelTagWriter $writer, LabelTicket $ticket): RedirectResponse
+    {
+        $name = (string) $staff->current($request);
+
+        if ($request->boolean('delete_in_zammad')) {
+            $token = $staff->zammadToken($name);
+
+            if ($token === null) {
+                return back()->with('error', ReplyProblem::NoToken->message($name));
+            }
+
+            try {
+                $writer->deleteTicket($token, $ticket->zammad_id);
+            } catch (ReplyException $exception) {
+                return back()->with('error', 'Das Ticket wurde nicht gelöscht und bleibt unverändert hier: '.($exception->problem === ReplyProblem::Forbidden ? "Zammad erlaubt {$name} das Löschen nicht (dafür braucht das Token Admin-Rechte für Tickets)." : $exception->problem->message($name)));
+            }
+        }
+
+        $ticket->exclude($name);
+
+        return redirect()->route('labeling.review', array_filter(['warteschlange' => $request->validated('queue')]))
+            ->with('success', "Ticket#{$ticket->number} ist entfernt und wird nicht mehr abgerufen".($request->boolean('delete_in_zammad') ? ' und wurde in Zammad gelöscht.' : '.'));
+    }
+
+    public function updateSettings(UpdateLabelSettingsRequest $request, LabelingSettings $settings, SenderFilter $senders, StaffDirectory $staff): RedirectResponse
     {
         $settings->save($request->validated());
 
-        return back()->with('success', 'Die Einstellungen sind gespeichert.');
+        $removed = $request->has('excluded_senders') ? $senders->removeCaptured('Absenderfilter') : 0;
+
+        return back()->with('success', 'Die Einstellungen sind gespeichert.'.($removed > 0 ? " {$removed} Tickets vom Absenderfilter sind entfernt worden." : ''));
     }
 
     private function counter(LabelRun $run): string
