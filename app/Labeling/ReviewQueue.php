@@ -18,6 +18,7 @@ class ReviewQueue
         'storno-wort' => 'Wort „Storno“, nicht WISMO',
         'stichprobe' => 'Stichprobe',
         'test' => 'Testmenge',
+        'unsicher' => 'Unsicher markiert',
     ];
 
     /**
@@ -30,7 +31,8 @@ class ReviewQueue
 
     public function next(string $queue): ?LabelTicket
     {
-        return $this->query($queue)->with('latestPrediction')->orderBy('id')->first();
+        // Marked unsure again, a ticket moves to the end instead of coming right back.
+        return $this->query($queue)->with('latestPrediction')->when($queue === 'unsicher', fn ($query) => $query->orderBy('decided_at'))->orderBy('id')->first();
     }
 
     /**
@@ -47,6 +49,10 @@ class ReviewQueue
                 ->whereHas('latestPrediction', fn ($query) => $query->where('queue', 'abweichung')->whereNotExists(fn ($reviews) => $reviews
                     ->from('labeling_reviews')
                     ->whereColumn('labeling_reviews.label_prediction_id', 'labeling_predictions.id')));
+        }
+
+        if ($queue === 'unsicher') {
+            return LabelTicket::query()->where('decision', LabelTicket::UNSURE)->where('state', 'classified')->whereNotNull('text');
         }
 
         $base = LabelTicket::query()->whereNull('decision')->where('state', 'classified')->whereNotNull('text');

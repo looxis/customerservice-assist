@@ -18,6 +18,7 @@ enum LabelCategory: string
     case TechnischerSupport = 'technischer-support';
     case ProduktFrage = 'produkt-frage';
     case Spam = 'spam';
+    case Sonstiges = 'sonstiges';
 
     public function label(): string
     {
@@ -32,6 +33,7 @@ enum LabelCategory: string
             self::TechnischerSupport => 'Technischer Support',
             self::ProduktFrage => 'Produktfrage',
             self::Spam => 'Spam',
+            self::Sonstiges => 'Sonstiges',
         };
     }
 
@@ -51,19 +53,20 @@ enum LabelCategory: string
             self::TechnischerSupport => 'Online-Shop: Login, Konfigurator, Upload',
             self::ProduktFrage => 'Funktion oder Eigenschaft eines Produkts',
             self::Spam => 'Unerwünschte Werbung, Phishing, Massenmails',
+            self::Sonstiges => 'Passt in keine andere Kategorie (Bewerbung, Abwesenheitsnotiz, reiner Dank)',
         };
     }
 
     /**
-     * The key that picks the category in the review: its position for the first nine, "s" for spam.
+     * The key that picks the category in the review: its position for the first nine, "s" for spam, "0" for the rest.
      */
     public function key(): string
     {
-        if ($this === self::Spam) {
-            return 's';
-        }
-
-        return (string) (array_search($this, self::cases(), true) + 1);
+        return match ($this) {
+            self::Spam => 's',
+            self::Sonstiges => '0',
+            default => (string) (array_search($this, self::cases(), true) + 1),
+        };
     }
 
     public function tag(bool $test = false): string

@@ -16,7 +16,9 @@ class LabelStats
     public function __construct(private readonly LabelingSettings $settings) {}
 
     /**
-     * @return Collection<int, array{category: LabelCategory, confirmed: int, corrected: int, automatic: int, open: int, sampled: int, hits: int, released: bool, locked: bool}>
+     * Tickets marked unsure count for the category the model proposed.
+     *
+     * @return Collection<int, array{category: LabelCategory, confirmed: int, corrected: int, automatic: int, open: int, unsure: int, sampled: int, hits: int, released: bool, locked: bool}>
      */
     public function categories(): Collection
     {
@@ -27,9 +29,10 @@ class LabelStats
             ->get(['id', 'decision', 'decision_origin'])
             ->groupBy('decision');
 
+        $unsure = $decided->get(LabelTicket::UNSURE, collect())->countBy(fn (LabelTicket $ticket): string => (string) $ticket->latestPrediction?->category);
         $releases = LabelRelease::query()->get()->keyBy('category');
 
-        return collect(LabelCategory::cases())->map(function (LabelCategory $category) use ($decided, $releases): array {
+        return collect(LabelCategory::cases())->map(function (LabelCategory $category) use ($decided, $unsure, $releases): array {
             $tickets = $decided->get($category->value, collect());
             $human = $tickets->where('decision_origin', '!=', 'automatisch');
             $release = $releases->get($category->value);
@@ -41,6 +44,7 @@ class LabelStats
                 'corrected' => $human->filter(fn (LabelTicket $ticket): bool => $ticket->latestPrediction?->category !== $category->value)->count(),
                 'automatic' => $tickets->where('decision_origin', 'automatisch')->count(),
                 'open' => LabelTicket::query()->whereNull('decision')->where('state', 'classified')->whereHas('latestPrediction', fn ($query) => $query->where('category', $category->value))->count(),
+                'unsure' => $unsure->get($category->value, 0),
                 'sampled' => $sampled,
                 'hits' => $hits,
                 'released' => (bool) $release?->released,
@@ -60,6 +64,7 @@ class LabelStats
 
         $query = LabelReview::query()
             ->where('origin', 'stichprobe')
+            ->whereNotNull('hit')
             ->whereHas('prediction', fn ($prediction) => $prediction->where('category', $category->value))
             ->when($release?->locked_at !== null, fn ($query) => $query->where('created_at', '>', $release->locked_at));
 

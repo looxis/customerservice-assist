@@ -57,7 +57,7 @@
                     <div class="flex flex-wrap items-center gap-2 text-sm">
                         <span class="text-slate-600">Bisherige Entscheidung:</span>
                         <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
-                        <span class="text-slate-600">Der neue Vorschlag weicht davon ab. Wähle die Kategorie, die gilt.</span>
+                        <span class="text-slate-600">{{ $queue === 'unsicher' ? 'Entscheide jetzt oder lass es bei „Unsicher“.' : 'Der neue Vorschlag weicht davon ab. Wähle die Kategorie, die gilt.' }}</span>
                     </div>
                 @endif
 
@@ -67,7 +67,7 @@
                     <div class="space-y-2 rounded-md bg-slate-50 p-4 text-sm ring-1 ring-inset ring-slate-200">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="text-slate-600">Vorschlag:</span>
-                            <x-badge tone="info">{{ $ticket['suggestion']?->label() ?? 'Keine Kategorie' }}</x-badge>
+                            <x-badge tone="info">{{ $ticket['suggestion']?->label() ?? 'Kein Vorschlag' }}</x-badge>
                             <span class="text-slate-600">Konfidenz {{ (int) round($ticket['confidence'] * 100) }} %</span>
                             @if ($ticket['unclear'])<x-badge compact tone="warning">Unklar</x-badge>@endif
                             @if ($ticket['multiple'])<x-badge compact tone="warning">Mehrere Anliegen</x-badge>@endif
@@ -79,9 +79,9 @@
                 <fieldset class="space-y-3" x-bind:class="busy && 'pointer-events-none opacity-60'" x-bind:aria-busy="busy">
                     <legend class="text-sm font-medium text-slate-900">Entscheidung</legend>
 
-                    @unless ($ticket['test'])
-                        <x-button type="submit" name="category" :value="$ticket['suggestion']?->value ?? 'keine'" data-key="Enter">Bestätigen <span class="font-normal opacity-80">(Enter)</span></x-button>
-                    @endunless
+                    @if (! $ticket['test'] && $ticket['suggestion'])
+                        <x-button type="submit" name="category" :value="$ticket['suggestion']->value" data-key="Enter">Bestätigen <span class="font-normal opacity-80">(Enter)</span></x-button>
+                    @endif
 
                     <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         @foreach ($categories as $category)
@@ -90,10 +90,14 @@
                                 {{ $category->label() }}
                             </x-button>
                         @endforeach
-                        <x-button type="submit" variant="secondary" name="category" value="keine" data-key="0" class="justify-start">
-                            <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">0</span>
-                            Keine Kategorie
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-3">
+                        <x-button type="submit" variant="secondary" name="category" value="{{ \App\Models\LabelTicket::UNSURE }}" data-key="u" class="justify-start">
+                            <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">u</span>
+                            Unsicher, nicht verwenden
                         </x-button>
+                        <span class="text-sm text-slate-600">Kein Tag, kein Beispiel, zählt nicht in die Trefferquote. Später unter „Unsicher markiert“ wieder aufrufbar.</span>
                     </div>
                     <p x-show="busy" x-cloak role="status" class="text-sm text-slate-600">Wird gespeichert …</p>
                 </fieldset>

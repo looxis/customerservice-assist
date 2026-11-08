@@ -281,7 +281,7 @@ describe('classification', function () {
 
         $prediction = app(LabelClassifier::class)->classify($ticket);
 
-        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-4')->and($prediction->model)->not->toBe('')
+        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-5')->and($prediction->model)->not->toBe('')
             ->and($ticket->refresh()->state)->toBe('classified');
     });
 
@@ -295,7 +295,8 @@ describe('classification', function () {
         'unclear' => [['unclear' => true], 'Hallo', 'training', 'zweifel'],
         'several concerns' => [['multiple_concerns' => true], 'Hallo', 'training', 'zweifel'],
         'low confidence' => [['confidence' => 0.5], 'Hallo', 'training', 'konfidenz'],
-        'no category' => [['category' => 'keine'], 'Hallo', 'training', 'konfidenz'],
+        'unknown category' => [['category' => 'keine'], 'Hallo', 'training', 'konfidenz'],
+        'other, clear' => [['category' => 'sonstiges'], 'Danke für alles!', 'training', null],
         'storno' => [['category' => 'storno'], 'Bitte stornieren', 'training', 'storno'],
         'address change' => [['category' => 'adressaenderung'], 'Bitte Adresse ändern', 'training', 'storno'],
         'payment' => [['category' => 'zahlung'], 'Die Rechnung fehlt', 'training', null],
@@ -327,14 +328,14 @@ describe('classification', function () {
         expect(app(LabelClassifier::class)->classify($ticket)->queue)->toBe('abweichung')->and($ticket->refresh()->decision)->toBe($decision);
     })->with([
         'storno now address change' => ['training', 'storno', ['category' => 'adressaenderung']],
-        'none now payment' => ['training', 'keine', ['category' => 'zahlung']],
-        'payment now none' => ['training', 'zahlung', ['category' => 'keine']],
-        'test set' => ['test', 'keine', ['category' => 'zahlung']],
+        'other now payment' => ['training', 'sonstiges', ['category' => 'zahlung']],
+        'payment now other' => ['training', 'zahlung', ['category' => 'sonstiges']],
+        'test set' => ['test', 'sonstiges', ['category' => 'zahlung']],
     ]);
 
     it('leaves a decided ticket out of every queue when the new proposal agrees', function () {
-        LabelAgent::fake([lblAnswer(['category' => 'keine', 'unclear' => true])]);
-        $ticket = lblMake(['decision' => 'keine', 'decision_origin' => 'zweifel']);
+        LabelAgent::fake([lblAnswer(['category' => 'sonstiges', 'unclear' => true])]);
+        $ticket = lblMake(['decision' => 'sonstiges', 'decision_origin' => 'zweifel']);
 
         expect(app(LabelClassifier::class)->classify($ticket)->queue)->toBeNull();
     });
@@ -410,9 +411,9 @@ describe('classification', function () {
         expect($examples['ids'])->toBe([$example->id])->and($examples['text'])->toContain('Beispiel Konfigurator kaputt')->not->toContain('Testfall geheim')->not->toContain('Referenz alt');
     });
 
-    it('takes no examples of storno and none decided before their meaning changed', function () {
+    it('takes no examples of storno and sonstiges decided before their meaning changed', function () {
         $this->travelTo('2026-11-09 08:00:00');
-        lblMake(['text' => 'Alte Mahnung', 'decision' => 'keine', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
+        lblMake(['text' => 'Alte Mahnung', 'decision' => 'sonstiges', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
         lblMake(['text' => 'Alte Adresse ändern', 'decision' => 'storno', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
         lblMake(['text' => 'Alter Lieferstatus', 'decision' => 'wismo', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
         lblMake(['text' => 'Neu geprüft Name falsch', 'decision' => 'storno', 'decision_origin' => 'korrektur', 'decided_at' => now()]);
@@ -464,9 +465,9 @@ describe('review', function () {
     it('records the decision for a ticket of the test set as test', function () {
         $ticket = lblMake(['split' => 'test']);
 
-        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'keine']);
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'sonstiges']);
 
-        expect($ticket->refresh()->decision)->toBe('keine')->and($ticket->decision_origin)->toBe('test')->and($ticket->desiredTag())->toBeNull();
+        expect($ticket->refresh()->decision)->toBe('sonstiges')->and($ticket->decision_origin)->toBe('test')->and($ticket->desiredTag())->toBe('test:sonstiges');
     });
 
     it('keeps the history when an admin corrects a decision', function () {
@@ -495,6 +496,99 @@ describe('review', function () {
 
         lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'werbung'])->assertSessionHasErrors('category');
         expect(LabelReview::query()->count())->toBe(0);
+    });
+});
+
+describe('unsure', function () {
+    it('takes a sample marked unsure out of its queue without tag, hit or example', function () {
+        $ticket = lblMake(['text' => 'Unklarer Fall mit Paket'], ['queue' => 'stichprobe']);
+        $queue = app(ReviewQueue::class);
+
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'unsicher', 'queue' => 'stichprobe'])->assertRedirect(route('labeling.review', ['warteschlange' => 'stichprobe']));
+
+        expect(LabelReview::query()->sole())->origin->toBe('stichprobe')->hit->toBeNull()->reviewer->toBe('Etienne')
+            ->and($ticket->refresh())->decision->toBe('unsicher')->decided_by->toBe('Etienne')->decided_at->not->toBeNull()
+            ->and($ticket->desiredTag())->toBeNull()
+            ->and($queue->query('stichprobe')->count())->toBe(0)
+            ->and($queue->query('unsicher')->pluck('id')->all())->toBe([$ticket->id])
+            ->and(app(LabelStats::class)->sample(LabelCategory::Wismo))->toBe([0, 0])
+            ->and(app(ExampleSelector::class)->forPrompt(8)['text'])->not->toContain('Unklarer Fall');
+    });
+
+    it('counts tickets marked unsure for the category the model proposed', function () {
+        lblMake(['decision' => 'unsicher', 'decision_origin' => 'zweifel'], ['category' => 'storno']);
+        lblMake(['decision' => 'unsicher', 'decision_origin' => 'test', 'split' => 'test'], ['category' => 'storno']);
+        lblMake(['decision' => 'unsicher', 'decision_origin' => 'zweifel']);
+
+        $figures = app(LabelStats::class)->categories()->keyBy(fn (array $row): string => $row['category']->value);
+
+        expect($figures['storno']['unsure'])->toBe(2)->and($figures['wismo']['unsure'])->toBe(1)->and($figures['storno']['corrected'])->toBe(0);
+        lblAdmin()->get('/beschriftung')->assertSeeText('Unsicher');
+    });
+
+    it('removes the tag of a ticket marked unsure afterwards', function () {
+        lblZammad(['train:wismo']);
+        $ticket = lblMake(['decision' => 'unsicher', 'decision_origin' => 'korrektur', 'tag_value' => 'train:wismo', 'zammad_id' => 51234]);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'tags']);
+
+        Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), 'tags/remove') && $request['item'] === 'train:wismo');
+        Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), 'tags/add'));
+        expect($ticket->refresh()->tag_value)->toBeNull();
+    });
+
+    it('writes no tag for a ticket marked unsure, neither in training nor in the test set', function () {
+        lblZammad();
+        lblMake(['decision' => 'unsicher', 'decision_origin' => 'zweifel', 'zammad_id' => 51234]);
+        lblMake(['decision' => 'unsicher', 'decision_origin' => 'test', 'split' => 'test', 'zammad_id' => 51235]);
+
+        expect(app(LabelTagging::class)->pending())->toBeEmpty();
+    });
+
+    it('neither reclassifies a ticket marked unsure nor brings it back as a deviation', function () {
+        Queue::fake();
+        $unsure = lblMake(['decision' => 'unsicher', 'decision_origin' => 'zweifel']);
+
+        app(LabelRunner::class)->start('reclassify', 'Etienne');
+
+        expect(Queue::pushed(ClassifyLabelTicket::class))->toBeEmpty();
+
+        LabelAgent::fake([lblAnswer(['category' => 'reklamation'])]);
+        expect(app(LabelClassifier::class)->classify($unsure)->queue)->toBeNull();
+    });
+
+    it('moves a ticket marked unsure again to the end of its queue and lets an admin decide later', function () {
+        $first = lblMake(['decision' => 'unsicher', 'decision_origin' => 'zweifel', 'decided_at' => now()->subHours(2)]);
+        $second = lblMake(['decision' => 'unsicher', 'decision_origin' => 'zweifel', 'decided_at' => now()->subHour()]);
+        $queue = app(ReviewQueue::class);
+
+        expect($queue->next('unsicher')->id)->toBe($first->id);
+
+        lblAdmin()->post("/beschriftung/tickets/{$first->id}/entscheidung", ['category' => 'unsicher', 'queue' => 'unsicher']);
+        expect($queue->next('unsicher')->id)->toBe($second->id);
+
+        lblAdmin()->post("/beschriftung/tickets/{$second->id}/entscheidung", ['category' => 'wismo', 'queue' => 'unsicher']);
+        expect($second->refresh())->decision->toBe('wismo')->decision_origin->toBe('korrektur')->and($second->desiredTag())->toBe('train:wismo')
+            ->and($queue->query('unsicher')->pluck('id')->all())->toBe([$first->id]);
+    });
+
+    it('offers sonstiges with key 0 and unsure with key u on the review page', function () {
+        lblMake([], ['queue' => 'zweifel']);
+
+        lblAdmin()->get('/beschriftung/pruefen?warteschlange=zweifel')->assertOk()
+            ->assertSee('data-key="0"', false)->assertSeeText('Sonstiges')
+            ->assertSee('data-key="u"', false)->assertSeeText('Unsicher, nicht verwenden')
+            ->assertDontSeeText('Keine Kategorie');
+    });
+
+    it('filters the ticket list by tickets marked unsure', function () {
+        lblMake(['text' => 'Unsicherer Text', 'decision' => 'unsicher', 'decision_origin' => 'zweifel']);
+        lblMake(['text' => 'Entschiedener Text', 'decision' => 'wismo', 'decision_origin' => 'zweifel']);
+        lblMake(['text' => 'Offener Text']);
+
+        lblAdmin()->get('/beschriftung/tickets?entscheidung=unsicher')->assertOk()
+            ->assertSeeText('Unsicherer Text')->assertSeeText('Unsicher, nicht verwendet')->assertDontSeeText('Entschiedener Text')->assertDontSeeText('Offener Text');
+        lblAdmin()->get('/beschriftung/tickets?entscheidung=offen')->assertSeeText('Offener Text')->assertDontSeeText('Unsicherer Text');
     });
 });
 
@@ -593,13 +687,14 @@ describe('writing tags', function () {
         expect(app(LabelTagging::class)->pending()->pluck('id')->all())->toBe([$ticket->id]);
     });
 
-    it('writes no tag for the decision none', function () {
+    it('writes train:sonstiges for the decision sonstiges', function () {
         lblZammad();
-        lblMake(['decision' => 'keine', 'decision_origin' => 'zweifel', 'zammad_id' => 51234]);
+        $ticket = lblMake(['decision' => 'sonstiges', 'decision_origin' => 'zweifel', 'zammad_id' => 51234], ['category' => 'sonstiges']);
 
         lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'tags']);
 
-        Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), 'tags/add'));
+        Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), 'tags/add') && $request['item'] === 'train:sonstiges');
+        expect($ticket->refresh()->tag_value)->toBe('train:sonstiges');
     });
 
     it('replaces the old tag when a decision is corrected', function () {

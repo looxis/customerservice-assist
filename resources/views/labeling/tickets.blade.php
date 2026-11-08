@@ -14,6 +14,11 @@
                 <option value="training" @selected($filters['zuordnung'] === 'training')>Training</option>
                 <option value="test" @selected($filters['zuordnung'] === 'test')>Testmenge</option>
             </x-select>
+            <x-select name="entscheidung" label="Entscheidung" class="min-w-40">
+                <option value="">Alle</option>
+                <option value="offen" @selected($filters['entscheidung'] === 'offen')>Offen</option>
+                <option value="unsicher" @selected($filters['entscheidung'] === 'unsicher')>Unsicher</option>
+            </x-select>
             <x-button type="submit" variant="secondary">Filtern</x-button>
             @if (array_filter($filters))
                 <a href="{{ route('labeling.tickets') }}" class="text-sm text-brand hover:text-brand-hover">Zurücksetzen</a>
@@ -45,12 +50,13 @@
                                 </td>
                                 <td class="max-w-md px-4 py-3 align-top text-slate-900">{{ \Illuminate\Support\Str::limit($row['excerpt'], 110) }}</td>
                                 <td class="px-4 py-3 align-top">
-                                    @if ($row['suggestion'])<x-badge compact tone="info">{{ $row['suggestion']->label() }}</x-badge>@else<x-badge compact>Keine Kategorie</x-badge>@endif
+                                    @if ($row['suggestion'])<x-badge compact tone="info">{{ $row['suggestion']->label() }}</x-badge>@else<x-badge compact>Kein Vorschlag</x-badge>@endif
                                     <span class="block text-xs text-slate-600">Konfidenz {{ (int) round($row['confidence'] * 100) }} %</span>
                                 </td>
                                 <td class="px-4 py-3 align-top">
                                     @if ($row['decision'])
-                                        <x-badge compact tone="success">{{ $row['decision'] }}</x-badge>
+                                        <x-badge compact :tone="$row['unsure'] ? 'warning' : 'success'">{{ $row['decision'] }}</x-badge>
+                                        @if ($row['unsure'])<a href="{{ route('labeling.review', ['warteschlange' => 'unsicher']) }}" class="block text-xs text-brand hover:text-brand-hover">Erneut prüfen</a>@endif
                                     @else
                                         <x-badge compact>Offen</x-badge>
                                     @endif

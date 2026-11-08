@@ -72,14 +72,14 @@ class LabelClassifier
      * Which review queue a proposal belongs to, null for a clear one that no admin has to look at. A clear
      * proposal lands in the random sample with the chance set on the page. A decided ticket comes back only
      * when the new proposal differs from the decision; a ticket of the test set is reviewed in its own queue.
+     * A reference that carried a tag already and a ticket marked unsure never come back.
      *
      * @param  array<string, mixed>  $settings
      */
     private function queue(LabelTicket $ticket, ?string $category, bool $unclear, bool $multiple, float $confidence, array $settings): ?string
     {
-        // A ticket that carried a tag already is a reference and is never reviewed again.
         if ($ticket->decision !== null) {
-            return $ticket->decision_origin !== 'vorhanden' && $ticket->decision !== ($category ?? LabelTicket::NONE) ? 'abweichung' : null;
+            return $ticket->decision_origin !== 'vorhanden' && $ticket->decision !== LabelTicket::UNSURE && $ticket->decision !== $category ? 'abweichung' : null;
         }
 
         if ($ticket->isTest()) {

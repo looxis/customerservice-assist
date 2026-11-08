@@ -17,11 +17,14 @@ class ReviewRecorder
     public function __construct(private readonly LabelingSettings $settings) {}
 
     /**
-     * @param  string  $decision  A category value or LabelTicket::NONE
+     * A sample marked unsure keeps its origin but is no hit and no miss.
+     *
+     * @param  string  $decision  A category value or LabelTicket::UNSURE
      */
     public function record(LabelTicket $ticket, string $decision, string $reviewer): LabelReview
     {
         $prediction = $ticket->latestPrediction;
+        $unsure = $decision === LabelTicket::UNSURE;
 
         $origin = match (true) {
             $ticket->isTest() => 'test',
@@ -34,7 +37,7 @@ class ReviewRecorder
             'label_prediction_id' => $prediction?->id,
             'decision' => $decision,
             'origin' => $origin,
-            'hit' => $origin === 'stichprobe' ? ($prediction->category ?? LabelTicket::NONE) === $decision : null,
+            'hit' => $origin === 'stichprobe' && ! $unsure ? $prediction->category === $decision : null,
             'reviewer' => $reviewer,
         ]);
 
@@ -43,11 +46,11 @@ class ReviewRecorder
             'decision_origin' => $origin,
             'decided_by' => $reviewer,
             'decided_at' => now(),
-            'tag_kind' => 'bestätigt',
+            'tag_kind' => $unsure ? null : 'bestätigt',
             'last_activity_at' => now(),
         ]);
 
-        if ($origin === 'stichprobe' && $prediction?->category !== null) {
+        if ($origin === 'stichprobe' && ! $unsure && $prediction?->category !== null) {
             $this->lockWhenFailing($prediction->category);
         }
 
@@ -64,6 +67,7 @@ class ReviewRecorder
 
         $samples = LabelReview::query()
             ->where('origin', 'stichprobe')
+            ->whereNotNull('hit')
             ->where('created_at', '>', $release->released_at)
             ->whereHas('prediction', fn ($query) => $query->where('category', $category));
 

@@ -83,7 +83,7 @@ class LabelingController extends Controller
                 'unclear' => (bool) $prediction?->unclear,
                 'multiple' => (bool) $prediction?->multiple_concerns,
                 'reason' => (string) $prediction?->reason,
-                'previous' => $ticket->decision === null ? null : ($ticket->decidedCategory()?->label() ?? 'Keine Kategorie'),
+                'previous' => $ticket->decisionLabel(),
                 'remaining' => $queues[$queue]['count'],
             ],
             'categories' => LabelCategory::cases(),
@@ -97,6 +97,7 @@ class LabelingController extends Controller
         $filters = [
             'kategorie' => (string) $request->query('kategorie'),
             'zuordnung' => (string) $request->query('zuordnung'),
+            'entscheidung' => (string) $request->query('entscheidung'),
         ];
 
         $rows = LabelTicket::query()
@@ -104,6 +105,8 @@ class LabelingController extends Controller
             ->with('latestPrediction')
             ->when(LabelCategory::tryFrom($filters['kategorie']) !== null, fn ($query) => $query->whereHas('latestPrediction', fn ($prediction) => $prediction->where('category', $filters['kategorie'])))
             ->when(in_array($filters['zuordnung'], ['training', 'test'], true), fn ($query) => $query->where('split', $filters['zuordnung']))
+            ->when($filters['entscheidung'] === 'offen', fn ($query) => $query->whereNull('decision'))
+            ->when($filters['entscheidung'] === LabelTicket::UNSURE, fn ($query) => $query->where('decision', LabelTicket::UNSURE))
             ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString()
@@ -115,7 +118,8 @@ class LabelingController extends Controller
                 'excerpt' => $ticket->text === null ? '(Text gelöscht)' : $ticket->text,
                 'suggestion' => $ticket->latestPrediction?->categoryEnum(),
                 'confidence' => (float) $ticket->latestPrediction?->confidence,
-                'decision' => $ticket->decision === null ? null : ($ticket->decidedCategory()?->label() ?? 'Keine Kategorie'),
+                'decision' => $ticket->decisionLabel(),
+                'unsure' => $ticket->decision === LabelTicket::UNSURE,
                 'tag' => $ticket->tag_value === null ? null : ($ticket->tag_kind ?? '–'),
                 'tag_value' => $ticket->tag_value,
                 'tag_problem' => $ticket->tag_problem,

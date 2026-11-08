@@ -15,7 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable(['zammad_id', 'number', 'group_name', 'article_id', 'text', 'subject', 'sender', 'zammad_created_at', 'source', 'split', 'state', 'existing_tag', 'problem', 'decision', 'decision_origin', 'decided_by', 'decided_at', 'tag_kind', 'tag_value', 'tag_written_at', 'tag_problem', 'last_activity_at'])]
 class LabelTicket extends Model
 {
-    public const string NONE = 'keine';
+    /** The decision of an admin who cannot place the ticket with certainty: no tag, no example, not in the hit rate. */
+    public const string UNSURE = 'unsicher';
 
     public const string EXCLUDED = 'excluded';
 
@@ -106,7 +107,19 @@ class LabelTicket extends Model
 
     public function decidedCategory(): ?LabelCategory
     {
-        return $this->decision === null || $this->decision === self::NONE ? null : LabelCategory::tryFrom($this->decision);
+        return $this->decision === null ? null : LabelCategory::tryFrom($this->decision);
+    }
+
+    /**
+     * The decision as the pages show it, null while nobody decided.
+     */
+    public function decisionLabel(): ?string
+    {
+        return match ($this->decision) {
+            null => null,
+            self::UNSURE => 'Unsicher, nicht verwendet',
+            default => $this->decidedCategory()?->label() ?? $this->decision,
+        };
     }
 
     /**

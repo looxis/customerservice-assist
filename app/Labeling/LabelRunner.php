@@ -33,7 +33,7 @@ class LabelRunner
             'fetch' => $this->startFetch($run),
             'classify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->where('state', 'captured')->whereNotNull('text'), $options['limit'] ?? null)),
             // Decided tickets too: a new proposal that differs from the decision goes to the queue "abweichung".
-            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->whereNull('tag_value')->whereIn('state', ['classified', 'failed'])->whereNotNull('text'), $options['limit'] ?? null)),
+            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->whereNull('tag_value')->whereIn('state', ['classified', 'failed'])->whereNotNull('text')->where(fn ($query) => $query->whereNull('decision')->orWhereNot('decision', LabelTicket::UNSURE)), $options['limit'] ?? null)),
             'tags' => $this->startTags($run, (bool) ($options['dry_run'] ?? true)),
         };
 

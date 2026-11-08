@@ -38,6 +38,7 @@
         <dt class="text-slate-600">Korrigiert</dt><dd class="text-right text-slate-900">{{ $row['corrected'] }}</dd>
         <dt class="text-slate-600">Automatisch</dt><dd class="text-right text-slate-900">{{ $row['automatic'] }}</dd>
         <dt class="text-slate-600">Offen</dt><dd class="text-right text-slate-900">{{ $row['open'] }}</dd>
+        <dt class="text-slate-600" title="Von dir als unsicher markiert, nach dem Vorschlag der KI">Unsicher</dt><dd class="text-right text-slate-900">{{ $row['unsure'] }}</dd>
     </dl>
 
     <p class="text-sm text-slate-600">

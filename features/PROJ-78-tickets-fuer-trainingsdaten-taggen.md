@@ -26,7 +26,7 @@ Die App durchsucht alle Zammad-Tickets, lässt ein Frontier-LLM die **erste Kund
 | `train:technischer-support` | Funktion des Online-Shops: Passwort vergessen, Login, Konfigurator, Bild-Upload, technischer Fehler auf der Zahlungsseite |
 | `train:produkt-frage` | Funktionsweise oder Eigenschaften eines Produkts, vor oder nach dem Kauf, ohne Preis-/Mengen-/Angebotsbezug |
 | `spam` | Unerwünschte Werbung, Phishing, Massenmails (Tag ohne Präfix, Testmenge `test:spam`) |
-| `train:sonstiges` | Eindeutiges Kundenanliegen, das in keine der übrigen Kategorien passt (bis 2026-11-08 „keine“ ohne Tag). Damit lernt Laya, dass nicht jede Mail in eine der zehn Fachkategorien gehört |
+| `train:sonstiges` | Nachricht, die sicher in keine der übrigen Kategorien passt und kein Spam ist, z. B. Bewerbung, Abwesenheitsnotiz, reiner Dank (bis 2026-11-08 „keine“ ohne Tag). Damit lernt Laya, dass nicht jede Mail in eine der zehn Fachkategorien gehört |
 
 Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder Signatur), entfernt oder vom Admin als **„Unsicher, nicht verwenden“** markiert sind.
 
@@ -94,8 +94,6 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 - [ ] Angenommen ein Trainingsticket ist bestätigt oder automatisch freigegeben, wenn die App taggt, dann wird in Zammad genau das Tag `train:<kategorie>` mit dem Zammad-Token des angemeldeten Admins hinzugefügt; bei einem Testticket genau das Tag `test:<kategorie>` (nur nach Bestätigung durch den Admin)
 - [ ] Angenommen ein Ticket ist als „Sonstiges“ entschieden oder in einer freigegebenen Kategorie „Sonstiges“ eindeutig vorgeschlagen, wenn der Lauf taggt, dann erhält es `train:sonstiges` (Testmenge nach Bestätigung `test:sonstiges`); „Sonstiges“ hat wie jede Kategorie eine eigene Karte, Stichprobe, Trefferquote und Freigabe
 - [ ] Angenommen ein Ticket ist nicht klassifizierbar, entfernt oder als „unsicher“ markiert, wenn der Lauf taggt, dann erhält es kein Tag
-- [ ] Angenommen ein Ticket wurde vor der Umstellung auf `zahlung` und `adressaenderung` (2026-11-08, 12:14 Uhr) als „Sonstiges“ (damals „keine“) oder `storno` entschieden, wenn der Lauf taggt, dann erhält es kein Tag, bis es erneut geprüft ist
-- [ ] Angenommen es gibt solche alten Entscheidungen, wenn der Admin den Lauf „Alte Entscheidungen prüfen“ startet, dann klassifiziert die App nur diese Tickets neu (kein anderes Ticket); stimmt der neue Vorschlag mit der Entscheidung überein, gilt sie als geprüft und wird getaggt, weicht er ab, kommt das Ticket in die Warteschlange „Abweichung von früherer Entscheidung“
 - [ ] Angenommen der Admin korrigiert ein bereits getaggtes Ticket, wenn er die Kategorie ändert, dann wird das alte `train:*`-Tag entfernt und das neue gesetzt
 - [ ] Angenommen jeder Tag ist in der App als „bestätigt“ oder „automatisch“ vermerkt, wenn der Admin die Liste ansieht, dann kann er danach filtern
 - [ ] Angenommen der Admin startet einen Trockenlauf, wenn er ihn auslöst, dann zeigt die App, welche Tags geschrieben würden, schreibt aber nichts
@@ -142,7 +140,7 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 |----------|-----------|------|
 | „keine“ wird zur vollwertigen Kategorie „Sonstiges“ mit Tag `train:sonstiges` / `test:sonstiges`, eigener Stichprobe und Freigabe | Laya sieht im Betrieb auch Mails außerhalb der zehn Fachkategorien; ohne diese Klasse würde es jede Mail in eine Fachkategorie pressen. Bei rund 25 000 Tickets wäre Einzelbestätigung zu aufwendig, deshalb dieselbe Freigabe wie bei den anderen | 2026-11-08 |
 | Neue Entscheidung „Unsicher, nicht verwenden“ (Taste `u`): kein Tag, kein Beispiel, nicht in der Trefferquote, je Kategorie gezählt | Unsichere Labels schaden dem Training mehr als fehlende Beispiele; „Sonstiges“ und „Entfernen“ passen dafür nicht (vermischen bzw. löschen die Daten) | 2026-11-08 |
-| Alte Entscheidungen „keine“ (47) und `storno` (65) von vor 12:14 Uhr werden erst nach erneuter Prüfung getaggt, über einen gezielten Lauf nur für diese Tickets | Sie können Rechnungsfragen bzw. Adressänderungen enthalten; ein erneutes „Neu klassifizieren“ aller rund 2 000 Tickets will Etienne vermeiden | 2026-11-08 |
+| Alte Entscheidungen „keine“ und `storno` von vor der Umstellung (12:14 Uhr) brauchen keine eigene Nachprüfung; der zunächst beschlossene gezielte Lauf „Alte Entscheidungen prüfen“ wurde wieder verworfen | Der Lauf „Neu klassifizieren“ ab 12:28 Uhr (2 040 Tickets, `labeling-4`) hat sie bereits neu eingeordnet: Abweichungen sind geprüft, alle übrigen stimmen mit dem neuen Vorschlag überein. Ein weiterer großer Lauf ist nicht nötig | 2026-11-08 |
 | Seitenleiste und Seitentitel heißen „Ticket-Klassifikation“ statt „Beschriftung“; die Adresse `/beschriftung` bleibt | Wunsch des Auftraggebers | 2026-11-08 |
 | `storno` getrennt in `storno` (Artikel, Menge, Motiv, Konfiguration ändern oder stornieren, in der Regel nicht möglich) und `adressaenderung` (Lieferadresse, möglich bis zum Versand, danach über die Sendungsnummer beim Paketdienst, bei Rücklauf Neuversand an die korrigierte Adresse) | Beide Vorgänge haben eine ganz andere Folge; Wunsch des Auftraggebers beim Prüfen echter Tickets | 2026-11-08 |
 | Neue Kategorie `zahlung` (Zahlung und Rechnung, ohne Erstattungsforderungen); Rechnungsfragen nicht mehr „keine“; Prompt-Version labeling-4 | Viele Zahlungs- und Rechnungsmails landeten in „keine“; Erstattungsforderungen folgen weiter dem Anlass (Reklamation, WISMO, Storno) | 2026-11-08 |
@@ -321,6 +319,15 @@ Keine neuen Pakete.
 - Prüfkarte zeigt in dieser Warteschlange „Bisherige Entscheidung“.
 - Prompt-Beispiele: Entscheidungen `storno` und `keine` von vor der Umstellung (2026-11-08, 12:14 Uhr) sind keine Beispiele mehr, weil sie Adressänderungen bzw. Mahnungen und Rechnungsfragen enthalten und der neuen Abgrenzung widersprechen würden. Nach einer erneuten Entscheidung zählen sie wieder.
 - Für den Bestand: Lauf „Neu klassifizieren“ starten, danach die Warteschlange „Abweichung von früherer Entscheidung“ durchgehen.
+
+### Nachtrag: Sonstiges und Unsicher (2026-11-08)
+- `LabelCategory::Sonstiges` (`train:sonstiges`, `test:sonstiges`, Taste `0`) ersetzt „keine“ als vollwertige elfte Kategorie mit Karte, Stichprobe, Freigabe und automatischem Tag. Migration `rename_labeling_none_to_sonstiges`: Entscheidungen und Prüfungen `keine` → `sonstiges`, Vorschläge ohne Kategorie → `sonstiges` (377 Vorschläge, 43 Entscheidungen im Bestand).
+- Prompt `labeling-5`: „keine“ heißt jetzt `sonstiges` (nur wenn sicher keine andere Kategorie passt, sonst `unclear`); der Strukturrahmen der KI kennt „keine“ nicht mehr. Ein Vorschlag ohne gültige Kategorie landet weiter in „Niedrige Konfidenz“; ein eindeutiger Vorschlag `sonstiges` geht wie jeder andere in die Stichprobe oder bleibt ohne Prüfung.
+- Bisherige Vorschläge „keine“ mit hoher Konfidenz bleiben in der Warteschlange „Niedrige Konfidenz“ (38 Tickets), weil sie dort vor der Umstellung eingeordnet wurden. Sie zählen beim Prüfen als Zweifelsfall, nicht als Stichprobe.
+- Entscheidung `LabelTicket::UNSURE` (`unsicher`, Taste `u`, Knopf „Unsicher, nicht verwenden“ unter den Kategorien): Prüfung mit Herkunft wie sonst, aber `hit = null`; Stichprobenquote und Sperre zählen nur Prüfungen mit `hit`. Kein Tag (ein vorhandenes wird beim nächsten Lauf entfernt), kein Prompt-Beispiel, nicht in „Neu klassifizieren“, nie als Abweichung.
+- Neue Warteschlange „Unsicher markiert“ (zuletzt in der Reihe, nach Entscheidungszeit sortiert, erneut „unsicher“ schiebt das Ticket ans Ende); Kategorie-Karte zeigt „Unsicher“ nach dem Vorschlag der KI; Ticket-Liste mit Filter „Entscheidung“ (Offen, Unsicher) und Link „Erneut prüfen“.
+- Der Knopf „Bestätigen“ fehlt, wenn es keinen gültigen Vorschlag gibt (früher bestätigte er dann „keine“).
+- Der Lauf „Alte Entscheidungen prüfen“ entfällt (siehe Decision Log).
 
 ## QA Test Results
 _To be added by /qa_

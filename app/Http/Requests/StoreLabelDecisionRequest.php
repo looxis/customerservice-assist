@@ -21,7 +21,7 @@ class StoreLabelDecisionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category' => ['required', 'string', Rule::in([...array_column(LabelCategory::cases(), 'value'), LabelTicket::NONE])],
+            'category' => ['required', 'string', Rule::in([...array_column(LabelCategory::cases(), 'value'), LabelTicket::UNSURE])],
             'queue' => ['nullable', 'string', 'max:20'],
         ];
     }

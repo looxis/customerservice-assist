@@ -10,7 +10,7 @@
             <ol class="list-decimal space-y-1 pl-5">
                 <li><strong>Abruf aller Tickets</strong> starten (unten unter „Läufe“). Das kostet nur Zammad-Aufrufe, keine KI.</li>
                 <li><strong>Klassifikation</strong> starten. Das Modell schlägt je Ticket eine Kategorie vor. Das kostet KI-Aufrufe und lässt sich mit „Abbrechen“ stoppen.</li>
-                <li>Unter <strong>Prüfen</strong> Vorschläge bestätigen oder korrigieren, zuerst die Zweifelsfälle, dazwischen Stichproben. Bestätigte Tickets werden automatisch als Beispiele im Prompt genutzt.</li>
+                <li>Unter <strong>Prüfen</strong> Vorschläge bestätigen oder korrigieren, zuerst die Zweifelsfälle, dazwischen Stichproben. Bestätigte Tickets werden automatisch als Beispiele im Prompt genutzt. Bist du dir selbst nicht sicher, wähle „Unsicher, nicht verwenden“ (Taste u): das Ticket geht nicht in die Trainingsdaten.</li>
                 <li>Zuletzt <strong>Tags schreiben</strong>, zuerst als Trockenlauf, danach wirklich nach Zammad.</li>
             </ol>
             <p>Der Abruf holt alle Tickets ab dem Stichtag <span class="font-mono">LABELING_EARLIEST</span> (Standard 2019-01-01). Für einen kleinen Test setze den Stichtag auf die letzten Wochen.</p>

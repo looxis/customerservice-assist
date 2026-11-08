@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Brings the tags in Zammad in line with the decisions (PROJ-78): confirmed tickets and, in released categories,
- * clear proposals. Never overwrites a tag it did not set itself.
+ * clear proposals. A ticket marked unsure loses its tag. Never overwrites a tag it did not set itself.
  */
 class LabelTagging
 {
