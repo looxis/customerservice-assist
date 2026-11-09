@@ -532,6 +532,14 @@ describe('review', function () {
         expect(LabelReview::query()->count())->toBe(0);
     });
 
+    it('shows the newest ticket of a queue first', function () {
+        lblMake(['zammad_created_at' => '2024-03-01 08:00:00'], ['queue' => 'zweifel']);
+        $newest = lblMake(['zammad_created_at' => '2026-10-01 08:00:00'], ['queue' => 'zweifel']);
+        lblMake(['zammad_created_at' => '2025-06-01 08:00:00'], ['queue' => 'zweifel']);
+
+        expect(app(ReviewQueue::class)->next('zweifel')->id)->toBe($newest->id);
+    });
+
     it('leaves test tickets out of the review once their proposed category reached the test target', function () {
         app(LabelingSettings::class)->save(['test_target' => 2]);
         lblMake(['split' => 'test', 'decision' => 'wismo', 'decision_origin' => 'test']);

@@ -342,6 +342,7 @@ Keine neuen Pakete.
 - `LabelStats::sample()` und `ReviewRecorder::lockWhenFailing()` zählen nur Prüfungen von Vorschlägen mit `LabelClassifier::modelName()`. Ein Modellwechsel braucht eigene Stichproben für die Freigabe; bestehende Freigaben bleiben, die Sperre greift erst nach 20 Stichproben des neuen Modells. Die Kategoriekarte nennt das Modell („Trefferquote der Stichprobe mit gpt-5.4-mini“).
 - Migration `clear_labeling_sample_queue`: Vorschläge offener Tickets in der Warteschlange `stichprobe` gelten als eindeutig ohne Prüfung (`queue = null`), 334 Tickets im Bestand. In freigegebenen Kategorien werden sie damit beim nächsten Lauf „Tags schreiben“ automatisch getaggt.
 - Neue Einstellung „Testziel je Kategorie“ (`test_target`, Standard 50). Die Warteschlange „Testmenge“ zeigt nur Testtickets, deren vorgeschlagene Kategorie weniger entschiedene Testtickets hat (`LabelStats::fullTestCategories()`, „Unsicher“ zählt nicht). Die Kategoriekarte zeigt „Testmenge x / Ziel“. Im Bestand fielen wismo, reklamation und spam heraus (Warteschlange 169 → 75).
+- Prüfansicht: `ReviewQueue::next()` zeigt in jeder Warteschlange das neueste Ticket zuerst (`zammad_created_at`, dann `id` absteigend); „Unsicher markiert“ bleibt nach Entscheidungszeit sortiert. Die 261 offenen Prüffälle aus 2024 (Storno 201, Unklar 52, Konfidenz 8) bleiben stehen und kommen zuletzt.
 
 ## QA Test Results
 _To be added by /qa_

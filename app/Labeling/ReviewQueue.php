@@ -31,10 +31,16 @@ class ReviewQueue
         return collect(self::LABELS)->map(fn (string $label, string $key): array => ['label' => $label, 'count' => $this->query($key)->count()])->all();
     }
 
+    /**
+     * The newest ticket first (date in Zammad), so that today's concerns come before old ones. Marked unsure again, a
+     * ticket moves to the end of its queue instead of coming right back.
+     */
     public function next(string $queue): ?LabelTicket
     {
-        // Marked unsure again, a ticket moves to the end instead of coming right back.
-        return $this->query($queue)->with('latestPrediction')->when($queue === 'unsicher', fn ($query) => $query->orderBy('decided_at'))->orderBy('id')->first();
+        return $this->query($queue)
+            ->with('latestPrediction')
+            ->when($queue === 'unsicher', fn ($query) => $query->orderBy('decided_at')->orderBy('id'), fn ($query) => $query->orderByDesc('zammad_created_at')->orderByDesc('id'))
+            ->first();
     }
 
     /**
