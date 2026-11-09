@@ -18,7 +18,7 @@ class LabelStats
     /**
      * Tickets marked unsure count for the category the model proposed.
      *
-     * @return Collection<int, array{category: LabelCategory, confirmed: int, corrected: int, automatic: int, open: int, unsure: int, sampled: int, hits: int, released: bool, locked: bool}>
+     * @return Collection<int, array{category: LabelCategory, confirmed: int, corrected: int, automatic: int, open: int, unsure: int, tested: int, sampled: int, hits: int, released: bool, locked: bool}>
      */
     public function categories(): Collection
     {
@@ -31,8 +31,9 @@ class LabelStats
 
         $unsure = $decided->get(LabelTicket::UNSURE, collect())->countBy(fn (LabelTicket $ticket): string => (string) $ticket->latestPrediction?->category);
         $releases = LabelRelease::query()->get()->keyBy('category');
+        $tested = $this->tested();
 
-        return collect(LabelCategory::cases())->map(function (LabelCategory $category) use ($decided, $unsure, $releases): array {
+        return collect(LabelCategory::cases())->map(function (LabelCategory $category) use ($decided, $unsure, $releases, $tested): array {
             $tickets = $decided->get($category->value, collect());
             $human = $tickets->where('decision_origin', '!=', 'automatisch');
             $release = $releases->get($category->value);
@@ -45,6 +46,7 @@ class LabelStats
                 'automatic' => $tickets->where('decision_origin', 'automatisch')->count(),
                 'open' => LabelTicket::query()->whereNull('decision')->where('state', 'classified')->whereHas('latestPrediction', fn ($query) => $query->where('category', $category->value))->count(),
                 'unsure' => $unsure->get($category->value, 0),
+                'tested' => $tested[$category->value] ?? 0,
                 'sampled' => $sampled,
                 'hits' => $hits,
                 'released' => (bool) $release?->released,
@@ -55,6 +57,7 @@ class LabelStats
 
     /**
      * The random samples of a category since it was last locked: how many were looked at, how many the model got right.
+     * Only proposals of the current model count, so that a change of model needs samples of its own.
      *
      * @return array{0: int, 1: int}
      */
@@ -65,10 +68,39 @@ class LabelStats
         $query = LabelReview::query()
             ->where('origin', 'stichprobe')
             ->whereNotNull('hit')
-            ->whereHas('prediction', fn ($prediction) => $prediction->where('category', $category->value))
+            ->whereHas('prediction', fn ($prediction) => $prediction->where('category', $category->value)->where('model', LabelClassifier::modelName()))
             ->when($release?->locked_at !== null, fn ($query) => $query->where('created_at', '>', $release->locked_at));
 
         return [(clone $query)->count(), (clone $query)->where('hit', true)->count()];
+    }
+
+    /**
+     * How many tickets of the test set carry a decision, per category (tickets marked unsure do not count).
+     *
+     * @return array<string, int>
+     */
+    public function tested(): array
+    {
+        return LabelTicket::query()
+            ->where('split', 'test')
+            ->whereIn('decision', array_column(LabelCategory::cases(), 'value'))
+            ->groupBy('decision')
+            ->selectRaw('decision, count(*) as tickets')
+            ->pluck('tickets', 'decision')
+            ->map(fn (mixed $count): int => (int) $count)
+            ->all();
+    }
+
+    /**
+     * The categories whose test set has reached the test target: tickets of the test set proposed for them need no review.
+     *
+     * @return list<string>
+     */
+    public function fullTestCategories(): array
+    {
+        $target = $this->settings->all()['test_target'];
+
+        return array_keys(array_filter($this->tested(), fn (int $count): bool => $count >= $target));
     }
 
     /**

@@ -31,6 +31,7 @@ beforeEach(function () {
         'services.zammad.url' => 'https://zammad.test', 'services.zammad.token' => 'z-token',
         'ai.providers.openai.key' => 'sk-test',
         'labeling.earliest' => now()->startOfMonth()->toDateString(),
+        'labeling.model' => 'gpt-test',
     ]);
 });
 
@@ -166,7 +167,7 @@ describe('retrieval', function () {
         $tagged = LabelTicket::query()->create(['zammad_id' => 3, 'number' => '3', 'text' => 'Hinweis', 'sender' => 'noreply@amazon.com', 'state' => 'classified', 'source' => 'vorhanden', 'split' => 'training']);
 
         lblAdmin()->patch('/beschriftung/einstellungen', [
-            'target' => 100, 'min_cases' => 50, 'min_rate' => 95, 'sample_share' => 15, 'confidence' => 0.85, 'examples' => 8,
+            'target' => 100, 'min_cases' => 50, 'min_rate' => 95, 'sample_share' => 15, 'confidence' => 0.85, 'examples' => 8, 'test_target' => 50,
             'excluded_senders' => "noreply@amazon.com\n@example.invalid",
         ])->assertSessionHas('success');
 
@@ -530,6 +531,32 @@ describe('review', function () {
         lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'werbung'])->assertSessionHasErrors('category');
         expect(LabelReview::query()->count())->toBe(0);
     });
+
+    it('leaves test tickets out of the review once their proposed category reached the test target', function () {
+        app(LabelingSettings::class)->save(['test_target' => 2]);
+        lblMake(['split' => 'test', 'decision' => 'wismo', 'decision_origin' => 'test']);
+        lblMake(['split' => 'test', 'decision' => 'wismo', 'decision_origin' => 'test']);
+        lblMake(['split' => 'test', 'decision' => 'zahlung', 'decision_origin' => 'test'], ['category' => 'zahlung']);
+        lblMake(['split' => 'test', 'decision' => 'unsicher', 'decision_origin' => 'test'], ['category' => 'zahlung']);
+        lblMake(['split' => 'test']);
+        $payment = lblMake(['split' => 'test'], ['category' => 'zahlung']);
+
+        expect(app(ReviewQueue::class)->query('test')->pluck('id')->all())->toBe([$payment->id]);
+        lblAdmin()->get('/beschriftung')->assertSeeInOrder(['Testmenge', '2 / 2']);
+    });
+
+    it('empties the sample queue once and keeps the decided samples', function () {
+        $open = lblMake([], ['queue' => 'stichprobe']);
+        $decided = lblMake(['decision' => 'wismo', 'decision_origin' => 'stichprobe'], ['queue' => 'stichprobe']);
+        $doubtful = lblMake([], ['queue' => 'zweifel']);
+
+        (require database_path('migrations/2026_11_09_140435_clear_labeling_sample_queue.php'))->up();
+
+        expect($open->latestPrediction()->value('queue'))->toBeNull()
+            ->and($decided->latestPrediction()->value('queue'))->toBe('stichprobe')
+            ->and($doubtful->latestPrediction()->value('queue'))->toBe('zweifel')
+            ->and(app(ReviewQueue::class)->query('stichprobe')->count())->toBe(0);
+    });
 });
 
 describe('unsure', function () {
@@ -664,6 +691,25 @@ describe('release', function () {
         $release = LabelRelease::query()->where('category', 'wismo')->sole();
         expect($release->released)->toBeFalse()->and($release->locked_at)->not->toBeNull();
         lblAdmin()->get('/beschriftung')->assertSeeText('Gesperrt');
+    });
+
+    it('counts only samples of the current model for the release', function () {
+        lblSamples('wismo', 50, 0);
+        config(['labeling.model' => 'gpt-neu']);
+
+        lblAdmin()->post('/beschriftung/kategorien/wismo/freigabe')->assertSessionHas('error');
+        lblAdmin()->get('/beschriftung')->assertSeeText('Noch keine Stichprobe mit gpt-neu geprüft');
+    });
+
+    it('locks a released category only by samples of the current model', function () {
+        LabelRelease::query()->create(['category' => 'wismo', 'released' => true, 'released_by' => 'Etienne', 'released_at' => now()->subDay()]);
+        lblSamples('wismo', 8, 11);
+        config(['labeling.model' => 'gpt-neu']);
+        $ticket = lblMake([], ['category' => 'wismo', 'queue' => 'stichprobe', 'model' => 'gpt-neu']);
+
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'reklamation']);
+
+        expect(LabelRelease::query()->where('category', 'wismo')->sole()->released)->toBeTrue();
     });
 
     it('needs fresh samples after a lock', function () {
@@ -816,11 +862,11 @@ describe('runs and settings', function () {
     });
 
     it('saves the settings and validates them', function () {
-        $values = ['target' => 150, 'min_cases' => 40, 'min_rate' => 90, 'sample_share' => 20, 'confidence' => 0.8, 'examples' => 6, 'excluded_groups' => 'Spam'];
+        $values = ['target' => 150, 'min_cases' => 40, 'min_rate' => 90, 'sample_share' => 20, 'confidence' => 0.8, 'examples' => 6, 'test_target' => 60, 'excluded_groups' => 'Spam'];
 
         lblAdmin()->patch('/beschriftung/einstellungen', $values)->assertSessionHas('success');
 
-        expect(app(LabelingSettings::class)->all())->toMatchArray(['target' => 150, 'min_rate' => 90, 'confidence' => 0.8, 'excluded_groups' => 'Spam']);
+        expect(app(LabelingSettings::class)->all())->toMatchArray(['target' => 150, 'min_rate' => 90, 'confidence' => 0.8, 'test_target' => 60, 'excluded_groups' => 'Spam']);
         lblAdmin()->patch('/beschriftung/einstellungen', [...$values, 'min_rate' => 10, 'confidence' => 3])->assertSessionHasErrors(['min_rate', 'confidence']);
     });
 });

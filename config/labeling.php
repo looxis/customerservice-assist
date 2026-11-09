@@ -38,6 +38,8 @@ return [
         'confidence' => 0.85,
         'examples' => 8,
         'test_share' => 20,
+        // Decided tickets of the test set per category; once reached, test tickets proposed for it leave the review.
+        'test_target' => 50,
         'excluded_groups' => '',
         'excluded_senders' => 'non-rispondere@amazon.it, noreply@amazon.com, donotreply@amazon.com, atoz-guarantee-no-reply@amazon.com, mailer-daemon@eu-central-1.amazonses.com, do-not-reply@amazon.es, mail@wecreateyour.com, auto-communication@amazon.com',
     ],

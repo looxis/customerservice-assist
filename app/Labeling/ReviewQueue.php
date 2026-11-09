@@ -21,6 +21,8 @@ class ReviewQueue
         'unsicher' => 'Unsicher markiert',
     ];
 
+    public function __construct(private readonly LabelStats $stats) {}
+
     /**
      * @return array<string, array{label: string, count: int}>
      */
@@ -58,7 +60,10 @@ class ReviewQueue
         $base = LabelTicket::query()->whereNull('decision')->where('state', 'classified')->whereNotNull('text');
 
         if ($queue === 'test') {
-            return $base->where('split', 'test');
+            // Only proposals for categories whose test set is below the test target need a look.
+            $full = $this->stats->fullTestCategories();
+
+            return $base->where('split', 'test')->when($full !== [], fn ($query) => $query->whereDoesntHave('latestPrediction', fn ($prediction) => $prediction->whereIn('category', $full)));
         }
 
         return $base->where('split', 'training')->whereHas('latestPrediction', fn ($query) => $query->where('queue', $queue));

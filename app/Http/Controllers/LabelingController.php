@@ -7,6 +7,7 @@ use App\Http\Requests\StartLabelRunRequest;
 use App\Http\Requests\StoreLabelDecisionRequest;
 use App\Http\Requests\UpdateLabelSettingsRequest;
 use App\Labeling\LabelCategory;
+use App\Labeling\LabelClassifier;
 use App\Labeling\LabelingSettings;
 use App\Labeling\LabelRunner;
 use App\Labeling\LabelStats;
@@ -39,6 +40,7 @@ class LabelingController extends Controller
             'references' => $stats->references(),
             'captured' => LabelTicket::query()->where('state', '!=', LabelTicket::EXCLUDED)->count(),
             'settings' => $settings->all(),
+            'model' => LabelClassifier::modelName(),
             'runs' => LabelRun::query()->latest('id')->limit(10)->get()->map(fn (LabelRun $run): array => [
                 'id' => $run->id,
                 'kind' => LabelRun::KINDS[$run->kind] ?? $run->kind,

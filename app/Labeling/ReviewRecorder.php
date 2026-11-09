@@ -69,7 +69,7 @@ class ReviewRecorder
             ->where('origin', 'stichprobe')
             ->whereNotNull('hit')
             ->where('created_at', '>', $release->released_at)
-            ->whereHas('prediction', fn ($query) => $query->where('category', $category));
+            ->whereHas('prediction', fn ($query) => $query->where('category', $category)->where('model', LabelClassifier::modelName()));
 
         $count = (clone $samples)->count();
 

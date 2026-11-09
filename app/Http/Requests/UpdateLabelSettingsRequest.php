@@ -24,6 +24,7 @@ class UpdateLabelSettingsRequest extends FormRequest
             'sample_share' => ['required', 'integer', 'min:1', 'max:100'],
             'confidence' => ['required', 'numeric', 'min:0', 'max:1'],
             'examples' => ['required', 'integer', 'min:0', 'max:20'],
+            'test_target' => ['required', 'integer', 'min:1', 'max:5000'],
             'excluded_groups' => ['nullable', 'string', 'max:500'],
             'excluded_senders' => ['nullable', 'string', 'max:2000'],
         ];

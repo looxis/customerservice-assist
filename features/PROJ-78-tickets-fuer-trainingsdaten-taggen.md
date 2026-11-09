@@ -138,6 +138,8 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Freigabe und Sperre zählen nur Stichproben des aktuellen Modells; die offene Warteschlange „Stichprobe“ wird einmalig geleert | Alle bisherigen Stichproben stammten von gpt-5.5 mit älteren Prompts; nach dem Wechsel auf gpt-5.4-mini sollen nur neue Stichproben zählen. wismo, reklamation und spam wurden vorher noch mit den alten Stichproben freigegeben (Etienne, 2026-11-09) | 2026-11-09 |
+| Testmenge nur bis zu einem Testziel je Kategorie prüfen (Standard 50 entschiedene Testtickets) | 20 % jedes Laufs landeten in der Testmenge, obwohl wismo, reklamation und spam schon über 100 Testtickets hatten. Preis: Ein seltener Fall, den die KI als volle Kategorie vorschlägt, kommt nicht mehr in die Testmenge | 2026-11-09 |
 | Klassifikation ab einem Datum, neueste Tickets zuerst; die bisherigen Vorschläge bleiben, ältere Zeiträume nur bei Bedarf | Die Klassifikation ist teuer, und die bisherigen Vorschläge stammten fast nur aus 2024 (Abrufreihenfolge), teils mit Themen, die heute anders behandelt werden. Nicht alle rund 15 000 offenen Tickets müssen klassifiziert werden; Etienne beginnt mit Juli 2026 | 2026-11-09 |
 | „keine“ wird zur vollwertigen Kategorie „Sonstiges“ mit Tag `train:sonstiges` / `test:sonstiges`, eigener Stichprobe und Freigabe | Laya sieht im Betrieb auch Mails außerhalb der zehn Fachkategorien; ohne diese Klasse würde es jede Mail in eine Fachkategorie pressen. Bei rund 25 000 Tickets wäre Einzelbestätigung zu aufwendig, deshalb dieselbe Freigabe wie bei den anderen | 2026-11-08 |
 | Neue Entscheidung „Unsicher, nicht verwenden“ (Taste `u`): kein Tag, kein Beispiel, nicht in der Trefferquote, je Kategorie gezählt | Unsichere Labels schaden dem Training mehr als fehlende Beispiele; „Sonstiges“ und „Entfernen“ passen dafür nicht (vermischen bzw. löschen die Daten) | 2026-11-08 |
@@ -334,6 +336,12 @@ Keine neuen Pakete.
 - Läufe „Klassifikation“ und „Neu klassifizieren“ haben neben „Höchstens so viele Tickets“ das Feld „Nur Tickets ab“ (Eingangsdatum in Zammad, deutsche Zeit, nicht in der Zukunft). Das Datum steht in `options.from` des Laufs und in der Laufliste („0 von 1000, ab 01.07.2026“).
 - `LabelRunner::trainingFirst()` sortiert jetzt Trainingstickets vor Testtickets, darin die neuesten zuerst (`zammad_created_at`, dann `id` absteigend), auch ohne Datum. Ein späterer Lauf mit früherem Datum arbeitet so von selbst weiter zurück, weil klassifizierte Tickets nicht mehr `captured` sind.
 - Bestand am 2026-11-09: 15 266 offene Tickets mit Text (2024: 4 555, 2025: 7 096, 2026: 3 615), davon 1 561 ab 01.07.2026. Modell für die Klassifikation seit 2026-11-09 `gpt-5.4-mini` über `LABELING_MODEL`.
+- Beispiele im Prompt von 8 auf 3 je Kategorie gesenkt (Einstellung, Etienne): die Beispiele machten rund 85 % der etwa 12 300 Eingabe-Tokens je Ticket aus, mit 3 sind es geschätzt etwa 5 800.
+
+### Nachtrag: Stichprobe je Modell, Testziel (2026-11-09)
+- `LabelStats::sample()` und `ReviewRecorder::lockWhenFailing()` zählen nur Prüfungen von Vorschlägen mit `LabelClassifier::modelName()`. Ein Modellwechsel braucht eigene Stichproben für die Freigabe; bestehende Freigaben bleiben, die Sperre greift erst nach 20 Stichproben des neuen Modells. Die Kategoriekarte nennt das Modell („Trefferquote der Stichprobe mit gpt-5.4-mini“).
+- Migration `clear_labeling_sample_queue`: Vorschläge offener Tickets in der Warteschlange `stichprobe` gelten als eindeutig ohne Prüfung (`queue = null`), 334 Tickets im Bestand. In freigegebenen Kategorien werden sie damit beim nächsten Lauf „Tags schreiben“ automatisch getaggt.
+- Neue Einstellung „Testziel je Kategorie“ (`test_target`, Standard 50). Die Warteschlange „Testmenge“ zeigt nur Testtickets, deren vorgeschlagene Kategorie weniger entschiedene Testtickets hat (`LabelStats::fullTestCategories()`, „Unsicher“ zählt nicht). Die Kategoriekarte zeigt „Testmenge x / Ziel“. Im Bestand fielen wismo, reklamation und spam heraus (Warteschlange 169 → 75).
 
 ## QA Test Results
 _To be added by /qa_

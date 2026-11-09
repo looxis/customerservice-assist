@@ -24,7 +24,7 @@
     @else
         <section aria-label="Kategorien" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($categories as $row)
-                <x-labeling.category-card :$row :min-cases="$settings['min_cases']" :min-rate="$settings['min_rate']" :target="$settings['target']" />
+                <x-labeling.category-card :$row :min-cases="$settings['min_cases']" :min-rate="$settings['min_rate']" :target="$settings['target']" :test-target="$settings['test_target']" :$model />
             @endforeach
         </section>
 
@@ -116,6 +116,7 @@
             <x-input name="sample_share" type="number" label="Stichprobenanteil (%)" hint="Anteil der eindeutigen Vorschläge, den du prüfst" :value="$settings['sample_share']" min="1" max="100" />
             <x-input name="confidence" type="number" step="0.01" label="Konfidenz-Schwelle" hint="Darunter gilt ein Vorschlag nicht als eindeutig" :value="$settings['confidence']" min="0" max="1" />
             <x-input name="examples" type="number" label="Beispiele je Kategorie im Prompt" :value="$settings['examples']" min="0" max="20" />
+            <x-input name="test_target" type="number" label="Testziel je Kategorie" hint="Entschiedene Testtickets; ist es erreicht, erscheinen Testtickets mit diesem Vorschlag nicht mehr unter „Prüfen“" :value="$settings['test_target']" min="1" />
             <input type="hidden" name="excluded_groups" value="{{ $settings['excluded_groups'] }}">
             <div class="sm:col-span-2">
                 <x-textarea name="excluded_senders" label="Absenderfilter" hint="Mails von diesen Absendern werden nicht abgerufen und bereits erfasste beim Speichern entfernt. Volle Adressen oder Teile wie @amazon.it, durch Komma oder Zeilenumbruch getrennt." :value="$settings['excluded_senders']" rows="4" />

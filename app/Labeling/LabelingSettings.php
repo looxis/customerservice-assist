@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class LabelingSettings
 {
     /**
-     * @return array{target: int, min_cases: int, min_rate: int, sample_share: int, confidence: float, examples: int, test_share: int, excluded_groups: string, excluded_senders: string}
+     * @return array{target: int, min_cases: int, min_rate: int, sample_share: int, confidence: float, examples: int, test_share: int, test_target: int, excluded_groups: string, excluded_senders: string}
      */
     public function all(): array
     {
@@ -25,6 +25,7 @@ class LabelingSettings
             'confidence' => (float) $values['confidence'],
             'examples' => (int) $values['examples'],
             'test_share' => (int) $values['test_share'],
+            'test_target' => (int) $values['test_target'],
             'excluded_groups' => (string) $values['excluded_groups'],
             'excluded_senders' => (string) $values['excluded_senders'],
         ];

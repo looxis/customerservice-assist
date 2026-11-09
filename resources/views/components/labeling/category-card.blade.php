@@ -1,4 +1,4 @@
-@props(['row', 'minCases' => 50, 'minRate' => 95, 'target' => 100])
+@props(['row', 'minCases' => 50, 'minRate' => 95, 'target' => 100, 'testTarget' => 50, 'model' => null])
 
 @php
     $category = $row['category'];
@@ -39,13 +39,14 @@
         <dt class="text-slate-600">Automatisch</dt><dd class="text-right text-slate-900">{{ $row['automatic'] }}</dd>
         <dt class="text-slate-600">Offen</dt><dd class="text-right text-slate-900">{{ $row['open'] }}</dd>
         <dt class="text-slate-600" title="Von dir als unsicher markiert, nach dem Vorschlag der KI">Unsicher</dt><dd class="text-right text-slate-900">{{ $row['unsure'] }}</dd>
+        <dt class="text-slate-600" title="Entschiedene Testtickets; ab dem Testziel erscheinen Testtickets mit diesem Vorschlag nicht mehr unter „Prüfen“">Testmenge</dt><dd @class(['text-right', 'text-success-700' => $row['tested'] >= $testTarget, 'text-slate-900' => $row['tested'] < $testTarget])>{{ $row['tested'] }} / {{ $testTarget }}</dd>
     </dl>
 
     <p class="text-sm text-slate-600">
         @if ($rate === null)
-            Noch keine Stichprobe geprüft.
+            Noch keine Stichprobe{{ $model ? ' mit '.$model : '' }} geprüft.
         @else
-            Trefferquote der Stichprobe: <span @class(['font-semibold', 'text-success-700' => $reaches, 'text-danger-700' => ! $reaches])>{{ $rate }} %</span> bei {{ $row['sampled'] }} Fällen (nötig: {{ $minRate }} % bei mindestens {{ $minCases }}).
+            Trefferquote der Stichprobe{{ $model ? ' mit '.$model : '' }}: <span @class(['font-semibold', 'text-success-700' => $reaches, 'text-danger-700' => ! $reaches])>{{ $rate }} %</span> bei {{ $row['sampled'] }} Fällen (nötig: {{ $minRate }} % bei mindestens {{ $minCases }}).
         @endif
     </p>
 
