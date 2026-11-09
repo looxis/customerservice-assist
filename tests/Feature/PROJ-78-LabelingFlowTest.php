@@ -765,6 +765,7 @@ describe('release', function () {
 
         lblSamples('wismo', 50, 0);
 
+        lblAdmin()->get('/beschriftung')->assertSeeText('Gesperrt')->assertSeeText('Die Stichproben nach der Sperre reichen wieder.');
         lblAdmin()->post('/beschriftung/kategorien/wismo/freigabe')->assertSessionHas('success');
     });
 

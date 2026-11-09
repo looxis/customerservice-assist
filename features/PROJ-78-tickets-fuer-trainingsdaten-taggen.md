@@ -350,6 +350,7 @@ Keine neuen Pakete.
 - Lauf „Neu klassifizieren“ hat das Feld „Nur Tickets mit Vorschlag“ (`options.category`, nur bei diesem Lauf): nur Tickets, deren neuester Vorschlag diese Kategorie ist, mit und ohne Entscheidung wie bisher. Die Laufliste zeigt „…, nur Vorschläge WISMO (Lieferstatus)“. Für wismo im Bestand: 1 220 Tickets (867 offen und 161 entschieden im Training, 192 in der Testmenge).
 - `LabelStats::sample()`: Nach einer Sperre zählen nur Prüfungen von Vorschlägen, die nach `locked_at` entstanden sind (bisher: Prüfungen nach der Sperre). Stichproben zu älteren Vorschlägen, die nach der Sperre noch geprüft wurden, zählen nicht mehr. Der Hinweis auf der gesperrten Kategoriekarte nennt das.
 - Die Felder des Laufformulars blenden jetzt Beschriftung und Hinweis mit aus, nicht nur das Eingabefeld.
+- Eine Sperre hebt sich nie von selbst auf, auch wenn die neuen Stichproben reichen; erst der Klick „Freigeben“ gibt die Kategorie wieder frei. Reichen sie, zeigt die gesperrte Karte das als Hinweis statt der roten Warnung.
 
 ## QA Test Results
 _To be added by /qa_

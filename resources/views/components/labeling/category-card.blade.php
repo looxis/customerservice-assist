@@ -50,7 +50,9 @@
         @endif
     </p>
 
-    @if ($row['locked'])
+    @if ($row['locked'] && $canRelease)
+        <x-alert type="info">Die Stichproben nach der Sperre reichen wieder. Die Sperre bleibt, bis du sie mit „Freigeben“ aufhebst.</x-alert>
+    @elseif ($row['locked'])
         <x-alert type="error">Die Quote der letzten Stichproben lag unter {{ $minRate }} %. Es werden keine Tags mehr automatisch geschrieben, bis neue Stichproben wieder reichen. Es zählen nur Vorschläge, die nach der Sperre entstanden sind, etwa nach „Neu klassifizieren“ dieser Kategorie mit geschärftem Prompt.</x-alert>
     @endif
 
