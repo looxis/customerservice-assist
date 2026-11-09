@@ -46,7 +46,9 @@
                     <option value="tags">Tags schreiben</option>
                 </x-select>
 
-                <x-input name="limit" type="number" label="Höchstens so viele Tickets" hint="Leer heißt: alle offenen. Trainingstickets kommen zuerst." min="1" x-show="kind === 'classify' || kind === 'reclassify'" x-cloak x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+                <x-input name="limit" type="number" label="Höchstens so viele Tickets" hint="Leer heißt: alle offenen. Neueste Tickets zuerst, Trainingstickets vor Testtickets." min="1" x-show="kind === 'classify' || kind === 'reclassify'" x-cloak x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+
+                <x-input name="from" type="date" label="Nur Tickets ab" hint="Eingangsdatum in Zammad. Leer heißt: alle Zeiträume." :max="now('Europe/Berlin')->toDateString()" x-show="kind === 'classify' || kind === 'reclassify'" x-cloak x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
 
                 <x-input name="excluded_groups" label="Gruppen vom Pool ausnehmen" hint="Kommagetrennt, z. B. Spam. Leer heißt: alle Gruppen." :value="$settings['excluded_groups']" x-show="kind === 'fetch'" />
             </div>

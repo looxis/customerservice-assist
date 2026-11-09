@@ -251,16 +251,49 @@ describe('classification', function () {
         expect($ran)->toBeFalse();
     });
 
-    it('classifies only as many tickets as the limit says', function () {
+    it('classifies only as many tickets as the limit says, the newest first', function () {
         Queue::fake();
-        lblMake(['state' => 'captured', 'split' => 'test']);
-        $first = lblMake(['state' => 'captured', 'split' => 'training']);
-        lblMake(['state' => 'captured', 'split' => 'training']);
+        lblMake(['state' => 'captured', 'split' => 'test', 'zammad_created_at' => '2026-10-20 08:00:00']);
+        $newest = lblMake(['state' => 'captured', 'split' => 'training', 'zammad_created_at' => '2026-10-10 08:00:00']);
+        lblMake(['state' => 'captured', 'split' => 'training', 'zammad_created_at' => '2024-03-01 08:00:00']);
 
         lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'classify', 'limit' => '1'])->assertSessionHasNoErrors();
 
         $order = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
-        expect($order)->toBe([$first->id])->and(LabelRun::query()->sole()->total)->toBe(1);
+        expect($order)->toBe([$newest->id])->and(LabelRun::query()->sole()->total)->toBe(1);
+    });
+
+    it('classifies only tickets from the chosen day on and shows the day in the run list', function () {
+        Queue::fake();
+        $july = lblMake(['state' => 'captured', 'zammad_created_at' => '2026-06-30 22:30:00']);
+        $october = lblMake(['state' => 'captured', 'zammad_created_at' => '2026-10-01 08:00:00']);
+        lblMake(['state' => 'captured', 'zammad_created_at' => '2026-06-30 21:30:00']);
+        lblMake(['state' => 'captured', 'zammad_created_at' => '2024-05-01 08:00:00']);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'classify', 'from' => '2026-07-01'])->assertSessionHasNoErrors();
+
+        $order = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
+        expect($order)->toBe([$october->id, $july->id])
+            ->and(LabelRun::query()->sole()->options['from'])->toBe('2026-07-01');
+        lblAdmin()->get('/beschriftung')->assertSee('0 von 2, ab 01.07.2026');
+    });
+
+    it('applies the day to a new classification too', function () {
+        Queue::fake();
+        $recent = lblMake(['zammad_created_at' => '2026-08-01 08:00:00']);
+        lblMake(['zammad_created_at' => '2024-05-01 08:00:00']);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'reclassify', 'from' => '2026-07-01'])->assertSessionHasNoErrors();
+
+        expect(Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all())->toBe([$recent->id]);
+    });
+
+    it('refuses a day in the future', function () {
+        Queue::fake();
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'classify', 'from' => now()->addDays(2)->toDateString()])->assertSessionHasErrors('from');
+
+        expect(LabelRun::query()->count())->toBe(0);
     });
 
     it('classifies the training set before the test set', function () {
@@ -358,7 +391,7 @@ describe('classification', function () {
         app(LabelRunner::class)->start('reclassify', 'Etienne');
 
         $ids = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
-        expect($ids)->toBe([$open->id, $decided->id, $failed->id]);
+        expect($ids)->toEqualCanonicalizing([$open->id, $decided->id, $failed->id]);
     });
 
     it('leaves tickets without text out of every run', function () {

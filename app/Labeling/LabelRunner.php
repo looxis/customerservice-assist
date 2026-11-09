@@ -31,9 +31,9 @@ class LabelRunner
 
         match ($kind) {
             'fetch' => $this->startFetch($run),
-            'classify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->where('state', 'captured')->whereNotNull('text'), $options['limit'] ?? null)),
+            'classify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->where('state', 'captured')->whereNotNull('text'), $options['limit'] ?? null, $options['from'] ?? null)),
             // Decided tickets too: a new proposal that differs from the decision goes to the queue "abweichung".
-            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->whereNull('tag_value')->whereIn('state', ['classified', 'failed'])->whereNotNull('text')->where(fn ($query) => $query->whereNull('decision')->orWhereNot('decision', LabelTicket::UNSURE)), $options['limit'] ?? null)),
+            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->whereNull('tag_value')->whereIn('state', ['classified', 'failed'])->whereNotNull('text')->where(fn ($query) => $query->whereNull('decision')->orWhereNot('decision', LabelTicket::UNSURE)), $options['limit'] ?? null, $options['from'] ?? null)),
             'tags' => $this->startTags($run, (bool) ($options['dry_run'] ?? true)),
         };
 
@@ -90,15 +90,24 @@ class LabelRunner
 
     /**
      * The IDs with the tickets of the training set first: only they land in a review queue, so an interrupted run
-     * leaves something to review (the index on state and split would otherwise list the test set first).
+     * leaves something to review (the index on state and split would otherwise list the test set first). Within each
+     * set the newest tickets come first, so a limited run covers today's concerns and a later run with an earlier
+     * date carries on further back.
      *
      * @param  Builder<LabelTicket>  $query
      * @param  int|null  $limit  Takes only this many tickets, null for all
+     * @param  string|null  $from  Takes only tickets created in Zammad on or after this day (Y-m-d, German time)
      * @return list<int>
      */
-    private function trainingFirst(Builder $query, ?int $limit = null): array
+    private function trainingFirst(Builder $query, ?int $limit = null, ?string $from = null): array
     {
-        return $query->orderByRaw("split = 'test'")->orderBy('id')->when($limit !== null, fn ($query) => $query->limit($limit))->pluck('id')->all();
+        return $query
+            ->when($from !== null, fn ($query) => $query->where('zammad_created_at', '>=', CarbonImmutable::parse($from, 'Europe/Berlin')->startOfDay()->utc()))
+            ->orderByRaw("split = 'test'")
+            ->orderByDesc('zammad_created_at')
+            ->orderByDesc('id')
+            ->when($limit !== null, fn ($query) => $query->limit($limit))
+            ->pluck('id')->all();
     }
 
     private function startTags(LabelRun $run, bool $dry): void

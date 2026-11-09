@@ -20,6 +20,7 @@ use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Zammad\ReplyException;
 use App\Zammad\ReplyProblem;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -139,9 +140,12 @@ class LabelingController extends Controller
             $settings->save(['excluded_groups' => trim((string) $request->input('excluded_groups'))]);
         }
 
+        $classifies = in_array($request->input('kind'), ['classify', 'reclassify'], true);
+
         $runner->start((string) $request->input('kind'), (string) $staff->current($request), [
             'dry_run' => $request->input('kind') === 'tags' && $request->boolean('dry_run'),
-            ...(in_array($request->input('kind'), ['classify', 'reclassify'], true) && $request->filled('limit') ? ['limit' => $request->integer('limit')] : []),
+            ...($classifies && $request->filled('limit') ? ['limit' => $request->integer('limit')] : []),
+            ...($classifies && $request->filled('from') ? ['from' => (string) $request->validated('from')] : []),
         ]);
 
         return back()->with('success', 'Der Lauf wurde gestartet.');
@@ -214,7 +218,7 @@ class LabelingController extends Controller
     {
         return match ($run->kind) {
             'tags' => $run->total === 0 ? "{$run->planned} geplant (Trockenlauf)" : "{$run->done} von {$run->total}, {$run->failed} Fehler",
-            default => "{$run->done} von {$run->total}".($run->failed > 0 ? ", {$run->failed} Fehler" : ''),
+            default => "{$run->done} von {$run->total}".($run->failed > 0 ? ", {$run->failed} Fehler" : '').(isset($run->options['from']) ? ', ab '.CarbonImmutable::parse($run->options['from'])->format('d.m.Y') : ''),
         };
     }
 

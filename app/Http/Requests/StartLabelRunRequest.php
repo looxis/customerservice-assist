@@ -26,6 +26,7 @@ class StartLabelRunRequest extends FormRequest
             'kind' => ['required', Rule::in(array_keys(LabelRun::KINDS))],
             'dry_run' => ['nullable', 'boolean'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'from' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'excluded_groups' => ['nullable', 'string', 'max:500'],
         ];
     }

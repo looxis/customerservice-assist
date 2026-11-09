@@ -138,6 +138,7 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Klassifikation ab einem Datum, neueste Tickets zuerst; die bisherigen Vorschläge bleiben, ältere Zeiträume nur bei Bedarf | Die Klassifikation ist teuer, und die bisherigen Vorschläge stammten fast nur aus 2024 (Abrufreihenfolge), teils mit Themen, die heute anders behandelt werden. Nicht alle rund 15 000 offenen Tickets müssen klassifiziert werden; Etienne beginnt mit Juli 2026 | 2026-11-09 |
 | „keine“ wird zur vollwertigen Kategorie „Sonstiges“ mit Tag `train:sonstiges` / `test:sonstiges`, eigener Stichprobe und Freigabe | Laya sieht im Betrieb auch Mails außerhalb der zehn Fachkategorien; ohne diese Klasse würde es jede Mail in eine Fachkategorie pressen. Bei rund 25 000 Tickets wäre Einzelbestätigung zu aufwendig, deshalb dieselbe Freigabe wie bei den anderen | 2026-11-08 |
 | Neue Entscheidung „Unsicher, nicht verwenden“ (Taste `u`): kein Tag, kein Beispiel, nicht in der Trefferquote, je Kategorie gezählt | Unsichere Labels schaden dem Training mehr als fehlende Beispiele; „Sonstiges“ und „Entfernen“ passen dafür nicht (vermischen bzw. löschen die Daten) | 2026-11-08 |
 | Alte Entscheidungen „keine“ und `storno` von vor der Umstellung (12:14 Uhr) brauchen keine eigene Nachprüfung; der zunächst beschlossene gezielte Lauf „Alte Entscheidungen prüfen“ wurde wieder verworfen | Der Lauf „Neu klassifizieren“ ab 12:28 Uhr (2 040 Tickets, `labeling-4`) hat sie bereits neu eingeordnet: Abweichungen sind geprüft, alle übrigen stimmen mit dem neuen Vorschlag überein. Ein weiterer großer Lauf ist nicht nötig | 2026-11-08 |
@@ -328,6 +329,11 @@ Keine neuen Pakete.
 - Neue Warteschlange „Unsicher markiert“ (zuletzt in der Reihe, nach Entscheidungszeit sortiert, erneut „unsicher“ schiebt das Ticket ans Ende); Kategorie-Karte zeigt „Unsicher“ nach dem Vorschlag der KI; Ticket-Liste mit Filter „Entscheidung“ (Offen, Unsicher) und Link „Erneut prüfen“.
 - Der Knopf „Bestätigen“ fehlt, wenn es keinen gültigen Vorschlag gibt (früher bestätigte er dann „keine“).
 - Der Lauf „Alte Entscheidungen prüfen“ entfällt (siehe Decision Log).
+
+### Nachtrag: Klassifikation ab Datum (2026-11-09)
+- Läufe „Klassifikation“ und „Neu klassifizieren“ haben neben „Höchstens so viele Tickets“ das Feld „Nur Tickets ab“ (Eingangsdatum in Zammad, deutsche Zeit, nicht in der Zukunft). Das Datum steht in `options.from` des Laufs und in der Laufliste („0 von 1000, ab 01.07.2026“).
+- `LabelRunner::trainingFirst()` sortiert jetzt Trainingstickets vor Testtickets, darin die neuesten zuerst (`zammad_created_at`, dann `id` absteigend), auch ohne Datum. Ein späterer Lauf mit früherem Datum arbeitet so von selbst weiter zurück, weil klassifizierte Tickets nicht mehr `captured` sind.
+- Bestand am 2026-11-09: 15 266 offene Tickets mit Text (2024: 4 555, 2025: 7 096, 2026: 3 615), davon 1 561 ab 01.07.2026. Modell für die Klassifikation seit 2026-11-09 `gpt-5.4-mini` über `LABELING_MODEL`.
 
 ## QA Test Results
 _To be added by /qa_
