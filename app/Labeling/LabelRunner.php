@@ -33,7 +33,13 @@ class LabelRunner
             'fetch' => $this->startFetch($run),
             'classify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->where('state', 'captured')->whereNotNull('text'), $options['limit'] ?? null, $options['from'] ?? null)),
             // Decided tickets too: a new proposal that differs from the decision goes to the queue "abweichung".
-            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()->whereNull('tag_value')->whereIn('state', ['classified', 'failed'])->whereNotNull('text')->where(fn ($query) => $query->whereNull('decision')->orWhereNot('decision', LabelTicket::UNSURE)), $options['limit'] ?? null, $options['from'] ?? null)),
+            // With a category only the tickets whose newest proposal is that category, e.g. after its rule changed.
+            'reclassify' => $this->startClassify($run, $this->trainingFirst(LabelTicket::query()
+                ->whereNull('tag_value')
+                ->whereIn('state', ['classified', 'failed'])
+                ->whereNotNull('text')
+                ->where(fn ($query) => $query->whereNull('decision')->orWhereNot('decision', LabelTicket::UNSURE))
+                ->when(isset($options['category']), fn ($query) => $query->whereHas('latestPrediction', fn ($prediction) => $prediction->where('category', $options['category']))), $options['limit'] ?? null, $options['from'] ?? null)),
             'tags' => $this->startTags($run, (bool) ($options['dry_run'] ?? true)),
         };
 

@@ -148,6 +148,7 @@ class LabelingController extends Controller
             'dry_run' => $request->input('kind') === 'tags' && $request->boolean('dry_run'),
             ...($classifies && $request->filled('limit') ? ['limit' => $request->integer('limit')] : []),
             ...($classifies && $request->filled('from') ? ['from' => (string) $request->validated('from')] : []),
+            ...($request->input('kind') === 'reclassify' && $request->filled('category') ? ['category' => (string) $request->validated('category')] : []),
         ]);
 
         return back()->with('success', 'Der Lauf wurde gestartet.');
@@ -220,7 +221,7 @@ class LabelingController extends Controller
     {
         return match ($run->kind) {
             'tags' => $run->total === 0 ? "{$run->planned} geplant (Trockenlauf)" : "{$run->done} von {$run->total}, {$run->failed} Fehler",
-            default => "{$run->done} von {$run->total}".($run->failed > 0 ? ", {$run->failed} Fehler" : '').(isset($run->options['from']) ? ', ab '.CarbonImmutable::parse($run->options['from'])->format('d.m.Y') : ''),
+            default => "{$run->done} von {$run->total}".($run->failed > 0 ? ", {$run->failed} Fehler" : '').(isset($run->options['from']) ? ', ab '.CarbonImmutable::parse($run->options['from'])->format('d.m.Y') : '').(isset($run->options['category']) ? ', nur Vorschläge '.(LabelCategory::tryFrom($run->options['category'])?->label() ?? $run->options['category']) : ''),
         };
     }
 

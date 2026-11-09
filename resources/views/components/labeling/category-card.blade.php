@@ -51,7 +51,7 @@
     </p>
 
     @if ($row['locked'])
-        <x-alert type="error">Die Quote der letzten Stichproben lag unter {{ $minRate }} %. Es werden keine Tags mehr automatisch geschrieben, bis neue Stichproben wieder reichen.</x-alert>
+        <x-alert type="error">Die Quote der letzten Stichproben lag unter {{ $minRate }} %. Es werden keine Tags mehr automatisch geschrieben, bis neue Stichproben wieder reichen. Es zählen nur Vorschläge, die nach der Sperre entstanden sind, etwa nach „Neu klassifizieren“ dieser Kategorie mit geschärftem Prompt.</x-alert>
     @endif
 
     @if (! $row['released'])

@@ -315,7 +315,7 @@ describe('classification', function () {
 
         $prediction = app(LabelClassifier::class)->classify($ticket);
 
-        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-5')->and($prediction->model)->not->toBe('')
+        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-6')->and($prediction->model)->not->toBe('')
             ->and($ticket->refresh()->state)->toBe('classified');
     });
 
@@ -393,6 +393,34 @@ describe('classification', function () {
 
         $ids = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
         expect($ids)->toEqualCanonicalizing([$open->id, $decided->id, $failed->id]);
+    });
+
+    it('reclassifies only tickets whose newest proposal is the chosen category and shows it in the run list', function () {
+        Queue::fake();
+        $wismo = lblMake();
+        $decided = lblMake(['decision' => 'reklamation', 'decision_origin' => 'stichprobe']);
+        lblMake([], ['category' => 'reklamation']);
+        $changed = lblMake([], ['category' => 'reklamation']);
+        $changed->predictions()->create(['category' => 'wismo', 'confidence' => 0.9, 'reason' => 'Lieferstatus.', 'evidence' => '', 'model' => 'gpt-test', 'prompt_version' => 'labeling-1']);
+        $outdated = lblMake();
+        $outdated->predictions()->create(['category' => 'reklamation', 'confidence' => 0.9, 'reason' => 'Mangel.', 'evidence' => '', 'model' => 'gpt-test', 'prompt_version' => 'labeling-1']);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'reclassify', 'category' => 'wismo'])->assertSessionHasNoErrors();
+
+        $ids = Queue::pushed(ClassifyLabelTicket::class)->map(fn (ClassifyLabelTicket $job): int => $job->labelTicketId)->all();
+        expect($ids)->toEqualCanonicalizing([$wismo->id, $decided->id, $changed->id]);
+        lblAdmin()->get('/beschriftung')->assertSee('0 von 3, nur Vorschläge WISMO (Lieferstatus)');
+    });
+
+    it('ignores the category for a first classification and refuses an unknown one', function () {
+        Queue::fake();
+        lblMake(['state' => 'captured'], ['category' => 'reklamation']);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'classify', 'category' => 'wismo'])->assertSessionHasNoErrors();
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'reclassify', 'category' => 'werbung'])->assertSessionHasErrors('category');
+
+        expect(LabelRun::query()->sole()->options)->not->toHaveKey('category')
+            ->and(Queue::pushed(ClassifyLabelTicket::class))->toHaveCount(1);
     });
 
     it('leaves tickets without text out of every run', function () {
@@ -669,6 +697,7 @@ describe('release', function () {
 
             if ($at !== null) {
                 $review->forceFill(['created_at' => $at])->save();
+                $ticket->latestPrediction->forceFill(['created_at' => $at])->save();
             }
         }
     }
@@ -725,6 +754,18 @@ describe('release', function () {
         LabelRelease::query()->create(['category' => 'wismo', 'released' => false, 'locked_at' => now()->subDay()]);
 
         lblAdmin()->post('/beschriftung/kategorien/wismo/freigabe')->assertSessionHas('error');
+    });
+
+    it('counts after a lock only samples of proposals made after it, even if reviewed later', function () {
+        LabelRelease::query()->create(['category' => 'wismo', 'released' => false, 'locked_at' => now()->subHour()]);
+        lblSamples('wismo', 0, 20);
+        LabelPrediction::query()->update(['created_at' => now()->subDay()]);
+
+        expect(app(LabelStats::class)->sample(LabelCategory::Wismo))->toBe([0, 0]);
+
+        lblSamples('wismo', 50, 0);
+
+        lblAdmin()->post('/beschriftung/kategorien/wismo/freigabe')->assertSessionHas('success');
     });
 
     it('answers 404 for an unknown category', function () {

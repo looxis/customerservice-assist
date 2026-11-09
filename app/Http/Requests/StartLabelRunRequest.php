@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Labeling\LabelCategory;
 use App\Labeling\LabelRunner;
 use App\Models\LabelRun;
 use App\Staff\StaffDirectory;
@@ -27,6 +28,7 @@ class StartLabelRunRequest extends FormRequest
             'dry_run' => ['nullable', 'boolean'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'from' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'category' => ['nullable', Rule::enum(LabelCategory::class)],
             'excluded_groups' => ['nullable', 'string', 'max:500'],
         ];
     }

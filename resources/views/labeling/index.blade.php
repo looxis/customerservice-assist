@@ -46,11 +46,26 @@
                     <option value="tags">Tags schreiben</option>
                 </x-select>
 
-                <x-input name="limit" type="number" label="Höchstens so viele Tickets" hint="Leer heißt: alle offenen. Neueste Tickets zuerst, Trainingstickets vor Testtickets." min="1" x-show="kind === 'classify' || kind === 'reclassify'" x-cloak x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+                <div x-show="kind === 'classify' || kind === 'reclassify'" x-cloak>
+                    <x-input name="limit" type="number" label="Höchstens so viele Tickets" hint="Leer heißt: alle offenen. Neueste Tickets zuerst, Trainingstickets vor Testtickets." min="1" x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+                </div>
 
-                <x-input name="from" type="date" label="Nur Tickets ab" hint="Eingangsdatum in Zammad. Leer heißt: alle Zeiträume." :max="now('Europe/Berlin')->toDateString()" x-show="kind === 'classify' || kind === 'reclassify'" x-cloak x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+                <div x-show="kind === 'classify' || kind === 'reclassify'" x-cloak>
+                    <x-input name="from" type="date" label="Nur Tickets ab" hint="Eingangsdatum in Zammad. Leer heißt: alle Zeiträume." :max="now('Europe/Berlin')->toDateString()" x-bind:disabled="kind !== 'classify' && kind !== 'reclassify'" />
+                </div>
 
-                <x-input name="excluded_groups" label="Gruppen vom Pool ausnehmen" hint="Kommagetrennt, z. B. Spam. Leer heißt: alle Gruppen." :value="$settings['excluded_groups']" x-show="kind === 'fetch'" />
+                <div x-show="kind === 'reclassify'" x-cloak>
+                    <x-select name="category" label="Nur Tickets mit Vorschlag" hint="Zum Beispiel nach einer geschärften Regel im Prompt." x-bind:disabled="kind !== 'reclassify'">
+                        <option value="">Alle Kategorien</option>
+                        @foreach ($categories as $option)
+                            <option value="{{ $option['category']->value }}">{{ $option['category']->label() }}</option>
+                        @endforeach
+                    </x-select>
+                </div>
+
+                <div x-show="kind === 'fetch'">
+                    <x-input name="excluded_groups" label="Gruppen vom Pool ausnehmen" hint="Kommagetrennt, z. B. Spam. Leer heißt: alle Gruppen." :value="$settings['excluded_groups']" x-bind:disabled="kind !== 'fetch'" />
+                </div>
             </div>
 
             <p x-show="kind === 'reclassify'" x-cloak class="text-sm text-slate-600">Auch Tickets mit Entscheidung werden neu eingeordnet. Die Entscheidung bleibt stehen; weicht der neue Vorschlag ab, erscheint das Ticket unter „Prüfen“ in „Abweichung von früherer Entscheidung“.</p>

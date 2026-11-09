@@ -56,8 +56,9 @@ class LabelStats
     }
 
     /**
-     * The random samples of a category since it was last locked: how many were looked at, how many the model got right.
-     * Only proposals of the current model count, so that a change of model needs samples of its own.
+     * The random samples of a category: how many were looked at, how many the model got right. Only proposals of the
+     * current model count, so that a change of model needs samples of its own. After a lock only proposals made after
+     * it count, so that a new release rests on proposals after the fix (a sharper prompt, a new classification).
      *
      * @return array{0: int, 1: int}
      */
@@ -68,8 +69,10 @@ class LabelStats
         $query = LabelReview::query()
             ->where('origin', 'stichprobe')
             ->whereNotNull('hit')
-            ->whereHas('prediction', fn ($prediction) => $prediction->where('category', $category->value)->where('model', LabelClassifier::modelName()))
-            ->when($release?->locked_at !== null, fn ($query) => $query->where('created_at', '>', $release->locked_at));
+            ->whereHas('prediction', fn ($prediction) => $prediction
+                ->where('category', $category->value)
+                ->where('model', LabelClassifier::modelName())
+                ->when($release?->locked_at !== null, fn ($prediction) => $prediction->where('created_at', '>', $release->locked_at)));
 
         return [(clone $query)->count(), (clone $query)->where('hit', true)->count()];
     }
