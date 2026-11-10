@@ -4,6 +4,8 @@
     $maxWidth = match ($width) {
         '5xl' => 'max-w-5xl',
         '6xl' => 'max-w-6xl',
+        // As wide as the screen allows up to 1600 px, for wide tables such as the ticket list on the start page.
+        'wide' => 'max-w-[100rem]',
         default => 'max-w-3xl',
     };
 @endphp

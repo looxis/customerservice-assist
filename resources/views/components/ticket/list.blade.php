@@ -107,9 +107,10 @@
                 </p>
             @else
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[64rem] text-left text-sm">
+                    {{-- The card breaks long words anywhere; here only the subject may, so short columns are not squeezed letter by letter. --}}
+                    <table class="w-full min-w-[64rem] text-left text-sm wrap-normal">
                         <thead class="border-b border-slate-200 text-xs font-semibold text-slate-600">
-                            <tr>
+                            <tr class="whitespace-nowrap">
                                 @php($header = $sortHeader('nummer'))
                                 <th scope="col" class="px-4 py-3" @if ($header['active']) aria-sort="{{ $header['sort'] }}" @endif><a href="{{ $header['href'] }}" class="hover:text-slate-900">{{ $header['label'] }} @if ($header['active'])<span aria-hidden="true">{{ $header['arrow'] }}</span>@endif</a></th>
                                 <th scope="col" class="px-4 py-3">Betreff</th>
@@ -139,7 +140,7 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 align-top text-slate-900">{{ ucfirst($states[$row->state] ?? $row->state) }}</td>
-                                    <td class="px-4 py-3 align-top text-slate-900">{{ $row->owner_zammad_id === null ? '–' : ($row->owner_name ?? "Zammad-Benutzer {$row->owner_zammad_id}") }}</td>
+                                    <td class="px-4 py-3 align-top whitespace-nowrap text-slate-900">{{ $row->owner_zammad_id === null ? '–' : ($row->owner_name ?? "Zammad-Benutzer {$row->owner_zammad_id}") }}</td>
                                     <td class="px-4 py-3 align-top text-slate-900">{{ $row->channel ?? '–' }}</td>
                                     <td class="px-4 py-3 align-top text-slate-900">
                                         @if ($row->category)

@@ -1,4 +1,4 @@
-<x-layouts.app title="Tickets" width="6xl">
+<x-layouts.app title="Tickets" width="wide">
     <div class="mx-auto w-full max-w-3xl space-y-6">
     <x-staff.hint :names="$staffNames" :current="$currentStaff" />
 
