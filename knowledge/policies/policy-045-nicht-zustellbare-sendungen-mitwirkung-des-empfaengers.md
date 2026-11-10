@@ -31,6 +31,7 @@ triggers:
   - nie geklingelt
   - falsche Adresse
 related_knowledge:
+  - POLICY-002
   - POLICY-011
   - POLICY-012
   - POLICY-015
@@ -65,3 +66,16 @@ Das Vorgehen je Kundengruppe: POLICY-046 (B2B und Fachhändler), POLICY-047 (End
 - Dem Paketdienst nicht pauschal die Alleinschuld geben und dem Kunden keine konkrete Handlung unterstellen.
 - Keine Zustelloptionen oder Abstellgenehmigungen zusagen oder hinterlegen (POLICY-015).
 - Gesetzliche Ansprüche bleiben unberührt; interne Regeln dürfen ihre Erfüllung nicht vereiteln.
+
+# Rechtsgrundlagen
+
+Paragraphen und das Urteil nennt die Antwort nur, wenn der Kunde Rücksendekosten, Mehraufwand oder die Mitwirkungspflicht bestreitet und der Dialog weit fortgeschritten ist: ab der vierten Kundennachricht (siebter Dialogteil) oder sofort bei Schlüsselwörtern wie „Anwalt“, „Klage“, „A bis Z“, „A-z“ oder „Garantieantrag“. Davor wird nur in einfachen Worten erklärt. Der Vorschlag führt sie als Möglichkeit auf, der Mitarbeiter entscheidet.
+
+- **Kosten von Rücksendung und erneuter Zustellung:** Kann das Paket wegen einer falschen Adresse nicht zugestellt werden, gerät der Käufer in Annahmeverzug (§ 293 BGB). Nach § 304 BGB muss er dem Verkäufer die dadurch entstandenen Mehraufwendungen ersetzen, zum Beispiel die Kosten für den Rücktransport und einen erneuten Versand.
+- **Korrekte Lieferadresse:** Gibt der Verbraucher eine falsche oder unvollständige Lieferadresse an, verletzt er eine nebenvertragliche Pflicht aus dem Kaufvertrag. Es ist seine Pflicht, die Lieferadresse bei Vertragsschluss korrekt und vollständig anzugeben. Im Bestellvorgang hat er auf der Zusammenfassungsseite die Möglichkeit, seine Angaben zu prüfen und zu korrigieren. Dazu das Urteil des AG München vom 15.07.2022 (Az. 122 C 6617/22) zu den Folgen falscher Adressangaben.
+- **Mitwirkung bei der Zustellung:** Der Käufer muss nicht den ganzen Tag auf den Postboten warten. Er hat aber dafür zu sorgen, dass eine Zustellung unter normalen Umständen möglich ist.
+
+Die Regeln zur Nacherfüllung (§ 439 BGB) und zum fehlenden Widerrufsrecht (§ 312g Abs. 2 BGB) stehen in POLICY-002.
+
+- https://www.gesetze-im-internet.de/bgb/__293.html
+- https://www.gesetze-im-internet.de/bgb/__304.html

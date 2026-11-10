@@ -14,11 +14,13 @@ topics:
 - refund
 - production-error
 related_knowledge:
+- POLICY-001
 - POLICY-010
+- POLICY-069
 - PLAYBOOK-006
 - POLICY-037
 - POLICY-038
-summary: "Gilt bei Reklamationen von Privatkunden: bei bestätigtem Problem Ersatz, Erstattung nur als Sonderfall; solange das Problem ungeklärt ist, wird keine Erstattung erwähnt oder bestätigt. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
+summary: "Gilt bei Reklamationen von Privatkunden: bei bestätigtem Problem Ersatz, Erstattung nur als Sonderfall; solange das Problem ungeklärt ist, wird keine Erstattung bestätigt (zum Erstattungswunsch POLICY-069). Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
 retrieval: core
 triggers:
 exclude_triggers:
@@ -39,7 +41,7 @@ Bei einem bestätigten Problem lautet die Lösung immer Ersatz. Eine Erstattung 
 Solange nicht feststeht, was das Problem ist (kein Foto, keine konkrete Beschreibung, Mangel nicht bestätigt), wird eine Erstattung weder in Betracht gezogen noch kommentiert oder bestätigt, auch wenn der Kunde sie verlangt:
 
 - Empfehlung und Begründung nennen keine Erstattung als mögliche Lösung, nur „den Fall prüfen“.
-- Der Antwortentwurf greift den Erstattungswunsch nicht auf, erklärt keinen Erstattungsweg (auch nicht über Amazon) und bittet nur um die Angaben zur Klärung der Beanstandung.
+- Verlangt der Kunde eine Erstattung, geht der Antwortentwurf kurz darauf ein (POLICY-069), erklärt aber keinen Erstattungsweg (auch nicht über Amazon) und bittet um die Angaben zur Klärung der Beanstandung.
 
 # Sonderfall Erstattung
 
@@ -63,7 +65,7 @@ Eine Reklamation zu Qualität, gelieferter Ware oder Umsetzung der Personalisier
 2. Feststellen, ob ein Mangel, ein eindeutiger eigener Fehler oder eine noch ungeklärte Beanstandung vorliegt.
 3. Bei Interpretationsspielraum, etwa „Druck zu dunkel“ oder „einen Millimeter außerhalb der Mitte“, keine automatische Fehleranerkennung und keine automatische Erstattung vornehmen. Die tatsächliche Abweichung prüfen. Für Helligkeit und Ausrichtung sind keine numerischen Toleranzen festgelegt; die Abweichung wird im Einzelfall bewertet (PROCESS-002).
 4. Bei erforderlicher Korrektur bevorzugt kostenfreie Neuproduktion und Ersatzversand anbieten.
-5. Nur bei bestätigtem Problem, ausdrücklichem Erstattungswunsch und eindeutigem grobem eigenem Fehler eine Erstattung als mögliche Lösung prüfen; vorher nicht erwähnen.
+5. Nur bei bestätigtem Problem, ausdrücklichem Erstattungswunsch und eindeutigem grobem eigenem Fehler eine Erstattung als mögliche Lösung prüfen; vorher nicht als Lösung in Betracht ziehen.
 
 # Befugnis
 
