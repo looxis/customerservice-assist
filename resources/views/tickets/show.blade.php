@@ -40,11 +40,6 @@
             </x-slot:orders>
         </x-ticket.header>
         @isset($analysis)
-            {{-- Shipping age of each loaded order (PROJ-79), directly above proposal and form. --}}
-            @php($shippedOrders = collect($lookups ?? [])->flatMap(fn ($lookup) => $lookup->orders)->values())
-            @foreach ($shippedOrders as $shippedOrder)
-                <x-ticket.shipping-age-notice :order="$shippedOrder" :show-number="$shippedOrders->count() > 1" />
-            @endforeach
             @if ($analysis['resultMissing'])
                 <x-alert type="warning">Dieser Vorschlag ist nicht mehr verfügbar.</x-alert>
             @endif

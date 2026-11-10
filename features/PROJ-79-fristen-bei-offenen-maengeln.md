@@ -36,8 +36,8 @@ Ticket 2140331, Bestellung 303-0977429-2012311: bestellt am 9. Oktober, geliefer
 - [ ] Angenommen die erste Sendung liegt weniger als 14 Tage zurück, wenn die Ticketseite erscheint, dann erscheint kein Hinweis.
 - [ ] Angenommen die Bestellung hat keine Sendung, wenn die Ticketseite erscheint, dann erscheint kein Hinweis und das Bestelldatum wird nicht ersatzweise verwendet.
 - [ ] Angenommen die Bestellung hat mehrere Sendungen, wenn der Hinweis berechnet wird, dann zählt das Datum der ersten Sendung.
-- [ ] Angenommen der Hinweis erscheint, wenn der Mitarbeiter den Bestellblock und das Formular bzw. Ergebnis ansieht, dann steht er an beiden Stellen, ohne dass dafür ein KI-Aufruf nötig ist.
-- [ ] Angenommen mehrere Bestellungen sind am Ticket geladen, wenn sie unterschiedlich alt sind, dann erscheint der Hinweis je Bestellung mit Bestellnummer.
+- [ ] Angenommen der Hinweis erscheint, wenn der Mitarbeiter den Bestellblock ansieht, dann steht er dort in der Bestellung, ohne dass dafür ein KI-Aufruf nötig ist; über Vorschlag und Formular wiederholt er sich nicht (Entscheidung 2026-11-10).
+- [ ] Angenommen mehrere Bestellungen sind am Ticket geladen, wenn sie unterschiedlich alt sind, dann erscheint der Hinweis je betroffener Bestellung in deren Bestellblock.
 - [ ] Angenommen der Hinweistext erscheint, wenn er gelesen wird, dann nennt er keine festen Fristen der Kundenantwort, sondern nur Versanddatum, Tage und den Grundsatz „sichtbare Beschädigung sofort melden“.
 
 ### Daten an die KI
@@ -89,6 +89,7 @@ Ticket 2140331, Bestellung 303-0977429-2012311: bestellt am 9. Oktober, geliefer
 | Ohne Versand kein Hinweis | Ohne Versand kann es keinen offenen Mangel geben; „nicht geliefert“ ist ein anderer Fall | 2026-11-10 |
 | Bei mehreren Sendungen zählt die erste | Teillieferungen kommen fast nie vor; Ersatzsendungen sind eigene Aufträge mit eigener Reklamationsnummer | 2026-11-10 |
 | Hinweis bei jedem Ticket mit versendeter Bestellung, neutral formuliert | Eine Ticket-Klassifikation gibt es noch nicht (PROJ-78); später einschränkbar | 2026-11-10 |
+| Hinweis nur im Bestellblock, nicht noch einmal über Vorschlag und Formular | Auf der Seite stand er sonst doppelt untereinander; der Bestellblock reicht | 2026-11-10 |
 | Zwei Stufen: ab 14 Tagen gelb, ab 30 Tagen rot | Vorgabe des Auftraggebers | 2026-11-10 |
 | Eine Regel für alle Kundengruppen | Vorgabe des Auftraggebers; gruppenspezifische Dokumente bleiben unberührt | 2026-11-10 |
 | Sichtbare Beschädigung nach Ablauf: Ablehnung als Mangel, Begründung „sofort erkennbar, daher unverzüglich melden“, keine Tagesfrist in der Antwort | Eine genannte Frist hilft dem Kunden nicht, der sich nach 15 Tagen meldet | 2026-11-10 |
@@ -102,7 +103,7 @@ Ticket 2140331, Bestellung 303-0977429-2012311: bestellt am 9. Oktober, geliefer
 | Decision | Rationale | Date |
 |----------|-----------|------|
 | Bestehende Bedingung `days_since_shipped` (erste Sendung) wiederverwenden, `order_age_days` unverändert lassen | Zählt schon ab der ersten Sendung wie verlangt; Hinweis und Wissen rechnen gleich; bestehende Dokumente ändern sich nicht | 2026-11-10 |
-| Hinweis als eine wiederverwendbare Komponente im Bestellblock und im Formular/Ergebnis | Ein Ort für Schwellen und Text; gleiche Anzeige überall; kein KI-Aufruf | 2026-11-10 |
+| Hinweis als eine wiederverwendbare Komponente im Bestellblock | Ein Ort für Schwellen und Text; gleiche Anzeige überall; kein KI-Aufruf | 2026-11-10 |
 | Tageszahl und heutiges Datum werden in der App gerechnet und in den Prompt geschrieben | Die KI kennt das heutige Datum nicht und soll nicht rechnen | 2026-11-10 |
 | Schwellen 14 und 30 Tage fest im Code | Vorgabe; später über Einstellungen möglich, jetzt nicht nötig | 2026-11-10 |
 | Eigene verbindliche Policy mit Auslösern und Maßnahmen, ohne Bedingung auf Versandalter | Die Regel muss bei Beschädigungsmeldungen sicher greifen; ohne Bedingung kommt sie auch bei fehlenden Versanddaten mit; die Tageszahl kommt aus dem Prompt | 2026-11-10 |
@@ -125,10 +126,8 @@ Ticketseite
 +-- Bestellungen (vorhanden)
 |   +-- Bestellblock je Bestellung (vorhanden)
 |       +-- NEU: Versandalter-Hinweis (gelb ab 14, rot ab 30 Tagen)
-+-- Vorschlagsformular / Ergebnis (vorhanden)
-    +-- NEU: derselbe Versandalter-Hinweis je Bestellung, oben im Formular bzw. Ergebnis
 ```
-Der Hinweis ist **ein** wiederverwendbarer Baustein (Blade-Komponente), der an beiden Stellen steht. Er bekommt die Bestellung und rechnet selbst; zusätzliche Daten braucht er nicht.
+Der Hinweis ist **ein** wiederverwendbarer Baustein (Blade-Komponente) im Bestellblock. Er bekommt die Bestellung und rechnet selbst; zusätzliche Daten braucht er nicht.
 
 ### B) Regeln des Hinweises (ohne Datenbank)
 - Grundlage ist die **erste Sendung mit Versanddatum** der Bestellung (gleiche Rechnung wie im Wissensabruf, damit Hinweis und Wissen nie auseinanderlaufen).
@@ -164,8 +163,8 @@ Keine.
 ## Implementation Notes (Frontend)
 **2026-11-10:** Hinweis im Code umgesetzt (Teil 1 der Reihenfolge); Prompt-Ergänzung und Policy im Wissen stehen noch aus.
 - `EocsOrder::daysSinceFirstShipment()` und `shippingAgeLevel()` (14 und 30 Tage als Konstanten); `OrderFacts` nutzt dieselbe Rechnung für `days_since_shipped`, damit Hinweis und Wissensabruf nicht auseinanderlaufen.
-- Neue Komponente `x-ticket.shipping-age-notice` (gelb 14 bis 30 Tage, rot darüber), eingebunden im Bestellblock (ohne Bestellnummer) und in `tickets/show` direkt über Vorschlag und Formular (Bestellnummer nur bei mehreren Bestellungen).
-- Abweichung: Der Hinweis über dem Vorschlag steht auch bei eingeklapptem Formular, weil er über beiden steht und nicht im Formular selbst.
+- Neue Komponente `x-ticket.shipping-age-notice` (gelb 14 bis 30 Tage, rot darüber), eingebunden im Bestellblock (ohne Bestellnummer).
+- Abweichung von der Spezifikation (Entscheidung Etienne, 2026-11-10): Der Hinweis steht nur im Bestellblock, nicht zusätzlich über Vorschlag und Formular, weil er sonst doppelt auf der Seite steht.
 - Tests: `tests/Feature/PROJ-79-ShippingAgeNoticeTest.php` (Schwellen 13/14/30/31, ohne Sendung, mehrere Sendungen, Darstellung, keine Tagesfrist im Text).
 - Noch offen für `/backend`: heutiges Datum und „Tage seit Versand“ im Prompt; für `/knowledge`: die Policy.
 
