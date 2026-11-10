@@ -15,6 +15,7 @@ use App\Labeling\LabelTagWriter;
 use App\Labeling\ReviewQueue;
 use App\Labeling\ReviewRecorder;
 use App\Labeling\SenderFilter;
+use App\Models\LabelReview;
 use App\Models\LabelRun;
 use App\Models\LabelTicket;
 use App\Staff\StaffDirectory;
@@ -58,18 +59,28 @@ class LabelingController extends Controller
         ]);
     }
 
-    public function review(Request $request, TestMode $testMode, ReviewQueue $reviewQueue): View
+    /**
+     * With "zurueck" (1 or 2) the page shows the admin's last or second to last decision again, to change it.
+     */
+    public function review(Request $request, TestMode $testMode, ReviewQueue $reviewQueue, ReviewRecorder $recorder, StaffDirectory $staff): View
     {
         $this->authorizeAdmin($request, $testMode);
 
         $queues = $reviewQueue->queues();
         $queue = array_key_exists((string) $request->query('warteschlange'), $queues) ? (string) $request->query('warteschlange') : (collect($queues)->filter(fn (array $info): bool => $info['count'] > 0)->keys()->first() ?? array_key_first($queues));
-        $ticket = $reviewQueue->next($queue);
-        $prediction = $ticket?->latestPrediction;
+        $reviewer = $staff->current($request);
+        $recent = $reviewer === null ? collect() : $recorder->recent($reviewer);
+        $step = min(max($request->integer('zurueck'), 0), $recent->count());
+        $revisit = $step > 0 ? $recent[$step - 1] : null;
+        $ticket = $revisit?->labelTicket ?? $reviewQueue->next($queue);
+        $prediction = $revisit?->prediction ?? $ticket?->latestPrediction;
 
         return view('labeling.review', [
             'queues' => $queues,
             'queue' => $queue,
+            'step' => $step,
+            'recent' => $recent->count(),
+            'revisit' => $revisit,
             'ticket' => $ticket === null ? null : [
                 'id' => $ticket->id,
                 'zammad_id' => $ticket->zammad_id,
@@ -86,6 +97,7 @@ class LabelingController extends Controller
                 'unclear' => (bool) $prediction?->unclear,
                 'multiple' => (bool) $prediction?->multiple_concerns,
                 'reason' => (string) $prediction?->reason,
+                'decision' => $ticket->decision,
                 'previous' => $ticket->decisionLabel(),
                 'remaining' => $queues[$queue]['count'],
             ],
@@ -177,6 +189,22 @@ class LabelingController extends Controller
         $recorder->record($ticket, (string) $request->validated('category'), (string) $staff->current($request));
 
         return redirect()->route('labeling.review', array_filter(['warteschlange' => $request->validated('queue')]));
+    }
+
+    /**
+     * Changes one of the admin's last two decisions ("Zurück" on the review page).
+     */
+    public function amendDecision(StoreLabelDecisionRequest $request, StaffDirectory $staff, ReviewRecorder $recorder, LabelReview $review): RedirectResponse
+    {
+        $queue = array_filter(['warteschlange' => $request->validated('queue')]);
+
+        if (! $recorder->recent((string) $staff->current($request))->contains('id', $review->id)) {
+            return redirect()->route('labeling.review', $queue)->with('error', 'Diese Entscheidung lässt sich nicht mehr ändern. „Zurück“ reicht nur bis zu deinen letzten '.ReviewRecorder::REVISABLE.' Entscheidungen.');
+        }
+
+        $recorder->amend($review, (string) $request->validated('category'));
+
+        return redirect()->route('labeling.review', $queue)->with('success', "Die Entscheidung zu Ticket#{$review->labelTicket->number} ist geändert: {$review->labelTicket->decisionLabel()}.");
     }
 
     /**

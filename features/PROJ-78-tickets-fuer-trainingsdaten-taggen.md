@@ -356,6 +356,12 @@ Keine neuen Pakete.
 - Neue Komponente `<x-help-tip text="…">Label</x-help-tip>`: Fragezeichen direkt hinter dem Label, Erklärung beim Überfahren, Antippen und Tastaturfokus, schließt mit Escape oder Klick daneben (in der Komponenten-Übersicht ergänzt).
 - Die Kategoriekarte erklärt so „Getaggt oder bestätigt“, „Bestätigt“, „Korrigiert“, „Automatisch“, „Offen“, „Unsicher“ und „Testmenge“ (bisher nur `title` bei Unsicher und Testmenge).
 
+### Nachtrag: Zurück zu den letzten zwei Entscheidungen (2026-11-10)
+- Anlass: ein falsch eingeordnetes Ticket in „Niedrige Konfidenz“. Auf „Prüfen“ führt „Zurück“ (Taste z) zur letzten, ein zweites Mal zur vorletzten eigenen Entscheidung (`?zurueck=1|2`), über alle Warteschlangen; „Weiter“ geht einen Schritt vor. Auch bei leerer Warteschlange gibt es „Zurück zur letzten Entscheidung“. Die bisherige Kategorie trägt die Marke „bisher“.
+- Ändern ersetzt die Prüfung an Ort und Stelle (`ReviewRecorder::amend()`, `PATCH /beschriftung/entscheidungen/{review}`): Herkunft und Reihenfolge bleiben, eine Stichprobe zählt mit der neuen Antwort als Treffer oder Fehler, „Unsicher“ nimmt sie aus der Quote; der nächste Lauf „Tags schreiben“ setzt, ersetzt oder entfernt das Tag. Danach geht es zurück in die Warteschlange.
+- Erlaubt nur für die letzten zwei Prüfungen des angemeldeten Admins, deren Ticket noch existiert und seitdem nicht erneut entschieden wurde (`ReviewRecorder::recent()`); sonst Fehlermeldung ohne Änderung.
+- Grenze: Hat die falsche Stichprobe eine freigegebene Kategorie gesperrt, hebt die Änderung die Sperre nicht auf; sie bleibt bis zum Klick „Freigeben“.
+
 ## QA Test Results
 _To be added by /qa_
 

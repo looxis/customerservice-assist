@@ -96,6 +96,7 @@ Route::middleware('staff.selected')->group(function (): void {
     Route::post('/beschriftung/laeufe/{run}/abbrechen', [LabelingController::class, 'cancelRun'])->whereNumber('run')->name('labeling.runs.cancel');
     Route::post('/beschriftung/kategorien/{category}/freigabe', [LabelingController::class, 'release'])->name('labeling.categories.release');
     Route::post('/beschriftung/tickets/{ticket}/entscheidung', [LabelingController::class, 'storeDecision'])->whereNumber('ticket')->name('labeling.reviews.store');
+    Route::patch('/beschriftung/entscheidungen/{review}', [LabelingController::class, 'amendDecision'])->whereNumber('review')->name('labeling.reviews.amend');
     Route::post('/beschriftung/tickets/{ticket}/entfernen', [LabelingController::class, 'exclude'])->whereNumber('ticket')->name('labeling.tickets.exclude');
     Route::patch('/beschriftung/einstellungen', [LabelingController::class, 'updateSettings'])->name('labeling.settings.update');
 });

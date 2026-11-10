@@ -11,15 +11,18 @@
     </nav>
 
     @if ($ticket === null)
-        <x-card>
+        <x-card class="flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm text-slate-600">In dieser Warteschlange ist nichts mehr zu prüfen.</p>
+            @if ($recent > 0)
+                <x-button variant="secondary" :href="route('labeling.review', ['warteschlange' => $queue, 'zurueck' => 1])"><x-icon name="chevron-left" :size="16" /> Zurück zur letzten Entscheidung</x-button>
+            @endif
         </x-card>
     @else
         @php
             $parts = $ticket['evidence'] !== '' && str_contains($ticket['text'], $ticket['evidence']) ? explode($ticket['evidence'], $ticket['text'], 2) : null;
         @endphp
 
-        <form method="POST" action="{{ route('labeling.reviews.store', ['ticket' => $ticket['id']]) }}"
+        <form method="POST" action="{{ $revisit ? route('labeling.reviews.amend', ['review' => $revisit->id]) : route('labeling.reviews.store', ['ticket' => $ticket['id']]) }}"
               x-data="{ busy: false, pick: null }"
               x-on:submit="if (busy) { $event.preventDefault(); return } busy = true"
               x-on:keydown.window="
@@ -28,6 +31,9 @@
                   if (button && ! busy) { $event.preventDefault(); button.click() }
               ">
             @csrf
+            @if ($revisit)
+                @method('PATCH')
+            @endif
             <input type="hidden" name="queue" value="{{ $queue }}">
             @if ($errors->any())
                 <x-alert type="error" class="mb-4">Die Entscheidung konnte nicht gespeichert werden: {{ $errors->first() }}</x-alert>
@@ -39,7 +45,19 @@
                         <span class="text-sm text-slate-600">{{ $ticket['created'] }} · {{ $ticket['group'] }}</span>
                         <x-badge compact :tone="$ticket['test'] ? 'warning' : 'neutral'">{{ $ticket['test'] ? 'Testmenge' : 'Training' }}</x-badge>
                     </div>
-                    <span class="text-sm text-slate-600">Noch {{ $ticket['remaining'] }} in dieser Warteschlange</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if ($revisit)
+                            <x-badge tone="info">{{ $step === 1 ? 'Deine letzte Entscheidung' : 'Deine vorletzte Entscheidung' }}</x-badge>
+                        @else
+                            <span class="text-sm text-slate-600">Noch {{ $ticket['remaining'] }} in dieser Warteschlange</span>
+                        @endif
+                        @if ($step < $recent)
+                            <x-button variant="secondary" :href="route('labeling.review', ['warteschlange' => $queue, 'zurueck' => $step + 1])" data-key="z"><x-icon name="chevron-left" :size="16" /> Zurück <span class="font-normal opacity-80">(z)</span></x-button>
+                        @endif
+                        @if ($revisit)
+                            <x-button variant="secondary" :href="route('labeling.review', array_filter(['warteschlange' => $queue, 'zurueck' => $step - 1]))">Weiter <x-icon name="chevron-right" :size="16" /></x-button>
+                        @endif
+                    </div>
                 </div>
 
                 <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
@@ -53,7 +71,13 @@
                     @if ($parts && ! $ticket['test']){{ $parts[0] }}<mark class="rounded bg-warning-500/20 px-0.5 text-slate-900">{{ $ticket['evidence'] }}</mark>{{ $parts[1] }}@else{{ $ticket['text'] }}@endif
                 </blockquote>
 
-                @if ($ticket['previous'] !== null)
+                @if ($revisit)
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="text-slate-600">Deine Entscheidung:</span>
+                        <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
+                        <span class="text-slate-600">Wähle die Kategorie, die stattdessen gilt. Sie ersetzt diese Entscheidung, auch in der Trefferquote und beim nächsten Tag.</span>
+                    </div>
+                @elseif ($ticket['previous'] !== null)
                     <div class="flex flex-wrap items-center gap-2 text-sm">
                         <span class="text-slate-600">Bisherige Entscheidung:</span>
                         <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
@@ -88,6 +112,7 @@
                             <x-button type="submit" variant="secondary" name="category" :value="$category->value" :data-key="$category->key()" class="justify-start" :title="$category->description()">
                                 <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">{{ $category->key() }}</span>
                                 {{ $category->label() }}
+                                @if ($revisit && $ticket['decision'] === $category->value)<x-badge compact tone="info">bisher</x-badge>@endif
                             </x-button>
                         @endforeach
                     </div>
@@ -96,6 +121,7 @@
                         <x-button type="submit" variant="secondary" name="category" value="{{ \App\Models\LabelTicket::UNSURE }}" data-key="u" class="justify-start">
                             <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">u</span>
                             Unsicher, nicht verwenden
+                            @if ($revisit && $ticket['decision'] === \App\Models\LabelTicket::UNSURE)<x-badge compact tone="info">bisher</x-badge>@endif
                         </x-button>
                         <span class="text-sm text-slate-600">Kein Tag, kein Beispiel, zählt nicht in die Trefferquote. Später unter „Unsicher markiert“ wieder aufrufbar.</span>
                     </div>

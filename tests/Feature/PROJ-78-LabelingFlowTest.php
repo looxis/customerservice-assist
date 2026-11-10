@@ -553,6 +553,60 @@ describe('review', function () {
             ->and($ticket->refresh()->decision)->toBe('storno')->and($ticket->decision_origin)->toBe('korrektur');
     });
 
+    it('goes back to the last two decisions of the admin, not further', function () {
+        [$first, $second, $third] = [lblMake([], ['queue' => 'konfidenz']), lblMake([], ['queue' => 'konfidenz']), lblMake([], ['queue' => 'konfidenz'])];
+
+        foreach ([$first, $second, $third] as $ticket) {
+            lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'wismo', 'queue' => 'konfidenz']);
+        }
+
+        lblAdmin()->get('/beschriftung/pruefen?warteschlange=konfidenz')->assertSeeText('In dieser Warteschlange ist nichts mehr zu prüfen.')->assertSeeText('Zurück zur letzten Entscheidung');
+        lblAdmin()->get('/beschriftung/pruefen?warteschlange=konfidenz&zurueck=1')->assertSeeText('Ticket#'.$third->number)->assertSeeText('Deine letzte Entscheidung')->assertSee('data-key="z"', false)
+            ->assertSee('action="'.route('labeling.reviews.amend', ['review' => LabelReview::query()->where('label_ticket_id', $third->id)->value('id')]).'"', false);
+        lblAdmin()->get('/beschriftung/pruefen?warteschlange=konfidenz&zurueck=2')->assertSeeText('Ticket#'.$second->number)->assertSeeText('Deine vorletzte Entscheidung')->assertDontSee('data-key="z"', false);
+        lblAdmin()->get('/beschriftung/pruefen?warteschlange=konfidenz&zurueck=3')->assertSeeText('Ticket#'.$second->number)->assertDontSeeText('Ticket#'.$first->number);
+    });
+
+    it('changes a decision in place and counts a sample by the new answer', function () {
+        $ticket = lblMake([], ['queue' => 'stichprobe']);
+        lblAdmin()->post("/beschriftung/tickets/{$ticket->id}/entscheidung", ['category' => 'reklamation', 'queue' => 'stichprobe']);
+        $review = LabelReview::query()->sole();
+
+        lblAdmin()->patch("/beschriftung/entscheidungen/{$review->id}", ['category' => 'wismo', 'queue' => 'stichprobe'])
+            ->assertRedirect(route('labeling.review', ['warteschlange' => 'stichprobe']))->assertSessionHas('success');
+
+        expect(LabelReview::query()->sole())->decision->toBe('wismo')->origin->toBe('stichprobe')->hit->toBeTrue()
+            ->and($ticket->refresh()->decision)->toBe('wismo')->and($ticket->decision_origin)->toBe('stichprobe')->and($ticket->tag_kind)->toBe('bestätigt');
+    });
+
+    it('takes a changed decision out of hit rate and tag when it becomes unsure', function () {
+        $ticket = lblMake(['decision' => 'wismo', 'decision_origin' => 'stichprobe', 'tag_kind' => 'bestätigt', 'tag_value' => 'train:wismo'], ['queue' => 'stichprobe']);
+        $review = $ticket->reviews()->create(['label_prediction_id' => $ticket->latestPrediction->id, 'decision' => 'wismo', 'origin' => 'stichprobe', 'hit' => true, 'reviewer' => 'Etienne']);
+
+        lblAdmin()->patch("/beschriftung/entscheidungen/{$review->id}", ['category' => 'unsicher']);
+
+        expect($review->refresh()->hit)->toBeNull()->and($ticket->refresh()->decision)->toBe('unsicher')->and($ticket->tagPending())->toBeTrue()->and($ticket->desiredTag())->toBeNull();
+    });
+
+    it('refuses to change a decision beyond the last two, of another admin or replaced by a later one', function () {
+        $other = lblMake(['decision' => 'zahlung', 'decision_origin' => 'zweifel'], ['queue' => 'zweifel']);
+        $foreign = $other->reviews()->create(['decision' => 'zahlung', 'origin' => 'zweifel', 'reviewer' => 'Kerstin']);
+        [$first, $second] = [lblMake([], ['queue' => 'zweifel']), lblMake([], ['queue' => 'zweifel'])];
+
+        lblAdmin()->post("/beschriftung/tickets/{$second->id}/entscheidung", ['category' => 'wismo']);
+        lblAdmin()->post("/beschriftung/tickets/{$first->id}/entscheidung", ['category' => 'wismo']);
+        lblAdmin()->post("/beschriftung/tickets/{$first->id}/entscheidung", ['category' => 'storno']);
+        $oldest = LabelReview::query()->where('label_ticket_id', $second->id)->sole();
+        $replaced = LabelReview::query()->where('label_ticket_id', $first->id)->where('decision', 'wismo')->sole();
+
+        foreach ([$foreign, $replaced, $oldest] as $review) {
+            lblAdmin()->patch("/beschriftung/entscheidungen/{$review->id}", ['category' => 'sonstiges'])->assertSessionHas('error');
+        }
+
+        expect(LabelReview::query()->where('decision', 'sonstiges')->count())->toBe(0)
+            ->and($second->refresh()->decision)->toBe('wismo')->and($first->refresh()->decision)->toBe('storno')->and($other->refresh()->decision)->toBe('zahlung');
+    });
+
     it('refuses an unknown category', function () {
         $ticket = lblMake();
 
