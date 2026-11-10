@@ -1,7 +1,12 @@
 <?php
 
+use App\Analysis\AnalysisRequest;
+use App\Analysis\CaseAnalyzer;
+use App\Analysis\ContextVariant;
 use App\Eocs\EocsOrder;
 use App\Eocs\EocsShipment;
+use App\Knowledge\CustomerGroup;
+use App\Zammad\Ticket;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Blade;
 
@@ -63,4 +68,34 @@ it('omits the order number when asked to', function () {
 it('names no fixed deadline of the customer reply', function () {
     expect(renderedNotice(shippedOrder([21])))->not->toContain('14 Tage')
         ->and(renderedNotice(shippedOrder([40])))->not->toContain('14 Tage');
+});
+
+function promptOrders(array $orders): string
+{
+    $now = CarbonImmutable::now('Europe/Berlin');
+    $ticket = new Ticket('2140331', 1, 'Betreff', 'open', false, null, null, 'Kunde', 'kunde@example.test', $now->subDays(1), [], 'https://zammad.test/#ticket/zoom/1');
+    $group = collect(CustomerGroup::all(config('knowledge.customer_groups')))->first();
+    $request = new AnalysisRequest($ticket, 'Etienne', $group, [], $orders, [], '', ContextVariant::FullThread, null);
+    $method = new ReflectionMethod(CaseAnalyzer::class, 'orders');
+
+    return $method->invoke(app(CaseAnalyzer::class), $request, false);
+}
+
+it('tells the model today and how many days ago the first shipment left', function () {
+    $text = promptOrders([shippedOrder([5, 32])]);
+
+    expect($text)->toContain('Heutiges Datum: '.CarbonImmutable::now('Europe/Berlin')->format('d.m.Y'))
+        ->toContain('Die erste Sendung wurde vor 32 Tagen versandt.');
+});
+
+it('tells the model no days without a shipment', function () {
+    $text = promptOrders([shippedOrder([])]);
+
+    expect($text)->toContain('Heutiges Datum:')
+        ->not->toContain('Die erste Sendung wurde vor')
+        ->toContain('noch nicht versandt');
+});
+
+it('leaves out the date when there is no order', function () {
+    expect(promptOrders([]))->not->toContain('Heutiges Datum');
 });

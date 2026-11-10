@@ -693,6 +693,11 @@ class CaseAnalyzer
     private function orders(AnalysisRequest $request, bool $hasDeliveryAddress, bool $neutralShipping = false): string
     {
         $lines = [];
+        $now = CarbonImmutable::now();
+
+        if ($request->orders !== []) {
+            $lines[] = 'Heutiges Datum: '.$now->setTimezone('Europe/Berlin')->format('d.m.Y');
+        }
 
         foreach ($request->orders as $order) {
             $lines[] = "## Bestellung {$order->externalNumber} (aus EOCS)";
@@ -701,6 +706,12 @@ class CaseAnalyzer
             foreach ($order->shipments as $shipment) {
                 $lines[] = 'Versand: '.($shipment->carrier ?? '–').($shipment->trackingNumber ? ", Sendungsnummer {$shipment->trackingNumber}" : '')
                     .($shipment->shippedAt ? ', versandt am '.$shipment->shippedAt->format('d.m.Y') : '').($shipment->delivered ? ', zugestellt' : '');
+            }
+
+            $daysSinceShipped = $order->daysSinceFirstShipment($now);
+
+            if ($daysSinceShipped !== null) {
+                $lines[] = "Die erste Sendung wurde vor {$daysSinceShipped} Tagen versandt.";
             }
 
             if ($order->shipments === []) {

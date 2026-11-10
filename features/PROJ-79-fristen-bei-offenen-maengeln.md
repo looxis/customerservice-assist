@@ -166,7 +166,8 @@ Keine.
 - Neue Komponente `x-ticket.shipping-age-notice` (gelb 14 bis 30 Tage, rot darüber), eingebunden im Bestellblock (ohne Bestellnummer).
 - Abweichung von der Spezifikation (Entscheidung Etienne, 2026-11-10): Der Hinweis steht nur im Bestellblock, nicht zusätzlich über Vorschlag und Formular, weil er sonst doppelt auf der Seite steht.
 - Tests: `tests/Feature/PROJ-79-ShippingAgeNoticeTest.php` (Schwellen 13/14/30/31, ohne Sendung, mehrere Sendungen, Darstellung, keine Tagesfrist im Text).
-- Noch offen für `/backend`: heutiges Datum und „Tage seit Versand“ im Prompt; für `/knowledge`: die Policy.
+**2026-11-10 (Backend):** Der Prompt (`CaseAnalyzer::orders`) enthält bei geladenen Bestellungen einmal „Heutiges Datum: …“ und je Bestellung mit Sendung „Die erste Sendung wurde vor N Tagen versandt.“; ohne Sendung keine Zahl (die bestehenden Zeilen „noch nicht versandt“ bzw. „keine Sendung in EOCS gefunden“ bleiben). Tests in `PROJ-79-ShippingAgeNoticeTest.php`.
+- Noch offen: die Policy im Wissen (`/knowledge`).
 
 ## QA Test Results
 _To be added by /qa_
