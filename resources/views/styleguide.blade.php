@@ -119,6 +119,11 @@
     </x-card>
 
     <x-card>
+        <h2 class="text-base font-semibold text-slate-900">Erklärung per Fragezeichen</h2>
+        <p class="mt-4 text-sm text-slate-600"><x-help-tip text="Erscheint beim Überfahren mit der Maus, beim Antippen und bei Tastaturfokus. Escape oder ein Klick daneben schließt sie.">Bestätigt</x-help-tip></p>
+    </x-card>
+
+    <x-card>
         <h2 class="text-base font-semibold text-slate-900">Alerts</h2>
         <div class="mt-4 space-y-3">
             <x-alert>Info: Für dieses Ticket gibt es bereits eine frühere Analyse.</x-alert>

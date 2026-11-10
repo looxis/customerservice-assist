@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-11-06
-**Last Updated:** 2026-11-08
+**Last Updated:** 2026-11-10
 
 ## Dependencies
 - Requires: PROJ-6 (Zammad-Ticket laden), PROJ-9 (Fallanalyse per LLM, LLM-Aufruf), PROJ-27/PROJ-31 (Einstellungen, Prompt- und Modellverwaltung, falls dort versioniert), PROJ-19 (Zammad-Token je Mitarbeiter zum Schreiben)
@@ -351,6 +351,10 @@ Keine neuen Pakete.
 - `LabelStats::sample()`: Nach einer Sperre zählen nur Prüfungen von Vorschlägen, die nach `locked_at` entstanden sind (bisher: Prüfungen nach der Sperre). Stichproben zu älteren Vorschlägen, die nach der Sperre noch geprüft wurden, zählen nicht mehr. Der Hinweis auf der gesperrten Kategoriekarte nennt das.
 - Die Felder des Laufformulars blenden jetzt Beschriftung und Hinweis mit aus, nicht nur das Eingabefeld.
 - Eine Sperre hebt sich nie von selbst auf, auch wenn die neuen Stichproben reichen; erst der Klick „Freigeben“ gibt die Kategorie wieder frei. Reichen sie, zeigt die gesperrte Karte das als Hinweis statt der roten Warnung.
+
+### Nachtrag: Erklärungen auf der Kategoriekarte (2026-11-10)
+- Neue Komponente `<x-help-tip text="…">Label</x-help-tip>`: Fragezeichen direkt hinter dem Label, Erklärung beim Überfahren, Antippen und Tastaturfokus, schließt mit Escape oder Klick daneben (in der Komponenten-Übersicht ergänzt).
+- Die Kategoriekarte erklärt so „Getaggt oder bestätigt“, „Bestätigt“, „Korrigiert“, „Automatisch“, „Offen“, „Unsicher“ und „Testmenge“ (bisher nur `title` bei Unsicher und Testmenge).
 
 ## QA Test Results
 _To be added by /qa_

@@ -27,19 +27,19 @@
 
     <div>
         <div class="flex items-baseline justify-between text-sm">
-            <span class="text-slate-600">Getaggt oder bestätigt</span>
+            <x-help-tip class="text-slate-600" text="Summe aus Bestätigt, Korrigiert und Automatisch, gemessen am Zielwert je Kategorie aus den Einstellungen. Offene und unsichere Tickets zählen nicht mit. Ist der Zielwert erreicht, hat die Kategorie genug Trainingsdaten.">Getaggt oder bestätigt</x-help-tip>
             <span class="font-semibold text-slate-900">{{ $done }} / {{ $target }}</span>
         </div>
         <progress class="mt-1 block h-2 w-full accent-brand" max="{{ $target }}" value="{{ min($done, $target) }}" aria-label="Zielwert {{ $category->label() }}">{{ $progress }} %</progress>
     </div>
 
     <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-        <dt class="text-slate-600">Bestätigt</dt><dd class="text-right text-slate-900">{{ $row['confirmed'] }}</dd>
-        <dt class="text-slate-600">Korrigiert</dt><dd class="text-right text-slate-900">{{ $row['corrected'] }}</dd>
-        <dt class="text-slate-600">Automatisch</dt><dd class="text-right text-slate-900">{{ $row['automatic'] }}</dd>
-        <dt class="text-slate-600">Offen</dt><dd class="text-right text-slate-900">{{ $row['open'] }}</dd>
-        <dt class="text-slate-600" title="Von dir als unsicher markiert, nach dem Vorschlag der KI">Unsicher</dt><dd class="text-right text-slate-900">{{ $row['unsure'] }}</dd>
-        <dt class="text-slate-600" title="Entschiedene Testtickets; ab dem Testziel erscheinen Testtickets mit diesem Vorschlag nicht mehr unter „Prüfen“">Testmenge</dt><dd @class(['text-right', 'text-success-700' => $row['tested'] >= $testTarget, 'text-slate-900' => $row['tested'] < $testTarget])>{{ $row['tested'] }} / {{ $testTarget }}</dd>
+        <dt class="text-slate-600"><x-help-tip text="Du hast diese Tickets unter „Prüfen“ dieser Kategorie zugeordnet, und die KI hatte dieselbe Kategorie vorgeschlagen. Beim Lauf „Tags schreiben“ erhalten sie das Tag der Kategorie. Geprüfte Trainingstickets nutzt die App außerdem als Beispiele im Prompt. Tickets, die schon vor dem Abruf ein train:-Tag hatten, zählen hier nicht mit, sondern als Referenz.">Bestätigt</x-help-tip></dt><dd class="text-right text-slate-900">{{ $row['confirmed'] }}</dd>
+        <dt class="text-slate-600"><x-help-tip text="Du hast diese Tickets dieser Kategorie zugeordnet, obwohl die KI eine andere vorgeschlagen hatte. Sie zählen bei der Kategorie, die du gewählt hast, und erhalten deren Tag. Korrekturen zeigen, wo der Prompt noch nicht trifft, und kommen bei den Beispielen im Prompt zuerst dran.">Korrigiert</x-help-tip></dt><dd class="text-right text-slate-900">{{ $row['corrected'] }}</dd>
+        <dt class="text-slate-600"><x-help-tip text="Ohne deine Prüfung getaggt: Die Kategorie war freigegeben und die KI hatte das Ticket eindeutig hier eingeordnet. Das geschieht erst beim Lauf „Tags schreiben“, nicht im Trockenlauf. Testtickets werden nie automatisch getaggt.">Automatisch</x-help-tip></dt><dd class="text-right text-slate-900">{{ $row['automatic'] }}</dd>
+        <dt class="text-slate-600"><x-help-tip text="Die KI hat diese Tickets hier eingeordnet, es gibt aber noch keine Entscheidung. Zweifelsfälle, Stichproben und Testtickets warten unter „Prüfen“. Eindeutige Trainingstickets bleiben offen, bis die Kategorie freigegeben ist; dann taggt sie der nächste Lauf „Tags schreiben“ automatisch.">Offen</x-help-tip></dt><dd class="text-right text-slate-900">{{ $row['open'] }}</dd>
+        <dt class="text-slate-600"><x-help-tip text="Du hast diese Tickets unter „Prüfen“ als „Unsicher, nicht verwenden“ markiert. Sie zählen bei der Kategorie, die die KI vorgeschlagen hatte. Sie erhalten kein Tag und gehen weder in die Trainings- noch in die Testdaten; ein schon geschriebenes Tag entfernt der nächste Lauf „Tags schreiben“. Wiederfinden kannst du sie unter „Prüfen“ in „Unsicher markiert“.">Unsicher</x-help-tip></dt><dd class="text-right text-slate-900">{{ $row['unsure'] }}</dd>
+        <dt class="text-slate-600"><x-help-tip text="Entschiedene Testtickets dieser Kategorie im Verhältnis zum Testziel. Rund 20 % der Tickets kommen beim Abruf fest in die Testmenge, damit sich die Qualität später unabhängig vom Training messen lässt. Du entscheidest sie ohne sichtbaren Vorschlag, sie erhalten das Tag test: statt train: und werden nie automatisch getaggt oder als Beispiel genutzt. Ist das Testziel erreicht, erscheinen Testtickets mit diesem Vorschlag nicht mehr unter „Prüfen“.">Testmenge</x-help-tip></dt><dd @class(['text-right', 'text-success-700' => $row['tested'] >= $testTarget, 'text-slate-900' => $row['tested'] < $testTarget])>{{ $row['tested'] }} / {{ $testTarget }}</dd>
     </dl>
 
     <p class="text-sm text-slate-600">
