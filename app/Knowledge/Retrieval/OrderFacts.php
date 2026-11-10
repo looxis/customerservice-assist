@@ -41,7 +41,7 @@ final readonly class OrderFacts
             'order_channel' => $order->channel,
             'order_age_days' => self::days($order->orderedAt, $now),
             'shipped' => $shipments === [] ? null : true,
-            'days_since_shipped' => $dates === [] ? null : self::days($dates[0], $now),
+            'days_since_shipped' => $order->daysSinceFirstShipment($now),
             'days_since_last_shipped' => $dates === [] ? null : self::days($dates[array_key_last($dates)], $now),
             'shipment_count' => $shipments === [] ? null : count($shipments),
             'delivery_confirmed' => $delivered === [] ? null : true,

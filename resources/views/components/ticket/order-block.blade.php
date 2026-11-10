@@ -12,6 +12,8 @@
         @endif
     </div>
 
+    <x-ticket.shipping-age-notice :order="$order" :show-number="false" class="mt-3" />
+
     <dl class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
         <div>
             <dt class="text-slate-600">Bestellt</dt>

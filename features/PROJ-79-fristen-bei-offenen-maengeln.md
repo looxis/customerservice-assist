@@ -1,6 +1,6 @@
 # PROJ-79: Fristen bei offenen Mängeln (Versandalter-Hinweis und Regel im Wissen)
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-10
 **Last Updated:** 2026-11-10
 
@@ -160,6 +160,14 @@ In den Bestelldaten des Prompts kommen dazu: **heutiges Datum** (einmal im Kopf 
 
 ### Abhängigkeiten (Pakete)
 Keine.
+
+## Implementation Notes (Frontend)
+**2026-11-10:** Hinweis im Code umgesetzt (Teil 1 der Reihenfolge); Prompt-Ergänzung und Policy im Wissen stehen noch aus.
+- `EocsOrder::daysSinceFirstShipment()` und `shippingAgeLevel()` (14 und 30 Tage als Konstanten); `OrderFacts` nutzt dieselbe Rechnung für `days_since_shipped`, damit Hinweis und Wissensabruf nicht auseinanderlaufen.
+- Neue Komponente `x-ticket.shipping-age-notice` (gelb 14 bis 30 Tage, rot darüber), eingebunden im Bestellblock (ohne Bestellnummer) und in `tickets/show` direkt über Vorschlag und Formular (Bestellnummer nur bei mehreren Bestellungen).
+- Abweichung: Der Hinweis über dem Vorschlag steht auch bei eingeklapptem Formular, weil er über beiden steht und nicht im Formular selbst.
+- Tests: `tests/Feature/PROJ-79-ShippingAgeNoticeTest.php` (Schwellen 13/14/30/31, ohne Sendung, mehrere Sendungen, Darstellung, keine Tagesfrist im Text).
+- Noch offen für `/backend`: heutiges Datum und „Tage seit Versand“ im Prompt; für `/knowledge`: die Policy.
 
 ## QA Test Results
 _To be added by /qa_

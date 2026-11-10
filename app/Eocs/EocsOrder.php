@@ -12,6 +12,10 @@ use Carbon\CarbonImmutable;
  */
 final readonly class EocsOrder
 {
+    public const SHIPPING_NOTICE_DAYS = 14;
+
+    public const SHIPPING_STRONG_NOTICE_DAYS = 30;
+
     /**
      * @param  list<EocsShipment>  $shipments
      * @param  list<EocsOrderItem>  $items
@@ -39,6 +43,41 @@ final readonly class EocsOrder
     public function withClaims(array $claims): self
     {
         return new self($this->id, $this->externalNumber, $this->channelName, $this->channel, $this->orderedAt, $this->statusName, $this->statusColor, $this->invoiceNumber, $this->shipments, $this->items, $claims, $this->url, $this->deliveryAddress, $this->shippingAddress);
+    }
+
+    /**
+     * Whole calendar days (Berlin time) since the first shipment; null without a shipment date (PROJ-79).
+     * The knowledge condition `days_since_shipped` counts the same way.
+     */
+    public function daysSinceFirstShipment(CarbonImmutable $now): ?int
+    {
+        $dates = array_values(array_filter(array_map(fn (EocsShipment $shipment): ?CarbonImmutable => $shipment->shippedAt, $this->shipments)));
+
+        if ($dates === []) {
+            return null;
+        }
+
+        usort($dates, fn (CarbonImmutable $a, CarbonImmutable $b): int => $a <=> $b);
+
+        $from = $dates[0]->setTimezone('Europe/Berlin')->startOfDay();
+        $to = $now->setTimezone('Europe/Berlin')->startOfDay();
+
+        return max(0, (int) floor($from->diffInDays($to, false)));
+    }
+
+    /**
+     * Level of the shipping-age notice (PROJ-79): null below 14 days or without a shipment,
+     * "notice" from 14 days, "strong" above 30 days.
+     */
+    public function shippingAgeLevel(CarbonImmutable $now): ?string
+    {
+        $days = $this->daysSinceFirstShipment($now);
+
+        return match (true) {
+            $days === null || $days < self::SHIPPING_NOTICE_DAYS => null,
+            $days > self::SHIPPING_STRONG_NOTICE_DAYS => 'strong',
+            default => 'notice',
+        };
     }
 
     /**
