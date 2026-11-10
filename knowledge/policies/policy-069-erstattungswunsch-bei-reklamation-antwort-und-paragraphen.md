@@ -13,7 +13,7 @@ topics:
   - refund
   - replacement
   - withdrawal
-summary: "Privatkunde verlangt bei einer Reklamation eine Erstattung (Geld zurück, Rückerstattung, Anwalt, Klage, A-bis-Z-Garantieantrag). Regelt, wie kurz auf den Erstattungswunsch eingegangen wird (Fehler wird behoben, nicht erstattet; bei Amazon auch den Amazon-Regeln entsprechend), was nach einem später gelieferten Nachweis geschieht (Fehler anerkennen, Neuproduktion ausdrücklich anbieten, Lieferadresse bestätigen lassen) und ab wann Paragraphen genannt werden. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
+summary: "Privatkunde verlangt bei einer Reklamation eine Erstattung (Geld zurück, Rückerstattung, Anwalt, Klage, A-bis-Z-Garantieantrag) oder droht mit der Rücksendung der Ware. Regelt, wie kurz auf den Erstattungswunsch eingegangen wird (Fehler wird behoben, nicht erstattet; bei Amazon auch den Amazon-Regeln entsprechend), was nach einem später gelieferten Nachweis geschieht (Fehler anerkennen, Neuproduktion ausdrücklich anbieten, Lieferadresse bestätigen lassen) wie auf Rücksendung oder deren Androhung geantwortet werden kann und ab wann Paragraphen genannt werden. Gilt nicht für Geschäftskunden und nicht für Kundenfehler."
 retrieval: triggered
 triggers:
   - Erstattung
@@ -32,6 +32,10 @@ triggers:
   - A-bis-Z
   - Garantieantrag
   - Garantie-Antrag
+  - zurücksenden
+  - zurückschicken
+  - Rücksendung
+  - Retoure
 exclude_triggers:
 when:
 actions:
@@ -64,6 +68,10 @@ Hat der Kunde selbst Ersatz oder Neuproduktion verlangt, muss die Neuproduktion 
 # Kunde besteht auf Erstattung
 
 Besteht der Kunde trotz Erklärung auf einer Erstattung, erläutert die Antwort kurz, warum wir nachbessern statt zu erstatten: Bei einem Mangel sind wir berechtigt, nachzubessern. Bei personalisierten Produkten gibt es kein Widerrufsrecht (POLICY-001), also kann der Kunde die Erstattung auch nicht über einen Widerruf statt der Reklamation erreichen. Sachlich und kurz, ohne Rechtsbelehrung. Gesetzliche Mängelrechte bleiben unberührt (POLICY-002, „Ausnahmen und gesetzliche Grenzen“).
+
+# Kunde besteht auf Rücksendung oder droht sie an
+
+Besteht der Kunde schon in seiner zweiten Nachricht darauf, die reklamierte Ware zurückzusenden, oder droht er die Rücksendung an (oft in der Annahme, seiner Forderung so Nachdruck zu verleihen), darf die Antwort mitteilen, dass eine Rücksendung eines personalisierten Produkts sinnlos ist: Durch die Personalisierung hat es für niemanden sonst mehr einen Wert. Das ist eine Möglichkeit, keine Pflicht. Eine Rücksendung wird nicht angefordert und nicht als Voraussetzung für die Behebung des Fehlers genannt (POLICY-001, POLICY-002); der Erstattungsanspruch entsteht durch eine Rücksendung nicht.
 
 # Wann Paragraphen genannt werden
 
