@@ -4,6 +4,8 @@ namespace App\Zammad;
 
 use App\Analysis\ProcessingState;
 use App\Analysis\TicketProcessingState;
+use App\Jobs\ClassifyIncomingTicket;
+use App\Models\LabelTicket;
 use App\Models\TrackedTicket;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -102,7 +104,33 @@ class TicketSynchronizer
             $attributes += $this->currentMessage($row, $head);
         }
 
-        $row === null ? TrackedTicket::query()->create($attributes) : $row->update($attributes);
+        if ($row !== null) {
+            $row->update($attributes);
+
+            return;
+        }
+
+        TrackedTicket::query()->create($attributes);
+        $this->label($head, $attributes['last_customer_article_id'] ?? null);
+    }
+
+    /**
+     * A ticket CSA sees for the first time (PROJ-80): its category from the ticket tagging goes into the list; a new
+     * ticket in which the customer has written is classified. Older tickets, imported or reconciled, are not.
+     */
+    private function label(TicketHead $head, ?int $customerArticleId): void
+    {
+        $labelTicket = LabelTicket::query()->where('zammad_id', $head->id)->first();
+
+        if ($labelTicket !== null) {
+            $labelTicket->shareCategory();
+
+            return;
+        }
+
+        if ($customerArticleId !== null && $head->createdAt?->greaterThanOrEqualTo(now()->subHours((int) config('labeling.intake_max_age_hours')))) {
+            ClassifyIncomingTicket::dispatch($head->id);
+        }
     }
 
     /**

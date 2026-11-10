@@ -124,6 +124,16 @@
     </x-card>
 
     <x-card>
+        <h2 class="text-base font-semibold text-slate-900">Tooltip an einem Knopf</h2>
+        <div class="mt-4">
+            <x-tooltip>
+                <x-button variant="secondary">Reklamation</x-button>
+                <x-slot:content><x-labeling.category-rules :rules="\App\Labeling\LabelCategory::Reklamation->rules()" /></x-slot:content>
+            </x-tooltip>
+        </div>
+    </x-card>
+
+    <x-card>
         <h2 class="text-base font-semibold text-slate-900">Alerts</h2>
         <div class="mt-4 space-y-3">
             <x-alert>Info: Für dieses Ticket gibt es bereits eine frühere Analyse.</x-alert>

@@ -12,13 +12,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * A Zammad ticket in the ticket tagging (PROJ-78): its first customer message (encrypted, emptied after the
  * retention period), the decision of an admin and the state of its tag in Zammad.
  */
-#[Fillable(['zammad_id', 'number', 'group_name', 'article_id', 'text', 'subject', 'sender', 'zammad_created_at', 'source', 'split', 'state', 'existing_tag', 'problem', 'decision', 'decision_origin', 'decided_by', 'decided_at', 'tag_kind', 'tag_value', 'tag_written_at', 'tag_problem', 'last_activity_at'])]
+#[Fillable(['zammad_id', 'number', 'group_name', 'article_id', 'text', 'subject', 'sender', 'zammad_created_at', 'source', 'split', 'state', 'existing_tag', 'problem', 'decision', 'decision_origin', 'decided_by', 'decided_at', 'staff_unsure_by', 'staff_unsure_at', 'tag_kind', 'tag_value', 'tag_written_at', 'tag_problem', 'last_activity_at'])]
 class LabelTicket extends Model
 {
     /** The decision of an admin who cannot place the ticket with certainty: no tag, no example, not in the hit rate. */
     public const string UNSURE = 'unsicher';
 
     public const string EXCLUDED = 'excluded';
+
+    /** The origin of a decision made by a member of the staff on the ticket page (PROJ-80): tagged, never an example or a sample. */
+    public const string STAFF = 'mitarbeiter';
 
     protected $table = 'labeling_tickets';
 
@@ -33,6 +36,7 @@ class LabelTicket extends Model
             'sender' => 'encrypted',
             'zammad_created_at' => 'datetime',
             'decided_at' => 'datetime',
+            'staff_unsure_at' => 'datetime',
             'tag_written_at' => 'datetime',
             'last_activity_at' => 'datetime',
         ];
@@ -98,6 +102,8 @@ class LabelTicket extends Model
             'problem' => 'Entfernt',
             'last_activity_at' => now(),
         ]);
+
+        $this->shareCategory();
     }
 
     public function isTest(): bool
@@ -146,7 +152,39 @@ class LabelTicket extends Model
     {
         $prediction = $this->latestPrediction;
 
-        return $prediction?->queue === 'abweichung' && ! $this->reviews->contains('label_prediction_id', $prediction->id);
+        return $prediction?->queue === 'abweichung' && ! $this->reviews->contains(
+            fn (LabelReview $review): bool => $review->label_prediction_id === $prediction->id && $review->origin !== self::STAFF,
+        );
+    }
+
+    /**
+     * Whether a member of the staff may still decide on the ticket page (PROJ-80): as long as nobody decided, or only
+     * the staff did and no tag went to Zammad yet. Decisions of an admin and existing tags stay as they are.
+     */
+    public function staffMayDecide(): bool
+    {
+        return $this->state === 'classified'
+            && filled($this->text)
+            && ($this->decision === null || ($this->decision_origin === self::STAFF && $this->tag_value === null));
+    }
+
+    /**
+     * Writes the valid category into the ticket list on the start page (PROJ-80): a decided category as confirmed,
+     * unless it was tagged automatically, else the newest proposal. An undecided ticket of the test set shows none,
+     * so that the list does not give away the hidden proposal; neither does a removed ticket.
+     */
+    public function shareCategory(): void
+    {
+        $decided = $this->decidedCategory();
+
+        [$category, $confirmed] = match (true) {
+            $this->state === self::EXCLUDED => [null, false],
+            $decided !== null => [$decided->value, $this->decision_origin !== 'automatisch'],
+            $this->isTest() => [null, false],
+            default => [$this->predictions()->orderByDesc('id')->value('category'), false],
+        };
+
+        TrackedTicket::query()->where('zammad_id', $this->zammad_id)->update(['category' => $category, 'category_confirmed' => $confirmed]);
     }
 
     /**

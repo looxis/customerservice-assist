@@ -39,6 +39,10 @@
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
             </x-slot:orders>
         </x-ticket.header>
+
+        @if ($labelState ?? null)
+            <x-labeling.ticket-bar :number="$number" :state="$labelState" />
+        @endif
         @isset($analysis)
             @if ($analysis['resultMissing'])
                 <x-alert type="warning">Dieser Vorschlag ist nicht mehr verfügbar.</x-alert>

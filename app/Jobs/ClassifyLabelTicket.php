@@ -14,7 +14,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\RateLimited;
 
 /**
- * Has the language model propose the category of one ticket (PROJ-78).
+ * Has the language model propose the category of one ticket (PROJ-78), within a run or, for a new incoming
+ * ticket, on its own (PROJ-80).
  */
 class ClassifyLabelTicket implements ShouldQueue
 {
@@ -27,7 +28,7 @@ class ClassifyLabelTicket implements ShouldQueue
 
     public int $maxExceptions = 4;
 
-    public function __construct(public int $runId, public int $labelTicketId) {}
+    public function __construct(public ?int $runId, public int $labelTicketId) {}
 
     /**
      * @return list<int>
@@ -47,26 +48,26 @@ class ClassifyLabelTicket implements ShouldQueue
 
     public function handle(LabelClassifier $classifier, LabelRunner $runner): void
     {
-        $run = LabelRun::query()->find($this->runId);
+        $run = $this->runId === null ? null : LabelRun::query()->find($this->runId);
 
-        if ($run === null || ! $run->isActive()) {
+        if ($this->runId !== null && ($run === null || ! $run->isActive())) {
             return;
         }
 
         $ticket = LabelTicket::query()->find($this->labelTicketId);
 
         if ($ticket === null || blank($ticket->text)) {
-            $runner->count($run, false);
+            $this->count($runner, $run, false);
 
             return;
         }
 
         try {
-            $classifier->classify($ticket, $run->id);
+            $classifier->classify($ticket, $run?->id);
         } catch (AnalysisException $exception) {
             if ($exception->problem === AnalysisProblem::Misconfigured) {
                 $ticket->update(['state' => 'failed', 'problem' => $exception->problem->value]);
-                $runner->count($run, false);
+                $this->count($runner, $run, false);
 
                 return;
             }
@@ -74,7 +75,7 @@ class ClassifyLabelTicket implements ShouldQueue
             throw $exception;
         }
 
-        $runner->count($run, true);
+        $this->count($runner, $run, true);
     }
 
     /**
@@ -83,10 +84,15 @@ class ClassifyLabelTicket implements ShouldQueue
     public function failed(): void
     {
         LabelTicket::query()->whereKey($this->labelTicketId)->where('state', '!=', LabelTicket::EXCLUDED)->update(['state' => 'failed', 'problem' => 'Klassifikation fehlgeschlagen']);
-        $run = LabelRun::query()->find($this->runId);
+        $run = $this->runId === null ? null : LabelRun::query()->find($this->runId);
 
+        $this->count(app(LabelRunner::class), $run, false);
+    }
+
+    private function count(LabelRunner $runner, ?LabelRun $run, bool $succeeded): void
+    {
         if ($run !== null) {
-            app(LabelRunner::class)->count($run, false);
+            $runner->count($run, $succeeded);
         }
     }
 }

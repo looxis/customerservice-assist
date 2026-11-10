@@ -8,7 +8,8 @@ use App\Models\LabelTicket;
 use Illuminate\Support\Collection;
 
 /**
- * Files the decision of an admin about a ticket (PROJ-78) and watches the hit rate of released categories.
+ * Files the decision of an admin about a ticket (PROJ-78), or the choice of the staff on the ticket page (PROJ-80),
+ * and watches the hit rate of released categories.
  */
 class ReviewRecorder
 {
@@ -58,7 +59,65 @@ class ReviewRecorder
             $this->lockWhenFailing($prediction->category);
         }
 
+        $ticket->shareCategory();
+
         return $review;
+    }
+
+    /**
+     * Files the choice of a member of the staff on the ticket page (PROJ-80). It counts at once when it matches the
+     * newest proposal; a differing one waits in the queue "abweichung" until an admin decided, and its tag waits too.
+     * Such a decision is never an example in the prompt nor a sample. "Unsure" is only a note, no decision: the
+     * ticket stays open for the admin and is never tagged automatically.
+     *
+     * @param  string  $decision  A category value or LabelTicket::UNSURE
+     */
+    public function recordFromTicket(LabelTicket $ticket, string $decision, string $staff): void
+    {
+        $prediction = $ticket->latestPrediction;
+
+        if ($decision === LabelTicket::UNSURE) {
+            $ownDecision = $ticket->decision_origin === LabelTicket::STAFF
+                ? ['decision' => null, 'decision_origin' => null, 'decided_by' => null, 'decided_at' => null, 'tag_kind' => null]
+                : [];
+
+            $ticket->update([...$ownDecision, 'staff_unsure_by' => $staff, 'staff_unsure_at' => now(), 'last_activity_at' => now()]);
+
+            // The test set has its own queue; a clear proposal of the training set goes to the doubtful ones.
+            $queue = match (true) {
+                $ticket->isTest() => null,
+                in_array($prediction?->queue, [null, 'stichprobe', 'abweichung'], true) => 'zweifel',
+                default => $prediction?->queue,
+            };
+            $prediction?->update(['queue' => $queue]);
+        } else {
+            $ticket->reviews()->create([
+                'label_prediction_id' => $prediction?->id,
+                'decision' => $decision,
+                'origin' => LabelTicket::STAFF,
+                'hit' => null,
+                'reviewer' => $staff,
+            ]);
+
+            $ticket->update([
+                'decision' => $decision,
+                'decision_origin' => LabelTicket::STAFF,
+                'decided_by' => $staff,
+                'decided_at' => now(),
+                'staff_unsure_by' => null,
+                'staff_unsure_at' => null,
+                'tag_kind' => 'bestätigt',
+                'last_activity_at' => now(),
+            ]);
+
+            if ($prediction?->category !== $decision) {
+                $prediction?->update(['queue' => 'abweichung']);
+            } elseif ($prediction->queue === 'abweichung') {
+                $prediction->update(['queue' => null]);
+            }
+        }
+
+        $ticket->shareCategory();
     }
 
     /**
@@ -71,6 +130,7 @@ class ReviewRecorder
     {
         return LabelReview::query()
             ->where('reviewer', $reviewer)
+            ->where('origin', '!=', LabelTicket::STAFF)
             ->latest('id')
             ->limit(self::REVISABLE)
             ->with(['labelTicket.latestPrediction', 'prediction'])
@@ -105,6 +165,8 @@ class ReviewRecorder
         if ($review->origin === 'stichprobe' && ! $unsure && $prediction?->category !== null) {
             $this->lockWhenFailing($prediction->category);
         }
+
+        $review->labelTicket->shareCategory();
     }
 
     private function lockWhenFailing(string $category): void

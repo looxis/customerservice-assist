@@ -31,7 +31,7 @@ class LabelTagging
     {
         return LabelTicket::query()
             ->where(fn ($query) => $query->whereNotNull('decision')->orWhere(fn ($open) => $open->whereNull('decision')->where('state', 'classified')->where('split', 'training')))
-            ->with(['latestPrediction', 'reviews:id,label_ticket_id,label_prediction_id'])
+            ->with(['latestPrediction', 'reviews:id,label_ticket_id,label_prediction_id,origin'])
             ->get()
             ->filter(fn (LabelTicket $ticket): bool => $ticket->decision !== null
                 ? $ticket->decision_origin !== 'vorhanden' && $ticket->tagPending() && ! $ticket->hasOpenDeviation()
@@ -74,6 +74,7 @@ class LabelTagging
             }
 
             $ticket->update(['decision' => $ticket->latestPrediction->category, 'decision_origin' => 'automatisch', 'decided_by' => $admin, 'decided_at' => now(), 'tag_kind' => 'automatisch']);
+            $ticket->shareCategory();
         }
 
         $desired = $ticket->desiredTag();

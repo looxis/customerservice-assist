@@ -14,10 +14,18 @@
                 <option value="training" @selected($filters['zuordnung'] === 'training')>Training</option>
                 <option value="test" @selected($filters['zuordnung'] === 'test')>Testmenge</option>
             </x-select>
+            <x-select name="quelle" label="Quelle" class="min-w-36">
+                <option value="">Alle</option>
+                <option value="pool" @selected($filters['quelle'] === 'pool')>Pool</option>
+                <option value="eingang" @selected($filters['quelle'] === 'eingang')>Eingang</option>
+                <option value="vorhanden" @selected($filters['quelle'] === 'vorhanden')>vorhanden</option>
+            </x-select>
             <x-select name="entscheidung" label="Entscheidung" class="min-w-40">
                 <option value="">Alle</option>
                 <option value="offen" @selected($filters['entscheidung'] === 'offen')>Offen</option>
                 <option value="unsicher" @selected($filters['entscheidung'] === 'unsicher')>Unsicher</option>
+                <option value="mitarbeiter" @selected($filters['entscheidung'] === 'mitarbeiter')>Von Mitarbeitern</option>
+                <option value="mitarbeiter-unsicher" @selected($filters['entscheidung'] === 'mitarbeiter-unsicher')>Mitarbeiter unsicher</option>
             </x-select>
             <x-button type="submit" variant="secondary">Filtern</x-button>
             @if (array_filter($filters))
@@ -57,9 +65,11 @@
                                     @if ($row['decision'])
                                         <x-badge compact :tone="$row['unsure'] ? 'warning' : 'success'">{{ $row['decision'] }}</x-badge>
                                         @if ($row['unsure'])<a href="{{ route('labeling.review', ['warteschlange' => 'unsicher']) }}" class="block text-xs text-brand hover:text-brand-hover">Erneut prüfen</a>@endif
+                                        @if ($row['staff'])<span class="block text-xs text-slate-600">von {{ $row['staff'] }} (Mitarbeiter)</span>@endif
                                     @else
                                         <x-badge compact>Offen</x-badge>
                                     @endif
+                                    @if ($row['staff_unsure'])<span class="block text-xs text-warning-700">Mitarbeiter unsicher: {{ $row['staff_unsure'] }}</span>@endif
                                 </td>
                                 <td class="px-4 py-3 align-top">
                                     @if ($row['tag'])

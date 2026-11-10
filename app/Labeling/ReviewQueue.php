@@ -121,14 +121,16 @@ class ReviewQueue
     private function base(string $queue): Builder
     {
         if ($queue === 'abweichung') {
-            // Decided tickets whose newest proposal differs and was not reviewed yet; the decision stays meanwhile.
+            // Decided tickets whose newest proposal differs and no admin reviewed yet; the decision stays meanwhile.
+            // A review by the staff (PROJ-80) does not count: its differing choice is what the admin has to check.
             return LabelTicket::query()
                 ->whereNotNull('decision')
                 ->where('state', 'classified')
                 ->whereNotNull('text')
                 ->whereHas('latestPrediction', fn ($query) => $query->where('queue', 'abweichung')->whereNotExists(fn ($reviews) => $reviews
                     ->from('labeling_reviews')
-                    ->whereColumn('labeling_reviews.label_prediction_id', 'labeling_predictions.id')));
+                    ->whereColumn('labeling_reviews.label_prediction_id', 'labeling_predictions.id')
+                    ->where('labeling_reviews.origin', '!=', LabelTicket::STAFF)));
         }
 
         if ($queue === 'unsicher') {

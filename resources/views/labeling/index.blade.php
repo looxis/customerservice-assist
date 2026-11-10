@@ -125,6 +125,14 @@
         <form method="POST" action="{{ route('labeling.settings.update') }}" class="grid gap-4 sm:grid-cols-2">
             @csrf
             @method('PATCH')
+            <div class="sm:col-span-2">
+                <input type="hidden" name="intake" value="0">
+                <label class="flex items-center gap-2 text-sm text-slate-900">
+                    <input type="checkbox" name="intake" value="1" @checked($settings['intake']) class="size-4 rounded border-slate-300 text-brand focus:ring-brand">
+                    Neue Tickets automatisch klassifizieren
+                </label>
+                <p class="mt-1 text-sm text-slate-600">Jedes neu eingehende Ticket wird sofort mit Prompt, Beispielen und Modell dieser Seite eingeordnet; die Mitarbeiter bestätigen auf der Ticketseite.</p>
+            </div>
             <x-input name="target" type="number" label="Zielwert je Kategorie" hint="Bestätigte oder getaggte Tickets" :value="$settings['target']" min="1" />
             <x-input name="min_cases" type="number" label="Stichprobenfälle für die Freigabe" :value="$settings['min_cases']" min="1" />
             <x-input name="min_rate" type="number" label="Nötige Trefferquote (%)" :value="$settings['min_rate']" min="50" max="100" />

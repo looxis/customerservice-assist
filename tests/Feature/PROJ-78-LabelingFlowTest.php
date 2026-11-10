@@ -1086,13 +1086,16 @@ describe('runs and settings', function () {
 });
 
 describe('retention', function () {
-    it('empties old texts and keeps the decisions', function () {
-        $old = lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel', 'last_activity_at' => now()->subMonths(7)]);
-        $recent = lblMake(['last_activity_at' => now()->subMonths(2)]);
+    it('empties the texts of tickets created more than 36 months ago and keeps the decisions', function () {
+        $old = lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel', 'zammad_created_at' => now()->subMonths(37), 'subject' => 'Paket', 'sender' => 'kunde@example.com'], ['evidence' => 'Wo bleibt mein Paket?']);
+        $recent = lblMake(['zammad_created_at' => now()->subMonths(35), 'last_activity_at' => now()->subMonths(30)], ['evidence' => 'Wo bleibt mein Paket?']);
 
         $this->artisan('labeling:purge')->assertSuccessful();
 
-        expect($old->refresh()->text)->toBeNull()->and($old->decision)->toBe('wismo')->and($recent->refresh()->text)->not->toBeNull();
+        expect($old->refresh()->text)->toBeNull()->and($old->subject)->toBeNull()->and($old->sender)->toBeNull()
+            ->and($old->decision)->toBe('wismo')
+            ->and($old->latestPrediction->evidence)->toBeNull()->and($old->latestPrediction->reason)->toBeNull()->and($old->latestPrediction->category)->toBe('wismo')
+            ->and($recent->refresh()->text)->not->toBeNull()->and($recent->latestPrediction->evidence)->toBe('Wo bleibt mein Paket?');
     });
 
     it('stores the message text encrypted', function () {

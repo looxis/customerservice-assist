@@ -12,6 +12,8 @@ use App\Eocs\EocsException;
 use App\Eocs\OrderLookup;
 use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
+use App\Labeling\TicketLabelState;
+use App\Models\LabelTicket;
 use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
@@ -112,7 +114,25 @@ class TicketController extends Controller
             'orderProblem' => $orderProblem,
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
+            'labelState' => $this->labelState($ticket),
         ]);
+    }
+
+    /**
+     * What the classification bar shows (PROJ-80), null while the ticket is not classified (older, removed, still
+     * in progress).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function labelState(Ticket $ticket): ?array
+    {
+        $labelTicket = LabelTicket::query()->where('zammad_id', $ticket->id)->with(['latestPrediction', 'reviews'])->first();
+
+        if ($labelTicket === null || $labelTicket->state !== 'classified' || blank($labelTicket->text)) {
+            return null;
+        }
+
+        return TicketLabelState::of($labelTicket);
     }
 
     /**

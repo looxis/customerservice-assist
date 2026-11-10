@@ -18,6 +18,7 @@ class UpdateLabelSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'intake' => ['sometimes', 'boolean'],
             'target' => ['required', 'integer', 'min:1', 'max:5000'],
             'min_cases' => ['required', 'integer', 'min:1', 'max:5000'],
             'min_rate' => ['required', 'integer', 'min:50', 'max:100'],

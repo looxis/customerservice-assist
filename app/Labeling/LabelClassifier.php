@@ -64,6 +64,7 @@ class LabelClassifier
         }
 
         $ticket->update(['state' => 'classified', 'problem' => null]);
+        $ticket->shareCategory();
 
         return $prediction;
     }

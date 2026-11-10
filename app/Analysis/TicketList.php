@@ -75,7 +75,7 @@ class TicketList
     public function page(TicketListFilter $filter, ?int $staffZammadId, int $page = 1): LengthAwarePaginator
     {
         $rows = $this->query($filter, $staffZammadId)
-            ->select(['id', 'zammad_id', 'number', 'title', 'state', 'owner_zammad_id', 'owner_name', 'channel', 'category', 'processing_state', 'sync_status', 'last_activity_at', 'zammad_created_at'])
+            ->select(['id', 'zammad_id', 'number', 'title', 'state', 'owner_zammad_id', 'owner_name', 'channel', 'category', 'category_confirmed', 'processing_state', 'sync_status', 'last_activity_at', 'zammad_created_at'])
             ->orderBy(self::SORTS[$filter->sort], $filter->direction)->orderBy('id', $filter->direction)
             ->paginate(self::PER_PAGE, page: max(1, $page));
 

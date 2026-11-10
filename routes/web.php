@@ -27,6 +27,7 @@ use App\Http\Controllers\TestModeController;
 use App\Http\Controllers\TicketAttachmentController;
 use App\Http\Controllers\TicketCloseController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketLabelController;
 use App\Http\Controllers\TicketOverviewController;
 use App\Http\Controllers\TicketTodoController;
 use App\Http\Controllers\TranslationController;
@@ -147,6 +148,7 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::post('/tickets/{number}/direkt-antworten', ManualReplyController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:20,1')->name('tickets.manual-reply');
     Route::post('/tickets/{number}/uebersetzung', [TranslationController::class, 'store'])->middleware('throttle:language-model')->name('tickets.translation.store');
     Route::post('/tickets/{number}/todos', [TicketTodoController::class, 'store'])->middleware('throttle:30,1')->name('tickets.todos.store');
+    Route::post('/tickets/{number}/klassifikation', TicketLabelController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:60,1')->name('tickets.label');
 });
 
 Route::get('/todos', [TicketTodoController::class, 'index'])->name('todos.index');

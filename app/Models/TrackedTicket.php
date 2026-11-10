@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * ticket data, CSA for channel, category and processing state. Holds no customer
  * name and no message text; the subject is encrypted.
  */
-#[Fillable(['zammad_id', 'number', 'title', 'state', 'is_closed', 'pending_until', 'group_name', 'owner_zammad_id', 'owner_name', 'customer_zammad_id', 'organization_zammad_id', 'zammad_created_at', 'zammad_updated_at', 'last_activity_at', 'last_contact_customer_at', 'last_customer_article_id', 'last_customer_article_at', 'reopened_at', 'sync_status', 'sync_problem_since', 'synced_at', 'channel', 'category', 'processing_state', 'processed_article_id'])]
+#[Fillable(['zammad_id', 'number', 'title', 'state', 'is_closed', 'pending_until', 'group_name', 'owner_zammad_id', 'owner_name', 'customer_zammad_id', 'organization_zammad_id', 'zammad_created_at', 'zammad_updated_at', 'last_activity_at', 'last_contact_customer_at', 'last_customer_article_id', 'last_customer_article_at', 'reopened_at', 'sync_status', 'sync_problem_since', 'synced_at', 'channel', 'category', 'category_confirmed', 'processing_state', 'processed_article_id'])]
 class TrackedTicket extends Model
 {
     /** @use HasFactory<TrackedTicketFactory> */
@@ -33,6 +33,7 @@ class TrackedTicket extends Model
         return [
             'title' => 'encrypted',
             'is_closed' => 'boolean',
+            'category_confirmed' => 'boolean',
             'pending_until' => 'datetime',
             'zammad_created_at' => 'datetime',
             'zammad_updated_at' => 'datetime',

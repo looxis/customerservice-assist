@@ -107,6 +107,8 @@ class LabelingController extends Controller
                 'reason' => (string) $prediction?->reason,
                 'decision' => $ticket->decision,
                 'previous' => $ticket->decisionLabel(),
+                'staff' => $ticket->decision_origin === LabelTicket::STAFF ? $ticket->decided_by : null,
+                'staff_unsure' => $this->staffUnsure($ticket),
                 'remaining' => $queues[$part][$queue]['count'],
             ],
             'categories' => LabelCategory::cases(),
@@ -120,6 +122,7 @@ class LabelingController extends Controller
         $filters = [
             'kategorie' => (string) $request->query('kategorie'),
             'zuordnung' => (string) $request->query('zuordnung'),
+            'quelle' => (string) $request->query('quelle'),
             'entscheidung' => (string) $request->query('entscheidung'),
         ];
 
@@ -128,8 +131,11 @@ class LabelingController extends Controller
             ->with('latestPrediction')
             ->when(LabelCategory::tryFrom($filters['kategorie']) !== null, fn ($query) => $query->whereHas('latestPrediction', fn ($prediction) => $prediction->where('category', $filters['kategorie'])))
             ->when(in_array($filters['zuordnung'], ['training', 'test'], true), fn ($query) => $query->where('split', $filters['zuordnung']))
+            ->when(in_array($filters['quelle'], ['pool', 'eingang', 'vorhanden'], true), fn ($query) => $query->where('source', $filters['quelle']))
             ->when($filters['entscheidung'] === 'offen', fn ($query) => $query->whereNull('decision'))
             ->when($filters['entscheidung'] === LabelTicket::UNSURE, fn ($query) => $query->where('decision', LabelTicket::UNSURE))
+            ->when($filters['entscheidung'] === LabelTicket::STAFF, fn ($query) => $query->where('decision_origin', LabelTicket::STAFF))
+            ->when($filters['entscheidung'] === 'mitarbeiter-unsicher', fn ($query) => $query->whereNotNull('staff_unsure_at'))
             ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString()
@@ -137,12 +143,18 @@ class LabelingController extends Controller
                 'zammad_id' => $ticket->zammad_id,
                 'number' => $ticket->number,
                 'group' => $ticket->group_name ?? '–',
-                'source' => $ticket->source === 'vorhanden' ? 'vorhanden' : 'Pool',
+                'source' => match ($ticket->source) {
+                    'vorhanden' => 'vorhanden',
+                    'eingang' => 'Eingang',
+                    default => 'Pool',
+                },
                 'excerpt' => $ticket->text === null ? '(Text gelöscht)' : $ticket->text,
                 'suggestion' => $ticket->latestPrediction?->categoryEnum(),
                 'confidence' => (float) $ticket->latestPrediction?->confidence,
                 'decision' => $ticket->decisionLabel(),
                 'unsure' => $ticket->decision === LabelTicket::UNSURE,
+                'staff' => $ticket->decision_origin === LabelTicket::STAFF ? $ticket->decided_by : null,
+                'staff_unsure' => $this->staffUnsure($ticket),
                 'tag' => $ticket->tag_value === null ? null : ($ticket->tag_kind ?? '–'),
                 'tag_value' => $ticket->tag_value,
                 'tag_problem' => $ticket->tag_problem,
@@ -246,11 +258,19 @@ class LabelingController extends Controller
 
     public function updateSettings(UpdateLabelSettingsRequest $request, LabelingSettings $settings, SenderFilter $senders, StaffDirectory $staff): RedirectResponse
     {
-        $settings->save($request->validated());
+        $settings->save([...$request->validated(), ...($request->has('intake') ? ['intake' => $request->boolean('intake')] : [])]);
 
         $removed = $request->has('excluded_senders') ? $senders->removeCaptured('Absenderfilter') : 0;
 
         return back()->with('success', 'Die Einstellungen sind gespeichert.'.($removed > 0 ? " {$removed} Tickets vom Absenderfilter sind entfernt worden." : ''));
+    }
+
+    /**
+     * Who of the staff was unsure about the ticket and when (PROJ-80), null without such a note.
+     */
+    private function staffUnsure(LabelTicket $ticket): ?string
+    {
+        return $ticket->staff_unsure_by === null ? null : $ticket->staff_unsure_by.', '.$ticket->staff_unsure_at?->setTimezone('Europe/Berlin')->format('d.m.Y');
     }
 
     private function counter(LabelRun $run): string

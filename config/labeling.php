@@ -8,8 +8,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | The admin page "Ticket-Klassifikation" classifies the first customer message of every Zammad ticket and writes
-    | the tag train:<category> (test:<category> for the test set). The values under "defaults" are the start
-    | values of the settings on that page.
+    | the tag train:<category> (test:<category> for the test set). New incoming tickets are classified at once and
+    | confirmed by the staff on the ticket page (PROJ-80). The values under "defaults" are the start values of the
+    | settings on that page.
     |
     */
 
@@ -24,13 +25,20 @@ return [
     'calls_per_minute' => (int) env('LABELING_CALLS_PER_MINUTE', 30),
     'zammad_per_minute' => (int) env('LABELING_ZAMMAD_PER_MINUTE', 120),
 
-    // Months after the last activity on a ticket until its message text is emptied (labeling:purge).
-    'retention_months' => 6,
+    // Months after the creation of a ticket in Zammad until its message text is emptied (labeling:purge).
+    'retention_months' => 36,
+
+    // New incoming tickets (PROJ-80): the share of the test set, and how old a ticket may be when CSA first sees it,
+    // so that importing or reconciling old tickets classifies nothing.
+    'intake_test_share' => 5,
+    'intake_max_age_hours' => 24,
 
     // Longest message text sent to the model, in characters.
     'max_text_length' => 6000,
 
     'defaults' => [
+        // Whether new incoming tickets are classified at once (PROJ-80).
+        'intake' => true,
         'target' => 100,
         'min_cases' => 50,
         'min_rate' => 95,

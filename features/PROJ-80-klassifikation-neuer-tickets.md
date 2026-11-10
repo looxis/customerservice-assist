@@ -114,6 +114,26 @@ Plan vom 2026-11-10 (mit dem Auftraggeber abgestimmt), kurz:
 4. **Ticketseite:** Komponente `x-labeling.ticket-bar` unter dem Ticketkopf, Route `POST /tickets/{number}/klassifikation` (JSON). Generische Komponente `x-tooltip` mit den Stichpunkten aus `LabelCategory::rules()`, auch auf „Prüfen“.
 5. **Übersicht:** `LabelTicket::shareCategory()` schreibt Kategorie und `category_confirmed` nach `tracked_tickets`; Bestand per `labeling:share-categories`.
 
+## Implementation Notes (2026-11-10)
+- **Eingang:** `TicketSynchronizer::write()` ruft beim ersten Anlegen eines `tracked_tickets`-Eintrags `label()` auf. Gibt es das Ticket schon in der Klassifikation, übernimmt die Übersicht dessen Einordnung. Sonst stellt sie für Tickets mit Kundennachricht (`last_customer_article_id`), die höchstens `labeling.intake_max_age_hours` (24) alt sind, `ClassifyIncomingTicket` in die Queue. Der Job prüft den Schalter `intake` (Einstellungen der Ticket-Klassifikation, Standard an), erfasst über `LabelCapture` mit `labeling.intake_test_share` (5 %) und Quelle `eingang` und stellt `ClassifyLabelTicket` ohne Lauf an (`runId = null`, `SkipInactiveLabelRun` lässt ihn durch).
+- **Entscheidung:** `POST /tickets/{number}/klassifikation` (`TicketLabelController`, `StoreTicketLabelRequest`, Name nötig über `staff.selected`, JSON) → `ReviewRecorder::recordFromTicket()`.
+  - Eine Kategorie wird als Prüfung mit Herkunft `mitarbeiter` und `hit = null` gespeichert, ebenso die Entscheidung mit `tag_kind = bestätigt`.
+  - Weicht die Wahl vom neuesten Vorschlag ab, bekommt dieser die Warteschlange `abweichung`. `LabelTicket::hasOpenDeviation()` und `ReviewQueue` zählen Prüfungen mit Herkunft `mitarbeiter` dabei nicht, deshalb wartet das Tag, bis ein Admin entschieden hat.
+  - „Unsicher“ setzt nur `staff_unsure_by/at` und nimmt eine eigene Entscheidung zurück. Training: Warteschlange null, `stichprobe` oder `abweichung` wird zu `zweifel`; Test: null.
+  - 409, wenn `LabelTicket::staffMayDecide()` nicht gilt, also bei Admin-Entscheidung, vorhandenem Tag, geschriebenem Tag oder einem nicht klassifizierten Ticket.
+- **Nicht als Beispiel, nicht als Stichprobe:** `ExampleSelector` nimmt nur die Herkünfte `zweifel/stichprobe/korrektur`; Trefferquote und Sperre zählen nur `stichprobe`. `ReviewRecorder::recent()` („Zurück“ auf „Prüfen“) blendet `mitarbeiter` aus.
+- **Ticketseite:** `x-labeling.ticket-bar` unter dem Ticketkopf, Zustand aus `TicketLabelState::of()` (bei Testtickets ohne Vorschlag). Je Kategorie ein Knopf in `x-tooltip` mit `x-labeling.category-rules` (Stichpunkte aus `LabelCategory::rules()`). Der Erklärsatz steht nur im Einführungsmodus.
+- **Admin-Seiten:**
+  - Prüfkarte: „Wahl von … auf der Ticketseite“ bei Herkunft `mitarbeiter` und Badge „Mitarbeiter unsicher: Name, Datum“.
+  - Ticketliste: Filter „Quelle“ und „Entscheidung: Von Mitarbeitern / Mitarbeiter unsicher“.
+  - Einstellungen: Schalter „Neue Tickets automatisch klassifizieren“.
+- **Übersicht:** Migration `add_staff_classification_columns` (`labeling_tickets.staff_unsure_by/at`, `tracked_tickets.category_confirmed`).
+  - `LabelTicket::shareCategory()` wird aufgerufen nach Erfassen mit vorhandenem Tag, Vorschlag, Entscheidung (auch `amend`), automatischem Tag und Entfernen.
+  - Die Liste zeigt `LabelCategory::label()`, ein unbestätigter Vorschlag trägt das Badge „KI“; ohne Einordnung erscheint „Noch nicht eingeordnet“.
+  - Bestand: `labeling:share-categories`.
+- **Tests:** `tests/Feature/PROJ-80-IntakeClassificationTest.php` (32 Tests). Angepasst wurden `PROJ-67-TicketListTest.php` (Bezeichnungen, Badge „KI“) und `PROJ-78-LabelingFlowTest.php` (Aufbewahrung nach Erstelldatum).
+- **Betrieb:** Nach dem Einspielen den Queue-Worker neu starten (`queue:restart`) und `labeling:share-categories` einmal ausführen.
+
 ## QA Test Results
 _To be added by /qa_
 

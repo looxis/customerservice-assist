@@ -154,7 +154,7 @@ describe('a row', function () {
         $this->get('/?ansicht=offen')->assertOk()
             ->assertSee(route('tickets.show', '2140500'), false)
             ->assertSee('Tasse kaputt')->assertSee('Warten auf Erinnerung')->assertSee('Nele Gorka')
-            ->assertSee('<span class="sr-only">Nicht klassifiziert</span>', false)->assertSee('Noch nicht analysiert');
+            ->assertSee('<span class="sr-only">Noch nicht eingeordnet</span>', false)->assertSee('Noch nicht analysiert');
     });
 
     test('shows the plain ticket number, without the prefix', function () {
@@ -164,9 +164,16 @@ describe('a row', function () {
     });
 
     test('a classified ticket shows its category instead of the icon', function () {
-        TrackedTicket::factory()->create(['category' => 'complaint']);
+        TrackedTicket::factory()->create(['category' => 'adressaenderung', 'category_confirmed' => true]);
 
-        $this->get('/')->assertOk()->assertSee(config('knowledge.category_labels.complaint'))->assertDontSee('<span class="sr-only">Nicht klassifiziert</span>', false);
+        $this->get('/')->assertOk()->assertSee('Adressänderung')->assertDontSee('<span class="sr-only">Noch nicht eingeordnet</span>', false)
+            ->assertDontSee('title="Vorschlag der KI, noch nicht bestätigt"', false);
+    });
+
+    test('a category the model proposed and nobody confirmed yet carries "KI" (PROJ-80)', function () {
+        TrackedTicket::factory()->create(['category' => 'adressaenderung', 'category_confirmed' => false]);
+
+        $this->get('/')->assertOk()->assertSee('Adressänderung')->assertSee('title="Vorschlag der KI, noch nicht bestätigt"', false);
     });
 
     test('escapes the subject', function () {

@@ -5,7 +5,7 @@
     $views = \App\Analysis\TicketList::VIEWS;
     $none = \App\Analysis\TicketList::NONE;
     $states = \App\Zammad\ZammadClient::STATE_LABELS;
-    $categories = config('knowledge.category_labels');
+    $categories = collect(\App\Labeling\LabelCategory::cases())->mapWithKeys(fn (\App\Labeling\LabelCategory $category): array => [$category->value => $category->label()])->all();
     $link = fn (array $changes): string => route('tickets.analyze', array_filter([...$filter->parameters(), ...$changes], fn (?string $value): bool => $value !== null));
     $sortLink = fn (string $sort): string => $link([
         'sort' => $sort === \App\Analysis\TicketList::DEFAULT_SORT ? null : $sort,
@@ -73,7 +73,7 @@
                 </x-select>
                 <x-select name="klassifikation" label="Klassifikation">
                     <option value="">Alle</option>
-                    <option value="{{ $none }}" @selected($filter->category === $none)>Nicht klassifiziert</option>
+                    <option value="{{ $none }}" @selected($filter->category === $none)>Noch nicht eingeordnet</option>
                     @foreach ($options['categories'] as $category)
                         <option value="{{ $category }}" @selected($filter->category === $category)>{{ $categories[$category] ?? $category }}</option>
                     @endforeach
@@ -144,8 +144,9 @@
                                     <td class="px-4 py-3 align-top text-slate-900">
                                         @if ($row->category)
                                             {{ $categories[$row->category] ?? $row->category }}
+                                            @unless ($row->category_confirmed)<x-badge compact title="Vorschlag der KI, noch nicht bestätigt">KI</x-badge>@endunless
                                         @else
-                                            <span title="Nicht klassifiziert"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Nicht klassifiziert</span></span>
+                                            <span title="Noch nicht eingeordnet"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Noch nicht eingeordnet</span></span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 align-top"><x-badge compact :tone="$row->processing_state->tone()">{{ $row->processing_state->label() }}</x-badge></td>

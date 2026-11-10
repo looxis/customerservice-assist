@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class LabelingSettings
 {
     /**
-     * @return array{target: int, min_cases: int, min_rate: int, sample_share: int, confidence: float, examples: int, test_share: int, test_target: int, excluded_groups: string, excluded_senders: string}
+     * @return array{intake: bool, target: int, min_cases: int, min_rate: int, sample_share: int, confidence: float, examples: int, test_share: int, test_target: int, excluded_groups: string, excluded_senders: string}
      */
     public function all(): array
     {
@@ -18,6 +18,7 @@ class LabelingSettings
         $values = array_merge(config('labeling.defaults'), $saved);
 
         return [
+            'intake' => (bool) $values['intake'],
             'target' => (int) $values['target'],
             'min_cases' => (int) $values['min_cases'],
             'min_rate' => (int) $values['min_rate'],

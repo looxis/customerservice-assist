@@ -114,12 +114,22 @@
                         <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
                         <span class="text-slate-600">Wähle die Kategorie, die stattdessen gilt. Sie ersetzt diese Entscheidung, auch in der Trefferquote und beim nächsten Tag.</span>
                     </div>
+                @elseif ($ticket['staff'] !== null)
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="text-slate-600">Wahl von {{ $ticket['staff'] }} auf der Ticketseite:</span>
+                        <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
+                        <span class="text-slate-600">Sie weicht vom Vorschlag der KI ab. Wähle die Kategorie, die gilt.</span>
+                    </div>
                 @elseif ($ticket['previous'] !== null)
                     <div class="flex flex-wrap items-center gap-2 text-sm">
                         <span class="text-slate-600">Bisherige Entscheidung:</span>
                         <x-badge tone="neutral">{{ $ticket['previous'] }}</x-badge>
                         <span class="text-slate-600">{{ $queue === 'unsicher' ? 'Entscheide jetzt oder lass es bei „Unsicher“.' : 'Der neue Vorschlag weicht davon ab. Wähle die Kategorie, die gilt.' }}</span>
                     </div>
+                @endif
+
+                @if ($ticket['staff_unsure'] !== null && $ticket['decision'] === null)
+                    <x-badge tone="warning">Mitarbeiter unsicher: {{ $ticket['staff_unsure'] }}</x-badge>
                 @endif
 
                 @if ($ticket['test'])
@@ -148,11 +158,14 @@
 
                     <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         @foreach ($categories as $category)
-                            <x-button type="submit" variant="secondary" name="category" :value="$category->value" :data-key="$category->key()" class="justify-start" :title="$category->description()">
-                                <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">{{ $category->key() }}</span>
-                                {{ $category->label() }}
-                                @if ($revisit && $ticket['decision'] === $category->value)<x-badge compact tone="info">bisher</x-badge>@endif
-                            </x-button>
+                            <x-tooltip class="flex" :align="$loop->iteration % 4 === 0 ? 'right' : 'left'">
+                                <x-button type="submit" variant="secondary" name="category" :value="$category->value" :data-key="$category->key()" class="w-full justify-start">
+                                    <span class="rounded bg-slate-100 px-1.5 font-mono text-xs text-slate-600">{{ $category->key() }}</span>
+                                    {{ $category->label() }}
+                                    @if ($revisit && $ticket['decision'] === $category->value)<x-badge compact tone="info">bisher</x-badge>@endif
+                                </x-button>
+                                <x-slot:content><x-labeling.category-rules :rules="$category->rules()" /></x-slot:content>
+                            </x-tooltip>
                         @endforeach
                     </div>
 
