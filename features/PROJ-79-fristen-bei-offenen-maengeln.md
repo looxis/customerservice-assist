@@ -1,6 +1,6 @@
 # PROJ-79: Fristen bei offenen Mängeln (Versandalter-Hinweis und Regel im Wissen)
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-11-10
 **Last Updated:** 2026-11-10
 
@@ -172,7 +172,33 @@ Keine.
 - Noch offen: fachlicher Gegentest am Ticket 2140331 (neuer Vorschlag), danach `/qa`.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-11-10 (Automatisierte Tests, Wissensprüfung, fachlicher Gegentest durch Etienne am Ticket 2140331)
+
+### Acceptance Criteria
+- Hinweis im Code (Schwellen 13/14/30/31 Tage, ohne Sendung, mehrere Sendungen, mehrere Bestellungen, kein Text mit fester Frist, nur im Bestellblock): bestanden (Pest, `PROJ-79-ShippingAgeNoticeTest`)
+- Daten an die KI (Heutiges Datum, „erste Sendung vor N Tagen“, ohne Sendung keine Zahl): bestanden (Pest, Prompt-Tests)
+- `days_since_shipped` zählt ab der ersten Sendung, bestehende Dokumente unverändert: bestanden
+- POLICY-068: `knowledge:check` 0 Fehler, verbindlich, alle Gruppen/Kanäle/Produkte, Auslöser in vier Sprachen, keine Bedingung auf Versandalter: bestanden (neuer Pest-Test)
+- Verhalten des Vorschlags (Ablehnung als Mangel ohne Tagesfrist, Kulanz mit Bedingung „kostenpflichtig zu reduziertem Preis“): am Ticket 2140331 von Etienne als korrekt bestätigt; Kriterien 4-Wochen-Annahme, Produktionsdatensatz-Hinweis, 6-Wochen-Grenze und „keine Reklamation“ **nicht** einzeln an echten Fällen geprüft (KI-Ausgabe, nicht deterministisch testbar)
+
+### Edge Cases
+- Ohne Versand, Versand am selben Tag, Zukunftsdatum, mehrere Bestellungen: bestanden (Pest)
+
+### Nicht geprüft
+- Browser (Chrome/Firefox/Safari) und Breiten 375/768/1440 px: in dieser Sitzung kein Browser; Hinweis und Tooltips wurden von Etienne im Browser gesehen (Doppelanzeige danach behoben)
+
+### Security
+- Keine neuen Routen, Eingaben, Formulare oder Datenbankänderungen; der Hinweis rendert nur Datum und Zahl (Blade-Escaping). Keine Findings.
+
+### Regression
+- Gesamtsuite: 2444 von 2447 bestanden, 2 übersprungen, **1 Fehler** (siehe Bug 1). Der früher einmal fehlgeschlagene PROJ-36-Integrationstest bestand in diesem Lauf.
+
+### Bugs
+1. **High (Regression, nicht aus PROJ-79):** `PROJ-1-AppShellTest` „small grey text uses a colour with enough contrast“ schlägt fehl: `resources/views/components/help-tip.blade.php` Zeile 6 enthält `text-slate-400` auf der Zeile des Buttons, das Icon steht erst in der nächsten Zeile. Die Datei stammt aus PROJ-78/PROJ-10 (schon in HEAD); PROJ-79 hat nur den `align`-Parameter ergänzt. Das Fragezeichen-Icon ist kein Text, der Test erkennt es aber nicht. Fix liegt bei Frontend (Klasse auf `text-slate-500` oder Test anpassen).
+
+### Entscheidung
+Fachlich und für PROJ-79 selbst ohne Mängel; Freigabe wartet auf Bug 1 (Suite muss grün sein). Status bleibt **In Review**.
 
 ## Deployment
 _To be added by /deploy_

@@ -99,3 +99,22 @@ it('tells the model no days without a shipment', function () {
 it('leaves out the date when there is no order', function () {
     expect(promptOrders([]))->not->toContain('Heutiges Datum');
 });
+
+test('POLICY-068 is a binding rule for everyone, triggered by damage words and without a condition on the shipping age', function () {
+    config(['knowledge.path' => base_path('knowledge')]);
+    app()->forgetScopedInstances();
+
+    $library = app(\App\Knowledge\KnowledgeLibrary::class);
+    $policy = $library->find('POLICY-068');
+
+    expect($library->errors())->toBeEmpty()
+        ->and($policy)->not->toBeNull()
+        ->and($policy->retrieval())->toBe('binding')
+        ->and($policy->customerTypes())->toBe([])
+        ->and($policy->salesChannels())->toBe([])
+        ->and($policy->products())->toBe([])
+        ->and($policy->when())->toBe([])
+        ->and($policy->triggers())->toContain('Kratzer', 'beschädig', 'damaged')
+        ->and($policy->actions())->toContain('reproduction', 'reshipment')
+        ->and($policy->relatedKnowledge())->toContain('POLICY-033', 'PERMISSION-004');
+});
