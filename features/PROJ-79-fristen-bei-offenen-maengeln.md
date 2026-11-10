@@ -1,6 +1,6 @@
 # PROJ-79: Fristen bei offenen Mängeln (Versandalter-Hinweis und Regel im Wissen)
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-10
 **Last Updated:** 2026-11-10
 
@@ -76,8 +76,8 @@ Ticket 2140331, Bestellung 303-0977429-2012311: bestellt am 9. Oktober, geliefer
 - Datenschutz unverändert: Versanddatum und Tageszahl enthalten keine zusätzlichen Kundendaten.
 
 ## Open Questions
-- [ ] Soll die Regel an eine bestehende Policy (POLICY-005/POLICY-032, Kundenfehler und Mängelregeln) angehängt oder als eigene Policy angelegt werden? Empfehlung: eigene Policy, mit `related_knowledge` auf POLICY-032, 033 und 005; Entscheidung beim Schreiben des Wissens nach Prüfung der Überschneidungen.
-- [ ] Wissensabruf: Bedingung `order_age_days` zählt heute ab Bestelldatum. Soll ein neues Feld (Tage seit Versand) ergänzt werden oder `order_age_days` selbst umgestellt werden? Klärung in `/architecture` (Auswirkung auf bestehende Dokumente prüfen).
+- [x] Eigene Policy oder Anhang an bestehende? Entschieden in `/architecture`: eigene Policy mit Verweisen auf POLICY-032, 033 und 005; Überschneidungen werden beim Schreiben geprüft.
+- [x] Neues Feld oder Umstellung von `order_age_days`? Entschieden: weder noch, `days_since_shipped` gibt es schon und zählt ab der ersten Sendung.
 - [ ] Soll der Hinweis später je Kundengruppe oder Kanal (Amazon) anders aussehen? Derzeit nein.
 
 ## Decision Log
@@ -101,11 +101,65 @@ Ticket 2140331, Bestellung 303-0977429-2012311: bestellt am 9. Oktober, geliefer
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Bestehende Bedingung `days_since_shipped` (erste Sendung) wiederverwenden, `order_age_days` unverändert lassen | Zählt schon ab der ersten Sendung wie verlangt; Hinweis und Wissen rechnen gleich; bestehende Dokumente ändern sich nicht | 2026-11-10 |
+| Hinweis als eine wiederverwendbare Komponente im Bestellblock und im Formular/Ergebnis | Ein Ort für Schwellen und Text; gleiche Anzeige überall; kein KI-Aufruf | 2026-11-10 |
+| Tageszahl und heutiges Datum werden in der App gerechnet und in den Prompt geschrieben | Die KI kennt das heutige Datum nicht und soll nicht rechnen | 2026-11-10 |
+| Schwellen 14 und 30 Tage fest im Code | Vorgabe; später über Einstellungen möglich, jetzt nicht nötig | 2026-11-10 |
+| Eigene verbindliche Policy mit Auslösern und Maßnahmen, ohne Bedingung auf Versandalter | Die Regel muss bei Beschädigungsmeldungen sicher greifen; ohne Bedingung kommt sie auch bei fehlenden Versanddaten mit; die Tageszahl kommt aus dem Prompt | 2026-11-10 |
+| Keine Datenbankänderung, keine neuen Pakete, keine neue Seite | Alle Daten sind in EOCS-Bestellung und Wissen schon vorhanden | 2026-11-10 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Was schon da ist
+- **Wissensabruf:** Die Bedingung „Tage seit Versand“ (`days_since_shipped`) gibt es schon und sie zählt ab der **ersten** Sendung. Genau das verlangt die Spezifikation. Das Bestelldatum-Feld (`order_age_days`) bleibt unverändert.
+- **Prompt:** Bestelldatum und Versanddatum jeder Sendung stehen bereits in den Bestelldaten. **Es fehlt** das heutige Datum und die Zahl „Tage seit Versand“; die KI kennt heute den Stichtag nicht und könnte das Alter nur raten.
+- **Anzeige:** Der Bestellblock zeigt Bestelldatum und Versand, aber keinen Hinweis zum Alter.
+
+Backend-Bedarf: keine Datenbank, keine neue Seite, keine neuen Pakete. Es sind drei kleine Änderungen (Hinweis, Prompt, Wissen).
+
+### A) Bausteine (Struktur)
+```
+Ticketseite
++-- Bestellungen (vorhanden)
+|   +-- Bestellblock je Bestellung (vorhanden)
+|       +-- NEU: Versandalter-Hinweis (gelb ab 14, rot ab 30 Tagen)
++-- Vorschlagsformular / Ergebnis (vorhanden)
+    +-- NEU: derselbe Versandalter-Hinweis je Bestellung, oben im Formular bzw. Ergebnis
+```
+Der Hinweis ist **ein** wiederverwendbarer Baustein (Blade-Komponente), der an beiden Stellen steht. Er bekommt die Bestellung und rechnet selbst; zusätzliche Daten braucht er nicht.
+
+### B) Regeln des Hinweises (ohne Datenbank)
+- Grundlage ist die **erste Sendung mit Versanddatum** der Bestellung (gleiche Rechnung wie im Wissensabruf, damit Hinweis und Wissen nie auseinanderlaufen).
+- Tage werden in deutscher Zeit in ganzen Kalendertagen gezählt; Versand am selben Tag oder in der Zukunft zählt als 0 bzw. zeigt nichts.
+- Unter 14 Tagen oder ohne Versand: kein Hinweis. 14 bis 30 Tage: gelb. Über 30 Tage: rot, deutlicher.
+- Der Text nennt Versanddatum und Tage und den Grundsatz „sichtbare Beschädigungen sind sofort zu melden“; keine Fristen für die Kundenantwort.
+- Mehrere geladene Bestellungen: ein Hinweis je betroffener Bestellung mit Bestellnummer.
+
+### C) Daten an die KI
+In den Bestelldaten des Prompts kommen dazu: **heutiges Datum** (einmal im Kopf der Bestelldaten) und je Bestellung **„erste Sendung vor N Tagen versandt“**; ohne Versand der Satz „noch kein Versand erfasst“ (steht dort heute schon als „noch nicht versandt“ bzw. „keine Sendung in EOCS gefunden“, das bleibt). Die Zahl wird in der App gerechnet, nicht von der KI.
+
+### D) Regel im Wissen (eine neue Policy)
+- **Eigene Policy** in `knowledge/policies/`, für alle Kundengruppen, Kanäle und Produkte, mit Verweisen auf POLICY-032, POLICY-033 und POLICY-005. Sie enthält: Definition offener Mangel, Folge bei verspäteter Meldung (Ablehnung als Mangel, ohne Tagesfrist in der Kundenantwort, Kulanz möglich), Kundenverursachung ab vier Wochen, Ausnahmen (Funktionsmängel, Produktionsfehler) und den Fall „Fehler in den Produktionsdaten“ mit Kulanz bis sechs Wochen und dem Hinweis „Datensatz prüfen“ in der Empfehlung.
+- **Abruf: verbindlich (`binding`)**, weil die Regel bei einer Beschädigungsmeldung sicher greifen muss und nie wegen Platzmangel wegfallen darf. Sie kommt über **Auslöser** (Kundenwörter wie beschädigt, zerkratzt, Kratzer, Riss, Bruch, Macke, Ecke, in den Sprachen der Kunden) und über die **Maßnahmen** „kostenloser Ersatz/Neuproduktion“ ins Spiel: Empfiehlt die KI so etwas, lädt die Regelprüfung (PROJ-72) die Policy nach.
+- **Keine Bedingung „Tage seit Versand“ am Dokument.** Der Grundsatz „unverzüglich“ gilt immer; die Tageszahl liefert der Prompt. Mit einer Bedingung würde die Policy bei fehlenden Versanddaten oder bei einer Meldung kurz nach Lieferung gerade nicht mitkommen.
+- Der Text sagt der KI ausdrücklich: Alter aus den Bestelldaten nehmen; nennt der Kunde selbst einen späten Entdeckungszeitpunkt, zählt auch das.
+- Das Budget für Verbindliches bleibt klein: kurze Policy, vor dem Schreiben mit `knowledge:check` prüfen; Überschneidungen mit POLICY-032 und POLICY-005 vorher gelesen und im Text nicht wiederholt, sondern verwiesen.
+
+### E) Tests
+- Hinweis: Schwellenwerte (13, 14, 30, 31 Tage), ohne Versand, mehrere Sendungen, mehrere Bestellungen.
+- Prompt: heutiges Datum und Tageszahl stehen drin; ohne Versand keine Zahl.
+- Wissen: `knowledge:check` mit null Fehlern; Auslöser holen die Policy bei einer Beschädigungsmeldung.
+- Fachlicher Gegentest mit dem Ticket 2140331 (Ergebnis soll jetzt als Mangel ablehnen, Kulanz anbieten).
+
+### Reihenfolge
+1. Hinweis-Baustein im Bestellblock und im Formular (`/frontend`)
+2. Prompt-Ergänzung und Tests (`/backend`)
+3. Policy im Wissen (`/knowledge`), danach Gegentest am echten Ticket
+
+### Abhängigkeiten (Pakete)
+Keine.
 
 ## QA Test Results
 _To be added by /qa_
