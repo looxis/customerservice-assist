@@ -41,12 +41,12 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 
 ## Out of Scope
 - Export der Tickets (`.eml`, JSONL), Pseudonymisierung, Laya-Format und Training (separat, später, anhand der Tags)
-- Vorklassifikation eingehender Tickets im Betrieb (vorgesehene Laya-Funktion; Verbindung zu `tracked_tickets.category` bewusst nicht hergestellt)
+- Vorklassifikation eingehender Tickets im Betrieb (vorgesehene Laya-Funktion; Verbindung zu `tracked_tickets.category` bewusst nicht hergestellt). Seit 2026-11-10 in PROJ-80: neue Tickets werden mit Prompt und Beispielen dieses Moduls eingeordnet, die Einordnung steht in der Startseiten-Übersicht
 - Klassifikation späterer Nachrichten, Antworten und Rückmeldungen im Ticket: nur die erste Kundennachricht zählt
 - Bearbeiten, Beantworten oder Schließen von Tickets; geschrieben werden ausschließlich Tags
 - Eigener lokal trainierter Klassifikator (das wäre praktisch das Laya-Training)
 - Zweiter LLM-Anbieter (PROJ-17 zurückgestellt)
-- Zugriff für Nicht-Admins
+- Zugriff für Nicht-Admins (die Seiten bleiben Admins vorbehalten; die Bestätigung durch Mitarbeiter auf der Ticketseite ist PROJ-80)
 - Export, der Test- und Trainingstickets trennt (liest später die Tags `train:*` und `test:*`, nicht Teil dieses Features)
 
 ## Acceptance Criteria
@@ -119,17 +119,17 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 
 ## Technical Requirements (optional)
 - Security: nur Admins; geschrieben werden nur Tags; Zammad-Token je Mitarbeiter aus `config/staff.php`
-- Datenschutz: Kundentexte liegen lokal in der Datenbank und gehen an den LLM-Anbieter (OpenAI, AVV liegt vor); Aufbewahrung begrenzen und Löschbefehl bereitstellen
+- Datenschutz: Kundentexte liegen lokal in der Datenbank und gehen an den LLM-Anbieter (OpenAI, AVV liegt vor); Aufbewahrung begrenzen und Löschbefehl bereitstellen (seit 2026-11-10: 36 Monate nach dem Erstelldatum des Tickets)
 - Kosten: LLM-Verbrauch je Lauf sichtbar (Token), Obergrenze je Lauf einstellbar
 - Reproduzierbarkeit: Prompt-Version, Beispielmenge und Modell je Klassifikation protokolliert
-- Eigener Namensraum, eigene Tabellen und eigene Routen; Rückbau durch Löschen des Moduls möglich
+- Eigener Namensraum, eigene Tabellen und eigene Routen. Das Modul bleibt dauerhaft (Entscheidung 2026-11-10, vorher als vorübergehend mit Rückbau geplant)
 
 ## Open Questions
 - [x] Wie genau wird „alle Tickets“ in Zammad abgerufen? Gelöst in `/architecture`: Abruf nach Erstellungszeiträumen, siehe Tech Design
 - [x] Pool-Gruppen: alle Gruppen, Ausschluss auf der Seite einstellbar (Entscheidung 2026-11-06)
 - [ ] Standardwerte für Konfidenz-Schwelle, Stichprobenanteil, Zielwert je Kategorie (Vorschlag: 100 bestätigte, mehrere hundert insgesamt je Kategorie) und Beispielzahl im Prompt: Vorschläge stehen im Tech Design, endgültig nach dem Pilotlauf
 - [x] Testmenge vor dem ersten Auto-Tagging festlegen: ja, Zuordnung beim Erfassen des Tickets (siehe Tech Design)
-- [x] Aufbewahrung der Kundentexte: 6 Monate nach der letzten Aktivität am Ticket-Eintrag, dann wird der Text geleert (Entscheidung 2026-11-06)
+- [x] Aufbewahrung der Kundentexte: 6 Monate nach der letzten Aktivität am Ticket-Eintrag, dann wird der Text geleert (Entscheidung 2026-11-06); seit 2026-11-10: 36 Monate nach dem Erstelldatum des Tickets in Zammad
 - [x] Seitenleiste: Admin-Block neben der Ticket-Übersicht
 - [x] Test- und Trainingstickets im Export unterscheidbar: Testtickets erhalten `test:<kategorie>` statt `train:<kategorie>` (Entscheidung 2026-11-06)
 
@@ -138,6 +138,7 @@ Kein Tag erhalten nur Tickets, die nicht klassifizierbar (leer, nur Anhang oder 
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Das Modul bleibt dauerhaft; Kundentexte werden 36 Monate nach dem Erstelldatum des Tickets in Zammad geleert statt 6 Monate nach der letzten Aktivität (nur Texte, Betreff, Absender sowie Begründung und Textstelle der Vorschläge; Kategorie, Entscheidung und Tag bleiben) | Sprache, Kundenverhalten und Amazon-Vorgaben ändern sich, künftige Modelle sollen mit aktuellen Daten neu trainiert werden; die Klassifikation ist ein laufender Prozess (neue Tickets: PROJ-80). Die Läufe starten weiter nur auf ausdrücklichen Klick | 2026-11-10 |
 | Hinweise, Wünsche und Rückfragen zur Ausführung einer schon aufgegebenen, noch nicht gelieferten Bestellung sind `storno` („Storno / Änderung der Bestellung“), nicht `bestellung` (Prompt labeling-7); kein „Neu klassifizieren“ der vorhandenen Tickets, frühere `bestellung`-Entscheidungen sind keine Beispiele mehr | Die KI ordnete „Ich habe bestellt (Bestellnummer), bitte das Bild auf die ganze Fläche drucken, ist es scharf genug?“ als Bestellung ein, obwohl die Definition nur eindeutige Bestellungen zulässt; grob 20 bis 30 der 385 offenen Bestellung-Vorschläge folgen diesem Muster, 12 hatte Etienne schon zu Storno korrigiert. Neu klassifizieren hätte bekannte Korrekturen erneut als Abweichung vorgelegt; die offenen Vorschläge schaden nicht, weil `bestellung` nicht freigegeben ist. Zwei der drei Bestellung-Beispiele im Prompt waren selbst solche Fälle. Einzelfälle ohne passende Kategorie (Ticket „keine Bestellbestätigung, Code nicht abgezogen“) markiert Etienne als „Unsicher“, statt sie zu korrigieren, weil eine Korrektur bevorzugt als Beispiel in den Prompt geht | 2026-11-10 |
 | „Prüfen“ trennt jede Warteschlange in „Nötig“ und „Bei Bedarf“ nach dem Bedarf der vorgeschlagenen Kategorie; fehlende Stichproben zieht die App bei Bedarf zufällig aus den eindeutigen Vorschlägen des aktuellen Modells | wismo, reklamation und spam hatten weit mehr als genug, trotzdem kosteten ihre Zweifelsfälle Zeit; die Warteschlange „Stichprobe“ war leer, obwohl spam (3 Stichproben mit gpt-5.4-mini, davon 1 Treffer) und vier weitere Kategorien Stichproben brauchten. Preis: Ein Zweifelsfall, den die KI einer gedeckten Kategorie zuordnet, der aber zu einer knappen gehört, landet unter „Bei Bedarf“ | 2026-11-10 |
 | Ein fehlender Artikel in einer angekommenen Sendung ist reklamation, nicht wismo (Prompt labeling-6); nach einer Sperre zählen für die neue Freigabe nur Stichproben zu Vorschlägen, die nach der Sperre entstanden sind; „Neu klassifizieren“ lässt sich auf eine vorgeschlagene Kategorie beschränken | wismo wurde am 2026-11-09 nach 20 Stichproben mit gpt-5.4-mini gesperrt (18 Treffer, 90 %). Drei der vier Fehler bis dahin waren Teillieferungen (Tickets 2134893, 2134422, 2133468), die Etienne als Reklamation entschied; der Prompt kannte bei wismo nur „Sendung nicht angekommen“. Die Bindung an die Prompt-Version hätte auch die Stichproben anderer Kategorien verworfen (zahlung 16, bestellung 15, angebotsanfrage 12), deshalb die Grenze an der Sperre | 2026-11-09 |
@@ -218,7 +219,7 @@ Vorhandene Bausteine: Layout, Karte, Badge, Knopf, Auswahlfeld, einklappbare Ber
 ```
 Ticket-Eintrag (ein Eintrag je Zammad-Ticket)
 - Zammad-Ticket-ID, Ticketnummer, Gruppe, Erstelldatum
-- Erste Kundennachricht: Artikel-ID und bereinigter Text (wird nach 6 Monaten geleert)
+- Erste Kundennachricht: Artikel-ID und bereinigter Text (wird 36 Monate nach dem Erstelldatum geleert, bis 2026-11-10: 6 Monate nach der letzten Aktivität)
 - Quelle: „vorhanden“ (hat schon ein train:-Tag, z. B. die ~100 WISMO) oder „Pool“
 - Zuordnung: Training oder Test (beim Erfassen festgelegt)
 - Stand: erfasst / klassifiziert / geprüft / getaggt / nicht klassifizierbar / Fehler
@@ -251,7 +252,7 @@ Gespeichert in der vorhandenen MySQL-Datenbank, eigene Tabellen mit dem Präfix 
 4. **Prüfung.** Die Warteschlange wird aus den Kennzeichen der Vorschläge aufgebaut. Die Stichprobe zieht zufällig aus allen eindeutigen Vorschlägen einer Kategorie. **Nur diese Stichprobenentscheidungen gehen in die Trefferquote ein**, weil Zweifelsfälle sie sonst zu schlecht, nachträgliche Korrekturen sie zu gut aussehen ließen.
 5. **Freigabe.** Eine Kategorie gilt als freigegeben, wenn Admin und Schwellen (Zahl der Stichprobenfälle, Trefferquote) zusammenpassen. Neue Stichproben werden laufend ausgewertet; fällt die Quote darunter, sperrt die App die Kategorie.
 6. **Tags schreiben.** Ein Lauf schreibt für bestätigte Tickets und, bei freigegebener Kategorie, für eindeutige Trainingstickets das Tag `train:<kategorie>`; Testtickets erhalten nach Bestätigung durch den Admin `test:<kategorie>`. Zuständig ist eine eigene kleine Klasse mit dem Token des Admins, der den Lauf startet. Zammad hat dafür eigene Schnittstellen zum Setzen und Entfernen. Vorher wird der aktuelle Tag-Stand des Tickets gelesen: vorhandene Tags bleiben, ein Ticket mit abweichendem `train:*`-Tag wird nicht überschrieben, sondern als Konflikt gemeldet. Trockenlauf zeigt nur die geplanten Änderungen.
-7. **Löschung.** Ein täglicher Löschlauf leert Texte, die älter als 6 Monate sind, und lässt Kategorien und Entscheidungen stehen (wie die vorhandenen Löschbefehle).
+7. **Löschung.** Ein täglicher Löschlauf leert die Texte von Tickets, die vor mehr als 36 Monaten erstellt wurden (bis 2026-11-10: 6 Monate nach der letzten Aktivität), und lässt Kategorien und Entscheidungen stehen (wie die vorhandenen Löschbefehle).
 
 ### D) Zugriff
 Wie die Ticket-Übersicht: Nur Admins (bestehende Admin-Liste, ausgewählter Nutzer). Alle Seiten und Aktionen prüfen dies serverseitig; der Seitenleisten-Eintrag erscheint nur für Admins. Aktionen, die Zammad verändern, laufen nur mit gültigem Token des Admins.
@@ -377,6 +378,12 @@ Keine neuen Pakete.
 - Prompt `labeling-7`: bei `bestellung` „Auch der Hinweis, dass bereits bestellt wurde ("ich habe bestellt" mit Bestellnummer), ist keine Bestellung; es zählt das Anliegen zu dieser Bestellung.“; bei `storno` „Auch Hinweise, Wünsche oder Rückfragen zur Ausführung einer bereits aufgegebenen, noch nicht gelieferten Bestellung (…)“.
 - `ExampleSelector::REDEFINED_BEFORE` um `bestellung` (2026-11-10 10:15:16 UTC) ergänzt: frühere Bestellung-Entscheidungen bleiben getaggt und gezählt, gehen aber nicht mehr als Beispiel in den Prompt.
 - Bestand: Nichts wird neu klassifiziert. Der Lauf „Klassifikation“ nimmt nur abgerufene, noch nicht eingeordnete Tickets (12 992 am 2026-11-10) und nutzt dafür `labeling-7`.
+
+### Nachtrag: Dauerhaftes Modul, Aufbewahrung 36 Monate (2026-11-10)
+- Das Modul bleibt dauerhaft und wird von PROJ-80 (Klassifikation neuer Tickets im Betrieb) mitgenutzt: Erfassen als Service `LabelCapture` (auch der Abruf-Lauf nutzt ihn, neu mit Gruppenausschluss), `ClassifyLabelTicket` läuft auch ohne Lauf, Quelle `eingang` für neue Tickets, Entscheidungen mit Herkunft `mitarbeiter` (nie Beispiel, nie Stichprobe; offene Abweichungen ignorieren deren Prüfungen).
+- `labeling:purge` leert Text, Betreff und Absender von Tickets, deren Erstelldatum in Zammad mehr als 36 Monate zurückliegt (`labeling.retention_months`, ohne Datum zählt die Erfassung), und dazu Begründung und Textstelle ihrer Vorschläge (die Textstelle zitiert den Kunden). Das älteste erfasste Ticket ist vom 02.02.2024, geleert wird also erst ab Februar 2027.
+- Prüfen: Auf den Kategorie-Knöpfen erscheinen die Regeln der Kategorie als Tooltip (`LabelCategory::rules()`, Komponente `x-tooltip`) statt des bisherigen `title`.
+- Ticketliste: Filter „Quelle“ (Pool, Eingang, vorhanden) und bei „Entscheidung“ zusätzlich „Von Mitarbeitern“ und „Mitarbeiter unsicher“. Einstellungen: Schalter „Neue Tickets automatisch klassifizieren“.
 
 ## QA Test Results
 _To be added by /qa_
