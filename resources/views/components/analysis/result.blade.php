@@ -60,8 +60,10 @@
 
         @if ($ruleIncomplete)<x-badge tone="warning">Regel nicht berücksichtigt</x-badge>@endif
                 @if ($gaps !== [])<x-badge tone="warning">Wissenslücke</x-badge>@endif
-                @if ($r['assessment'] ?? null)<x-badge :tone="$assessment[$r['assessment']] ?? 'neutral'">{{ ucfirst($r['assessment']) }}</x-badge>@endif
-                <x-badge :tone="$confidence[$r['confidence']['level']] ?? 'neutral'">Confidence {{ $r['confidence']['level'] }}</x-badge>
+                @if ($r['assessment'] ?? null)
+                    <x-help-tip align="right" :text="['berechtigt' => 'Bewertung der Reklamation: Nach Ticket, Bestelldaten und Wissen ist sie berechtigt.', 'unberechtigt' => 'Bewertung der Reklamation: Nach Ticket, Bestelldaten und Wissen ist sie nicht berechtigt.', 'unklar' => 'Bewertung der Reklamation: Die KI kann sie noch nicht als berechtigt oder unberechtigt einordnen, weil Angaben fehlen oder etwas zuerst geklärt werden muss. Das ist ein gewünschtes Ergebnis und kein Fehler; Empfehlung und Klärungen stehen im Vorschlag.'][$r['assessment']] ?? 'Bewertung der Reklamation durch die KI.'"><x-badge :tone="$assessment[$r['assessment']] ?? 'neutral'">{{ ucfirst($r['assessment']) }}</x-badge></x-help-tip>
+                @endif
+                <x-help-tip align="right" text="Wie sicher die KI bei ihrem Vorschlag insgesamt ist, je nachdem, wie gut Ticket, Bestelldaten und Wissen den Fall tragen. Die Gründe stehen weiter unten. Das ist etwas anderes als die Bewertung der Reklamation: Eine Reklamation kann „unklar“ sein und die KI sich bei der Einschätzung trotzdem sicher sein."><x-badge :tone="$confidence[$r['confidence']['level']] ?? 'neutral'">Confidence {{ $r['confidence']['level'] }}</x-badge></x-help-tip>
             </div>
         </div>
 
