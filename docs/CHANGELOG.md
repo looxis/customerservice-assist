@@ -6,6 +6,9 @@
 
 ## 2026-11-10
 
+- NEUES PRODUKT: Auf Amazon gibt es jetzt die Option auch NUR DIE HÜLLE, günstiger, mit der Kissenfüllung als Addon
+zu bestellen. Bei entsprechenden Reklamationen bitte darauf achten!
+
 - Neue Tickets werden automatisch einer Kategorie zugeordnet (z. B. Reklamation, WISMO, Storno/Änderung, Produktfrage). Auf der Ticketseite steht unter dem Ticketkopf „Worum geht es?“ mit dem Vorschlag der KI. Bitte bei jedem Ticket einmal klicken: Stimmt der Vorschlag, klickst du den markierten Knopf, sonst die richtige Kategorie. Fährst du mit der Maus über eine Kategorie, siehst du die Regeln dazu. Bist du unsicher, klicke unbedingt „Unsicher“, dann prüft ein Admin das Ticket. Bei manchen Tickets ist absichtlich nichts markiert, dann wählst du selbst.
 - Ticketübersicht auf der Startseite: Die Spalte „Klassifikation“ zeigt die Kategorie. „KI“ dahinter heißt: noch nicht bestätigt.
 
