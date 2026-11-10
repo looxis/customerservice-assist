@@ -90,6 +90,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Vorschlagsformular und Ergebnis weiter entschlacken (Formular nach neuen Nachrichten direkt offen, Zusatzinformationen leer, weniger Hinweise, zusammengehörige Tickets eingeklappt) | In Progress |
 | Sendungsnummer automatisch nachreichen: ToDo „Sendungsnummer nachreichen“ prüft zu festen Zeiten in EOCS den Versandstatus und verschickt die Sendungsnummer automatisch (erste Ausnahme vom Ziel „Versand nur nach Klick“) | Approved |
 | Tickets für Trainingsdaten klassifizieren und taggen (PROJ-78): erste Kundennachricht aller Zammad-Tickets per LLM in elf Kategorien einordnen (inkl. „Sonstiges“), Unklares und Stichproben prüfen, Unsicheres aussortieren, `train:<kategorie>` (Spam: `spam`) als Tag nach Zammad schreiben; Export und Laya-Training nicht Teil | In Progress |
+| Fristen bei offenen Mängeln (PROJ-79): Hinweis ab 14 Tagen (gelb) und 30 Tagen (rot) nach dem ersten Versand ohne KI-Aufruf; Versanddatum an die KI; Regel im Wissen für alle Kundengruppen: sichtbare Beschädigungen sind offene Mängel und sofort zu melden (verspätet: Ablehnung als Mangel, Kulanz möglich), Fehler in den Produktionsdaten bis 6 Wochen Kulanz | Planned |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
