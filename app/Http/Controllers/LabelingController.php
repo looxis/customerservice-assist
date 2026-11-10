@@ -60,24 +60,32 @@ class LabelingController extends Controller
     }
 
     /**
+     * "bereich" picks the needed or the optional part of the queues, "kategorie" limits them to one proposed category.
      * With "zurueck" (1 or 2) the page shows the admin's last or second to last decision again, to change it.
      */
-    public function review(Request $request, TestMode $testMode, ReviewQueue $reviewQueue, ReviewRecorder $recorder, StaffDirectory $staff): View
+    public function review(Request $request, TestMode $testMode, ReviewQueue $reviewQueue, ReviewRecorder $recorder, StaffDirectory $staff, LabelStats $stats): View
     {
         $this->authorizeAdmin($request, $testMode);
 
-        $queues = $reviewQueue->queues();
-        $queue = array_key_exists((string) $request->query('warteschlange'), $queues) ? (string) $request->query('warteschlange') : (collect($queues)->filter(fn (array $info): bool => $info['count'] > 0)->keys()->first() ?? array_key_first($queues));
+        $requested = (string) $request->query('warteschlange');
+        $part = array_key_exists((string) $request->query('bereich'), ReviewQueue::PARTS) ? (string) $request->query('bereich') : ($requested === 'unsicher' ? ReviewQueue::OPTIONAL : ReviewQueue::NEEDED);
+        $category = LabelCategory::tryFrom((string) $request->query('kategorie'));
+        $needs = $stats->needs();
+        $queues = $reviewQueue->queues($category, $needs);
+        $queue = array_key_exists($requested, $queues[$part]) ? $requested : (collect($queues[$part])->filter(fn (array $info): bool => $info['count'] > 0)->keys()->first() ?? array_key_first($queues[$part]));
         $reviewer = $staff->current($request);
         $recent = $reviewer === null ? collect() : $recorder->recent($reviewer);
         $step = min(max($request->integer('zurueck'), 0), $recent->count());
         $revisit = $step > 0 ? $recent[$step - 1] : null;
-        $ticket = $revisit?->labelTicket ?? $reviewQueue->next($queue);
+        $ticket = $revisit?->labelTicket ?? $reviewQueue->next($queue, $part, $category, $needs);
         $prediction = $revisit?->prediction ?? $ticket?->latestPrediction;
 
         return view('labeling.review', [
             'queues' => $queues,
             'queue' => $queue,
+            'part' => $part,
+            'category' => $category,
+            'filters' => $this->reviewFilters($queue, $part, $category?->value),
             'step' => $step,
             'recent' => $recent->count(),
             'revisit' => $revisit,
@@ -99,7 +107,7 @@ class LabelingController extends Controller
                 'reason' => (string) $prediction?->reason,
                 'decision' => $ticket->decision,
                 'previous' => $ticket->decisionLabel(),
-                'remaining' => $queues[$queue]['count'],
+                'remaining' => $queues[$part][$queue]['count'],
             ],
             'categories' => LabelCategory::cases(),
         ]);
@@ -188,7 +196,7 @@ class LabelingController extends Controller
     {
         $recorder->record($ticket, (string) $request->validated('category'), (string) $staff->current($request));
 
-        return redirect()->route('labeling.review', array_filter(['warteschlange' => $request->validated('queue')]));
+        return redirect()->route('labeling.review', $this->reviewFilters($request->validated('queue'), $request->validated('bereich'), $request->validated('kategorie')));
     }
 
     /**
@@ -196,7 +204,7 @@ class LabelingController extends Controller
      */
     public function amendDecision(StoreLabelDecisionRequest $request, StaffDirectory $staff, ReviewRecorder $recorder, LabelReview $review): RedirectResponse
     {
-        $queue = array_filter(['warteschlange' => $request->validated('queue')]);
+        $queue = $this->reviewFilters($request->validated('queue'), $request->validated('bereich'), $request->validated('kategorie'));
 
         if (! $recorder->recent((string) $staff->current($request))->contains('id', $review->id)) {
             return redirect()->route('labeling.review', $queue)->with('error', 'Diese Entscheidung lässt sich nicht mehr ändern. „Zurück“ reicht nur bis zu deinen letzten '.ReviewRecorder::REVISABLE.' Entscheidungen.');
@@ -232,7 +240,7 @@ class LabelingController extends Controller
 
         $ticket->exclude($name);
 
-        return redirect()->route('labeling.review', array_filter(['warteschlange' => $request->validated('queue')]))
+        return redirect()->route('labeling.review', $this->reviewFilters($request->validated('queue'), $request->validated('bereich'), $request->validated('kategorie')))
             ->with('success', "Ticket#{$ticket->number} ist entfernt und wird nicht mehr abgerufen".($request->boolean('delete_in_zammad') ? ' und wurde in Zammad gelöscht.' : '.'));
     }
 
@@ -251,6 +259,16 @@ class LabelingController extends Controller
             'tags' => $run->total === 0 ? "{$run->planned} geplant (Trockenlauf)" : "{$run->done} von {$run->total}, {$run->failed} Fehler",
             default => "{$run->done} von {$run->total}".($run->failed > 0 ? ", {$run->failed} Fehler" : '').(isset($run->options['from']) ? ', ab '.CarbonImmutable::parse($run->options['from'])->format('d.m.Y') : '').(isset($run->options['category']) ? ', nur Vorschläge '.(LabelCategory::tryFrom($run->options['category'])?->label() ?? $run->options['category']) : ''),
         };
+    }
+
+    /**
+     * The query of the review page that keeps queue, part and category; the needed part is the default and left out.
+     *
+     * @return array<string, string>
+     */
+    private function reviewFilters(?string $queue, ?string $part, ?string $category): array
+    {
+        return array_filter(['warteschlange' => $queue, 'bereich' => $part === ReviewQueue::NEEDED ? null : $part, 'kategorie' => $category]);
     }
 
     private function authorizeAdmin(Request $request, TestMode $testMode): void

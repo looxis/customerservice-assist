@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Labeling\LabelCategory;
+use App\Labeling\ReviewQueue;
 use App\Models\LabelTicket;
 use App\Staff\TestMode;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,6 +24,8 @@ class StoreLabelDecisionRequest extends FormRequest
         return [
             'category' => ['required', 'string', Rule::in([...array_column(LabelCategory::cases(), 'value'), LabelTicket::UNSURE])],
             'queue' => ['nullable', 'string', 'max:20'],
+            'bereich' => ['nullable', Rule::in(array_keys(ReviewQueue::PARTS))],
+            'kategorie' => ['nullable', Rule::enum(LabelCategory::class)],
         ];
     }
 }

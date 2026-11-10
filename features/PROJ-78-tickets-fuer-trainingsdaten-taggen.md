@@ -362,6 +362,14 @@ Keine neuen Pakete.
 - Erlaubt nur für die letzten zwei Prüfungen des angemeldeten Admins, deren Ticket noch existiert und seitdem nicht erneut entschieden wurde (`ReviewRecorder::recent()`); sonst Fehlermeldung ohne Änderung.
 - Grenze: Hat die falsche Stichprobe eine freigegebene Kategorie gesperrt, hebt die Änderung die Sperre nicht auf; sie bleibt bis zum Klick „Freigeben“.
 
+### Nachtrag: Nötig und Bei Bedarf, Stichproben auf Abruf, Bedarf je Kategorie (2026-11-10)
+- `LabelStats::needs()` je Kategorie: fehlende Trainingstickets bis zum Zielwert (bestätigt + korrigiert + automatisch; bei Freigabe zählen die eindeutigen offenen Trainingsvorschläge `pending` mit, die der nächste Lauf „Tags schreiben“ taggt), fehlende entschiedene Testtickets bis zum Testziel, fehlende Stichproben (freigegeben: Stichproben des aktuellen Modells bis „Stichprobenfälle für die Freigabe“; sonst so viele wie Trainingstickets fehlen, weil jede geprüfte Stichprobe eins davon füllt). `fullTestCategories()` entfällt.
+- `ReviewQueue`: jede Warteschlange hat die Teile `noetig` und `bei-bedarf` (`?bereich=`). Nötig ist ein Ticket, dessen vorgeschlagene Kategorie noch braucht, was die Warteschlange liefert (Testmenge: Testtickets, Stichprobe: Stichproben, sonst Trainingstickets); eine Abweichung auch nach ihrer Entscheidung, ein Ticket ohne Vorschlag immer. „Unsicher markiert“ steht nur unter „Bei Bedarf“. Testtickets gedeckter Kategorien stehen jetzt unter „Bei Bedarf“ statt gar nicht. Die Aufteilung wird bei jedem Seitenaufruf neu berechnet.
+- Stichprobe unter „Nötig“: zählt je Kategorie das Kleinere aus Bedarf und gezogenen plus ziehbaren Vorschlägen. Ist keine gezogene Stichprobe mehr nötig, zieht `next()` einen zufälligen eindeutigen Trainingsvorschlag des aktuellen Modells ohne vorhandenes Tag und setzt seine Warteschlange auf `stichprobe` (freigegebene Kategorien zuerst, dann die größte Lücke). Bestand 2026-11-10: 120 nötige Stichproben (spam 47, zahlung 27, technischer-support 25, bestellung 20, produkt-frage 1).
+- `?kategorie=` begrenzt alle Warteschlangen auf einen Vorschlag (Auswahl „Nur Vorschläge“ auf „Prüfen“); Entscheidung, Ändern und Entfernen behalten Warteschlange, Bereich und Kategorie.
+- Kategoriekarte: „Noch nötig: 20 Trainingstickets · 30 Testtickets“ (Stichproben nur bei freigegebenen Kategorien eigens) mit Link „Prüfen“ (nur nötige Tickets der Kategorie) bzw. „Bei Bedarf prüfen“.
+- Aufteilung im Bestand 2026-11-10: Nötig 455 (Abweichung 18, Unklar 20, Storno/Adressänderung 105, Stichprobe 120, Testmenge 192), Bei Bedarf 497 (Abweichung 10, Unklar 76, Storno/Adressänderung 178, Testmenge 229, Unsicher 4).
+
 ## QA Test Results
 _To be added by /qa_
 

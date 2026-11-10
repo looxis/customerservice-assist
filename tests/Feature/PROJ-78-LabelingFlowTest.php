@@ -742,6 +742,107 @@ describe('unsure', function () {
     });
 });
 
+describe('need', function () {
+    function lblRelease(string $category): void
+    {
+        LabelRelease::query()->create(['category' => $category, 'released' => true, 'released_by' => 'Etienne', 'released_at' => now()]);
+    }
+
+    it('works out training, test tickets and samples each category still needs', function () {
+        app(LabelingSettings::class)->save(['target' => 3, 'test_target' => 2, 'min_cases' => 2]);
+        lblRelease('wismo');
+        lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel']);
+        lblMake();
+        lblMake();
+        lblMake(['split' => 'test', 'decision' => 'wismo', 'decision_origin' => 'test']);
+        lblMake(['decision' => 'zahlung', 'decision_origin' => 'zweifel'], ['category' => 'zahlung']);
+        lblMake([], ['category' => 'zahlung']);
+
+        $needs = app(LabelStats::class)->needs();
+
+        expect($needs['wismo'])->toBe(['training' => 0, 'test' => 1, 'samples' => 2, 'released' => true])
+            ->and($needs['zahlung'])->toBe(['training' => 2, 'test' => 2, 'samples' => 2, 'released' => false]);
+    });
+
+    it('splits the queues into needed and optional by the proposed category', function () {
+        app(LabelingSettings::class)->save(['target' => 1, 'test_target' => 1]);
+        lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel']);
+        lblMake(['decision' => 'spam', 'decision_origin' => 'zweifel'], ['category' => 'spam']);
+        lblMake(['split' => 'test', 'decision' => 'wismo', 'decision_origin' => 'test']);
+        $covered = lblMake([], ['queue' => 'zweifel']);
+        $needed = lblMake([], ['category' => 'zahlung', 'queue' => 'zweifel']);
+        $deviationNeeded = lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel'], ['category' => 'zahlung', 'queue' => 'abweichung']);
+        $deviationCovered = lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel'], ['category' => 'spam', 'queue' => 'abweichung']);
+        $testCovered = lblMake(['split' => 'test']);
+        $testNeeded = lblMake(['split' => 'test'], ['category' => 'zahlung']);
+        $queue = app(ReviewQueue::class);
+
+        expect($queue->query('zweifel')->pluck('id')->all())->toBe([$needed->id])
+            ->and($queue->query('zweifel', ReviewQueue::OPTIONAL)->pluck('id')->all())->toBe([$covered->id])
+            ->and($queue->query('abweichung')->pluck('id')->all())->toBe([$deviationNeeded->id])
+            ->and($queue->query('abweichung', ReviewQueue::OPTIONAL)->pluck('id')->all())->toBe([$deviationCovered->id])
+            ->and($queue->query('test')->pluck('id')->all())->toBe([$testNeeded->id])
+            ->and($queue->query('test', ReviewQueue::OPTIONAL)->pluck('id')->all())->toBe([$testCovered->id])
+            ->and($queue->queues()[ReviewQueue::NEEDED])->not->toHaveKey('unsicher')
+            ->and($queue->queues()[ReviewQueue::OPTIONAL])->toHaveKey('unsicher');
+    });
+
+    it('draws samples for a released category first, only from clear proposals of the current model', function () {
+        app(LabelingSettings::class)->save(['target' => 5, 'min_cases' => 1]);
+        lblRelease('spam');
+        lblMake(['decision' => 'spam', 'decision_origin' => 'zweifel'], ['category' => 'spam']);
+        lblMake([], ['category' => 'spam', 'model' => 'gpt-old']);
+        $spam = lblMake([], ['category' => 'spam']);
+        $wismo = lblMake();
+        $queue = app(ReviewQueue::class);
+
+        expect($queue->queues()[ReviewQueue::NEEDED]['stichprobe']['count'])->toBe(2)
+            ->and($queue->next('stichprobe')->id)->toBe($spam->id)
+            ->and($spam->latestPrediction()->value('queue'))->toBe('stichprobe')
+            ->and($queue->next('stichprobe')->id)->toBe($spam->id);
+
+        lblAdmin()->post("/beschriftung/tickets/{$spam->id}/entscheidung", ['category' => 'spam', 'queue' => 'stichprobe']);
+
+        expect(LabelReview::query()->where('label_ticket_id', $spam->id)->sole())->origin->toBe('stichprobe')->hit->toBeTrue()
+            ->and(app(LabelStats::class)->needs()['spam']['samples'])->toBe(0)
+            ->and($queue->next('stichprobe')->id)->toBe($wismo->id);
+    });
+
+    it('moves drawn samples to the optional part once the category has enough', function () {
+        app(LabelingSettings::class)->save(['target' => 1]);
+        $sample = lblMake([], ['queue' => 'stichprobe']);
+        $queue = app(ReviewQueue::class);
+
+        expect($queue->query('stichprobe')->pluck('id')->all())->toBe([$sample->id]);
+
+        lblMake(['decision' => 'wismo', 'decision_origin' => 'zweifel']);
+
+        expect($queue->query('stichprobe')->count())->toBe(0)
+            ->and($queue->query('stichprobe', ReviewQueue::OPTIONAL)->pluck('id')->all())->toBe([$sample->id])
+            ->and($queue->next('stichprobe'))->toBeNull();
+    });
+
+    it('limits the review to one category and keeps part and category after a decision', function () {
+        lblMake(['text' => 'Wo bleibt mein Paket?'], ['queue' => 'zweifel']);
+        $payment = lblMake(['text' => 'Die Rechnung ist doppelt abgebucht.'], ['category' => 'zahlung', 'queue' => 'zweifel']);
+
+        lblAdmin()->get('/beschriftung/pruefen?kategorie=zahlung')->assertOk()->assertSeeText('doppelt abgebucht')->assertDontSeeText('Wo bleibt mein Paket');
+
+        lblAdmin()->post("/beschriftung/tickets/{$payment->id}/entscheidung", ['category' => 'zahlung', 'queue' => 'zweifel', 'bereich' => ReviewQueue::OPTIONAL, 'kategorie' => 'zahlung'])
+            ->assertRedirect(route('labeling.review', ['warteschlange' => 'zweifel', 'bereich' => ReviewQueue::OPTIONAL, 'kategorie' => 'zahlung']));
+    });
+
+    it('shows on the category card what is still needed and links to its review', function () {
+        app(LabelingSettings::class)->save(['target' => 2, 'test_target' => 1]);
+        lblMake(['decision' => 'zahlung', 'decision_origin' => 'zweifel'], ['category' => 'zahlung']);
+
+        lblAdmin()->get('/beschriftung')->assertOk()
+            ->assertSeeText('Noch nötig')
+            ->assertSeeInOrder(['Zahlung', '1 Trainingsticket · 1 Testticket', 'Prüfen'])
+            ->assertSee(route('labeling.review', ['kategorie' => 'zahlung']), false);
+    });
+});
+
 describe('release', function () {
     function lblSamples(string $category, int $hits, int $misses, ?string $at = null): void
     {

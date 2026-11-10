@@ -16,12 +16,14 @@ class LabelStats
     public function __construct(private readonly LabelingSettings $settings) {}
 
     /**
-     * Tickets marked unsure count for the category the model proposed.
+     * Tickets marked unsure count for the category the model proposed. "pending" are the clear training proposals the
+     * next tag run writes once the category is released.
      *
-     * @return Collection<int, array{category: LabelCategory, confirmed: int, corrected: int, automatic: int, open: int, unsure: int, tested: int, sampled: int, hits: int, released: bool, locked: bool}>
+     * @return Collection<int, array{category: LabelCategory, confirmed: int, corrected: int, automatic: int, open: int, pending: int, unsure: int, tested: int, sampled: int, hits: int, released: bool, locked: bool, needs: array{training: int, test: int, samples: int}}>
      */
     public function categories(): Collection
     {
+        $settings = $this->settings->all();
         $decided = LabelTicket::query()
             ->whereNotNull('decision')
             ->whereNot('decision_origin', 'vorhanden')
@@ -33,18 +35,19 @@ class LabelStats
         $releases = LabelRelease::query()->get()->keyBy('category');
         $tested = $this->tested();
 
-        return collect(LabelCategory::cases())->map(function (LabelCategory $category) use ($decided, $unsure, $releases, $tested): array {
+        return collect(LabelCategory::cases())->map(function (LabelCategory $category) use ($decided, $unsure, $releases, $tested, $settings): array {
             $tickets = $decided->get($category->value, collect());
             $human = $tickets->where('decision_origin', '!=', 'automatisch');
             $release = $releases->get($category->value);
             [$sampled, $hits] = $this->sample($category, $release);
 
-            return [
+            $row = [
                 'category' => $category,
                 'confirmed' => $human->filter(fn (LabelTicket $ticket): bool => $ticket->latestPrediction?->category === $category->value)->count(),
                 'corrected' => $human->filter(fn (LabelTicket $ticket): bool => $ticket->latestPrediction?->category !== $category->value)->count(),
                 'automatic' => $tickets->where('decision_origin', 'automatisch')->count(),
                 'open' => LabelTicket::query()->whereNull('decision')->where('state', 'classified')->whereHas('latestPrediction', fn ($query) => $query->where('category', $category->value))->count(),
+                'pending' => LabelTicket::query()->whereNull('decision')->where('state', 'classified')->where('split', 'training')->whereNull('existing_tag')->whereHas('latestPrediction', fn ($query) => $query->where('category', $category->value)->whereNull('queue'))->count(),
                 'unsure' => $unsure->get($category->value, 0),
                 'tested' => $tested[$category->value] ?? 0,
                 'sampled' => $sampled,
@@ -52,7 +55,40 @@ class LabelStats
                 'released' => (bool) $release?->released,
                 'locked' => $release !== null && ! $release->released && $release->locked_at !== null,
             ];
+
+            return $row + ['needs' => $this->need($row, $settings)];
         });
+    }
+
+    /**
+     * What each category still lacks, keyed by its value; see need().
+     *
+     * @return array<string, array{training: int, test: int, samples: int, released: bool}>
+     */
+    public function needs(): array
+    {
+        return $this->categories()->mapWithKeys(fn (array $row): array => [$row['category']->value => $row['needs'] + ['released' => $row['released']]])->all();
+    }
+
+    /**
+     * Training tickets up to the target (in a released category the clear proposals of the next tag run count
+     * already), decided test tickets up to the test target, and samples. A released category needs samples of the
+     * current model up to the number for a release, because its automatic tags rest on them; any other one needs as
+     * many as training tickets are missing, since every reviewed sample fills one of them.
+     *
+     * @param  array{confirmed: int, corrected: int, automatic: int, pending: int, tested: int, sampled: int, released: bool}  $row
+     * @param  array{target: int, test_target: int, min_cases: int}  $settings
+     * @return array{training: int, test: int, samples: int}
+     */
+    private function need(array $row, array $settings): array
+    {
+        $training = max(0, $settings['target'] - $row['confirmed'] - $row['corrected'] - $row['automatic'] - ($row['released'] ? $row['pending'] : 0));
+
+        return [
+            'training' => $training,
+            'test' => max(0, $settings['test_target'] - $row['tested']),
+            'samples' => $row['released'] ? max(0, $settings['min_cases'] - $row['sampled']) : $training,
+        ];
     }
 
     /**
@@ -92,18 +128,6 @@ class LabelStats
             ->pluck('tickets', 'decision')
             ->map(fn (mixed $count): int => (int) $count)
             ->all();
-    }
-
-    /**
-     * The categories whose test set has reached the test target: tickets of the test set proposed for them need no review.
-     *
-     * @return list<string>
-     */
-    public function fullTestCategories(): array
-    {
-        $target = $this->settings->all()['test_target'];
-
-        return array_keys(array_filter($this->tested(), fn (int $count): bool => $count >= $target));
     }
 
     /**
