@@ -69,7 +69,9 @@ Als Zeitpunkt der Lieferung gilt das Versanddatum der ersten Sendung aus den Bes
 
 # So wird geantwortet
 
-Die Antwort lehnt die Reklamation als Mangel ab und erklärt, dass solche Schäden sofort zu erkennen sind und daher unverzüglich gemeldet werden müssen. Sie nennt keine Tagesfrist, denn das hilft einem Kunden nicht weiter, der sich später meldet. Ein Kulanzangebot ist immer möglich (POLICY-033, PERMISSION-004) und wird wie dort geregelt genannt.
+Die Antwort lehnt die Reklamation als Mangel ab und erklärt, dass solche Schäden sofort zu erkennen sind und daher unverzüglich gemeldet werden müssen. Sie nennt keine Tagesfrist, denn das hilft einem Kunden nicht weiter, der sich später meldet. Ein Kulanzangebot ist immer möglich (POLICY-033, PERMISSION-004) und wird wie dort geregelt genannt. Die Antwort sagt nicht nur „Neuanfertigung auf Kulanzbasis“, denn das kann die Hoffnung auf kostenlosen Ersatz wecken. Sie nennt die Bedingung ausdrücklich, zum Beispiel „eine Neuanfertigung auf Kulanzbasis (kostenpflichtig zu reduziertem Preis)“.
+
+Enthält das Produktwissen eine Anleitung, wie sich die Beschädigung selbst beheben lässt (zum Beispiel bei Holz), darf die Antwort darauf hinweisen.
 
 # Fehler in den Druck- oder Produktionsdaten
 
