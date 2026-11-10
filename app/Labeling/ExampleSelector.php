@@ -15,11 +15,13 @@ class ExampleSelector
 
     /**
      * Decisions whose meaning changed with labeling-4 (storno held address changes, sonstiges, then "keine", held
-     * payments and invoices): made before this time (UTC), they are no examples until an admin decides on the ticket again.
+     * payments and invoices) and labeling-7 (bestellung held notes on an order placed already): made before this time
+     * (UTC), they are no examples until an admin decides on the ticket again.
      */
     private const array REDEFINED_BEFORE = [
         'storno' => '2026-11-08 11:14:24',
         'sonstiges' => '2026-11-08 11:14:24',
+        'bestellung' => '2026-11-10 10:15:16',
     ];
 
     /**

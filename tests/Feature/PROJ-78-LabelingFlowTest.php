@@ -315,7 +315,7 @@ describe('classification', function () {
 
         $prediction = app(LabelClassifier::class)->classify($ticket);
 
-        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-6')->and($prediction->model)->not->toBe('')
+        expect($prediction->category)->toBe('wismo')->and($prediction->prompt_version)->toStartWith('labeling-7')->and($prediction->model)->not->toBe('')
             ->and($ticket->refresh()->state)->toBe('classified');
     });
 
@@ -473,17 +473,19 @@ describe('classification', function () {
         expect($examples['ids'])->toBe([$example->id])->and($examples['text'])->toContain('Beispiel Konfigurator kaputt')->not->toContain('Testfall geheim')->not->toContain('Referenz alt');
     });
 
-    it('takes no examples of storno and sonstiges decided before their meaning changed', function () {
-        $this->travelTo('2026-11-09 08:00:00');
+    it('takes no examples of storno, sonstiges and bestellung decided before their meaning changed', function () {
+        $this->travelTo('2026-11-11 08:00:00');
         lblMake(['text' => 'Alte Mahnung', 'decision' => 'sonstiges', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
         lblMake(['text' => 'Alte Adresse ändern', 'decision' => 'storno', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
         lblMake(['text' => 'Alter Lieferstatus', 'decision' => 'wismo', 'decision_origin' => 'zweifel', 'decided_at' => '2026-11-07 10:00:00']);
+        lblMake(['text' => 'Habe bestellt, bitte beachten', 'decision' => 'bestellung', 'decision_origin' => 'korrektur', 'decided_at' => '2026-11-10 09:00:00']);
         lblMake(['text' => 'Neu geprüft Name falsch', 'decision' => 'storno', 'decision_origin' => 'korrektur', 'decided_at' => now()]);
+        lblMake(['text' => 'Hiermit bestelle ich', 'decision' => 'bestellung', 'decision_origin' => 'zweifel', 'decided_at' => now()]);
 
         $examples = app(ExampleSelector::class)->forPrompt(8)['text'];
 
-        expect($examples)->toContain('Alter Lieferstatus')->toContain('Neu geprüft Name falsch')
-            ->not->toContain('Alte Mahnung')->not->toContain('Alte Adresse ändern');
+        expect($examples)->toContain('Alter Lieferstatus')->toContain('Neu geprüft Name falsch')->toContain('Hiermit bestelle ich')
+            ->not->toContain('Alte Mahnung')->not->toContain('Alte Adresse ändern')->not->toContain('Habe bestellt, bitte beachten');
     });
 
     it('runs through a classification run', function () {
