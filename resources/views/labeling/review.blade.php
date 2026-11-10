@@ -131,7 +131,9 @@
                             <x-badge tone="info">{{ $ticket['suggestion']?->label() ?? 'Kein Vorschlag' }}</x-badge>
                             <span class="text-slate-600">Konfidenz {{ (int) round($ticket['confidence'] * 100) }} %</span>
                             @if ($ticket['unclear'])<x-badge compact tone="warning">Unklar</x-badge>@endif
-                            @if ($ticket['multiple'])<x-badge compact tone="warning">Mehrere Anliegen</x-badge>@endif
+                            @if ($ticket['multiple'])
+                                <x-help-tip text="Die Nachricht enthält mehrere eigenständige Anliegen aus verschiedenen Kategorien. Entscheidend ist das Hauptanliegen: der Grund, weshalb der Kunde schreibt, und das, was von uns eine Bearbeitung verlangt. Nebenfragen und Begleitsätze zählen nicht für die Kategorie. Ist kein Hauptanliegen erkennbar, wähle „Unsicher, nicht verwenden“."><x-badge compact tone="warning">Mehrere Anliegen</x-badge></x-help-tip>
+                            @endif
                         </div>
                         <p class="text-slate-900">{{ $ticket['reason'] }}</p>
                     </div>

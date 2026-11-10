@@ -733,6 +733,13 @@ describe('unsure', function () {
             ->assertDontSeeText('Keine Kategorie');
     });
 
+    it('explains several concerns with the main concern', function () {
+        lblMake([], ['queue' => 'zweifel', 'multiple_concerns' => true]);
+
+        lblAdmin()->get('/beschriftung/pruefen?warteschlange=zweifel')->assertOk()
+            ->assertSeeText('Mehrere Anliegen')->assertSeeText('Entscheidend ist das Hauptanliegen');
+    });
+
     it('filters the ticket list by tickets marked unsure', function () {
         lblMake(['text' => 'Unsicherer Text', 'decision' => 'unsicher', 'decision_origin' => 'zweifel']);
         lblMake(['text' => 'Entschiedener Text', 'decision' => 'wismo', 'decision_origin' => 'zweifel']);

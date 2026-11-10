@@ -357,6 +357,7 @@ Keine neuen Pakete.
 ### Nachtrag: Erklärungen auf der Kategoriekarte (2026-11-10)
 - Neue Komponente `<x-help-tip text="…">Label</x-help-tip>`: Fragezeichen direkt hinter dem Label, Erklärung beim Überfahren, Antippen und Tastaturfokus, schließt mit Escape oder Klick daneben (in der Komponenten-Übersicht ergänzt).
 - Die Kategoriekarte erklärt so „Getaggt oder bestätigt“, „Bestätigt“, „Korrigiert“, „Automatisch“, „Offen“, „Unsicher“ und „Testmenge“ (bisher nur `title` bei Unsicher und Testmenge).
+- Auf „Prüfen“ erklärt das Fragezeichen hinter dem Hinweis „Mehrere Anliegen“: Entscheidend ist das Hauptanliegen (Grund des Schreibens, verlangt eine Bearbeitung), Nebenfragen zählen nicht; ohne erkennbares Hauptanliegen „Unsicher, nicht verwenden“.
 
 ### Nachtrag: Zurück zu den letzten zwei Entscheidungen (2026-11-10)
 - Anlass: ein falsch eingeordnetes Ticket in „Niedrige Konfidenz“. Auf „Prüfen“ führt „Zurück“ (Taste z) zur letzten, ein zweites Mal zur vorletzten eigenen Entscheidung (`?zurueck=1|2`), über alle Warteschlangen; „Weiter“ geht einen Schritt vor. Auch bei leerer Warteschlange gibt es „Zurück zur letzten Entscheidung“. Die bisherige Kategorie trägt die Marke „bisher“.
