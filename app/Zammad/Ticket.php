@@ -31,6 +31,7 @@ final readonly class Ticket
         public ?int $customerId = null,
         public ?int $organizationId = null,
         public ?int $rewoundTo = null,
+        public ?int $ownerId = null,
     ) {}
 
     /**
@@ -55,7 +56,7 @@ final readonly class Ticket
                 }
 
                 return [
-                    new self($this->number, $this->id, $this->title, $this->state, $this->closed, $this->mergedIntoNumber, $this->group, $this->customerName, $this->customerEmail, $this->createdAt, $kept, $this->zammadUrl, array_values($orders), $this->customerId, $this->organizationId, $articleId),
+                    new self($this->number, $this->id, $this->title, $this->state, $this->closed, $this->mergedIntoNumber, $this->group, $this->customerName, $this->customerEmail, $this->createdAt, $kept, $this->zammadUrl, array_values($orders), $this->customerId, $this->organizationId, $articleId, $this->ownerId),
                     array_slice($this->articles, $index + 1),
                 ];
             }

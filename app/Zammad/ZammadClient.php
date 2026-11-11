@@ -99,6 +99,7 @@ class ZammadClient
                 orders: array_values($this->orders),
                 customerId: isset($data['customer_id']) ? (int) $data['customer_id'] : null,
                 organizationId: isset($data['organization_id']) ? (int) $data['organization_id'] : null,
+                ownerId: ((int) ($data['owner_id'] ?? 1)) > 1 ? (int) $data['owner_id'] : null,
             );
         } catch (ZammadException $exception) {
             Log::warning('Zammad request failed', ['ticket' => $number, 'problem' => $exception->problem->value, 'status' => $exception->httpStatus]);

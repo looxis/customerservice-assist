@@ -33,7 +33,9 @@
 
         @php($canCloseTicket = ($canCloseTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
         @php($canReplyToClosed = ($canCloseTickets ?? false) && $ticket->closed && $ticket->mergedIntoNumber === null && $ticket->rewoundTo === null)
-        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-reply="$canReplyToClosed" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
+        @php($assignee = app(\App\Staff\StaffDirectory::class)->nameForZammadUserId($ticket->ownerId))
+        @php($canAssignTicket = ($canAssignTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
+        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-reply="$canReplyToClosed" :can-assign="$canAssignTicket" :assignee="$assignee" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []" :claim-references="$claimReferences ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
@@ -76,6 +78,10 @@
 
         @if ($canCloseTicket)
             <x-ticket.close-dialog :number="$number" />
+        @endif
+
+        @if ($canAssignTicket)
+            <x-ticket.assign-dialog :number="$number" :assignees="$assignees ?? []" :assignee="$assignee" :current-name="$currentStaffName ?? null" />
         @endif
 
         <x-ticket.thread :ticket-number="$number" :articles="$ticket->articles" :translations="$translations ?? []" :untranslated="$untranslated ?? 0" :can-retranslate="$testModeAvailable"

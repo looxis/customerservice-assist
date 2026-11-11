@@ -45,6 +45,22 @@ enum ReplyProblem: string
     }
 
     /**
+     * The message when assigning a ticket or taking the assignment back failed (PROJ-81).
+     */
+    public function assignMessage(string $staff): string
+    {
+        return match ($this) {
+            self::NoToken => "Für {$staff} ist kein Zammad-Token hinterlegt. Ohne Token kann die App die Zuweisung nicht ändern.",
+            self::TokenRejected => "Zammad lehnt das Token von {$staff} ab (ungültig oder abgelaufen). Die Zuweisung wurde nicht geändert.",
+            self::Forbidden => "Zammad erlaubt {$staff} die Zuweisung dieses Tickets nicht (fehlende Rechte oder Gruppe). Die Zuweisung wurde nicht geändert.",
+            self::NotFound => 'Das Ticket wurde in Zammad nicht gefunden (gelöscht oder zusammengeführt?). Es wurde nichts geändert.',
+            self::Rejected => 'Zammad hat die Änderung nicht angenommen. Die Zuweisung wurde nicht geändert.',
+            self::Unavailable => 'Zammad ist gerade nicht erreichbar. Die Zuweisung wurde nicht geändert; bitte erneut versuchen.',
+            self::Unclear => 'Zammad hat nicht rechtzeitig geantwortet. Es ist unklar, ob die Zuweisung geändert wurde; bitte „Aktualisieren“ und den Stand prüfen.',
+        };
+    }
+
+    /**
      * Whether nothing was sent for sure, so a new attempt is safe.
      */
     public function notSent(): bool

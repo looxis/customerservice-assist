@@ -84,6 +84,30 @@ class StaffDirectory
         return is_int($id) && $id > 1 ? $id : null;
     }
 
+    /**
+     * Names a ticket can be assigned to (PROJ-81): listed names with a Zammad user.
+     *
+     * @return list<string>
+     */
+    public function assignableNames(): array
+    {
+        return array_values(array_filter($this->names(), fn (string $name): bool => $this->zammadUserId($name) !== null));
+    }
+
+    /**
+     * The listed name of a Zammad user, or null when the user is not in the list (PROJ-81).
+     */
+    public function nameForZammadUserId(?int $id): ?string
+    {
+        foreach ($this->assignableNames() as $name) {
+            if ($this->zammadUserId($name) === $id) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
     public function testModeCookieName(): string
     {
         return $this->config['test_mode_cookie'] ?? 'test_mode';

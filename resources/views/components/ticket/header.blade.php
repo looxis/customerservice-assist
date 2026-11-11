@@ -1,4 +1,4 @@
-@props(['ticket', 'canDelete' => false, 'canClose' => false, 'canReply' => false, 'advanced' => false])
+@props(['ticket', 'canDelete' => false, 'canClose' => false, 'canReply' => false, 'canAssign' => false, 'assignee' => null, 'advanced' => false])
 
 {{-- Header of a loaded ticket (PROJ-6). --}}
 <x-card>
@@ -63,6 +63,12 @@
                 <dd class="mt-1 text-slate-900">{{ $ticket->group ?? '–' }}</dd>
             </div>
         @endif
+        @if (! $ticket->closed)
+            <div>
+                <dt class="text-slate-600">Zugewiesen an</dt>
+                <dd class="mt-1 text-slate-900">{{ $assignee ?? ($ticket->ownerId ? 'Mitarbeiter in Zammad' : 'niemand') }}</dd>
+            </div>
+        @endif
         <div>
             <dt class="text-slate-600">Nachrichten</dt>
             <dd class="mt-1 text-slate-900">
@@ -103,6 +109,16 @@
             <x-button variant="danger" x-data x-on:click="$dispatch('close-ticket')">
                 <x-icon name="x-circle" size="16" /> Ohne Antwort schließen
             </x-button>
+        @endif
+        @if ($canAssign)
+            <x-button variant="secondary" x-data x-on:click="$dispatch('assign-ticket')">
+                <x-icon name="user" size="16" /> Zuweisen
+            </x-button>
+            @if ($ticket->ownerId)
+                <x-button variant="secondary" x-data x-on:click="$dispatch('unassign-ticket')">
+                    <x-icon name="x-circle" size="16" /> Zuweisung zurücknehmen
+                </x-button>
+            @endif
         @endif
         @if ($canDelete)
             <form method="POST" action="{{ route('tickets.analyses.destroy', ['number' => $ticket->number]) }}" class="ml-auto"

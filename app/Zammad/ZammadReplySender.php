@@ -102,6 +102,31 @@ class ZammadReplySender
     }
 
     /**
+     * Set the owner of the ticket, or clear it with null (PROJ-81), in the name of the employee. An optional
+     * internal note goes in the same call, so owner and note cannot drift apart.
+     *
+     * @throws ReplyException
+     */
+    public function assign(string $token, int $ticketId, ?int $ownerId, ?string $note, string $subject): void
+    {
+        $this->whoAmI($token);
+        $payload = ['owner_id' => $ownerId ?? 1];
+
+        if ($note !== null && trim($note) !== '') {
+            $payload['article'] = [
+                'type' => 'note',
+                'sender' => 'Agent',
+                'internal' => true,
+                'content_type' => 'text/plain',
+                'subject' => $subject,
+                'body' => trim($note),
+            ];
+        }
+
+        $this->call($token, fn (PendingRequest $request): Response => $request->put("tickets/{$ticketId}", $payload), certain: false);
+    }
+
+    /**
      * Add an internal note to the ticket without changing its status (PROJ-70), in the name of the employee.
      *
      * @throws ReplyException
