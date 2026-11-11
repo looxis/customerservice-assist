@@ -6,6 +6,7 @@
 
 ## 2026-11-11
 
+- WISMO automatisch: Als WISMO klassifizierte Tickets erhalten automatisch eine Antwort anhand der Informationen des Paketdienstes. Die Tickets bleiben offen. Bitte kurz prüfen, dann das Ticket schließen. Bei Fehlern bitte Etienne informieren.
 - Tickets zuweisen: Auf der Ticketseite kannst du ein Ticket einem Kollegen (oder dir) zuweisen, mit optionaler Notiz, und die Zuweisung wieder zurücknehmen.
 
 ## 2026-11-10
