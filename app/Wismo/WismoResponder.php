@@ -269,7 +269,13 @@ class WismoResponder
         }
 
         $when = $now->setTimezone('Europe/Berlin')->format('d.m.Y \u\m H:i');
-        $this->noteQuietly($ticket, 'WISMO automatisch beantwortet', "🤖 Automatisch beantwortet (WISMO) am {$when} Uhr.{$warnings}\n\nBestellung {$order->externalNumber}\n{$summary}\n\n--- Deutsche Fassung der Antwort ---\n{$reply['de']}", $token);
+        $note = "🤖 Automatisch beantwortet (WISMO) am {$when} Uhr.{$warnings}";
+
+        if (! $reply['german']) {
+            $note .= "\n\nBestellung {$order->externalNumber}\n{$summary}\n\n--- Deutsche Fassung der Antwort ---\n{$reply['de']}";
+        }
+
+        $this->noteQuietly($ticket, 'WISMO automatisch beantwortet', $note, $token);
     }
 
     /**
@@ -296,7 +302,7 @@ class WismoResponder
      *
      * @param  array<string, mixed>  $facts
      * @param  list<TrackingStatus>  $statuses
-     * @return array{text: string, de: string}|string
+     * @return array{text: string, de: string, german: bool}|string
      *
      * @throws AnalysisException
      */
@@ -338,7 +344,10 @@ class WismoResponder
             }
         }
 
-        return ['text' => $text, 'de' => $de !== '' ? $de : $text];
+        $language = mb_strtolower(trim((string) ($answer['data']['language'] ?? '')));
+        $german = $language !== '' ? preg_match('/^(de\b|deutsch|german)/u', $language) === 1 : ($de === '' || $de === $text);
+
+        return ['text' => $text, 'de' => $de !== '' ? $de : $text, 'german' => $german];
     }
 
     private function customerText(Ticket $ticket): string

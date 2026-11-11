@@ -105,7 +105,7 @@ describe('the reply', function () {
             ->and($mails[0]['article']['to'])->toBe('erika@example.org')
             ->and($mails[0]['article']['body'])->toContain(WISMO_TRACKING)->toContain(WISMO_LINK)->toContain('LOOXIS Kundenservice')->toContain('automatisch verfasst')
             ->and(wismoNotes())->toHaveCount(1)
-            ->and(wismoNotes()[0]['article']['body'])->toContain('Automatisch beantwortet (WISMO)')->toContain('Deutsche Fassung');
+            ->and(wismoNotes()[0]['article']['body'])->toContain('Automatisch beantwortet (WISMO)')->not->toContain('Deutsche Fassung');
 
         $run = WismoRun::query()->firstOrFail();
         expect($run->result)->toBe(WismoRun::SENT)->and($run->order_number)->toBe(WISMO_NUMBER)->and($run->carrier)->toBe('DHL')->and($run->tracking_number)->toBe(WISMO_TRACKING)->and($run->delivery_problem)->toBeFalse()->and($run->reply_text)->toContain(WISMO_TRACKING)->and($run->model)->not->toBeNull();
@@ -113,6 +113,15 @@ describe('the reply', function () {
         Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'dhl.test') && $request['recipientPostalCode'] === '46049' && $request->hasHeader('DHL-API-Key', 'dhl-key'));
         Http::assertSent(fn (Request $request): bool => $request->method() === 'PUT' && $request->hasHeader('Authorization', 'Token token=bot-token'));
         WismoAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains(WISMO_TRACKING) && ! $prompt->contains('Rosenstrasse'));
+    });
+
+    test('the internal note keeps the German version only when the reply is in another language', function () {
+        wismoSetup();
+        WismoAgent::fake([array_merge(wismoReply("Hello,\n\nYour tracking number: ".WISMO_TRACKING."\n".WISMO_LINK), ['language' => 'English'])]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect(wismoNotes()[0]['article']['body'])->toContain('Automatisch beantwortet (WISMO)')->toContain('Deutsche Fassung der Antwort');
     });
 
     test('a ticket is answered only once', function () {
