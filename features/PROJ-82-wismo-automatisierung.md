@@ -35,7 +35,7 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
 ### Auslöser und Schalter
-- [ ] Angenommen ein neues Ticket ist klassifiziert (Quelle „Eingang“), wenn die KI-Einstufung `wismo` lautet, nicht „unklar“ und nicht „mehrere Anliegen“ ist, die Konfidenz mindestens den Schwellenwert der Klassifikation erreicht und das Ticket nicht zur Testmenge gehört, dann startet im Hintergrund die WISMO-Bearbeitung, ohne auf eine Bestätigung durch einen Mitarbeiter zu warten
+- [ ] Angenommen ein neues Ticket ist klassifiziert (Quelle „Eingang“), wenn die KI-Einstufung `wismo` lautet, nicht „unklar“ und nicht „mehrere Anliegen“ ist, die Konfidenz mindestens den Schwellenwert der Klassifikation erreicht dann startet im Hintergrund die WISMO-Bearbeitung, ohne auf eine Bestätigung durch einen Mitarbeiter zu warten
 - [ ] Angenommen eine der Bedingungen trifft nicht zu, dann geschieht nichts (das Ticket bleibt für Mitarbeiter unverändert)
 - [ ] Angenommen der Schalter „WISMO automatisch beantworten“ steht auf „aus“ (Standard), dann wird nichts gesendet und nichts geschrieben
 - [ ] Angenommen der Schalter steht auf „Trockenlauf“, dann entsteht nur das Protokoll und eine interne Notiz mit dem Antwortentwurf, aber keine Kundenantwort
@@ -275,7 +275,7 @@ Gebaut:
 - **Sendungsstatus:** `app/Tracking/` mit `DhlTrackingClient` (DHL-Key, PLZ des Empfängers), `UpsTrackingClient` (OAuth, Token im Zwischenspeicher, `locale=de_DE`), `TrackingStatus`, `Carriers` (Erkennung und Links), `DeliveryText` (Zustellproblem- und Abholort-Regeln aus n8n), `ShipmentTracker`.
 - **Entscheidung im Code:** Der UPS-Abholort stammt aus `accessPointInformation` und zählt nur bei vollständiger Anschrift (Straße, PLZ, Ort); bei Zustellproblem oder zugestellter Sendung wird kein Abholort genannt.
 - **Antwort:** `WismoAgent` und Prompt `resources/prompts/wismo.md` (Einstellungen: Prompt „WISMO-Antwort“, Modell `model_wismo`, Standard `WISMO_MODEL` oder `SUMMARY_MODEL`). Die Antwort wird geprüft: Sendungsnummer und Trackinglink müssen im Text stehen, sonst keine Kundenantwort, sondern Notiz.
-- **Ablauf:** `WismoResponder` (Prüfung des Tickets, Bestellnummer ohne KI, EOCS, Abfrage, KI, Versand mit Status `offen`, Notiz), `AnswerWismoTicket` (Wiederholung nach 2 und 4 Minuten, nach drei Versuchen Notiz), Weiche in `LabelClassifier` (nur Quelle „Eingang“, Kategorie wismo, nicht unklar, nicht mehrere Anliegen, Konfidenz ab Schwellenwert, nicht Testmenge, Schalter nicht aus).
+- **Ablauf:** `WismoResponder` (Prüfung des Tickets, Bestellnummer ohne KI, EOCS, Abfrage, KI, Versand mit Status `offen`, Notiz), `AnswerWismoTicket` (Wiederholung nach 2 und 4 Minuten, nach drei Versuchen Notiz), Weiche in `LabelClassifier` (nur Quelle „Eingang“, Kategorie wismo, nicht unklar, nicht mehrere Anliegen, Konfidenz ab Schwellenwert, Schalter nicht aus; ein Ticket der Testmenge wechselt dabei in die Trainingsmenge).
 - **Sicherheit gegen Doppelantworten:** Der Protokolleintrag wird zuerst angelegt; vor dem Senden steht er auf „sending“; bei unklarem Ausgang (Zeitüberschreitung) sendet die App nie erneut, es bleibt „Versand unklar“ mit interner Notiz.
 - **Oberfläche:** Admin-Übersicht `/wismo-antworten` (Filter, Details), Seitenleiste „WISMO-Antworten“, Zustellproblem-Hinweis am Ticket aus dem gespeicherten Lauf.
 - Tests: `PROJ-82-TrackingClientTest`, `PROJ-82-WismoResponderTest`, `PROJ-82-WismoOverviewTest`.
