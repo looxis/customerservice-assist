@@ -395,7 +395,7 @@ describe('the trigger after the classification', function () {
         Queue::assertPushed(AnswerWismoTicket::class);
     });
 
-    test('nothing starts for another category, an unclear or doubtful proposal, an old ticket, the test set or the switch off', function () {
+    test('nothing starts for another category, an unclear or doubtful proposal, an old ticket or the switch off', function () {
         foreach ([['category' => 'reklamation'], ['unclear' => true], ['multiple_concerns' => true], ['confidence' => 0.5]] as $index => $answer) {
             LabelTicket::query()->delete();
             classifyWismo($answer, ['zammad_id' => 100 + $index]);
@@ -404,11 +404,16 @@ describe('the trigger after the classification', function () {
         LabelTicket::query()->delete();
         classifyWismo(ticket: ['source' => 'pool', 'zammad_id' => 200]);
         LabelTicket::query()->delete();
-        classifyWismo(ticket: ['split' => 'test', 'zammad_id' => 201]);
-        LabelTicket::query()->delete();
         app(SettingsStore::class)->save('wismo_mode', 'off', 'Etienne');
         classifyWismo(ticket: ['zammad_id' => 202]);
 
         Queue::assertNotPushed(AnswerWismoTicket::class);
+    });
+
+    test('a ticket of the test set is answered too and leaves the test set', function () {
+        classifyWismo(ticket: ['split' => 'test', 'zammad_id' => 201]);
+
+        Queue::assertPushed(AnswerWismoTicket::class);
+        expect(LabelTicket::query()->where('zammad_id', 201)->value('split'))->toBe('training');
     });
 });

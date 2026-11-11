@@ -66,28 +66,32 @@ class LabelClassifier
         }
 
         $ticket->update(['state' => 'classified', 'problem' => null]);
-        $ticket->shareCategory();
         $this->answerWismo($ticket, $prediction, $settings);
+        $ticket->shareCategory();
 
         return $prediction;
     }
 
     /**
      * A new ticket that the model clearly takes for "Where is my order?" is answered automatically (PROJ-82), without
-     * waiting for a member of the staff: only the proposal counts, never a ticket of the test set or an old one.
+     * waiting for a member of the staff: only the proposal counts, never an old ticket. A ticket of the test set that is
+     * answered automatically leaves the test set, because nobody decides on it independently afterwards.
      *
      * @param  array<string, mixed>  $settings
      */
     private function answerWismo(LabelTicket $ticket, LabelPrediction $prediction, array $settings): void
     {
         $eligible = $ticket->source === 'eingang'
-            && ! $ticket->isTest()
             && $prediction->category === LabelCategory::Wismo->value
             && ! $prediction->unclear
             && ! $prediction->multiple_concerns
             && (float) $prediction->confidence >= (float) $settings['confidence'];
 
         if ($eligible && (string) app(SettingsStore::class)->value('wismo_mode') !== 'off') {
+            if ($ticket->isTest() && $ticket->decision === null) {
+                $ticket->update(['split' => 'training']);
+            }
+
             AnswerWismoTicket::dispatch($ticket->id);
         }
     }

@@ -1,11 +1,13 @@
 <?php
 
+use App\Jobs\AnswerWismoTicket;
 use App\Jobs\ClassifyIncomingTicket;
 use App\Jobs\ClassifyLabelTicket;
 use App\Labeling\CategoryStatus;
 use App\Labeling\ExampleSelector;
 use App\Labeling\LabelAgent;
 use App\Labeling\LabelCategory;
+use App\Labeling\LabelClassifier;
 use App\Labeling\LabelingSettings;
 use App\Labeling\LabelStats;
 use App\Labeling\LabelTagging;
@@ -13,6 +15,7 @@ use App\Labeling\ReviewRecorder;
 use App\Models\LabelRelease;
 use App\Models\LabelTicket;
 use App\Models\TrackedTicket;
+use App\Settings\SettingsStore;
 use App\Zammad\TicketSynchronizer;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -388,3 +391,20 @@ it('shows in the ticket list why a ticket has no category yet', function () {
 
     expect($status)->toBe([701 => 'pending', 702 => 'pending', 703 => 'hidden', 704 => 'none']);
 });
+
+it('takes a test ticket out of the test set when the automatic WISMO answer starts', function (string $mode, string $split, bool $dispatched) {
+    Queue::fake();
+    app(SettingsStore::class)->save('wismo_mode', $mode, 'Etienne');
+    LabelAgent::fake([ikAnswer()]);
+    $ticket = ikMake(['split' => 'test', 'state' => 'captured']);
+    $ticket->predictions()->delete();
+
+    app(LabelClassifier::class)->classify($ticket);
+
+    expect($ticket->refresh()->split)->toBe($split);
+    $dispatched ? Queue::assertPushed(AnswerWismoTicket::class) : Queue::assertNotPushed(AnswerWismoTicket::class);
+    expect(ikTracked($ticket)->category)->toBe($dispatched ? 'wismo' : null);
+})->with([
+    'on' => ['on', 'training', true],
+    'off' => ['off', 'test', false],
+]);

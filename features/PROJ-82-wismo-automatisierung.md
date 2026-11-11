@@ -286,6 +286,9 @@ Abweichungen von der Spec:
 
 Noch nicht live geprüft: DHL-Tracking (`DHL_TRACKING_API_KEY`) und der Versand/Notizen unter dem technischen Zammad-Nutzer (Token `ZAMMAD_TOKEN`; `ZAMMAD_REPLY_TOKEN` ist nur für ein getrenntes Token nötig, Entscheidung 2026-11-11). Beides ist per HTTP-Nachbildung getestet, nicht live.
 
+### Nachtrag (2026-11-11): Testmenge
+Ein Ticket der Testmenge (PROJ-80) wird bei klarer WISMO-Einstufung ebenfalls automatisch beantwortet und wechselt dabei in die Trainingsmenge (`split = training`), da nach der automatischen Antwort keine unabhängige Mitarbeiter-Entscheidung folgt. Bei Schalter „aus“ bleibt es in der Testmenge.
+
 ## QA Test Results
 
 **Geprüft am:** 2026-11-11 · **Art der Prüfung:** automatisierte Tests, Code-Durchsicht gegen die Kriterien, ein echter UPS-Abruf (nur lesend, Ticket 2140267). **Nicht möglich in dieser Sitzung:** Prüfung im Browser (Chrome, Firefox, Safari, 375/768/1440 px), echter DHL-Abruf (Key war zum Prüfzeitpunkt nicht eingetragen), echter Versand unter dem technischen Zammad-Nutzer.
