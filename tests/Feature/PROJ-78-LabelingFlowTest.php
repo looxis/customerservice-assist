@@ -216,7 +216,9 @@ describe('retrieval', function () {
 
         lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch']);
 
-        expect(LabelTicket::query()->sole()->state)->toBe('captured');
+        $ticket = LabelTicket::query()->sole();
+        expect($ticket->state)->toBe('captured')->and($ticket->text)->toBeNull()
+            ->and($ticket->classifierInput(1000))->toContain('steht im Betreff');
     });
 
     it('skips merged tickets', function () {

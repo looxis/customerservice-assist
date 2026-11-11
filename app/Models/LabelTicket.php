@@ -74,7 +74,9 @@ class LabelTicket extends Model
         return collect([
             filled($this->sender) ? 'Absender: '.$this->sender : null,
             filled($this->subject) ? 'Betreff: '.$this->subject : null,
-        ])->filter()->push("Erste Nachricht des Kunden:\n\n".mb_substr((string) $this->text, 0, $maxTextLength))->implode("\n");
+        ])->filter()->push(filled($this->text)
+            ? "Erste Nachricht des Kunden:\n\n".mb_substr((string) $this->text, 0, $maxTextLength)
+            : 'Die Nachricht des Kunden hat keinen Text im Mailinhalt; die gesamte Nachricht steht im Betreff.')->implode("\n");
     }
 
     /**

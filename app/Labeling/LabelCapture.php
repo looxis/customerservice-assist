@@ -66,7 +66,7 @@ class LabelCapture
             'number' => $head->number,
             'group_name' => $head->group,
             'article_id' => $article?->id,
-            'text' => $article === null ? null : TicketContext::plainText($article),
+            'text' => $article === null || ! $article->hasText() ? null : TicketContext::plainText($article),
             'subject' => $head->title === '(ohne Betreff)' ? null : $head->title,
             'sender' => $article?->from,
             'zammad_created_at' => $head->createdAt,
