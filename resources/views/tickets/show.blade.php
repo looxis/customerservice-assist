@@ -38,7 +38,7 @@
         <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-reply="$canReplyToClosed" :can-assign="$canAssignTicket" :assignee="$assignee" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []" :claim-references="$claimReferences ?? []"
-                                 :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" />
+                                 :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" :delivery-problem="$deliveryProblem ?? null" />
             </x-slot:orders>
         </x-ticket.header>
 

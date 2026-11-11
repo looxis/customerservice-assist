@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11 (Frontend)
+**Last Updated:** 2026-11-11 (Backend)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -114,7 +114,8 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 
 ## Open Questions
 - [x] UPS-Abholort: welche Schnittstelle? → Recherche liegt vor (2026-11-11): Tracking-API `track/v1/details` liefert Ereignisadressen, aber `accessPointInformation` nur `pickupByDate`; Quantum View (`AccessPointLocationID`, `UAPAddress`) und Locator sind bedingte Wege ohne belegte ID-Zuordnung. Entscheidung: PROJ-82 nutzt nur die Tracking-API mit strenger Prüfung, sonst ehrlicher Fallback mit Link
-- [ ] UPS: Liefert das konkrete Versenderkonto bei umgeleiteten Sendungen eine belegbare Abholadresse in der Tracking-API? Klären mit validierten Referenzsendungen (autorisiert, bereinigt) vor dem Scharfschalten; erster Referenzfall: Ticket 2140267 (UPS-Paket liegt am Abholort, Stand 2026-11-11, Abholort unabhängig bestätigen); Ergebnis bestimmt, ob eine Adressregel aktiviert wird
+- [x] UPS: Liefert das Versenderkonto bei umgeleiteten Sendungen eine Abholadresse in der Tracking-API? → Ja (2026-11-11, Referenzfall Ticket 2140267): `accessPointInformation.address` liefert Straße, PLZ, Ort und Land des Access Points (Firmenname leer, `pickupByDate` fehlte); kein Quantum View und kein Locator nötig. Der Status des Falls war „Letzter Zustellversuch unternommen“ (Empfänger nicht anwesend), eine Abholbereitschaft sagt UPS dort nicht ausdrücklich. Deshalb nennt die Antwort die Adresse neutral („laut UPS als Abholort angegeben“) und behauptet „liegt zur Abholung bereit“ nur bei passendem Statustext. Offen bleibt: der Abholort wird am echten Fall unabhängig bestätigt (siehe nächste Frage). Ergebnis bestimmt, ob eine Adressregel aktiviert wird
+- [ ] UPS: Abholort von Ticket 2140267 unabhängig bestätigen (Kundenkontakt oder UPS-Seite), bevor die Automatik scharf geschaltet wird
 - [ ] UPS Quantum View und Locator (Verfügbarkeit, Berechtigung, ID-Zuordnung `AccessPointLocationID` ↔ `LocationID`/`PublicAccessPointID`): Anfrage an UPS; nur bei positivem Ergebnis eigenes Feature
 - [ ] Wo steht der verbindliche Status, der „am Access Point zugestellt“ von „vom Empfänger abgeholt“ unterscheidet (UPS-Statuscodes aus Referenzfällen)?
 - [x] Hinweiszeile „automatisch verfasst“ → bleibt, Wortlaut in den Einstellungen änderbar (2026-11-11)
@@ -267,6 +268,23 @@ Gebaut:
 Noch offen für `/backend`:
 - Prompt „WISMO-Antwort“ und Modell `model_wismo` in „Prompts und Modell“ (braucht `resources/prompts/wismo.md`, `config/analysis.php`, Registry-Einträge; der Text der Seite spricht dann von acht Prompts).
 - Datenmodell WISMO-Lauf, Füllen der Prop `deliveryProblem` aus dem Lauf (in `ticket/orders` und der Ticketseite), Admin-Übersicht der Läufe (Liste, Filter, Lauf öffnen) samt Seitenleiste und Route.
+
+## Implementation Notes (Backend, 2026-11-11)
+Gebaut:
+- **Protokoll:** Tabelle `wismo_runs` (ein Eintrag je Ticket, `zammad_id` eindeutig), Modell `WismoRun` mit Factory; die Antworttexte sind verschlüsselt, `wismo:purge` (täglich 04:30) leert sie nach 90 Tagen.
+- **Sendungsstatus:** `app/Tracking/` mit `DhlTrackingClient` (DHL-Key, PLZ des Empfängers), `UpsTrackingClient` (OAuth, Token im Zwischenspeicher, `locale=de_DE`), `TrackingStatus`, `Carriers` (Erkennung und Links), `DeliveryText` (Zustellproblem- und Abholort-Regeln aus n8n), `ShipmentTracker`.
+- **Entscheidung im Code:** Der UPS-Abholort stammt aus `accessPointInformation` und zählt nur bei vollständiger Anschrift (Straße, PLZ, Ort); bei Zustellproblem oder zugestellter Sendung wird kein Abholort genannt.
+- **Antwort:** `WismoAgent` und Prompt `resources/prompts/wismo.md` (Einstellungen: Prompt „WISMO-Antwort“, Modell `model_wismo`, Standard `WISMO_MODEL` oder `SUMMARY_MODEL`). Die Antwort wird geprüft: Sendungsnummer und Trackinglink müssen im Text stehen, sonst keine Kundenantwort, sondern Notiz.
+- **Ablauf:** `WismoResponder` (Prüfung des Tickets, Bestellnummer ohne KI, EOCS, Abfrage, KI, Versand mit Status `offen`, Notiz), `AnswerWismoTicket` (Wiederholung nach 2 und 4 Minuten, nach drei Versuchen Notiz), Weiche in `LabelClassifier` (nur Quelle „Eingang“, Kategorie wismo, nicht unklar, nicht mehrere Anliegen, Konfidenz ab Schwellenwert, nicht Testmenge, Schalter nicht aus).
+- **Sicherheit gegen Doppelantworten:** Der Protokolleintrag wird zuerst angelegt; vor dem Senden steht er auf „sending“; bei unklarem Ausgang (Zeitüberschreitung) sendet die App nie erneut, es bleibt „Versand unklar“ mit interner Notiz.
+- **Oberfläche:** Admin-Übersicht `/wismo-antworten` (Filter, Details), Seitenleiste „WISMO-Antworten“, Zustellproblem-Hinweis am Ticket aus dem gespeicherten Lauf.
+- Tests: `PROJ-82-TrackingClientTest`, `PROJ-82-WismoResponderTest`, `PROJ-82-WismoOverviewTest`.
+
+Abweichungen von der Spec:
+- Eigene Artikel des technischen Nutzers lösen keine neue Bearbeitung aus, weil der Eintrag je Ticket nur einmal entsteht und die Weiche nur an der Klassifikation hängt (kein Webhook-Pfad); ein eigener Nutzer-Filter im Ticket-Sync war deshalb nicht nötig.
+- Die Kunden-Antwort wird gesendet, auch wenn der Bestelleingang mehr als 3 Werktage zurückliegt; der Hinweis steht intern (Bestellblock, Notiz), wie entschieden.
+
+Noch nicht geprüft (braucht Zugänge): DHL-Tracking (`DHL_TRACKING_API_KEY`) und der Versand/Notizen unter dem technischen Zammad-Nutzer (`ZAMMAD_REPLY_TOKEN`). Beides ist per HTTP-Nachbildung getestet, nicht live.
 
 ## QA Test Results
 _To be added by /qa_

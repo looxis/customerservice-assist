@@ -31,3 +31,4 @@ foreach (['26 11', '7 16', '16 16', '34 18'] as $time) {
 
 // PROJ-78: empty the message texts of the ticket tagging after the retention period.
 Schedule::command('labeling:purge')->dailyAt('04:15');
+Schedule::command('wismo:purge')->dailyAt('04:30');

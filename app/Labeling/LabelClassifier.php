@@ -5,8 +5,10 @@ namespace App\Labeling;
 use App\Analysis\AnalysisException;
 use App\Analysis\LanguageModel;
 use App\Analysis\Prompt;
+use App\Jobs\AnswerWismoTicket;
 use App\Models\LabelPrediction;
 use App\Models\LabelTicket;
+use App\Settings\SettingsStore;
 
 /**
  * Asks the language model for the category of one ticket and files the answer (PROJ-78).
@@ -65,8 +67,29 @@ class LabelClassifier
 
         $ticket->update(['state' => 'classified', 'problem' => null]);
         $ticket->shareCategory();
+        $this->answerWismo($ticket, $prediction, $settings);
 
         return $prediction;
+    }
+
+    /**
+     * A new ticket that the model clearly takes for "Where is my order?" is answered automatically (PROJ-82), without
+     * waiting for a member of the staff: only the proposal counts, never a ticket of the test set or an old one.
+     *
+     * @param  array<string, mixed>  $settings
+     */
+    private function answerWismo(LabelTicket $ticket, LabelPrediction $prediction, array $settings): void
+    {
+        $eligible = $ticket->source === 'eingang'
+            && ! $ticket->isTest()
+            && $prediction->category === LabelCategory::Wismo->value
+            && ! $prediction->unclear
+            && ! $prediction->multiple_concerns
+            && (float) $prediction->confidence >= (float) $settings['confidence'];
+
+        if ($eligible && (string) app(SettingsStore::class)->value('wismo_mode') !== 'off') {
+            AnswerWismoTicket::dispatch($ticket->id);
+        }
     }
 
     /**

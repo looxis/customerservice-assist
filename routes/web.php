@@ -32,6 +32,7 @@ use App\Http\Controllers\TicketLabelController;
 use App\Http\Controllers\TicketOverviewController;
 use App\Http\Controllers\TicketTodoController;
 use App\Http\Controllers\TranslationController;
+use App\Http\Controllers\WismoRunController;
 use App\Zammad\SampleTicket;
 use Illuminate\Support\Facades\Route;
 
@@ -90,6 +91,8 @@ Route::patch('/produktfragen', [ProductQuestionController::class, 'update'])->mi
 
 Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('analysis-overview.index');
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
+Route::get('/wismo-antworten', [WismoRunController::class, 'index'])->name('wismo-runs.index');
+Route::get('/wismo-antworten/{run}', [WismoRunController::class, 'show'])->whereNumber('run')->name('wismo-runs.show');
 
 // PROJ-78: ticket tagging for training data (admins only).
 Route::get('/beschriftung', [LabelingController::class, 'index'])->name('labeling.index');

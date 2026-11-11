@@ -14,6 +14,7 @@ use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
 use App\Labeling\TicketLabelState;
 use App\Models\LabelTicket;
+use App\Models\WismoRun;
 use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
@@ -112,10 +113,23 @@ class TicketController extends Controller
             'lookups' => $lookups,
             'claimReferences' => $this->claimReferences($suggestions),
             'orderProblem' => $orderProblem,
+            'deliveryProblem' => $this->deliveryProblem($ticket),
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
             'labelState' => $this->labelState($ticket),
         ]);
+    }
+
+    /**
+     * The delivery problem the automatic WISMO reply found (PROJ-82), from the stored run; no carrier is asked here.
+     *
+     * @return array{reason: ?string, at: ?string}|null
+     */
+    private function deliveryProblem(Ticket $ticket): ?array
+    {
+        $run = WismoRun::query()->where('zammad_id', $ticket->id)->where('delivery_problem', true)->first();
+
+        return $run === null ? null : ['reason' => $run->delivery_problem_reason, 'at' => $run->processed_at?->toIso8601String()];
     }
 
     /**

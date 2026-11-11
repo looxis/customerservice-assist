@@ -48,7 +48,7 @@ final class SettingsRegistry
             ],
             'prompts' => [
                 'title' => 'Prompts und Modell',
-                'description' => 'Die Anweisungen an die KI (sieben Prompts) und das Modell je KI-Aufruf.',
+                'description' => 'Die Anweisungen an die KI (neun Prompts) und das Modell je KI-Aufruf.',
                 'route' => 'settings.prompts',
             ],
         ];
@@ -69,6 +69,7 @@ final class SettingsRegistry
             'analysis-related' => ['title' => 'Zusatz: zusammengehörige Tickets', 'hint' => 'Wird dem Kern angehängt, wenn früherer Verlauf aus zusammengehörigen Tickets mitgeschickt wird.'],
             'router' => ['title' => 'Router', 'hint' => 'Beim zusätzlichen Wissensvorschlag nach dem gezielten Abruf.'],
             'summary' => ['title' => 'Zusammenfassung', 'hint' => 'Bei der Zusammenfassung des bisherigen Verlaufs.'],
+            'wismo' => ['title' => 'WISMO-Antwort', 'hint' => 'Bei der automatischen Antwort auf „Wo ist mein Paket?“ (PROJ-82), mit Sendungsstatus von DHL oder UPS.'],
             'translation' => ['title' => 'Übersetzung', 'hint' => 'Bei jeder Übersetzung einer Nachricht und bei der Rückübersetzung des Antwortentwurfs.'],
         ];
     }
@@ -82,6 +83,7 @@ final class SettingsRegistry
             'model_analysis' => ['Analyse', 'Das Modell für den Vorschlag zu Ticket oder Frage.', fn (): string => (string) config('analysis.models.analysis')],
             'model_summary' => ['Zusammenfassung', 'Das Modell für die Zusammenfassung des bisherigen Verlaufs.', fn (): string => (string) config('analysis.models.summary')],
             'model_translation' => ['Übersetzung', 'Das Modell für Übersetzungen und die Rückübersetzung des Antwortentwurfs.', fn (): string => (string) config('analysis.models.translation')],
+            'model_wismo' => ['WISMO-Antwort', 'Das Modell für die automatische Antwort auf „Wo ist mein Paket?“.', fn (): string => (string) config('analysis.models.wismo')],
             'model_router' => ['Router', 'Das Modell für den zusätzlichen Wissensvorschlag.', fn (): string => (string) config('knowledge.router.model')],
         ];
         $groups = [];

@@ -1,4 +1,4 @@
-@props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null, 'claimReferences' => []])
+@props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null, 'claimReferences' => [], 'deliveryProblem' => null])
 
 @php
     $url = fn (array $selection): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selection === [] ? [''] : array_values($selection)]);
@@ -93,7 +93,7 @@
                     <p class="text-sm text-slate-600">Mehrere Bestellungen zu <span class="font-mono">{{ $lookup->number->value }}</span>:</p>
                 @endif
                 @foreach ($lookup->orders as $order)
-                    <x-ticket.order-block :order="$order" :mention="$mentions->get($order->externalNumber)" :remove-url="$url(array_diff($selected, [$lookup->number->value]))" :claim-references="$claimReferences" />
+                    <x-ticket.order-block :order="$order" :mention="$mentions->get($order->externalNumber)" :remove-url="$url(array_diff($selected, [$lookup->number->value]))" :claim-references="$claimReferences" :delivery-problem="$deliveryProblem" />
                 @endforeach
             @endif
         @endforeach

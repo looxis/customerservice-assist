@@ -48,6 +48,8 @@ return [
     'zammad' => [
         'url' => env('ZAMMAD_URL'),
         'token' => env('ZAMMAD_TOKEN'),
+        // Token of the technical user customerserviceassist with write access: sender of the automatic WISMO replies (PROJ-82).
+        'reply_token' => env('ZAMMAD_REPLY_TOKEN'),
         'timeout' => env('ZAMMAD_TIMEOUT', 10),
         // Seconds for loading one attachment (PROJ-60); attachments are larger than the JSON answers.
         'attachment_timeout' => 30,
@@ -153,6 +155,31 @@ return [
         'receiver_id' => env('DHL_RECEIVER_ID'),
         'timeout' => env('DHL_TIMEOUT', 15),
         'retention_days' => env('DHL_RETENTION_DAYS', 30),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Shipment tracking (PROJ-82)
+    |--------------------------------------------------------------------------
+    |
+    | Status of a shipment for the automatic WISMO reply. DHL: the Shipment
+    | Tracking API (own API key, separate from the returns access above;
+    | the recipient's postcode is sent to get delivery and pickup details).
+    | UPS: OAuth client credentials, the token is cached. "timeout" in seconds.
+    |
+    */
+
+    'dhl_tracking' => [
+        'url' => env('DHL_TRACKING_URL', 'https://api-eu.dhl.com/track/shipments'),
+        'key' => env('DHL_TRACKING_API_KEY'),
+        'timeout' => env('DHL_TRACKING_TIMEOUT', 10),
+    ],
+
+    'ups' => [
+        'url' => env('UPS_URL', 'https://onlinetools.ups.com'),
+        'client_id' => env('UPS_CLIENT_ID'),
+        'client_secret' => env('UPS_CLIENT_SECRET'),
+        'timeout' => env('UPS_TIMEOUT', 10),
     ],
 
 ];
