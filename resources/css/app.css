@@ -261,6 +261,11 @@
             @apply font-semibold;
         }
 
+        /* Warning about a link whose text names another address than its target (PROJ-84). */
+        mark.link-warning {
+            @apply rounded-sm bg-yellow-200 px-1 font-medium text-warning-700 box-decoration-clone;
+        }
+
         blockquote {
             @apply my-2 border-l-2 border-slate-200 pl-4 text-slate-600;
         }

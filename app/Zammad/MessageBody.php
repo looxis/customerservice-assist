@@ -137,6 +137,7 @@ class MessageBody
         preg_match_all(self::IMAGE_MARK, $closingAt === null ? '' : substr($clean, $closingAt), $trailing);
         [$main, $quote, $signature] = array_map(fn (?string $part): ?string => $part === null ? null : (string) preg_replace(self::IMAGE_MARK, '', $part), [$main, $quote, $signature]);
         $signature = $signature !== null && trim(strip_tags($signature)) === '' ? null : $signature;
+        [$main, $quote, $signature] = array_map(fn (?string $part): ?string => $part === null ? null : $this->highlightLinkWarnings($part), [$main, $quote, $signature]);
 
         return [
             'body' => new HtmlString($main),
@@ -230,6 +231,16 @@ class MessageBody
 
             return $text === '' || preg_match(self::BARE_LINK, $text) ? self::LINK_REMOVED : e($text).' '.self::LINK_REMOVED;
         }, $html) ?? $html;
+    }
+
+    /**
+     * Marks the link warnings yellow (PROJ-84). Done last on the finished HTML: the sanitizer lets no element of a
+     * mail through but its own structure, so a sender cannot highlight text, and the text for the language models
+     * (tags stripped) stays unchanged.
+     */
+    private function highlightLinkWarnings(string $html): string
+    {
+        return preg_replace('/\[Link entfernt – WARNUNG: [^\]]*\]/u', '<mark class="link-warning">$0</mark>', $html) ?? $html;
     }
 
     /**
