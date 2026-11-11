@@ -6,6 +6,7 @@
 
 ## 2026-11-11
 
+- Reklamationen geführt beantworten: Tickets der Art „Reklamation“ werden ab sofort geführt beantwortet. Wähle einfach die passenden Optionen (berechtigt, Retoure, Reklamationsnummer, Versand) und mache die Eingaben; bei Bedarf kannst du auf das Freitextfeld umschalten.
 - WISMO automatisch: Als WISMO klassifizierte Tickets erhalten automatisch eine Antwort anhand der Informationen des Paketdienstes. Die Tickets bleiben offen. Bitte kurz prüfen, dann das Ticket schließen. Bei Fehlern bitte Etienne informieren.
 - Tickets zuweisen: Auf der Ticketseite kannst du ein Ticket einem Kollegen (oder dir) zuweisen, mit optionaler Notiz, und die Zuweisung wieder zurücknehmen.
 
