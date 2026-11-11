@@ -12,6 +12,7 @@ use App\Eocs\EocsException;
 use App\Eocs\OrderLookup;
 use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
+use App\Labeling\LabelCategory;
 use App\Labeling\TicketLabelState;
 use App\Models\LabelTicket;
 use App\Models\WismoRun;
@@ -99,6 +100,8 @@ class TicketController extends Controller
             $analysis['result']['todo_context'] = app(TodoCaseContext::class)->build($ticket, $selected, $lookups, $this->claimReferences($suggestions), (string) ($analysis['result']['reply_text'] ?? ''));
         }
 
+        $labelState = $this->labelState($ticket);
+
         return response()->view('tickets.show', [
             'number' => $number,
             'ticket' => $ticket,
@@ -116,8 +119,37 @@ class TicketController extends Controller
             'deliveryProblem' => $this->deliveryProblem($ticket),
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
-            'labelState' => $this->labelState($ticket),
+            'labelState' => $labelState,
+            'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups),
         ]);
+    }
+
+    /**
+     * What the complaint form in "Vorschlag erstellen" needs (PROJ-86): whether it is the default form (category
+     * complaint, confirmed or else proposed), whether the switch to it is offered, and a claim number to prefill.
+     *
+     * @param  array<string, mixed>|null  $labelState
+     * @param  list<string>  $claimReferences
+     * @param  list<OrderLookup>  $lookups
+     * @return array{default: bool, toggle: bool, claimNumber: ?string}
+     */
+    private function complaintForm(?array $labelState, array $claimReferences, array $lookups): array
+    {
+        $category = $labelState['decision'] ?? $labelState['suggestion'] ?? null;
+        $default = $category === LabelCategory::Reklamation->value;
+        $undecided = $labelState !== null && ($labelState['decision'] ?? null) === null && (($labelState['suggestion'] ?? null) === null || ($labelState['unsure_by'] ?? null) !== null);
+
+        $claims = $claimReferences;
+
+        foreach ($lookups as $lookup) {
+            foreach ($lookup->orders as $order) {
+                foreach ($order->claims as $claim) {
+                    $claims[] = $claim->externalNumber;
+                }
+            }
+        }
+
+        return ['default' => $default, 'toggle' => $default || $undecided, 'claimNumber' => $claims[0] ?? null];
     }
 
     /**

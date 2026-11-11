@@ -1,4 +1,4 @@
-@props(['number', 'analysis', 'selected' => [], 'canClose' => false, 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false, 'lookups' => []])
+@props(['number', 'analysis', 'selected' => [], 'canClose' => false, 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false, 'lookups' => [], 'complaint' => []])
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
@@ -25,6 +25,13 @@
     $unknownName = (string) ($oldInput ? old('produkt_ohne_wissen', '') : ($inputs['produkt_ohne_wissen'] ?? ''));
     $noProduct = $oldInput ? (bool) old('kein_produktbezug') : (bool) ($inputs['kein_produktbezug'] ?? ($inputs !== [] && ($inputs['produkte'] ?? []) === [] && $unknownName === '' && ($inputs['forge_produkte'] ?? []) === [] && ($inputs['eocs_produkte'] ?? []) === []));
     $usedVariant = \App\Analysis\ContextVariant::tryFrom((string) ($inputs['variante'] ?? ''))?->label();
+    // Complaint form (PROJ-86): the default for a complaint ticket, a switch back to the free text where it is offered.
+    $complaintToggle = (bool) ($complaint['toggle'] ?? false);
+    $defaultForm = ($complaint['default'] ?? false) ? 'reklamation' : 'frei';
+    $chosenForm = $oldInput ? old('formular') : ($inputs['formular'] ?? null);
+    $formMode = ! $complaintToggle ? 'frei' : (in_array($chosenForm, ['reklamation', 'frei'], true) ? $chosenForm : $defaultForm);
+    $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($inputs[$key] ?? $default);
+    $labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
 @endphp
 
 {{-- Analysis form (PROJ-9). Posts normally; Alpine only for variant preview, counter and the double-submit lock. --}}
@@ -60,9 +67,18 @@
         @endif
 
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
-              x-data="{ variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '' }"
+              x-data="{
+                  variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '',
+                  mode: @js($formMode), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), kulanz: @js($pickedAnswer('kulanz', 'nein')), versand: @js($pickedAnswer('versand', 'zeitnah')),
+                  syncLabel() { this.labelOn = this.mode === 'reklamation' && this.berechtigt === 'ja' && this.retoure === 'ja' },
+                  init() {
+                      ['mode', 'berechtigt', 'retoure'].forEach((property) => this.$watch(property, () => this.syncLabel()))
+                      this.$watch('labelOn', (on) => { if (on) { this.$dispatch('dhl-load-address') } })
+                      this.syncLabel()
+                  },
+              }"
               x-on:return-label-ready="labelNote = ''"
-              x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
+              x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]:not(:disabled)')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
             @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
@@ -135,24 +151,36 @@
             </details>
             @endif
 
+            <input type="hidden" name="formular" x-bind:value="mode" value="{{ $formMode }}">
+            @if ($complaintToggle)
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="text-sm font-medium text-slate-900" x-text="mode === 'reklamation' ? 'Reklamation: geführte Eingaben' : 'Freitext: Zusätzliche Informationen'"></p>
+                    <x-button type="button" variant="secondary" x-on:click="mode = mode === 'reklamation' ? 'frei' : 'reklamation'">
+                        <span x-text="mode === 'reklamation' ? 'Freitext statt Reklamationsformular' : 'Reklamationsformular verwenden'"></span>
+                    </x-button>
+                </div>
+                <x-analysis.complaint-fields :inputs="$inputs" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
+            @endif
+
             @if ($testMode)
                 <x-alert type="warning">
                     <span class="font-semibold">Testmodus:</span> Hier keine Regeln oder Antworten eintragen („das geht nicht“, „das machen wir immer so“) – sonst bleiben Lücken in der Wissensdatenbank unentdeckt. Fakten zum Fall (z. B. Ergebnis einer Fotoprüfung) sind erlaubt.
                 </x-alert>
             @endif
 
+            <fieldset x-show="mode === 'frei'" x-bind:disabled="mode !== 'frei'" @if ($formMode !== 'frei') x-cloak @endif class="min-w-0 space-y-5 border-0 p-0">
+            <legend class="sr-only">Zusätzliche Informationen</legend>
             <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" :hint="$introMode ? 'Optional. Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.' : null">
                 <textarea name="kontext" id="kontext" rows="5" placeholder="{{ $earlierReply ? $followUpPlaceholder : $firstPlaceholder }}" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
                           class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', '') }}</textarea>
                 <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>
             </x-field>
 
-            @php($labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values())
             @if ($labelOrders->isNotEmpty())
                 {{-- DHL return label before the proposal (PROJ-64): the model learns that a label goes with the reply, the app adds the steps. --}}
                 <div id="dhl-option" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
                     <label class="flex items-start gap-2 text-sm font-medium text-slate-900">
-                        <input type="checkbox" x-model="labelOn" x-on:change="if (labelOn) { $dispatch('dhl-load-address') }" class="mt-0.5 rounded text-brand focus:ring-brand">
+                        <input type="checkbox" x-model="labelOn" class="mt-0.5 rounded text-brand focus:ring-brand">
                         <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>
                     </label>
                     <x-intro>
@@ -178,6 +206,7 @@
                 </ul>
             </details>
             </x-intro>
+            </fieldset>
 
             @error('kundengruppe') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
             @error('produkte.*') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror

@@ -1,6 +1,6 @@
 # PROJ-86: Reklamationsformular in „Vorschlag erstellen“
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-11
 **Last Updated:** 2026-11-11
 
@@ -210,6 +210,20 @@ Keine neuen Pakete.
 
 ### G) Neue offene Punkte aus dem Entwurf
 Siehe Open Questions (Umschalten beim Kategoriewechsel, Verhalten bei Mischfällen).
+
+## Implementation Notes: Frontend (2026-11-11)
+Gebaut ist die Oberfläche; die Serverseite (Prüfung, Fakten für die KI, Speichern, Prompt, ToDo-Vorauswahl) fehlt noch (`/backend`).
+
+- `resources/views/components/analysis/complaint-fields.blade.php` (neu): Reklamationsformular mit den Zweigen berechtigt Ja/Nein, Retoure (bestehender Dialog `x-dhl.return-label`), Reklamationsnummer, Versand, ToDo-Option.
+- `resources/views/components/analysis/choice.blade.php` (neu): wiederverwendbare Ja/Nein- bzw. Auswahlgruppe als Radiobuttons.
+- `resources/views/components/analysis/form.blade.php`: Umschalter, verstecktes Feld `formular`, das Freitextfeld samt DHL-Checkbox liegt jetzt in einem Block, der nur im Freitext-Modus gesendet wird. Nicht angezeigte Zweige sind deaktivierte Fieldsets: Sie werden nicht gesendet, behalten aber ihre Eingaben beim Umschalten. Der Versandschutz „Label zuerst erzeugen“ prüft nur aktive Felder.
+- `TicketController` + `tickets/show.blade.php`: neue Ansichtsdaten `complaintForm` (`default`, `toggle`, `claimNumber`). Standardformular bei Kategorie Reklamation (bestätigt, sonst Vorschlag der KI); Umschalter bei Reklamation oder wenn die Einordnung offen/unsicher/verborgen ist.
+
+**Feldnamen für `/backend`** (Request `AnalyzeTicketRequest`): `formular` (`reklamation`|`frei`), `reklamation_berechtigt` (`ja`|`nein`), `reklamation_grund`, `kulanz` (`ja`|`nein`), `retoure` (`ja`|`nein`), `reklamationsnummer`, `versand` (`heute`|`morgen`|`zeitnah`), `sendungsnummer_todo` (`1`, Checkbox), `return_label` (wie bisher). Im Modus `reklamation` wird `kontext` nicht gesendet; bei „nein“ nur Grund und Kulanz, bei „ja“ nur Retoure, Nummer, Versand, ToDo.
+- Standard „zeitnah“ und „Retoure: Nein“, Kulanz „Nein“, ToDo-Option vorausgewählt.
+- Vorbelegung aus den gespeicherten Eingaben der letzten Analyse (`inputs`), sobald das Backend sie speichert.
+- Bekannte Eigenheit: Beim Umschalten des Formulars wird das Label-Feld zurückgesetzt (Retoure-Dialog muss erneut geöffnet werden, ein bereits erstelltes Label bleibt im jeweiligen Dialog erhalten). Beide Dialoge laden die Adresse bei Bedarf.
+- Im Browser noch nicht geprüft; bestehende Tests (PROJ-9, PROJ-64, PROJ-80) laufen grün.
 
 ## QA Test Results
 _To be added by /qa_
