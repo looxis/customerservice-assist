@@ -2,7 +2,7 @@
 
 ## Status: Planned
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11
+**Last Updated:** 2026-11-11 (refine: offene Punkte Hinweiszeile, Werktage, hängende Bestellung entschieden)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -56,7 +56,7 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 
 ### Bestellung noch nicht versendet
 - [ ] Angenommen die Bestellung ist gefunden, hat aber keine Sendung, dann sendet CSA eine Antwort mit dem Bestellstatus aus EOCS (wie n8n), ohne Liefertermin zuzusagen
-- [ ] Angenommen der Bestelleingang liegt mehr als 3 Werktage zurück und es gibt keine Sendung, dann erscheint im Bestellblock der Ticketseite ein Hinweis „Bestellung seit … Werktagen ohne Versand, möglicherweise hängen geblieben“ im selben Stil und an derselben Stelle wie der Versandalter-Hinweis (PROJ-79), und die interne Notiz nennt das ebenfalls; die Kundenantwort nennt weiterhin keinen Liefertermin
+- [ ] Angenommen der Bestelleingang liegt mehr als 3 Werktage (Montag bis Freitag, ohne Feiertagskalender) zurück und es gibt keine Sendung, dann erscheint im Bestellblock der Ticketseite ein Hinweis „Bestellung seit … Werktagen ohne Versand, möglicherweise hängen geblieben“ im selben Stil und an derselben Stelle wie der Versandalter-Hinweis (PROJ-79), und die interne Notiz nennt das ebenfalls; die Kundenantwort nennt weiterhin keinen Liefertermin
 
 ### Zustellproblem
 - [ ] Angenommen die Trackinghistorie enthält ein Zustellproblem (zum Beispiel „zurück an Absender“, Annahme verweigert, nicht abgeholt, unzustellbar, Adresse nicht auffindbar), dann behandelt CSA die Sendung nicht als zugestellt, auch wenn ein Status „zugestellt“ vorkommt
@@ -101,10 +101,10 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 - Kosten: ein LLM-Aufruf je Ticket, Tokens im Protokoll
 
 ## Open Questions
-- [ ] UPS-Abholort: Welche UPS-Schnittstelle liefert die Adresse des Access Points (Tracking-Felder, Access-Point-Locator)? Bis zur Klärung verweist die Antwort auf die Webseite von UPS
-- [ ] Hinweiszeile „automatisch verfasst“: beibehalten wie in n8n oder weglassen (Transparenz gegenüber dem Kunden)?
-- [ ] Werktage: nur Montag bis Freitag oder auch Feiertage berücksichtigen (PROJ-77 hat einen Zeitplan mit Samstag)? Empfehlung: Mo–Fr ohne Feiertagskalender
-- [ ] Soll die Antwort bei einer Bestellung ohne Versand nach mehr als 3 Werktagen weiter automatisch gesendet werden oder nur als interne Notiz? Empfehlung: weiter senden ohne Termin, Hinweis intern (siehe Kriterien)
+- [ ] UPS-Abholort: Welche UPS-Schnittstelle liefert die Adresse des Access Points (Tracking-Felder, Access-Point-Locator)? Recherche in `/architecture`; bis zur Klärung verweist die Antwort auf die Webseite von UPS
+- [x] Hinweiszeile „automatisch verfasst“ → bleibt, Wortlaut in den Einstellungen änderbar (2026-11-11)
+- [x] Werktage → Montag bis Freitag, ohne Feiertagskalender (2026-11-11)
+- [x] Antwort bei Bestellung ohne Versand nach mehr als 3 Werktagen → wird weiter automatisch gesendet, ohne Termin; der Hinweis steht nur intern (Bestellblock und Notiz) (2026-11-11)
 - [ ] `.env.example`: neue Variablen (technischer Zammad-Token, DHL-Tracking-Key, UPS-Zugang) legt Etienne an
 
 ## Decision Log
@@ -119,6 +119,9 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 | Bei „nicht versendet“ Antwort mit Bestellstatus wie n8n | Kunden bekommen Auskunft; keine Terminzusage | 2026-11-11 |
 | Hängende Bestellung (mehr als 3 Werktage ohne Versand): Hinweis im Bestellblock jetzt, Kennzeichnung und Nach-oben-Schieben als PROJ-83 | Vorgabe des Auftraggebers: erst Grundfunktion, dann Priorisierung planen | 2026-11-11 |
 | Zustellproblem: vorsichtige Antwort plus auffälliger Hinweis im Stil des 30-Tage-Hinweises (PROJ-79) | Wie n8n, aber Mitarbeiter sehen das Problem am Ticket statt nur in der Notiz | 2026-11-11 |
+| Hinweiszeile „automatisch verfasst“ bleibt | Transparenz gegenüber dem Kunden, wie in n8n; Wortlaut in den Einstellungen änderbar | 2026-11-11 |
+| Werktage = Montag bis Freitag ohne Feiertagskalender | einfach und nachvollziehbar; der Hinweis ist unkritisch, ein Tag zu früh schadet nicht | 2026-11-11 |
+| Bei hängender Bestellung weiter automatisch antworten, ohne Termin | Kunde bekommt zeitnah eine Auskunft; Mitarbeiter sieht das Problem intern (Bestellblock, Notiz), Priorisierung folgt in PROJ-83 | 2026-11-11 |
 | Ein LLM-Aufruf statt drei | Klassifikation und Bestellnummern-Erkennung existieren bereits in CSA; weniger Kosten und Fehlerquellen | 2026-11-11 |
 | Kein deutscher Zweitabsatz an den Kunden | n8n hängt die deutsche Fassung an die Kundenantwort; für Kunden verwirrend, die Fassung steht in der internen Notiz | 2026-11-11 |
 
