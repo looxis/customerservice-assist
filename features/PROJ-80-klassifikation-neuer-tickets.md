@@ -134,6 +134,9 @@ Plan vom 2026-11-10 (mit dem Auftraggeber abgestimmt), kurz:
 - **Tests:** `tests/Feature/PROJ-80-IntakeClassificationTest.php` (32 Tests). Angepasst wurden `PROJ-67-TicketListTest.php` (Bezeichnungen, Badge „KI“) und `PROJ-78-LabelingFlowTest.php` (Aufbewahrung nach Erstelldatum).
 - **Betrieb:** Nach dem Einspielen den Queue-Worker neu starten (`queue:restart`) und `labeling:share-categories` einmal ausführen.
 
+### Nachtrag (2026-11-11): Kategorie-Spalte der Ticketliste
+Ohne Kategorie zeigt die Startseiten-Liste drei Zustände (`App\Labeling\CategoryStatus`): Uhr = Einordnung läuft noch (Ticket erfasst, aber nicht klassifiziert, oder neu und Erfassung steht aus), durchgestrichenes Auge = Testmenge, Vorschlag bewusst verborgen, rotes X = nicht eingeordnet (Fehler, entfernt, abgeschaltet).
+
 ## QA Test Results
 _To be added by /qa_
 

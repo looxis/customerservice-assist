@@ -2,6 +2,7 @@
 
 use App\Jobs\ClassifyIncomingTicket;
 use App\Jobs\ClassifyLabelTicket;
+use App\Labeling\CategoryStatus;
 use App\Labeling\ExampleSelector;
 use App\Labeling\LabelAgent;
 use App\Labeling\LabelCategory;
@@ -370,4 +371,20 @@ describe('admin pages', function () {
         $this->withCookie('staff_name', 'Etienne')->patch(route('labeling.settings.update'), [...$values, 'intake' => '1'])->assertSessionHas('success');
         expect(app(LabelingSettings::class)->all()['intake'])->toBeTrue();
     });
+});
+
+it('shows in the ticket list why a ticket has no category yet', function () {
+    $pending = TrackedTicket::factory()->create(['zammad_id' => 701, 'number' => '2140701', 'category' => null, 'zammad_created_at' => now()->subMinutes(5)]);
+    $captured = TrackedTicket::factory()->create(['zammad_id' => 702, 'number' => '2140702', 'category' => null, 'zammad_created_at' => now()->subDays(3)]);
+    $hidden = TrackedTicket::factory()->create(['zammad_id' => 703, 'number' => '2140703', 'category' => null, 'zammad_created_at' => now()->subMinutes(5)]);
+    $none = TrackedTicket::factory()->create(['zammad_id' => 704, 'number' => '2140704', 'category' => null, 'zammad_created_at' => now()->subDays(3)]);
+    $shown = TrackedTicket::factory()->create(['zammad_id' => 705, 'number' => '2140705', 'category' => 'wismo', 'zammad_created_at' => now()->subMinutes(5)]);
+
+    LabelTicket::query()->create(['zammad_id' => 702, 'number' => '2140702', 'source' => 'eingang', 'split' => 'training', 'state' => 'captured']);
+    LabelTicket::query()->create(['zammad_id' => 703, 'number' => '2140703', 'source' => 'eingang', 'split' => 'test', 'state' => 'classified']);
+    LabelTicket::query()->create(['zammad_id' => 704, 'number' => '2140704', 'source' => 'eingang', 'split' => 'training', 'state' => 'failed']);
+
+    $status = app(CategoryStatus::class)->forRows(collect([$pending, $captured, $hidden, $none, $shown]));
+
+    expect($status)->toBe([701 => 'pending', 702 => 'pending', 703 => 'hidden', 704 => 'none']);
 });

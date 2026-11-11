@@ -1,5 +1,5 @@
 {{-- The list of tracked tickets on the start page (PROJ-67). --}}
-@props(['filter', 'rows', 'options', 'sync', 'lacksStaffUser' => false, 'todoTickets' => []])
+@props(['filter', 'rows', 'options', 'sync', 'lacksStaffUser' => false, 'todoTickets' => [], 'categoryStatus' => []])
 
 @php
     $views = \App\Analysis\TicketList::VIEWS;
@@ -147,7 +147,14 @@
                                             {{ $categories[$row->category] ?? $row->category }}
                                             @unless ($row->category_confirmed)<x-badge compact title="Vorschlag der KI, noch nicht bestätigt">KI</x-badge>@endunless
                                         @else
-                                            <span title="Noch nicht eingeordnet"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Noch nicht eingeordnet</span></span>
+                                            @php($status = $categoryStatus[$row->zammad_id] ?? \App\Labeling\CategoryStatus::NONE)
+                                            @if ($status === \App\Labeling\CategoryStatus::PENDING)
+                                                <span title="Die Einordnung läuft noch"><x-icon name="clock" class="text-slate-400" /><span class="sr-only">Einordnung läuft noch</span></span>
+                                            @elseif ($status === \App\Labeling\CategoryStatus::HIDDEN)
+                                                <span title="Testmenge: wird ohne KI-Vorschlag eingeordnet"><x-icon name="eye-off" class="text-slate-400" /><span class="sr-only">Testmenge, Vorschlag verborgen</span></span>
+                                            @else
+                                                <span title="Noch nicht eingeordnet"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Noch nicht eingeordnet</span></span>
+                                            @endif
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 align-top"><x-badge compact :tone="$row->processing_state->tone()">{{ $row->processing_state->label() }}</x-badge></td>

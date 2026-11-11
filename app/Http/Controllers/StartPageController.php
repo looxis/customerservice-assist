@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Analysis\TicketList;
 use App\Changelog\Changelog;
 use App\Http\Requests\TicketListRequest;
+use App\Labeling\CategoryStatus;
 use App\Staff\StaffDirectory;
 use App\Todo\TodoBoard;
 use Illuminate\Contracts\View\View;
@@ -14,7 +15,7 @@ class StartPageController extends Controller
     /**
      * The manual ticket lookup with the list of tracked tickets below it (PROJ-67).
      */
-    public function __invoke(TicketListRequest $request, TicketList $list, StaffDirectory $staff, Changelog $changelog, TodoBoard $todos): View
+    public function __invoke(TicketListRequest $request, TicketList $list, StaffDirectory $staff, Changelog $changelog, TodoBoard $todos, CategoryStatus $categoryStatus): View
     {
         $filter = $list->filter($request->validated());
         $name = $staff->current($request);
@@ -27,6 +28,7 @@ class StartPageController extends Controller
             'todoCounts' => $todos->counts($name),
             'todoList' => $todos->start($todoView, $name),
             'todoTickets' => $todos->ticketsWithOpen($rows->getCollection()->pluck('zammad_id')),
+            'categoryStatus' => $categoryStatus->forRows($rows->getCollection()),
             'ticketFilter' => $filter,
             'ticketRows' => $rows,
             'ticketOptions' => $list->options(),
