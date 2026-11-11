@@ -2,7 +2,7 @@
 
 ## Status: Planned
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11 (refine: offene Punkte Hinweiszeile, Werktage, hängende Bestellung entschieden)
+**Last Updated:** 2026-11-11 (refine: UPS-Recherche und Trackinglink-Regel eingearbeitet)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -27,6 +27,7 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 - Weitere Carrier außer DHL und UPS: andere Carrier bekommen Name und Sendungsnummer mit Hinweis auf die Webseite des Paketdienstes
 - Eigenes Passwort- oder Rollensystem; die Antwort läuft unter dem technischen Zammad-Nutzer
 - Die Abschaltung des n8n-Workflows (macht der Entwickler nach dem Trockenlauf)
+- UPS Quantum View und UPS Locator (Abholadresse über Ereignisabonnement und Standortsuche): erst nach Machbarkeitsnachweis mit UPS (Kontoberechtigung, ID-Zuordnung), dann als eigenes Feature; PROJ-82 kommt ohne beides aus
 - Antwort in Sprachen mit Übersetzungsschritt: Das Modell schreibt direkt in der Kundensprache; kein eigener Übersetzungsdienst
 
 ## Acceptance Criteria
@@ -49,8 +50,13 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 ### Sendungsstatus
 - [ ] Angenommen die Bestellung hat eine Sendung mit DHL als Carrier, wenn die Bearbeitung läuft, dann fragt CSA die DHL-Sendungsverfolgung mit Sendungsnummer und Empfänger-PLZ ab (Sprache Deutsch)
 - [ ] Angenommen der Carrier ist UPS, dann fragt CSA die UPS-Sendungsverfolgung ab; die Anmeldung wird zwischengespeichert statt je Ticket neu geholt
-- [ ] Angenommen der Carrier ist weder DHL noch UPS, dann nennt die Antwort Carrier und Sendungsnummer und verweist auf die Webseite des Paketdienstes
-- [ ] Angenommen die Sendungsverfolgung liefert einen Abholort mit Name und Adresse, dann nennt die Antwort sie wörtlich wie geliefert; liefert sie keine Adresse, erfindet die Antwort keine und verweist auf die Sendungsverfolgung des Paketdienstes (bei UPS bis zur Klärung der Schnittstelle der Regelfall)
+- [ ] Angenommen der Carrier ist weder DHL noch UPS, dann nennt die Antwort Carrier und Sendungsnummer und verweist auf die Webseite des Paketdienstes (ohne Statusangaben)
+- [ ] Angenommen die Sendungsverfolgung zeigt, dass die Sendung zur Abholung bereitliegt oder irgendwo hinterlegt wurde (Abholort, Filiale, Packstation, Paketshop, Ablageort, Nachbar), und liefert die Angaben dazu, dann stehen Abholort und Adresse bzw. Ablageort direkt im Nachrichtentext, wörtlich wie geliefert
+- [ ] Angenommen die Sendungsverfolgung liefert keine belegte Adresse, dann erfindet die Antwort keine; sie sagt ehrlich, dass der genaue Abholort über die Schnittstelle nicht übermittelt wurde, und verweist auf Tracking des Paketdienstes und den Link
+- [ ] Angenommen eine UPS-Sendung liegt zur Abholung bereit, dann entscheidet der Code (nicht das Sprachmodell) anhand der UPS-Tracking-Antwort (Status, Ereignisadresse, Zeitbezug, `accessPointInformation`), ob eine Abholadresse gesichert ist; nur ein Status, der Abholbereitschaft belegt, plus vollständige Anschrift (Straße/Hausnummer, PLZ, Ort, Land) aus dem aktuellsten Ereignis zählt, nicht Stadt/PLZ allein, nicht Abholfrist allein, nicht Empfänger- oder Depotadresse
+- [ ] Angenommen ein neueres Ereignis (abgeholt, Rücksendung, Umleitung, nicht abholbereit) widerspricht einer Abholadresse, dann wird die alte Adresse nicht genannt
+- [ ] Angenommen die Sendung hat mehrere Pakete, dann wird je Paket getrennt entschieden und keine Adresse eines Pakets auf ein anderes übertragen
+- [ ] Angenommen der Code hat die Adress- und Statusentscheidung getroffen, dann erhält das Sprachmodell nur die freigegebenen Angaben (Status, Adresse, Frist, Ort); es ergänzt keine Filiale, Frist, Öffnungszeiten oder Abholvoraussetzungen
 - [ ] Angenommen die Sendung ist zugestellt, dann nennt die Antwort Datum, Uhrzeit und Zustellart, sofern geliefert, und den Namen des Annehmenden nur, wenn er in den Daten steht, ohne Vermutung zur Beziehung
 - [ ] Angenommen die Abfrage des Paketdienstes schlägt fehl, dann wird bis zu dreimal wiederholt; danach interne Notiz mit dem Grund und keine Kundenantwort
 
@@ -65,9 +71,12 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 - [ ] Angenommen ein Zustellproblem wurde erkannt, wenn die Ticketseite geöffnet wird, dann erscheint im Bestellblock ein auffälliger Hinweis im selben Stil und an derselben Stelle wie der Versandalter-Hinweis (rot, mit Grund und Datum)
 
 ### Antwort, Versand, Zammad
-- [ ] Angenommen die Antwort entsteht, dann wird sie mit einem einzigen LLM-Aufruf in der Sprache der Kundenanfrage verfasst, mit Anrede (Du/Sie) angepasst, in der Wir-Form, und ohne URL (nur „Webseite des Paketdienstes“)
+- [ ] Angenommen die Antwort entsteht, dann wird sie mit einem einzigen LLM-Aufruf in der Sprache der Kundenanfrage verfasst, mit Anrede (Du/Sie) angepasst und in der Wir-Form
 - [ ] Angenommen der Kunde fragt ausdrücklich nach Erstattung oder Rückgabe, dann erklärt die Antwort freundlich, dass bei personalisierten Produkten keine Erstattung möglich ist; ohne ausdrückliche Frage schlägt sie nie Rücksendung, Stornierung oder Erstattung vor
-- [ ] Angenommen Carrier und Sendungsnummer liegen vor, dann nennt die Antwort beide und weist darauf hin, dass aktuelle Informationen auf der Webseite des Paketdienstes verfügbar sind
+- [ ] Angenommen eine Sendungsnummer liegt vor, dann steht sie immer im Nachrichtentext („Ihre Sendungsnummer lautet: …“), zusammen mit dem Namen des Carriers
+- [ ] Angenommen eine Sendungsnummer liegt vor, dann weist die Antwort je nach Trackingstatus darauf hin, dass weitere Informationen auf der Webseite des Paketdienstes [Carrier] unter „Tracking“ bzw. „Sendungsverfolgung“ durch Eingabe der Sendungsnummer verfügbar sind, und, solange die Sendung nicht zugestellt ist, dort teils auch Zustelloptionen angepasst oder geändert werden können
+- [ ] Angenommen eine Sendungsnummer und der Carrier DHL oder UPS liegen vor, dann steht zusätzlich als ergänzender Service ein https-Trackinglink im Klartext (kein HTML) mit fester Domain und URL-kodierter Sendungsnummer im Text, dazu der Hinweis, dass er kopiert und im Browser eingefügt werden kann oder alternativ die Webseite des Paketdienstes aufgerufen und die Sendungsnummer eingegeben werden kann; der Link ist nur Zusatz, alle Angaben der Antwort stehen auch ohne ihn im Text
+- [ ] Angenommen das Ticket stammt aus dem Amazon-Kanal oder einem anderen Kanal, dann gilt dieselbe Gestaltung (Sendungsnummer und Status im Text, Hinweis auf die Webseite des Paketdienstes, Klartext-Trackinglink als Zusatz), weil nicht garantiert ist, dass Amazon Links weiterleitet
 - [ ] Angenommen die Antwort wird gesendet, dann geht sie als E-Mail an den Kunden (Empfänger wie bei Antworten aus der App), unter dem technischen Zammad-Nutzer customerserviceassist, mit der Signatur „LOOXIS Kundenservice“ und einem Hinweis „Diese Antwort wurde mit Infos des Paketdienstes automatisch verfasst“ (Wortlaut in den Einstellungen änderbar), und das Ticket steht danach auf „offen“
 - [ ] Angenommen die Antwort ist nicht Deutsch, dann hängt CSA keine deutsche Fassung an die Kundenantwort an; die deutsche Fassung steht in der internen Notiz
 - [ ] Angenommen eine Antwort wurde gesendet, dann steht am Ticket eine interne Notiz „Automatisch beantwortet (WISMO)“ mit Sendungsdaten und deutscher Fassung
@@ -87,7 +96,8 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 ## Edge Cases
 - Kunde nennt mehrere Bestellnummern: es wird die erste erkannte verwendet; weitere stehen in der internen Notiz
 - Bestellung hat mehrere Sendungen oder Teillieferungen: Antwort nennt jede Sendung mit Status, mindestens aber die erste
-- Marketplace-Tickets (Amazon-Relay-Adresse): Antwort geht an die Adresse, die auch Antworten aus der App nutzen
+- Marketplace-Tickets (Amazon-Relay-Adresse über Amazon Messaging): Antwort geht an die Adresse, die auch Antworten aus der App nutzen; Links können von Amazon entfernt werden, deshalb stehen alle Angaben auch im Text
+- UPS-Abholort widersprüchlich oder unvollständig (nur Stadt, nur Frist, Depot): keine Adresse, ehrlicher Satz plus Tracking-Hinweis und Link
 - Ticket wurde zusammengeführt oder ist schon geschlossen: keine Antwort
 - Mitarbeiter öffnet das Ticket und antwortet in dem Moment, in dem die Automatik schreibt: Claim und Prüfung „neuere Nachricht“ verhindern Doppelversand; im Zweifel interne Notiz statt Antwort
 - Kundentext enthält die Bestellnummer nur im Betreff oder in einer zitierten Nachricht: wie bei der vorhandenen Erkennung
@@ -97,11 +107,16 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 
 ## Technical Requirements
 - Security: Zugangsdaten (EOCS, DHL-Tracking, UPS, technischer Zammad-Token) nur in `.env` und `config/services.php`; keine Kundendaten (Adresse, Name) an das Modell, nur Sendungs- und Statusdaten; gesendeter Text verschlüsselt und befristet gespeichert
+- Links: Domains der Trackinglinks (`dhl.de`, `ups.com`) müssen in den erlaubten Link-Hosts der App stehen (`ups.com` fehlt bisher); Linkform für UPS `https://www.ups.com/track?loc=de_DE&tracknum=<kodiert>`, vor Freigabe mit einem Testfall im Browser prüfen; keine Inhalte der Tracking-Webseite übernehmen
+- UPS-Daten: Antwortfelder aus der offiziellen UPS-Tracking-Spezifikation (Revision in `/architecture` festhalten); Zeitstempel ohne bekannte Zeitzone nicht stillschweigend als UTC lesen; Zugangsdaten nur in `.env`, keine Rohantworten, Trackingnummern oder Kundenadressen in Logs
 - Performance: Antwort innerhalb weniger Minuten nach Eingang; Aufrufe im Hintergrund
 - Kosten: ein LLM-Aufruf je Ticket, Tokens im Protokoll
 
 ## Open Questions
-- [ ] UPS-Abholort: Welche UPS-Schnittstelle liefert die Adresse des Access Points (Tracking-Felder, Access-Point-Locator)? Recherche in `/architecture`; bis zur Klärung verweist die Antwort auf die Webseite von UPS
+- [x] UPS-Abholort: welche Schnittstelle? → Recherche liegt vor (2026-11-11): Tracking-API `track/v1/details` liefert Ereignisadressen, aber `accessPointInformation` nur `pickupByDate`; Quantum View (`AccessPointLocationID`, `UAPAddress`) und Locator sind bedingte Wege ohne belegte ID-Zuordnung. Entscheidung: PROJ-82 nutzt nur die Tracking-API mit strenger Prüfung, sonst ehrlicher Fallback mit Link
+- [ ] UPS: Liefert das konkrete Versenderkonto bei umgeleiteten Sendungen eine belegbare Abholadresse in der Tracking-API? Klären mit validierten Referenzsendungen (autorisiert, bereinigt) vor dem Scharfschalten; Ergebnis bestimmt, ob eine Adressregel aktiviert wird
+- [ ] UPS Quantum View und Locator (Verfügbarkeit, Berechtigung, ID-Zuordnung `AccessPointLocationID` ↔ `LocationID`/`PublicAccessPointID`): Anfrage an UPS; nur bei positivem Ergebnis eigenes Feature
+- [ ] Wo steht der verbindliche Status, der „am Access Point zugestellt“ von „vom Empfänger abgeholt“ unterscheidet (UPS-Statuscodes aus Referenzfällen)?
 - [x] Hinweiszeile „automatisch verfasst“ → bleibt, Wortlaut in den Einstellungen änderbar (2026-11-11)
 - [x] Werktage → Montag bis Freitag, ohne Feiertagskalender (2026-11-11)
 - [x] Antwort bei Bestellung ohne Versand nach mehr als 3 Werktagen → wird weiter automatisch gesendet, ohne Termin; der Hinweis steht nur intern (Bestellblock und Notiz) (2026-11-11)
@@ -122,6 +137,9 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 | Hinweiszeile „automatisch verfasst“ bleibt | Transparenz gegenüber dem Kunden, wie in n8n; Wortlaut in den Einstellungen änderbar | 2026-11-11 |
 | Werktage = Montag bis Freitag ohne Feiertagskalender | einfach und nachvollziehbar; der Hinweis ist unkritisch, ein Tag zu früh schadet nicht | 2026-11-11 |
 | Bei hängender Bestellung weiter automatisch antworten, ohne Termin | Kunde bekommt zeitnah eine Auskunft; Mitarbeiter sieht das Problem intern (Bestellblock, Notiz), Priorisierung folgt in PROJ-83 | 2026-11-11 |
+| Sendungsnummer und Status immer im Nachrichtentext, Trackinglink nur als Klartext-Zusatz (alle Kanäle) | Amazon Messaging verbietet externe Links grundsätzlich und kann sie entfernen; Trackinglinks von Paketdiensten sind die Ausnahme, aber ohne Garantie; deshalb muss die Antwort ohne Link vollständig sein (Vorgabe des Auftraggebers, 2026-11-11) | 2026-11-11 |
+| UPS-Abholadresse nur über die Tracking-API und nur bei belegter, vollständiger, aktueller Adresse; sonst ehrlicher Fallback mit Link | Eine falsche Filiale darf nie genannt werden; Quantum View und Locator sind unbelegte Zusatzwege und blockieren PROJ-82 nicht | 2026-11-11 |
+| Adress- und Statusentscheidung im Code, Sprachmodell erhält nur freigegebene Daten | Verhindert erfundene Filialen, Fristen und Öffnungszeiten | 2026-11-11 |
 | Ein LLM-Aufruf statt drei | Klassifikation und Bestellnummern-Erkennung existieren bereits in CSA; weniger Kosten und Fehlerquellen | 2026-11-11 |
 | Kein deutscher Zweitabsatz an den Kunden | n8n hängt die deutsche Fassung an die Kundenantwort; für Kunden verwirrend, die Fassung steht in der internen Notiz | 2026-11-11 |
 
