@@ -114,7 +114,7 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 
 ## Open Questions
 - [x] UPS-Abholort: welche Schnittstelle? → Recherche liegt vor (2026-11-11): Tracking-API `track/v1/details` liefert Ereignisadressen, aber `accessPointInformation` nur `pickupByDate`; Quantum View (`AccessPointLocationID`, `UAPAddress`) und Locator sind bedingte Wege ohne belegte ID-Zuordnung. Entscheidung: PROJ-82 nutzt nur die Tracking-API mit strenger Prüfung, sonst ehrlicher Fallback mit Link
-- [ ] UPS: Liefert das konkrete Versenderkonto bei umgeleiteten Sendungen eine belegbare Abholadresse in der Tracking-API? Klären mit validierten Referenzsendungen (autorisiert, bereinigt) vor dem Scharfschalten; Ergebnis bestimmt, ob eine Adressregel aktiviert wird
+- [ ] UPS: Liefert das konkrete Versenderkonto bei umgeleiteten Sendungen eine belegbare Abholadresse in der Tracking-API? Klären mit validierten Referenzsendungen (autorisiert, bereinigt) vor dem Scharfschalten; erster Referenzfall: Ticket 2140267 (UPS-Paket liegt am Abholort, Stand 2026-11-11, Abholort unabhängig bestätigen); Ergebnis bestimmt, ob eine Adressregel aktiviert wird
 - [ ] UPS Quantum View und Locator (Verfügbarkeit, Berechtigung, ID-Zuordnung `AccessPointLocationID` ↔ `LocationID`/`PublicAccessPointID`): Anfrage an UPS; nur bei positivem Ergebnis eigenes Feature
 - [ ] Wo steht der verbindliche Status, der „am Access Point zugestellt“ von „vom Empfänger abgeholt“ unterscheidet (UPS-Statuscodes aus Referenzfällen)?
 - [x] Hinweiszeile „automatisch verfasst“ → bleibt, Wortlaut in den Einstellungen änderbar (2026-11-11)
