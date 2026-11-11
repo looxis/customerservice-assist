@@ -317,7 +317,7 @@ class ZammadClient
                 $contactedFirst = true;
             }
 
-            if ($article->kind === ArticleKind::Customer && ! $article->automatic && ! in_array($article->type, ['phone', 'note'], true) && $article->hasText()) {
+            if ($article->kind === ArticleKind::Customer && ! $article->automatic && ! in_array($article->type, ['phone', 'note'], true) && ($article->hasText() || filled($article->subject) || $article->attachments !== [])) {
                 return ['article' => $article, 'contacted_first' => $contactedFirst];
             }
         }
@@ -521,7 +521,7 @@ class ZammadClient
                 signature: $parsed['signature'],
                 id: isset($article['id']) ? (int) $article['id'] : null,
                 order: $parsed['order'],
-                attachments: $this->attachments($article['attachments'] ?? [], $parsed['images'], $parsed['trailing_images']),
+                attachments: $this->attachments($article['attachments'] ?? [], $parsed['images'], $parsed['trailing_images'], trim(strip_tags($parsed['body']->toHtml())) === ''),
                 channel: $type === '' ? null : (self::CHANNEL_LABELS[$type] ?? ucfirst($type)),
                 automatic: $sender === 'system',
                 type: $type === '' ? null : $type,
@@ -629,9 +629,11 @@ class ZammadClient
      *
      * @param  list<int>  $inlineImages  IDs of the images embedded in the new text of the message.
      * @param  list<int>  $trailingImages  IDs of the images embedded from the closing phrase on.
+     * @param  bool  $withoutText  The message has no text of its own (the customer wrote only the subject): its
+     *                             embedded images are then the content, not decoration.
      * @return list<TicketAttachment>
      */
-    private function attachments(mixed $attachments, array $inlineImages = [], array $trailingImages = []): array
+    private function attachments(mixed $attachments, array $inlineImages = [], array $trailingImages = [], bool $withoutText = false): array
     {
         $result = [];
 
@@ -649,7 +651,8 @@ class ZammadClient
 
             $id = (int) ($attachment['id'] ?? 0);
             $size = (int) ($attachment['size'] ?? 0);
-            $inText = $embedded && ((in_array($id, $inlineImages, true) && $size >= self::MIN_EMBEDDED_IMAGE_BYTES)
+            $inText = $embedded && (($withoutText && $size >= self::MIN_EMBEDDED_IMAGE_BYTES)
+                || (in_array($id, $inlineImages, true) && $size >= self::MIN_EMBEDDED_IMAGE_BYTES)
                 || (in_array($id, $trailingImages, true) && $size >= self::MIN_TRAILING_IMAGE_BYTES));
 
             if ($originalMail || ($embedded && str_starts_with($contentType, 'image/') && ! $inText)) {

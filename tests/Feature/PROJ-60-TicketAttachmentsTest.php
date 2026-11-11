@@ -227,6 +227,12 @@ describe('images embedded in the mail text', function () {
         expect(app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments)->toHaveCount(1);
     });
 
+    test('an embedded image of a mail without any body text is offered, as the subject carries the message', function () {
+        embeddedTicket('<div dir="auto"></div>', [[41, 'Screenshot.jpg', 519457]]);
+
+        expect(app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments)->toHaveCount(1);
+    });
+
     test('logos in the signature, images in a quote and small icons stay out', function () {
         embeddedTicket(
             '<div>Die Box ist kaputt.</div><div>'.embeddedImage(44).'</div><div>Mit freundlichen Grüßen</div><div>Erika Beispiel</div><div>'.embeddedImage(42).'</div>'

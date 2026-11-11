@@ -211,6 +211,14 @@ describe('retrieval', function () {
         expect($ticket->state)->toBe('unusable')->and($ticket->text)->toBeNull();
     });
 
+    it('keeps a customer mail with an empty body as the subject carries the message', function () {
+        lblZammad(articles: [zammadArticle(['id' => 2, 'body' => '<div dir="auto"></div>', 'subject' => 'Ich möchte diese Tasse bestellen'])]);
+
+        lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch']);
+
+        expect(LabelTicket::query()->sole()->state)->toBe('captured');
+    });
+
     it('skips merged tickets', function () {
         lblZammad(head: ['state' => 'merged']);
 
