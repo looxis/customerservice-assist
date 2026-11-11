@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-11
+
+- Tickets zuweisen: Auf der Ticketseite kannst du ein Ticket einem Kollegen (oder dir) zuweisen, mit optionaler Notiz, und die Zuweisung wieder zurücknehmen.
+
 ## 2026-11-10
 
 - NEUES PRODUKT: Auf Amazon gibt es jetzt die Option auch NUR DIE HÜLLE, günstiger, mit der Kissenfüllung als Addon
