@@ -1,6 +1,6 @@
 # PROJ-86: Reklamationsformular in „Vorschlag erstellen“
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-11
 **Last Updated:** 2026-11-11
 
@@ -104,6 +104,8 @@ Anlass ist Ticket 2140357 (2026-11-11). Der Mitarbeiter legt die Reklamation in 
 - [ ] Mehrere Reklamationsnummern je Ticket (Sammelreklamation): ein Feld mit mehreren Nummern oder ein Feld je Bestellung?
 - [ ] Soll bei „Nein“ (abgelehnt) der Hinweis auf das Muster „Kulanz“ aus dem Wissen (Rabattregeln, noch zu überprüfen) die Höhe des Angebots vorgeben, oder bleibt die Höhe beim Mitarbeiter? Vorerst: Höhe aus dem Wissen/Entscheidung des Mitarbeiters, kein Feld.
 - [ ] Soll „Versand voraussichtlich“ auch bei Rücksendung zuerst („Ersatz nach Eingang der Rücksendung“, tone-011 Ausnahme) entfallen? Vorerst ja: bei „Retoure: Ja“ nennt der Entwurf wie bisher keinen Versandzeitpunkt, die Optionen bleiben sichtbar.
+- [ ] Soll das Formular auch ohne Neuladen wechseln, wenn der Mitarbeiter in der Kopfleiste die Kategorie ändert? Vorerst nein (Umschalter genügt; Architektur-Entscheidung 2026-11-11).
+- [ ] Mischfälle (Reklamation plus Frage, „mehrere Anliegen“ in der Klassifikation): Reklamationsformular bleibt, Zusatzfragen bleiben außerhalb? Vorerst: Umschalter auf Freitext.
 - [ ] Brauchen Tickets in „Reklamation“ mit Produkten ohne ProductForge-Wissen weiterhin ein Freitextfeld für Besonderheiten (z. B. Beschreibung des Schadens)? Vorerst nein, Umschalter auf Freitext genügt.
 
 ## Decision Log
@@ -124,12 +126,90 @@ Anlass ist Ticket 2140357 (2026-11-11). Der Mitarbeiter legt die Reklamation in 
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Kein neues Datenmodell, keine Migration: Formularangaben liegen in den gespeicherten Eingaben der Analyse | Die Eingaben sind bereits ein flexibler Datensatz je Analyse; Protokoll, Vorbelegung und Analysen-Übersicht funktionieren damit ohne Umbau | 2026-11-11 |
+| Formular wird beim Laden der Seite serverseitig gewählt (Kategorie der Einordnung: bestätigte Wahl, sonst Vorschlag der KI), nicht live beim Klick auf die Kategorie | Die Bestätigung in der Kopfleiste läuft im Hintergrund und lädt die Seite nicht neu; ein Live-Wechsel würde Kopfleiste und Formular koppeln. Der Umschalter deckt Korrekturen ab | 2026-11-11 |
+| Bei Tickets der Testmenge (kein sichtbarer Vorschlag, PROJ-80) bleibt das bisherige Formular, Umschalter verfügbar | Der Vorschlag darf den Mitarbeiter dort nicht beeinflussen | 2026-11-11 |
+| Die Formularangaben werden im Code in feste Faktensätze übersetzt und an die „Zusätzlichen Informationen“ für die KI angehängt (wie beim DHL-Label) | Prompt und Abruf kennen diesen Weg schon; der Entwurf behandelt die Sätze als geprüfte Fakten mit Vorrang. Es entstehen keine fachlichen Regeln im Code | 2026-11-11 |
+| Der Versandhinweis wird als Fakt übergeben, nicht als Uhrzeitlogik | Die KI darf „heute“ nie ableiten (tone-011 angepasst); entscheidet allein der Mitarbeiter | 2026-11-11 |
+| Validierung der neuen Felder im bestehenden Prüfobjekt für „Vorschlag erstellen“, abhängig von „berechtigt“ | Projektregel: keine Validierung im Controller; die Zweige Ja/Nein haben unterschiedliche Pflichtfelder | 2026-11-11 |
+| ToDo-Vorbelegung über die bestehende Vorbelegung im Antwortfenster, gesteuert aus den Formularangaben | PROJ-77 legt das ToDo beim Senden an; die Formularwahl muss nur dessen Vorauswahl und Reklamationsnummer liefern | 2026-11-11 |
+| Retourenlabel-Dialog unverändert wiederverwendet, nur an die Antwort „Retoure: Ja“ gekoppelt | Bewährte Komponente aus PROJ-64, kein Neubau | 2026-11-11 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Umfang
+Backend und Frontend, aber **kein neues Datenmodell**, keine Migration, keine neue Seite und keine neuen Pakete. Es ändern sich das Formular „Vorschlag erstellen“, dessen Prüfung, die Übersetzung der Angaben in Fakten für die KI, ein Satz im Analyse-Prompt und (schon erledigt) das Wissen tone-011.
+
+### A) Aufbau der Oberfläche
+```
+Ticketseite
++-- Kopfleiste „Worum geht es?“ (unverändert, Kategorie bestätigen)
++-- Block „Vorschlag erstellen“
+    +-- Umschalter „Reklamationsformular / Freitext“ (nur bei Reklamation sichtbar)
+    +-- Kundengruppe und Produkt (unverändert)
+    +-- [Reklamationsformular] (ersetzt Freitextfeld und DHL-Checkbox)
+    |   +-- Frage 1: Reklamation berechtigt? (Ja / Nein)
+    |   |   +-- Nein: Grund (Pflicht) + Schalter „Kulanzangebot unterbreiten?“
+    |   |   +-- Ja:
+    |   |       +-- Frage 2: Produkt retournieren? (Ja / Nein, mit Hinweis)
+    |   |       |   +-- Ja: bestehender Dialog „DHL-Retourenlabel erstellen“
+    |   |       +-- Reklamationsnummer (Hinweis „in EOCS erstellen“, vorbelegt wenn bekannt)
+    |   |       +-- Versand voraussichtlich: heute / morgen / zeitnah (Standard zeitnah)
+    |   |       +-- Option „ToDo ‚Sendungsnummer mitteilen‘ anlegen“ (vorausgewählt)
+    +-- [Bisheriges Formular] Freitextfeld + DHL-Checkbox (alle anderen Tickets, oder per Umschalter)
+    +-- Knopf „Vorschlag erstellen“ (unverändert)
+Ergebnisansicht
++-- Antwortentwurf mit Senden-Fenster
+    +-- ToDo-Vorauswahl „Sendungsnummer nachreichen“ (bestehend, jetzt aus dem Formular gesteuert)
+```
+Neu ist eine einzige Bausteingruppe im Block „Vorschlag erstellen“ (Reklamationsfelder). Wiederverwendet werden das Feldraster, die Hinweistexte im Einführungsmodus, der Dialog „DHL-Retourenlabel erstellen“ und das bestehende Antwortfenster mit ToDo-Auswahl.
+
+### B) Daten (in einfachen Worten)
+Nichts Neues in der Datenbank. Die Angaben des Formulars werden wie die bisherigen Eingaben (Kundengruppe, Produkt, Freitext, Retourenlabel) bei der Analyse gespeichert:
+- berechtigt (Ja/Nein), Grund, Kulanz (Ja/Nein)
+- Retoure (Ja/Nein), Reklamationsnummer
+- Versand voraussichtlich (heute/morgen/zeitnah)
+- ToDo „Sendungsnummer mitteilen“ gewünscht (Ja/Nein)
+- Welches Formular benutzt wurde (Reklamation oder Freitext)
+
+Damit zeigt das Protokoll jeder Analyse, was der Mitarbeiter angegeben hat, und beim erneuten Erstellen (z. B. nach neuen Kundennachrichten) sind die Felder vorbelegt. Ältere Analysen ohne diese Angaben bleiben lesbar; ihr Freitext wird nicht in Felder übersetzt.
+
+### C) Wie die Angaben zur KI kommen
+Die App übersetzt die Formularwerte in kurze feste Sätze und hängt sie an die „Zusätzlichen Informationen“ an, genau wie es heute beim Retourenlabel geschieht:
+- „Die Reklamation ist nach Prüfung berechtigt / nicht berechtigt. Grund: …“
+- „Ein Kulanzangebot wird unterbreitet / nicht unterbreitet.“
+- „Das Produkt soll / muss nicht zurückgesendet werden.“
+- „Die Reklamationsnummer lautet …“ bzw. „Die Nummer steht noch nicht fest (Platzhalter verwenden).“
+- „Versand voraussichtlich: heute / morgen / zeitnah.“
+- „Nach dem Versand reichen wir die Sendungsnummer nach.“ (nur bei gewünschtem ToDo; die Entwürfe sagen das dem Kunden zu)
+
+Diese Sätze enthalten nur Entscheidungen und Fakten, keine Regeln. Der Analyse-Prompt bekommt einen kurzen Hinweis, dass diese Sätze Vorrang haben und dass kein Versandtag genannt wird, der nicht dort steht (neue Prompt-Version). Das Wissen tone-011 ist bereits auf die Versandangabe umgestellt.
+
+### D) Entscheidungen im Überblick (für Nicht-Techniker)
+- **Wann erscheint das Formular?** Beim Öffnen der Ticketseite prüft die App die Einordnung: bestätigt der Mitarbeiter „Reklamation“, oder, solange noch nichts bestätigt ist, schlägt die KI „Reklamation“ vor, erscheint das Reklamationsformular. Ändert der Mitarbeiter die Einordnung während er auf der Seite ist, wechselt das Formular nicht von allein; dafür gibt es den Umschalter (oder ein Neuladen). Das hält Kopfleiste und Formular unabhängig.
+- **Testmenge:** Bei den 5 % der Tickets, bei denen die KI-Einordnung bewusst verborgen ist, bleibt das bisherige Formular, damit der Vorschlag nicht beeinflusst.
+- **Pflichtangaben:** Nur „berechtigt“ ist Pflicht (und der Grund bei „Nein“). Die Reklamationsnummer darf leer bleiben (Platzhalter im Entwurf wie bisher), weil sie erst nach dem Speichern in EOCS existiert.
+- **Retourenlabel:** Der bestehende Dialog bleibt, wird aber erst bei „Retoure: Ja“ gezeigt. Abschicken geht erst, wenn das Label erstellt ist, wie heute.
+- **ToDo:** Wird erst beim Senden der Antwort angelegt (wie heute). Das Formular legt nur Vorauswahl und Nummer fest. Bei nicht-deutschen Antworten wird das ToDo ohne automatischen Versand angelegt (Regel von PROJ-77).
+- **Einführungsmodus:** Erklärtexte (Hinweis zur Retoure, Beispiele) nur dort; Pflichtangaben und Fehlermeldungen immer.
+
+### E) Betroffene Bereiche
+- Formularblock „Vorschlag erstellen“ und eine neue Bausteingruppe für die Reklamationsfelder
+- Prüfung der Eingaben von „Vorschlag erstellen“ (neue Felder, Pflichtregeln je Zweig)
+- Steuerung der Analyse: Fakten aus den Feldern bilden, Eingaben speichern
+- Ticketseite: die Einordnung an das Formular weitergeben
+- Antwortfenster: ToDo-Vorauswahl aus dem Formular statt nur aus der erkannten Nummer
+- Analyse-Prompt (neue Version), Wissen tone-011 (erledigt)
+- Tests: Anzeige nach Kategorie, Pflichtregeln je Zweig, Fakten für die KI, Standard „zeitnah“, ToDo-Vorauswahl, bisheriges Formular unverändert
+
+### F) Abhängigkeiten (Pakete)
+Keine neuen Pakete.
+
+### G) Neue offene Punkte aus dem Entwurf
+Siehe Open Questions (Umschalten beim Kategoriewechsel, Verhalten bei Mischfällen).
 
 ## QA Test Results
 _To be added by /qa_
