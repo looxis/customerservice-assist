@@ -13,6 +13,11 @@ use App\Zammad\ZammadException;
  */
 class LabelCapture
 {
+    /**
+     * Stored for a customer mail without any body text: an empty text means "cleaned" elsewhere in the module.
+     */
+    public const string SUBJECT_ONLY_TEXT = '(Der Mailinhalt ist leer, die gesamte Nachricht des Kunden steht im Betreff.)';
+
     public function __construct(
         private readonly ZammadClient $zammad,
         private readonly LabelingSettings $settings,
@@ -66,7 +71,7 @@ class LabelCapture
             'number' => $head->number,
             'group_name' => $head->group,
             'article_id' => $article?->id,
-            'text' => $article === null || ! $article->hasText() ? null : TicketContext::plainText($article),
+            'text' => $article === null ? null : ($article->hasText() ? TicketContext::plainText($article) : self::SUBJECT_ONLY_TEXT),
             'subject' => $head->title === '(ohne Betreff)' ? null : $head->title,
             'sender' => $article?->from,
             'zammad_created_at' => $head->createdAt,

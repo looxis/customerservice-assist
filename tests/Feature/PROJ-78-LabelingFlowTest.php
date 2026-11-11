@@ -4,6 +4,7 @@ use App\Jobs\ClassifyLabelTicket;
 use App\Jobs\Middleware\SkipInactiveLabelRun;
 use App\Labeling\ExampleSelector;
 use App\Labeling\LabelAgent;
+use App\Labeling\LabelCapture;
 use App\Labeling\LabelCategory;
 use App\Labeling\LabelClassifier;
 use App\Labeling\LabelingSettings;
@@ -217,7 +218,7 @@ describe('retrieval', function () {
         lblAdmin()->post('/beschriftung/laeufe', ['kind' => 'fetch']);
 
         $ticket = LabelTicket::query()->sole();
-        expect($ticket->state)->toBe('captured')->and($ticket->text)->toBeNull()
+        expect($ticket->state)->toBe('captured')->and($ticket->text)->toBe(LabelCapture::SUBJECT_ONLY_TEXT)
             ->and($ticket->classifierInput(1000))->toContain('steht im Betreff');
     });
 
