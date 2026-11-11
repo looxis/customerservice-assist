@@ -284,7 +284,7 @@ Abweichungen von der Spec:
 - Eigene Artikel des technischen Nutzers lösen keine neue Bearbeitung aus, weil der Eintrag je Ticket nur einmal entsteht und die Weiche nur an der Klassifikation hängt (kein Webhook-Pfad); ein eigener Nutzer-Filter im Ticket-Sync war deshalb nicht nötig.
 - Die Kunden-Antwort wird gesendet, auch wenn der Bestelleingang mehr als 3 Werktage zurückliegt; der Hinweis steht intern (Bestellblock, Notiz), wie entschieden.
 
-Noch nicht geprüft (braucht Zugänge): DHL-Tracking (`DHL_TRACKING_API_KEY`) und der Versand/Notizen unter dem technischen Zammad-Nutzer (`ZAMMAD_REPLY_TOKEN`). Beides ist per HTTP-Nachbildung getestet, nicht live.
+Noch nicht live geprüft: DHL-Tracking (`DHL_TRACKING_API_KEY`) und der Versand/Notizen unter dem technischen Zammad-Nutzer (Token `ZAMMAD_TOKEN`; `ZAMMAD_REPLY_TOKEN` ist nur für ein getrenntes Token nötig, Entscheidung 2026-11-11). Beides ist per HTTP-Nachbildung getestet, nicht live.
 
 ## QA Test Results
 _To be added by /qa_

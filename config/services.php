@@ -48,8 +48,9 @@ return [
     'zammad' => [
         'url' => env('ZAMMAD_URL'),
         'token' => env('ZAMMAD_TOKEN'),
-        // Token of the technical user customerserviceassist with write access: sender of the automatic WISMO replies (PROJ-82).
-        'reply_token' => env('ZAMMAD_REPLY_TOKEN'),
+        // Token for the automatic WISMO replies (PROJ-82): the technical user customerserviceassist, whose token
+        // ZAMMAD_TOKEN has the same rights as an agent's. ZAMMAD_REPLY_TOKEN is only needed for a separate token.
+        'reply_token' => env('ZAMMAD_REPLY_TOKEN') ?: env('ZAMMAD_TOKEN'),
         'timeout' => env('ZAMMAD_TIMEOUT', 10),
         // Seconds for loading one attachment (PROJ-60); attachments are larger than the JSON answers.
         'attachment_timeout' => 30,

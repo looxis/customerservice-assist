@@ -137,7 +137,7 @@ class WismoResponder
         $token = (string) config('services.zammad.reply_token');
 
         if ($token === '') {
-            $this->finish($run, WismoRun::ERROR, 'Kein Zugang des technischen Zammad-Nutzers (ZAMMAD_REPLY_TOKEN).');
+            $this->finish($run, WismoRun::ERROR, 'Kein Zugang des technischen Zammad-Nutzers (ZAMMAD_TOKEN).');
 
             return;
         }

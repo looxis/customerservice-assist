@@ -44,6 +44,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-81 | Ticket zuweisen und Zuweisung zurücknehmen | Aus CSA heraus ein Ticket einem Mitarbeiter zuweisen (Owner in Zammad, optionale interne Notiz) und die Zuweisung wieder zurücknehmen; CSA übernimmt den Owner über den bestehenden Sync | PROJ-6, PROJ-19, PROJ-67, PROJ-68 | In Progress | [Spec](PROJ-81-ticket-zuweisen.md) | 2026-11-11 |
 | PROJ-82 | WISMO-Automatisierung | Umzug des n8n-Workflows „WISMO Kundenservice Support“ nach CSA: neue Tickets mit KI-Einstufung wismo werden automatisch beantwortet (Bestellnummer per Erkennung ohne LLM, EOCS, DHL- und UPS-Sendungsverfolgung, ein LLM-Aufruf für die Antwort in der Kundensprache), unter dem technischen Nutzer customerserviceassist, Status offen; Antwort mit Bestellstatus auch ohne Versand, bei Zustellproblem vorsichtige Antwort plus auffälliger Hinweis im Bestellblock; Schalter aus/Trockenlauf/an, Protokoll, Prompt und Modell in den Einstellungen; UPS-Abholort offen | PROJ-66, PROJ-78, PROJ-80, PROJ-7, PROJ-19, PROJ-79 | In Progress | [Spec](PROJ-82-wismo-automatisierung.md) | 2026-11-11 |
 | PROJ-83 | Hängende Bestellungen auffällig kennzeichnen | Tickets, deren Bestellung mehr als 3 Werktage nach Bestelleingang noch nicht versendet ist, besonders flaggen, kennzeichnen und in der Ticketübersicht nach oben schieben; Folgefunktion von PROJ-82, wird in einem zweiten Schritt geplant | PROJ-82, PROJ-67 | Roadmap | – | 2026-11-11 |
+| PROJ-84 | Verschleierte Links erkennen | Zeigt der Linktext einer Mail eine Adresse, das Linkziel liegt aber auf einem anderen Host (Tracking-Redirect, Phishing-Warnzeichen), steht im bereinigten Mailtext ein Warnvermerk, der auch an die KI geht; Prompt `labeling-8` weist auf `spam` hin; vorhandene Klassifikationen bleiben (Anlass Ticket 2140356) | PROJ-6, PROJ-78, PROJ-80 | In Review | [Spec](PROJ-84-verschleierte-links-erkennen.md) | 2026-11-11 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -63,4 +64,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-84
+## Next Available ID: PROJ-85

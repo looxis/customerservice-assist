@@ -33,6 +33,12 @@ class MessageBody
 
     private const string LINK_REMOVED = '[Link entfernt]';
 
+    /**
+     * Replaces a link whose text names one address while the target is another (PROJ-84). Reaches the staff and the
+     * language models as plain text; %s is the escaped address the text pretends to lead to.
+     */
+    private const string LINK_MISMATCH = '[Link entfernt – WARNUNG: angezeigt wird „%s“, das Linkziel ist eine andere Adresse]';
+
     private const string BARE_LINK = '/(?:\bhttps?:\/\/|\bwww\.)[^\s<>"\'\x{00A0}]+/iu';
 
     /**
@@ -216,8 +222,46 @@ class MessageBody
                 return e($text !== '' ? $text : $href);
             }
 
+            $shown = $this->shownAddressHost($text);
+
+            if ($shown !== null && $this->pointsElsewhere($shown, $href)) {
+                return sprintf(self::LINK_MISMATCH, e($shown));
+            }
+
             return $text === '' || preg_match(self::BARE_LINK, $text) ? self::LINK_REMOVED : e($text).' '.self::LINK_REMOVED;
         }, $html) ?? $html;
+    }
+
+    /**
+     * The host a link text pretends to lead to ("looxis.com", "www.dhl.de/x", "https://looxis.de"), null when the
+     * text is no address (PROJ-84).
+     */
+    private function shownAddressHost(string $text): ?string
+    {
+        if (preg_match('/^(?:https?:\/\/)?((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,24})(?::\d+)?(?:[\/?#]\S*)?$/iu', $text, $match) !== 1) {
+            return null;
+        }
+
+        return strtolower($match[1]);
+    }
+
+    /**
+     * Whether a link whose text is an address leads to a different host (a tracking redirect behind a familiar
+     * name, typical of phishing). The same host or a subdomain of it as the target, with or without "www.", is no mismatch;
+     * a target without a web host (mailto:, tel:) is not compared.
+     */
+    private function pointsElsewhere(string $shown, string $href): bool
+    {
+        $target = strtolower((string) parse_url($href, PHP_URL_HOST));
+
+        if ($target === '' || ! in_array(strtolower((string) parse_url($href, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+            return false;
+        }
+
+        $shown = preg_replace('/^www\./', '', $shown) ?? $shown;
+        $target = preg_replace('/^www\./', '', $target) ?? $target;
+
+        return $shown !== $target && ! str_ends_with($target, '.'.$shown);
     }
 
     private function isClickableLink(string $href): bool
