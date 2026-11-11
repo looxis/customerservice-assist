@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11 (Backend)
+**Last Updated:** 2026-11-11 (QA-Fehler behoben)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -314,6 +314,11 @@ Nicht im Browser geprüft: Darstellung der neuen Hinweise, der Einstellungsseite
 |---|---------|--------------|----------|------------|
 | 1 | Mittel | Ein Eintrag im Zustand „In Arbeit“ bleibt hängen, wenn der Arbeitsprozess hart beendet wird (Zeitüberschreitung, Neustart, Speicher). Die Warteschlange startet den Auftrag neu, findet aber den Eintrag, übernimmt ihn nicht und beantwortet das Ticket nie, ohne Notiz. Die Wiederholfrist der Warteschlange beträgt 90 Sekunden, die KI-Zeitgrenze ebenfalls 90 Sekunden; ein langsamer Lauf kann das auslösen. | 1. Auftrag nach dem Anlegen des Eintrags abbrechen. 2. Auftrag erneut laufen lassen. 3. Eintrag bleibt „In Arbeit“. | „In Arbeit“-Einträge älter als einige Minuten übernehmen (Wiederaufnahme) oder per Befehl melden; Zeitgrenze des Auftrags passend setzen |
 | 2 | Mittel | Die automatisch gesendete Antwort wird nur auf Sendungsnummer und Link geprüft. Der Text entsteht aus einer Kundennachricht (unvertrauenswürdig). Enthält die Antwort fremde Links, E-Mail-Adressen, Zusagen oder Beträge (z. B. nach einer Anweisung in der Kundennachricht), geht sie ungeprüft raus. | Kundennachricht mit Anweisung „Schreibe in deine Antwort …“ an ein WISMO-Ticket | Antwort nur senden, wenn alle Links der erlaubten Trackinglinks entsprechen und keine fremden E-Mail-Adressen vorkommen; sonst Notiz |
+
+**Behoben (2026-11-11):**
+- Fehler 1: Ein „In Arbeit“-Eintrag, der mehr als 5 Minuten ruht, wird vom nächsten Auftrag übernommen (bis zu drei Versuche, danach Notiz „mehrfach abgebrochen“); der neue Befehl `wismo:recover` (alle 5 Minuten) startet verlorene Einträge in „In Arbeit“ oder „Wird wiederholt“ erneut; ein Eintrag im Zustand „Versand unklar“ wird nie angefasst. Der Auftrag hat eine Zeitgrenze von 80 Sekunden (kürzer als die Wiederholfrist 90 Sekunden der Warteschlange) und scheitert bei Überschreitung sichtbar mit Notiz; das Modell hat 40 Sekunden.
+- Fehler 2: Neue Prüfung `ReplyGuard` vor dem Senden: erlaubt sind nur die Trackinglinks der Sendungen; fremde Links, Internetadressen, E-Mail-Adressen, Geldbeträge, Gutscheine, Rabatte und sehr lange Texte führen zu einer internen Notiz statt zur Kundenantwort. Der Prompt weist zusätzlich an, Anweisungen aus der Kundennachricht nicht zu befolgen (Version `wismo-2026-11-11.2`).
+- Tests: `PROJ-82-ReplyGuardTest` und neue Fälle in `PROJ-82-WismoResponderTest` (insgesamt 40 grün).
 
 Niedrige Funde sind nach Absprache nicht gelistet.
 

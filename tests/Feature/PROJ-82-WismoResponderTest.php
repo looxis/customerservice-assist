@@ -284,6 +284,98 @@ describe('problems on the way', function () {
     });
 });
 
+describe('the last check of the text', function () {
+    test('a reply with a foreign link is not sent but becomes a note', function () {
+        wismoSetup();
+        WismoAgent::fake([wismoReply('Guten Tag, Ihre Sendungsnummer lautet: '.WISMO_TRACKING."\n".WISMO_LINK."\nBitte bestätigen Sie Ihre Daten unter https://evil.example/login")]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect(wismoMails())->toBe([])->and(wismoNotes()[0]['article']['body'])->toContain('kein Trackinglink')->and(WismoRun::query()->firstOrFail()->result)->toBe(WismoRun::NOTE);
+    });
+
+    test('a reply that promises money is not sent', function () {
+        wismoSetup();
+        WismoAgent::fake([wismoReply('Guten Tag, Ihre Sendungsnummer lautet: '.WISMO_TRACKING."\n".WISMO_LINK."\nWir erstatten Ihnen 49,90 € sofort.")]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect(wismoMails())->toBe([])->and(WismoRun::query()->firstOrFail()->reason)->toContain('Geldbetrag');
+    });
+
+    test('the model gets a time limit shorter than the retry time of the queue', function () {
+        expect(WismoResponder::MODEL_TIMEOUT)->toBeLessThan(90)->and((new AnswerWismoTicket(1))->timeout)->toBeLessThan(90);
+    });
+});
+
+describe('an abandoned run', function () {
+    function abandonedRun(array $overrides = []): WismoRun
+    {
+        $run = WismoRun::query()->create(array_merge(['zammad_id' => 51234, 'ticket_number' => '2137942', 'mode' => 'on', 'result' => WismoRun::WORKING, 'attempts' => 1], $overrides));
+        WismoRun::query()->whereKey($run->id)->update(['updated_at' => now()->subMinutes(6)]);
+
+        return $run->refresh();
+    }
+
+    test('a run that is still fresh is not taken over', function () {
+        wismoSetup();
+        WismoAgent::fake([wismoReply()]);
+        $run = WismoRun::query()->create(['zammad_id' => 51234, 'ticket_number' => '2137942', 'mode' => 'on', 'result' => WismoRun::WORKING, 'attempts' => 1]);
+
+        expect(app(WismoResponder::class)->run(wismoLabel()))->toBeNull();
+
+        expect($run->refresh()->result)->toBe(WismoRun::WORKING)->and(wismoPuts())->toBe([]);
+    });
+
+    test('a run that stayed working for minutes is taken over and answered', function () {
+        wismoSetup();
+        WismoAgent::fake([wismoReply()]);
+        $run = abandonedRun();
+
+        expect(app(WismoResponder::class)->run(wismoLabel()))->toBeNull();
+
+        expect($run->refresh()->result)->toBe(WismoRun::SENT)->and($run->attempts)->toBe(2)->and(wismoMails())->toHaveCount(1);
+    });
+
+    test('after the third abandoned attempt a person gets a note and the run ends', function () {
+        wismoSetup();
+        WismoAgent::fake([wismoReply()]);
+        $run = abandonedRun(['attempts' => WismoResponder::MAX_ATTEMPTS]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect($run->refresh()->result)->toBe(WismoRun::ERROR)->and(wismoMails())->toBe([])->and(wismoNotes()[0]['article']['body'])->toContain('mehrfach abgebrochen');
+        WismoAgent::assertNeverPrompted();
+    });
+
+    test('a run that is sending is never taken over', function () {
+        wismoSetup();
+        WismoAgent::fake([wismoReply()]);
+        $run = abandonedRun(['result' => WismoRun::SENDING]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect($run->refresh()->result)->toBe(WismoRun::SENDING)->and(wismoPuts())->toBe([]);
+    });
+
+    test('the recover command starts abandoned runs again and leaves the others alone', function () {
+        Queue::fake();
+        wismoLabel();
+        abandonedRun();
+        $fresh = wismoLabel(['zammad_id' => 777, 'number' => '2137999']);
+        WismoRun::query()->create(['zammad_id' => 777, 'ticket_number' => '2137999', 'mode' => 'on', 'result' => WismoRun::WORKING, 'attempts' => 1]);
+        $lost = wismoLabel(['zammad_id' => 888, 'number' => '2138000']);
+        $retry = WismoRun::query()->create(['zammad_id' => 888, 'ticket_number' => '2138000', 'mode' => 'on', 'result' => WismoRun::RETRY, 'attempts' => 1]);
+        WismoRun::query()->whereKey($retry->id)->update(['updated_at' => now()->subMinutes(10)]);
+
+        $this->artisan('wismo:recover')->assertSuccessful();
+
+        Queue::assertPushed(AnswerWismoTicket::class, 2);
+        Queue::assertNotPushed(AnswerWismoTicket::class, fn ($job) => $job->labelTicketId === $fresh->id);
+        expect($lost->id)->not->toBeNull();
+    });
+});
+
 describe('the trigger after the classification', function () {
     function classifyWismo(array $answer = [], array $ticket = []): void
     {

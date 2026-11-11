@@ -17,6 +17,11 @@ class AnswerWismoTicket implements ShouldQueue
 
     public int $tries = 6;
 
+    /** Shorter than the retry time of the queue (90 s), so the same job never runs twice at once. */
+    public int $timeout = 80;
+
+    public bool $failOnTimeout = true;
+
     public function __construct(public int $labelTicketId) {}
 
     public function handle(WismoResponder $responder): void

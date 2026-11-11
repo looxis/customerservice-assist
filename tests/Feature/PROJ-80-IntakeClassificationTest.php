@@ -85,7 +85,7 @@ function ikMake(array $ticket = [], array $prediction = []): LabelTicket
 
     $made->predictions()->create(array_merge([
         'category' => 'wismo', 'confidence' => 0.95, 'reason' => 'Lieferstatus.', 'evidence' => '', 'queue' => null,
-        'model' => 'gpt-test', 'prompt_version' => 'labeling-7',
+        'model' => 'gpt-test', 'prompt_version' => 'labeling-8',
     ], $prediction));
 
     TrackedTicket::factory()->create(['zammad_id' => $made->zammad_id, 'number' => $made->number]);

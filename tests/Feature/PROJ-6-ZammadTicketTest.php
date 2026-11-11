@@ -602,9 +602,22 @@ describe('cleaning of mail html', function () {
         'allowed host shown as text' => ['<p>Shop: <a href="https://fachhaendler.looxis.de/login">https://fachhaendler.looxis.de</a></p>', '<p>Shop: https://fachhaendler.looxis.de</p>'],
         'allowed host with describing text' => ['<p><a href="https://www.dhl.de/de/privatkunden.html">Sendung verfolgen</a></p>', '<p>Sendung verfolgen</p>'],
         'allowed host without text shows the address' => ['<p><a href="https://looxis.de/agb"></a></p>', '<p>https://looxis.de/agb</p>'],
-        'allowed address as text, foreign target' => ['<p><a href="https://evil.example">https://looxis.de</a></p>', '<p>[Link entfernt]</p>'],
+        'allowed address as text, foreign target' => ['<p><a href="https://evil.example">https://looxis.de</a></p>', '<p>[Link entfernt – WARNUNG: angezeigt wird „looxis.de“, das Linkziel ist eine andere Adresse]</p>'],
         'look-alike host' => ['<p><a href="https://looxis.de.evil.example/x">Login</a></p>', '<p>Login [Link entfernt]</p>'],
         'allowed host over another scheme' => ['<p><a href="javascript://looxis.de/%0aalert(1)">Klick</a></p>', '<p>Klick [Link entfernt]</p>'],
+    ]);
+
+    test('a link text naming another address than the target is flagged (PROJ-84)', function (string $html, string $expected) {
+        expect((string) app(MessageBody::class)->parse($html, 'text/html')['body'])->toBe($expected);
+    })->with([
+        'tracking redirect behind a familiar name' => ['<p>Produkt <a href="https://click.mailer.example/t/abc123">looxis.com</a> auf Lager</p>', '<p>Produkt [Link entfernt – WARNUNG: angezeigt wird „looxis.com“, das Linkziel ist eine andere Adresse] auf Lager</p>'],
+        'with scheme, www and path' => ['<p><a href="https://evil.example/x">https://www.looxis.de/shop/a</a></p>', '<p>[Link entfernt – WARNUNG: angezeigt wird „www.looxis.de“, das Linkziel ist eine andere Adresse]</p>'],
+        'look-alike prefix of the shown host' => ['<p><a href="https://evil.de/x">paypal.com.evil.de</a></p>', '<p>[Link entfernt – WARNUNG: angezeigt wird „paypal.com.evil.de“, das Linkziel ist eine andere Adresse]</p>'],
+        'shown host above the target host' => ['<p><a href="https://evil.de/x">evil.de.example.org</a></p>', '<p>[Link entfernt – WARNUNG: angezeigt wird „evil.de.example.org“, das Linkziel ist eine andere Adresse]</p>'],
+        'same host with www' => ['<p><a href="https://drive.google.com/x">www.drive.google.com</a></p>', '<p>[Link entfernt]</p>'],
+        'target is a subdomain of the shown host' => ['<p><a href="https://track.drive.google.com/x">drive.google.com</a></p>', '<p>drive.google.com [Link entfernt]</p>'],
+        'describing text is no address' => ['<p><a href="https://click.mailer.example/t/abc">Hier klicken</a></p>', '<p>Hier klicken [Link entfernt]</p>'],
+        'mail address as text' => ['<p><a href="mailto:a@example.org">a@example.org</a></p>', '<p>a&#64;example.org [Link entfernt]</p>'],
     ]);
 
     test('addresses written as plain text stay unchanged and are not clickable', function () {

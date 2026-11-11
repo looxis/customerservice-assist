@@ -46,6 +46,12 @@ class WismoResponder
 
     public const int MAX_SHIPMENTS = 3;
 
+    /** Seconds the language model may take; the job must end before the queue offers it again (retry_after 90). */
+    public const int MODEL_TIMEOUT = 40;
+
+    /** Minutes after which a run that is still "working" counts as abandoned (worker killed) and is taken over. */
+    public const int STALE_MINUTES = 5;
+
     public function __construct(
         private readonly ZammadClient $zammad,
         private readonly EocsClient $eocs,
@@ -111,7 +117,32 @@ class WismoResponder
             return $run->refresh();
         }
 
-        return null;
+        return $run->result === WismoRun::WORKING ? $this->takeOver($run, $label) : null;
+    }
+
+    /**
+     * A run that stayed "working" for minutes was abandoned (the worker was killed): the next job takes it over, unless it
+     * was abandoned too often already; then a person gets a note.
+     */
+    private function takeOver(WismoRun $run, LabelTicket $label): ?WismoRun
+    {
+        $stale = now()->subMinutes(self::STALE_MINUTES);
+
+        if ($run->updated_at === null || $run->updated_at->greaterThan($stale)) {
+            return null;
+        }
+
+        if ($run->attempts >= self::MAX_ATTEMPTS) {
+            if (WismoRun::query()->whereKey($run->id)->where('result', WismoRun::WORKING)->where('updated_at', $run->updated_at)->update(['result' => WismoRun::ERROR, 'reason' => 'Die Bearbeitung wurde mehrfach abgebrochen.', 'processed_at' => now()]) === 1) {
+                $this->noteQuietly($label, 'WISMO: nicht automatisch beantwortet', "⚠️ WISMO erkannt, aber die automatische Bearbeitung wurde mehrfach abgebrochen.\nBitte das Ticket manuell bearbeiten.");
+            }
+
+            return null;
+        }
+
+        $taken = WismoRun::query()->whereKey($run->id)->where('result', WismoRun::WORKING)->where('updated_at', $run->updated_at)->update(['attempts' => $run->attempts + 1, 'updated_at' => now()]);
+
+        return $taken === 1 ? $run->refresh() : null;
     }
 
     private function process(WismoRun $run, LabelTicket $label, CarbonImmutable $now): void
@@ -277,7 +308,7 @@ class WismoResponder
         $message = $this->customerText($ticket);
 
         $input = "Nachricht des Kunden:\n".$pseudonymizer->apply($message)."\n\nAngaben zur Bestellung und Sendung (JSON):\n".json_encode($facts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $answer = $this->model->ask(new WismoAgent($prompt->text), $input, $model, 'wismo', $ticket->number);
+        $answer = $this->model->ask(new WismoAgent($prompt->text), $input, $model, 'wismo', $ticket->number, self::MODEL_TIMEOUT);
         $run->update(['prompt_version' => $prompt->version, 'model' => $model, 'input_tokens' => $answer['input_tokens'], 'output_tokens' => $answer['output_tokens'], 'duration_ms' => $answer['duration_ms']]);
 
         $text = trim($pseudonymizer->restorePlain((string) ($answer['data']['reply'] ?? '')));
@@ -289,6 +320,12 @@ class WismoResponder
 
         if (preg_match('/\[[A-ZÄÖÜ][A-ZÄÖÜ\-]*(?:_\d+)?\]/u', $text.$de) === 1) {
             return 'Im Antworttext ist ein Platzhalter nicht gefüllt.';
+        }
+
+        $guard = ReplyGuard::violation($text, array_values(array_filter(array_map(fn (TrackingStatus $status): ?string => $status->link, $statuses))));
+
+        if ($guard !== null) {
+            return $guard;
         }
 
         foreach ($statuses as $status) {
