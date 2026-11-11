@@ -4,10 +4,12 @@ namespace App\Http\Requests;
 
 use App\Analysis\AnalysisStore;
 use App\Analysis\Clarification;
+use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
 use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
+use App\Orders\OrderFormats;
 use App\Zammad\RelatedTicket;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -46,6 +48,10 @@ class AnalyzeTicketRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        if (is_string($this->input('reklamationsnummer'))) {
+            $this->merge(['reklamationsnummer' => strtoupper(trim($this->input('reklamationsnummer')))]);
+        }
+
         $parent = $this->parentAnalysis();
 
         if ($parent === null) {
@@ -75,6 +81,14 @@ class AnalyzeTicketRequest extends FormRequest
             'kontext' => ['nullable', 'string', 'max:'.config('analysis.max_context_length')],
             'stand' => ['nullable', 'integer'],
             'return_label' => ['nullable', 'uuid'],
+            'formular' => ['nullable', Rule::in([ComplaintDecision::FORM, ComplaintDecision::FREE])],
+            'reklamation_berechtigt' => ['nullable', Rule::in(['ja', 'nein'])],
+            'reklamation_grund' => ['nullable', 'string', 'max:1000'],
+            'kulanz' => ['nullable', Rule::in(['ja', 'nein'])],
+            'retoure' => ['nullable', Rule::in(['ja', 'nein'])],
+            'reklamationsnummer' => ['nullable', 'string', 'max:60', 'regex:/^'.preg_quote(app(OrderFormats::class)->claimPrefix(), '/').'\d+-\S+$/i'],
+            'versand' => ['nullable', Rule::in(['heute', 'morgen', 'zeitnah'])],
+            'sendungsnummer_todo' => ['sometimes', 'boolean'],
             'ohne_bestelldetails' => ['sometimes', 'boolean'],
             'bestellungen' => ['sometimes', 'array', 'max:10'],
             'bestellungen.*' => ['string', 'max:40'],
@@ -104,6 +118,14 @@ class AnalyzeTicketRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
+            if ($this->input('formular') === ComplaintDecision::FORM) {
+                if (! in_array($this->input('reklamation_berechtigt'), ['ja', 'nein'], true)) {
+                    $validator->errors()->add('reklamation_berechtigt', 'Bitte angeben, ob die Reklamation berechtigt ist.');
+                } elseif ($this->input('reklamation_berechtigt') === 'nein' && trim((string) $this->input('reklamation_grund', '')) === '') {
+                    $validator->errors()->add('reklamation_grund', 'Bitte den Grund eingeben, warum die Reklamation nicht berechtigt ist.');
+                }
+            }
+
             if (count($this->relatedNumbers()) > (int) config('analysis.related_tickets.max')) {
                 $validator->errors()->add('related', 'Höchstens '.config('analysis.related_tickets.max').' zusammengehörige Tickets.');
             }
@@ -165,7 +187,37 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'reklamationsnummer' => 'Reklamationsnummer'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        $prefix = app(OrderFormats::class)->claimPrefix();
+
+        return ['reklamationsnummer.regex' => "Die Reklamationsnummer hat den Aufbau {$prefix}1-… (Nummer, Bindestrich, Bestellnummer), zum Beispiel {$prefix}1-028-0861097-0545938."];
+    }
+
+    /**
+     * The complaint answers of the form (PROJ-86), or null when the free-text form was used.
+     */
+    public function complaint(): ?ComplaintDecision
+    {
+        return ComplaintDecision::fromInput($this->validated());
+    }
+
+    /**
+     * The DHL return label to attach: with the complaint form only when the complaint is justified and the
+     * product is sent back, whatever else was sent.
+     */
+    public function returnLabelId(): ?string
+    {
+        $complaint = $this->complaint();
+        $id = $this->validated('return_label');
+
+        return filled($id) && ($complaint === null || $complaint->wantsReturnLabel()) ? (string) $id : null;
     }
 
     /**

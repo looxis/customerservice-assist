@@ -225,6 +225,16 @@ Gebaut ist die Oberfläche; die Serverseite (Prüfung, Fakten für die KI, Speic
 - Bekannte Eigenheit: Beim Umschalten des Formulars wird das Label-Feld zurückgesetzt (Retoure-Dialog muss erneut geöffnet werden, ein bereits erstelltes Label bleibt im jeweiligen Dialog erhalten). Beide Dialoge laden die Adresse bei Bedarf.
 - Im Browser noch nicht geprüft; bestehende Tests (PROJ-9, PROJ-64, PROJ-80) laufen grün.
 
+## Implementation Notes: Backend (2026-11-11)
+- `app/Analysis/ComplaintDecision.php` (neu): hält die Antworten des Formulars, baut die festen Sätze für die KI (`facts()`), die zu speichernden Felder des beantworteten Zweigs (`storedInput()`) und sagt, ob ein Retourenlabel dazugehört (`wantsReturnLabel()`).
+- `AnalyzeTicketRequest`: neue Regeln für `formular`, `reklamation_berechtigt`, `reklamation_grund`, `kulanz`, `retoure`, `reklamationsnummer` (Aufbau nach der Einstellung für das Präfix, z. B. `R1-…`, in Großbuchstaben normalisiert), `versand`, `sendungsnummer_todo`. „Berechtigt“ ist Pflicht, bei „Nein“ auch der Grund. Deutsche Fehlermeldungen.
+- `AnalysisController::analyze`: Bei Reklamationsformular geht nur der Faktenblock an die KI (das Freitextfeld wird ignoriert), ein Retourenlabel nur bei „berechtigt“ und „Retoure: Ja“. Gespeichert werden `formular` und die Felder des beantworteten Zweigs in den Eingaben der Analyse (keine Migration).
+- Versandhinweis: „heute“ erlaubt „voraussichtlich heute noch“, „morgen“ „voraussichtlich morgen“, „zeitnah“ keinen Tag. Bei „Retoure: Ja“ wird kein Versandtermin genannt (Ausnahme „zuerst Rücksendung“ aus tone-011).
+- `TodoCaseContext::build` bekommt die gespeicherten Eingaben: Beim Reklamationsformular entscheidet das Formular über die ToDo-Vorauswahl (berechtigt und Option angehakt) und liefert die Nummer; ohne Nummer ist das ToDo vorbereitet, hat aber keine Nummer zum Suchen und damit keinen automatischen Versand (PROJ-77). Ohne Formular gilt die bisherige Regel (Nummer im Antworttext).
+- Prompt `analysis`: neue Version `analysis-2026-11-11.1` mit Hinweis zum Block „Angaben aus dem Reklamationsformular“; die Versionsprüfungen in drei bestehenden Tests sind angepasst.
+- Tests: `tests/Feature/PROJ-86-ComplaintFormTest.php` (24 Tests: Fakten, Versandwahl, Pflichtregeln, Freitext unverändert, Label-Regel, Speicherung, Anzeige nach Kategorie, ToDo-Vorauswahl).
+- Gesamtsuite: 2567 von 2571 grün. Zwei Tests in `PROJ-36-AnalysisIntegrationTest` schlagen auch ohne diese Änderungen fehl: „Eisberg-Fall PLAYBOOK-018/019“ (immer, hängt am echten Wissen) und „freie Neuproduktion lädt keine Kulanzregeln“ (wechselnd, flackert auch ohne diese Änderungen).
+
 ## QA Test Results
 _To be added by /qa_
 

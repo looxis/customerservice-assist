@@ -2,6 +2,7 @@
 
 namespace App\Todo;
 
+use App\Analysis\ComplaintDecision;
 use App\Eocs\OrderLookup;
 use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
@@ -22,9 +23,10 @@ class TodoCaseContext
      * @param  list<OrderNumber>  $selected
      * @param  list<OrderLookup>  $lookups
      * @param  list<string>  $ticketClaims  Claim numbers the ticket names.
+     * @param  array<string, mixed>  $formInput  The stored inputs of the analysis; the complaint form (PROJ-86) decides the preselection and the claim number.
      * @return array{name: string, kind: string, number: string, preselect: bool}
      */
-    public function build(Ticket $ticket, array $selected, array $lookups, array $ticketClaims, string $replyText): array
+    public function build(Ticket $ticket, array $selected, array $lookups, array $ticketClaims, string $replyText, array $formInput = []): array
     {
         $name = trim((string) $ticket->customerName);
         $eocsClaims = [];
@@ -39,12 +41,23 @@ class TodoCaseContext
 
         $named = $this->namedInText($replyText, [...$ticketClaims, ...$eocsClaims], $selected);
         $number = $named ?? $this->preferred($eocsClaims, $ticketClaims) ?? ($ticketClaims[0] ?? null);
+        $preselect = $named !== null;
+        $name = $name === '' || str_contains($name, '@') || mb_strlen($name) > 80 ? '' : $name;
+        $complaint = ComplaintDecision::fromInput($formInput);
+
+        if ($complaint !== null) {
+            // The complaint form decides: a justified complaint with the ToDo ticked gets it, whatever the text names. Without
+            // a claim number the ToDo is prepared but not automatic (no reference to look for).
+            $preselect = $complaint->isJustified() && $complaint->trackingTodo;
+
+            return ['name' => $name, 'kind' => 'claim', 'number' => $complaint->claimNumber, 'preselect' => $preselect];
+        }
 
         return [
-            'name' => $name === '' || str_contains($name, '@') || mb_strlen($name) > 80 ? '' : $name,
+            'name' => $name,
             'kind' => $number === null ? 'order' : 'claim',
             'number' => $number ?? ($selected[0]->value ?? ''),
-            'preselect' => $named !== null,
+            'preselect' => $preselect,
         ];
     }
 

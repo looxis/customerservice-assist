@@ -51,7 +51,7 @@ describe('the salutation', function () {
         $prompt = Prompt::load('analysis');
         $tone = file_get_contents(base_path('knowledge/tone/tone-002-allgemeiner-kundenservice.md'));
 
-        expect($prompt->version)->toBe('analysis-2026-11-08.1')->and($prompt->text)->toContain('Name des Kunden laut Ticket')->toContain('nicht mit „Guten Tag“')
+        expect($prompt->version)->toBe('analysis-2026-11-11.1')->and($prompt->text)->toContain('Name des Kunden laut Ticket')->toContain('nicht mit „Guten Tag“')
             ->and($tone)->toContain('# Anrede')->toContain('Hallo Emily,')->toContain('Hallo Herr <Nachname>,');
     });
 });

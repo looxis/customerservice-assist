@@ -8,6 +8,7 @@ use App\Analysis\AnalysisProblem;
 use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
 use App\Analysis\CaseAnalyzer;
+use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
 use App\Analysis\RelatedContextBuilder;
 use App\Analysis\RelatedSection;
@@ -154,9 +155,11 @@ class AnalysisController extends Controller
         }
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
-        $returnLabel = filled($request->validated('return_label')) ? ReturnLabel::query()->find($request->validated('return_label')) : null;
+        $complaint = $request->complaint();
+        $returnLabelId = $request->returnLabelId();
+        $returnLabel = $returnLabelId === null ? null : ReturnLabel::query()->find($returnLabelId);
 
-        if (filled($request->validated('return_label')) && ($returnLabel === null || ! $returnLabel->hasFile() || $returnLabel->ticket_number !== $number)) {
+        if ($returnLabelId !== null && ($returnLabel === null || ! $returnLabel->hasFile() || $returnLabel->ticket_number !== $number)) {
             return $back('Das Retourenlabel gehört nicht zu diesem Ticket oder ist nicht mehr verfügbar. Bitte das Label neu erzeugen oder die Option abwählen.');
         }
 
@@ -176,10 +179,10 @@ class AnalysisController extends Controller
                 products: array_values($request->validated('produkte', [])),
                 orders: $orders,
                 manualOrder: $orders === [] ? $request->manualOrder() : [],
-                employeeContext: trim((string) $request->validated('kontext', '').($returnLabel === null ? '' : "\n".ReturnInstructions::fact())),
+                employeeContext: trim(implode("\n", array_filter([$complaint === null ? (string) $request->validated('kontext', '') : '', $complaint?->facts() ?? '', $returnLabel === null ? '' : ReturnInstructions::fact()]))),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kontext', 'return_label', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'kontext' => $complaint === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $complaint === null ? ($request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null) : ComplaintDecision::FORM, ...($complaint?->storedInput() ?? []), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),

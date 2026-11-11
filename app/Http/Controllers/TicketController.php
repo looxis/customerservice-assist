@@ -97,7 +97,7 @@ class TicketController extends Controller
 
         if (is_array($analysis['result'] ?? null)) {
             $analysis['result']['send'] = $delivery->offer($analysis['result'], $ticket, $staff->current($request));
-            $analysis['result']['todo_context'] = app(TodoCaseContext::class)->build($ticket, $selected, $lookups, $this->claimReferences($suggestions), (string) ($analysis['result']['reply_text'] ?? ''));
+            $analysis['result']['todo_context'] = app(TodoCaseContext::class)->build($ticket, $selected, $lookups, $this->claimReferences($suggestions), (string) ($analysis['result']['reply_text'] ?? ''), (array) ($analysis['inputs'] ?? []));
         }
 
         $labelState = $this->labelState($ticket);

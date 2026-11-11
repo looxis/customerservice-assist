@@ -80,7 +80,7 @@ describe('the prompt', function () {
     test('it tells facts, decisions and wishes for the reply apart and keeps internals out of the draft', function () {
         $prompt = Prompt::load('analysis');
 
-        expect($prompt->version)->toBe('analysis-2026-11-08.1')
+        expect($prompt->version)->toBe('analysis-2026-11-11.1')
             ->and($prompt->text)->toContain('**Fakten**')->toContain('**Entscheidungen**')->toContain('**Wünsche an die Antwort**')
             ->toContain('ändert nur die Formulierung, nie die Bewertung oder die Befugnis')->toContain('Interna (Namen von Kollegen, interne Kosten und Abläufe) stehen nie im Entwurf')
             ->toContain('Verständnis für die Lage des Kunden');
