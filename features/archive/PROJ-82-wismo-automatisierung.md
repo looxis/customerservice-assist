@@ -1,8 +1,8 @@
 # PROJ-82: WISMO-Automatisierung (Umzug von n8n nach CSA)
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11 (QA-Fehler behoben)
+**Last Updated:** 2026-11-11 (Approved nach Live-Test mit zwei Testtickets)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -338,3 +338,6 @@ Keine kritischen oder hohen Fehler: nach den Regeln **bereit**. Empfehlung: Fehl
 
 ## Deployment
 _To be added by /deploy_
+
+## Freigabe
+2026-11-11: Auftraggeber hat die Funktion mit zwei Testtickets (echte Bestellnummern) live bestätigt; Status Approved. Offen bleiben die unabhängige Bestätigung des UPS-Abholorts und die Unterscheidung „am Access Point zugestellt“ gegen „abgeholt“.
