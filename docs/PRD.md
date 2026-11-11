@@ -14,7 +14,7 @@ Die App entscheidet und sendet nichts selbst. Ein Mensch prüft jeden Vorschlag 
 
 Seit 2026-10-09 unterstützt die App auch Angebots- und Auftragsanfragen, die per E-Mail über Zammad eingehen: Rückfragen bei unklaren Anfragen und das Formulieren von Angebot oder Auftragsbestätigung nach den Regeln der Knowledge Base.
 
-Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor allem bei unberechtigten Reklamationen, falschen Kundenerwartungen und Fällen, die Produkt- oder Prozesswissen zur Erklärung brauchen. WISMO und Spam sind bereits über n8n automatisiert und nicht Teil dieses Produkts.
+Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor allem bei unberechtigten Reklamationen, falschen Kundenerwartungen und Fällen, die Produkt- oder Prozesswissen zur Erklärung brauchen. Spam ist über n8n automatisiert und nicht Teil dieses Produkts; WISMO zieht mit PROJ-82 von n8n in die App um.
 
 ## Core Features (Roadmap)
 
@@ -92,6 +92,8 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Tickets für Trainingsdaten klassifizieren und taggen (PROJ-78): erste Kundennachricht aller Zammad-Tickets per LLM in elf Kategorien einordnen (inkl. „Sonstiges“), Unklares und Stichproben prüfen, Unsicheres aussortieren, `train:<kategorie>` (Spam: `spam`) als Tag nach Zammad schreiben; Modul bleibt dauerhaft (seit 2026-11-10); Export und Laya-Training nicht Teil | In Progress |
 | Fristen bei offenen Mängeln (PROJ-79): Hinweis ab 14 Tagen (gelb) und 30 Tagen (rot) nach dem ersten Versand ohne KI-Aufruf; Versanddatum an die KI; Regel im Wissen für alle Kundengruppen: sichtbare Beschädigungen sind offene Mängel und sofort zu melden (verspätet: Ablehnung als Mangel, Kulanz möglich), Fehler in den Produktionsdaten bis 6 Wochen Kulanz | In Review |
 | Klassifikation neuer Tickets im Betrieb (PROJ-80): jedes neue Ticket mit Prompt und Modell der Ticket-Klassifikation einordnen, Mitarbeiter bestätigt oder korrigiert auf der Ticketseite, Abweichungen von der KI entscheidet ein Admin, Einordnung in der Startseiten-Übersicht | In Progress |
+| WISMO-Automatisierung (PROJ-82): Umzug des n8n-Workflows nach CSA; neue Tickets mit KI-Einstufung wismo werden automatisch mit Sendungsstatus (DHL, UPS) beantwortet, mit Schalter, Trockenlauf und Protokoll (zweite Ausnahme vom Ziel „Versand nur nach Klick“) | Planned |
+| Hängende Bestellungen auffällig kennzeichnen (PROJ-83): Bestellung nach mehr als 3 Werktagen ohne Versand, Ticket flaggen und nach oben schieben | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
@@ -120,7 +122,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - **Qualitätsprinzipien:** kein Erfinden fehlender Fakten, „unklar / noch nicht entscheidbar" ist ein gewünschtes Ergebnis, jede Empfehlung verweist auf Knowledge-IDs, jede Analyse ist reproduzierbar protokolliert (Knowledge-Commit, Prompt-Version, Modell).
 
 ## Non-Goals
-- automatisches Versenden von Kundenantworten (Versand nur durch ausdrücklichen Klick des Mitarbeiters, PROJ-19); einzige Ausnahme: die Sendungsnummer-Antwort nach Versand einer Reklamation (PROJ-77, Haken je ToDo, nur Deutsch, mit Protokoll)
+- automatisches Versenden von Kundenantworten (Versand nur durch ausdrücklichen Klick des Mitarbeiters, PROJ-19); Ausnahmen: die Sendungsnummer-Antwort nach Versand einer Reklamation (PROJ-77, Haken je ToDo, nur Deutsch, mit Protokoll) und die automatische WISMO-Antwort (PROJ-82, Schalter, Trockenlauf, Protokoll)
 - Ersatz von Zammad oder eine eigene gemeinsame Inbox (die Ticketübersicht aus PROJ-67 ist nur eine Sicht: Zammad bleibt führend für Tickets, Status, Zuständigkeit, Kommunikation und Anhänge)
 - automatische Bearbeitung beim E-Mail-Eingang; einzige Ausnahme: die Einordnung neuer Tickets in eine Kategorie ohne Folgeaktion (PROJ-80)
 - automatische Änderungen an Bestellungen, Gutschriften, Erstattungen oder Ersatzaufträge
@@ -129,7 +131,7 @@ Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 - semantische Vektorsuche als Voraussetzung
 - automatisches Lernen aus Mitarbeiterkorrekturen
 - komplexe Analytics-Dashboards
-- WISMO-Automatisierung, Spam-Erkennung, Telefonie (bestehende n8n-Prozesse bleiben unberührt)
+- Spam-Erkennung, Telefonie (bestehende n8n-Prozesse bleiben unberührt); WISMO-Automatisierung zieht mit PROJ-82 in die App um
 
 ---
 
