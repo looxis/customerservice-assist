@@ -49,7 +49,9 @@ Dies ist nach PROJ-77 und PROJ-82 die dritte Ausnahme vom Ziel „Versand nur na
 - [ ] Angenommen kein betrachtbarer Bildanhang (jpg, png, webp, ohne Logos und Signaturbilder) in der Kundennachricht, wenn die Antwort entsteht, dann bittet sie höflich um ein oder maximal zwei aussagekräftige Fotos in niedriger Auflösung, auf denen das Problem zu erkennen ist.
 - [ ] Angenommen Szenario ohne Foto, dann nennt die Antwort, dass ein automatisierter Vorab-Check die Nachricht als Reklamation erkannt hat und ein Mitarbeiter sie schnellstmöglich bearbeitet.
 - [ ] Angenommen Szenario ohne Foto, dann bittet die Antwort, zu prüfen, ob das Problem in zwei bis drei Sätzen beschrieben ist, und das sonst nachzuholen.
-- [ ] Angenommen ein Foto ist vorhanden, aber die Nachricht enthält keine Beschreibung des Problems (Urteil der KI), dann bittet die Antwort um die kurze Beschreibung, nicht erneut um Fotos.
+- [ ] Angenommen ein Foto ist vorhanden, aber die Nachricht enthält keine Beschreibung des Problems (Urteil der KI), dann bittet die Antwort sinngemäß: „Beschreiben Sie den Fehler bitte kurz in ein oder zwei Sätzen, möglichst verständlich“, und fragt nicht erneut nach Fotos.
+- [ ] Angenommen die Antwort bittet um Fotos, dann nennt sie sinngemäß: niedrig aufgelöst, keine zu großen Dateien, der Fehler muss erkennbar sein (ohne Zahlenangabe).
+- [ ] Angenommen die Antwort sichert Bearbeitung zu, dann lautet die Zusage immer „in den nächsten Stunden“, unabhängig von Uhrzeit und Wochentag.
 
 ### Szenario mit Foto und Beschreibung
 - [ ] Angenommen ein oder zwei betrachtbare Fotos und eine kurze Beschreibung, wenn die Antwort entsteht, dann sagt sie, dass der automatisierte Vorab-Check eine Reklamation erkannt hat, und gibt das Problem in einem Satz mit anderen Worten wieder.
@@ -93,10 +95,7 @@ Dies ist nach PROJ-77 und PROJ-82 die dritte Ausnahme vom Ziel „Versand nur na
 - Alle Texte und Einstellungen über die Einstellungsseite, keine fachlichen Regeln im Code.
 
 ## Open Questions
-- [ ] Soll der Hinweis „Fotos in niedriger Auflösung“ eine Größenangabe nennen (z. B. unter 1 MB)? Vorerst ohne Zahl.
-- [ ] Sollen Reklamationen mit Foto, aber ohne Beschreibung beim ersten Mal nach der Beschreibung gefragt werden? Vorerst ja (siehe Kriterien); ggf. nach den ersten Trockenläufen anpassen.
-- [ ] Auf welcher Einstellungsseite liegt der Schalter (Seite „WISMO“ umbenennen in „Automatische Antworten“ oder eigene Seite)? Entscheidung in `/architecture`.
-- [ ] Darf die Eingangsbestätigung eine konkrete Zeitspanne nennen („in den nächsten Stunden“) auch außerhalb der Geschäftszeiten (Nacht, Wochenende)? Vorerst „zeitnah“ statt „in den nächsten Stunden“, wenn der Eingang außerhalb der Servicezeiten liegt; Servicezeiten klärt der Auftraggeber.
+_Alle bisherigen Fragen sind beantwortet (siehe Product Decisions)._
 
 ## Decision Log
 
@@ -111,6 +110,10 @@ Dies ist nach PROJ-77 und PROJ-82 die dritte Ausnahme vom Ziel „Versand nur na
 | Keine Zusagen zu Ersatz, Erstattung oder Kulanz | Berechtigung entscheidet der Mitarbeiter (PROJ-86); Vorab-Antwort ist nur Eingangsbestätigung bzw. Nachfrage | 2026-11-11 |
 | Standard „aus“, erst Trockenlauf | Neue Ausnahme vom Ziel „Versand nur nach Klick“ wird schrittweise freigegeben | 2026-11-11 |
 | Nur ein Versuch je Ticket | Verhindert Doppelantworten und Schleifen | 2026-11-11 |
+| Fotohinweis ohne Zahlenangabe: „niedrig aufgelöst, keine zu großen Dateien, der Fehler muss erkennbar sein“ | Entscheidung des Auftraggebers; eine feste Größe wäre für Kunden schwer einzuhalten | 2026-11-11 |
+| Foto ohne Beschreibung: Rückfrage „Beschreiben Sie den Fehler kurz in ein oder zwei Sätzen, möglichst verständlich“ | Ohne Beschreibung kann der Mitarbeiter das Foto oft nicht einordnen | 2026-11-11 |
+| Einstellungen unter `/einstellungen` im neuen Bereich „Reklamations-Automatik“ (Schalter, Signatur, Modell, Prompt) | Entscheidung des Auftraggebers; WISMO behält seine eigene Seite | 2026-11-11 |
+| „In den nächsten Stunden“ gilt immer, auch nachts und am Wochenende | Entscheidung des Auftraggebers, auch wenn es einmal 20 Stunden dauert; keine Servicezeiten-Logik | 2026-11-11 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->
