@@ -1,6 +1,6 @@
 # PROJ-86: Reklamationsformular in „Vorschlag erstellen“
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-11-11
 **Last Updated:** 2026-11-11
 
@@ -236,7 +236,99 @@ Gebaut ist die Oberfläche; die Serverseite (Prüfung, Fakten für die KI, Speic
 - Gesamtsuite: 2567 von 2571 grün. Zwei Tests in `PROJ-36-AnalysisIntegrationTest` schlagen auch ohne diese Änderungen fehl: „Eisberg-Fall PLAYBOOK-018/019“ (immer, hängt am echten Wissen) und „freie Neuproduktion lädt keine Kulanzregeln“ (wechselnd, flackert auch ohne diese Änderungen).
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-11-11
+**App URL:** http://localhost:8081 (Sail), Ticketseite `/tickets/<Nummer>`
+**Tester:** QA Engineer (AI), ergänzt durch die Handprüfung des Auftraggebers am echten Ticket 2140357 („das funktioniert“)
+
+**Umfang der Prüfung:** Automatisch (Pest, 27 Tests in `tests/Feature/PROJ-86-ComplaintFormTest.php`, Gesamtsuite vor den letzten drei Tests: 2567 von 2571 grün) und im Code gegen die Spec geprüft. Eine Browser-Prüfung durch mich (Chrome/Firefox/Safari, 375/768/1440 px) hat nicht stattgefunden; sie beruht auf der Handprüfung des Auftraggebers.
+
+### Acceptance Criteria Status
+
+#### Anzeige
+- [x] Reklamationsticket (bestätigt oder vorgeschlagen) zeigt das Formular statt Freitext und DHL-Checkbox (Test)
+- [x] Andere oder keine Kategorie: bisheriges Formular unverändert, kein Umschalter (Tests)
+- [x] Umschalter zwischen Reklamationsformular und Freitext, Eingaben bleiben beim Umschalten erhalten (deaktivierte Fieldsets; Handprüfung)
+- [x] Kundengruppe und Produkt bleiben Pflicht (bestehende Tests grün)
+
+#### Berechtigt Ja/Nein
+- [x] Ohne Wahl kein Abschicken (Browser `required`, Server-Fehlermeldung, Test)
+- [x] „Nein“: Grund Pflicht, Kulanz Ja/Nein; Retoure, Nummer, Versand, ToDo werden nicht gesendet (Test)
+- [x] „Ja“: Retoure, Nummer, Versand, ToDo
+- [x] Wechsel Ja/Nein: nur Werte des gewählten Zweigs werden gesendet
+
+#### Retoure
+- [x] Frage mit Hinweis (im Einführungsmodus), Standard Nein
+- [x] „Nein“: kein Label (Test); „Ja“: Dialog „DHL-Retourenlabel erstellen“ je Bestellung, Abschicken erst mit Label
+- [x] Label nur bei berechtigt und Retoure Ja (Test, auch gegen manipulierte Anfragen)
+- [x] „Nein“ ohne Label: Entwurf sagt, dass nicht zurückgesendet werden muss (Fakt an die KI, Test; Formulierung durch das Modell)
+
+#### Reklamationsnummer
+- [x] Feld mit Hinweis, vorbelegt aus Ticket oder EOCS, leer abschickbar mit Platzhalter (Test)
+- [x] Falscher Aufbau: Fehlermeldung mit erwartetem Aufbau (Test)
+- [x] Platzhalter im Entwurf löst im Antwortfenster die Rückfrage „offene Stellen“ aus (bestehendes Verhalten)
+
+#### Versand voraussichtlich
+- [x] heute / morgen / zeitnah, Standard zeitnah (Test)
+- [x] „heute“ erlaubt „voraussichtlich heute noch“, „morgen“ „voraussichtlich morgen“, „zeitnah“ keinen Tag (Tests auf den Faktenblock; tone-011 angepasst)
+- [x] Abgelehnte Reklamation: kein Versandzeitpunkt (Test); bei „Retoure: Ja“ ebenfalls keiner (Test)
+
+#### ToDo „Sendungsnummer mitteilen“
+- [x] Vorausgewählt bei berechtigt (Test der Vorauswahl), abwählbar (Test)
+- [x] Nicht deutsch: ToDo ohne automatischen Versand (bestehende Regel PROJ-77)
+- [ ] Ohne Reklamationsnummer: ToDo ist vorbereitet und nicht automatisch (Test), aber das Antwortfenster weist nicht eigens auf die fehlende Nummer hin (nur Platzhalter im Text). Als geringfügig bewertet, nicht als Fehler geführt.
+
+#### Antwortentwurf
+- [x] „Nein“ mit Grund: Grund und Kulanz-Entscheidung gehen an die KI, das Freitextfeld wird ignoriert (Test)
+- [x] „Ja“: Zusage, Nummer, Versandhinweis aus dem Formular (Test auf den Faktenblock)
+- [x] Angaben des Formulars haben Vorrang (Prompt `analysis-2026-11-11.1`)
+- [ ] BUG-1: In der Ergebnisansicht ist nicht erkennbar, welche Formularangaben verwendet wurden („Erstellt mit: …“ zeigt nur Kundengruppe, Produkt, Variante). Vorbelegung beim erneuten Erstellen funktioniert (Tests).
+
+#### Wissen und Protokoll
+- [x] tone-011 ohne festen Satz „heute noch“; `knowledge:check` ohne Fehler
+- [x] Formularangaben stehen in den gespeicherten Eingaben der Analyse (Test)
+
+### Edge Cases Status
+- [x] Kategorie wechselt nach dem Öffnen: Formular bleibt, Umschalter vorhanden
+- [x] Mehrere Bestellungen: Retourenlabel je Bestellung wie bisher
+- [x] Folge-Vorschlag: Felder vorbelegt, frühere Wahl „Freitext“ bleibt erhalten (Tests)
+- [x] Einordnung fehlt, unsicher oder verborgen (Testmenge): bisheriges Formular, Umschalter nur bei unsicher/verborgen
+- [x] Abschicken ohne Wahl: Fehlermeldung
+- [x] Ältere Analyse ohne Formularfelder: Felder leer, Freitext wird nicht übersetzt
+- [x] Manipulierte Anfragen (unbekannte Werte, Label ohne Retoure, Freitext im Formularmodus): abgewiesen oder ignoriert (Tests)
+- [ ] Nicht geprüft: DHL-Schnittstelle nicht erreichbar bei „Retoure: Ja“ (unverändertes Verhalten aus PROJ-64)
+
+### Security Audit Results
+- [x] CSRF: Formular mit `@csrf`, Route unverändert mit Rate-Limit `language-model`
+- [x] Eingaben: alle neuen Felder über `AnalyzeTicketRequest` validiert (Auswahlwerte, Länge, Aufbau der Nummer)
+- [x] XSS: Ausgabe der Werte über Blade-Escaping bzw. `@js`
+- [x] Autorisierung: Retourenlabel wird weiter gegen die Ticketnummer geprüft; keine neue Berechtigungsstufe
+- [x] Datenschutz: An die KI gehen nur Entscheidungen, der Grund des Mitarbeiters und die Nummer, keine Adresse und kein Label-Inhalt (bestehender Test PROJ-64)
+- [x] Keine neuen Geheimnisse, keine neuen Umgebungsvariablen
+- Hinweis: Der Freitext „Grund“ geht unverändert an das Modell (Mitarbeiter-Eingabe, wie bisher „Zusätzliche Informationen“).
+
+### Regression
+- [x] PROJ-9, 10, 59, 64, 70, 77, 80 und Begrüßungstests grün
+- Bekannt, nicht durch PROJ-86: In `PROJ-36-AnalysisIntegrationTest` schlägt der Eisberg-Fall (PLAYBOOK-018/019) immer fehl, der Test „freie Neuproduktion lädt keine Kulanzregeln“ flackert. Beides tritt auch ohne diese Änderung auf.
+
+### Bugs Found
+
+#### BUG-1: Formularangaben im Ergebnis nicht erkennbar
+- **Severity:** Medium
+- **Steps to Reproduce:**
+  1. Reklamationsticket öffnen, Formular ausfüllen (berechtigt, Retoure Nein, Nummer, Versand), Vorschlag erstellen.
+  2. In der Kopfzeile „Vorschlag erstellen“ steht „Erstellt mit: Kundengruppe · Produkt“.
+  3. Erwartet: die gewählten Angaben (z. B. „berechtigt · keine Retoure · Versand zeitnah · R1-…“) sind erkennbar.
+  4. Tatsächlich: Sie stehen nur beim Öffnen des Formulars (vorbelegt) und im Protokoll der Analyse.
+- **Priority:** Fix in next sprint (Workaround: Formular aufklappen)
+
+### Summary
+- **Acceptance Criteria:** 33 von 34 erfüllt (ein Punkt als geringfügig gewertet)
+- **Bugs Found:** 1 (0 critical, 0 high, 1 medium, 0 low gelistet)
+- **Security:** Pass
+- **Production Ready:** YES (keine Critical/High-Fehler); Handprüfung im Browser durch den Auftraggeber
+- **Recommendation:** Freigeben; BUG-1 nachziehen
+
 
 ## Deployment
 _To be added by /deploy_

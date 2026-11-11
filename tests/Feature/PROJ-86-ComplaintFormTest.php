@@ -192,6 +192,33 @@ describe('the form on the ticket page', function () {
     });
 });
 
+describe('the form of the next proposal', function () {
+    function followUpPage(array $fields)
+    {
+        LabelTicket::query()->create(['zammad_id' => 51234, 'number' => '2137942', 'text' => 'Hallo', 'state' => 'classified', 'split' => 'training', 'decision' => 'reklamation', 'decision_origin' => 'zweifel']);
+        CaseAgent::fake([complaintAnswer()]);
+
+        return test()->withCookie('staff_name', 'Nele')->get(complaintRun($fields)->assertSessionHasNoErrors()->headers->get('Location'));
+    }
+
+    test('is prefilled with the answers of the last proposal', function () {
+        followUpPage(['reklamation_berechtigt' => 'ja', 'retoure' => 'nein', 'reklamationsnummer' => 'R1-028-0861097-0545938', 'versand' => 'morgen'])->assertOk()
+            ->assertSee('value="R1-028-0861097-0545938"', false)
+            ->assertSee("mode: 'reklamation',", false)
+            ->assertSee("berechtigt: 'ja',", false)
+            ->assertSee("versand: 'morgen',", false);
+    });
+
+    test('keeps the free text when the employee used it last time', function () {
+        followUpPage(['formular' => 'frei', 'kontext' => 'Foto geprüft.'])->assertOk()->assertSee("mode: 'frei',", false);
+    });
+
+    test('shows the reason of a refusal again', function () {
+        followUpPage(['reklamation_berechtigt' => 'nein', 'reklamation_grund' => 'Falsche Datei vom Kunden.', 'kulanz' => 'ja'])->assertOk()
+            ->assertSee('Falsche Datei vom Kunden.')->assertSee("kulanz: 'ja',", false);
+    });
+});
+
 describe('the ToDo preselection from the complaint form', function () {
     function complaintContext(array $inputs, string $reply = ''): array
     {
