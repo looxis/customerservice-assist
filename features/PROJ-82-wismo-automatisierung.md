@@ -1,8 +1,8 @@
 # PROJ-82: WISMO-Automatisierung (Umzug von n8n nach CSA)
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11 (Tech Design)
+**Last Updated:** 2026-11-11 (Frontend)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -256,6 +256,17 @@ Alle externen Systeme werden im Test nachgestellt (Zammad, EOCS, DHL, UPS, Sprac
 5. WISMO-Bearbeitung und Weiche an der Klassifikation, zuerst nur Trockenlauf
 6. Hinweise im Bestellblock und Admin-Übersicht
 7. Vergleichslauf gegen n8n, dann scharf schalten, n8n abschalten
+
+## Implementation Notes (Frontend, 2026-11-11)
+Gebaut:
+- Einstellungsseite „WISMO-Automatik“ (`/einstellungen/wismo-automatik`) mit den Gruppen `wismo_mode` (neue Gruppenart `CHOICE`: aus, Trockenlauf, an; Standard aus), `wismo_signature` und `wismo_notice` über die vorhandene Einstellungs-Registry (Verlauf, Wiederherstellen, Zurücksetzen, nur Admins speichern). Controller `SettingsController::wismo/updateWismo`, `WismoSettingsRequest`, Routen.
+- Hinweis „Seit X Werktagen ohne Versand, möglicherweise hängen geblieben“ im Bestellblock (`ticket/stuck-order-notice`, aus Bestelldaten, Berechnung `EocsOrder::workdaysSinceOrdered` und `stuckWorkdays`, Montag bis Freitag, ohne Feiertage).
+- Hinweis „Zustellproblem, bitte prüfen“ im Bestellblock (`ticket/delivery-problem-notice`, Prop `deliveryProblem` am `order-block`); wird erst mit Daten gefüllt, wenn das Protokoll (Backend) existiert.
+- Tests: `PROJ-82-WismoSettingsTest`, `PROJ-82-OrderNoticesTest`, `PROJ-82-StuckOrderTest`.
+
+Noch offen für `/backend`:
+- Prompt „WISMO-Antwort“ und Modell `model_wismo` in „Prompts und Modell“ (braucht `resources/prompts/wismo.md`, `config/analysis.php`, Registry-Einträge; der Text der Seite spricht dann von acht Prompts).
+- Datenmodell WISMO-Lauf, Füllen der Prop `deliveryProblem` aus dem Lauf (in `ticket/orders` und der Ticketseite), Admin-Übersicht der Läufe (Liste, Filter, Lauf öffnen) samt Seitenleiste und Route.
 
 ## QA Test Results
 _To be added by /qa_

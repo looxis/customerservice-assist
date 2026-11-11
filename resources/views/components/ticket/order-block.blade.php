@@ -1,4 +1,4 @@
-@props(['order', 'mention' => null, 'removeUrl', 'claimReferences' => []])
+@props(['order', 'mention' => null, 'removeUrl', 'claimReferences' => [], 'deliveryProblem' => null])
 
 {{-- One order loaded from EOCS (PROJ-7); products from an Amazon notice (PROJ-6) are merged in. --}}
 <article class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200" aria-label="Bestellung {{ $order->externalNumber }}">
@@ -13,6 +13,8 @@
     </div>
 
     <x-ticket.shipping-age-notice :order="$order" :show-number="false" class="mt-3" />
+    <x-ticket.delivery-problem-notice :problem="$deliveryProblem" class="mt-3" />
+    <x-ticket.stuck-order-notice :order="$order" :show-number="false" class="mt-3" />
 
     <dl class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
         <div>

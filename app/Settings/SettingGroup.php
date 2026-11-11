@@ -34,13 +34,16 @@ final readonly class SettingGroup
     /** A text with placeholders in square brackets, for example a prepared reply (PROJ-70); the allowed ones are listed in `placeholders`. */
     public const string TEMPLATE = 'template';
 
+    /** One of a few fixed choices (PROJ-82), for example off, trial run, on; the allowed values are the keys of `options`. */
+    public const string CHOICE = 'choice';
+
     public const int PROMPT_MAX = 30000;
 
     public const int MAX_ENTRIES = 100;
 
     /**
      * @param  Closure(): mixed  $default
-     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS|self::WORD|self::SIGNATURE|self::TEMPLATE  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
+     * @param  self::TEXTS|self::LINES|self::HOSTS|self::NUMBER|self::PROMPT|self::MODEL|self::FORMATS|self::RECORDS|self::WORD|self::SIGNATURE|self::TEMPLATE|self::CHOICE  $kind  LINES are entries of several lines each (signatures); a PROMPT value is [text, base] with the version of the file it is based on.
      * @param  Closure(): string|null  $base  For a PROMPT: the version of the default file.
      */
     public function __construct(
@@ -60,6 +63,7 @@ final readonly class SettingGroup
         private ?Closure $base = null,
         public array $columns = [],
         public array $placeholders = [],
+        public array $options = [],
     ) {}
 
     /**
@@ -86,7 +90,7 @@ final readonly class SettingGroup
             self::NUMBER => [is_numeric($input) ? (int) $input : $input, []],
             self::HOSTS => $this->hosts($input),
             self::PROMPT => $this->prompt($input),
-            self::MODEL, self::WORD => [is_string($input) ? trim($input) : $input, []],
+            self::MODEL, self::WORD, self::CHOICE => [is_string($input) ? trim($input) : $input, []],
             self::SIGNATURE, self::TEMPLATE => [is_string($input) ? trim(str_replace(["\r\n", "\r"], "\n", $input)) : $input, []],
             self::FORMATS => OrderFormatRules::normalize($input),
             self::RECORDS => KnowledgeValueRules::normalize($this->key, $input),
@@ -133,6 +137,7 @@ final readonly class SettingGroup
             self::FORMATS => OrderFormatRules::errors($value),
             self::RECORDS => KnowledgeValueRules::errors($this->key, $value),
             self::WORD => is_string($value) && preg_match('/^[A-Za-z]{1,3}$/', $value) === 1 ? [] : ['Der Präfix besteht aus 1 bis 3 Buchstaben (ohne Ziffern und Sonderzeichen).'],
+            self::CHOICE => is_string($value) && array_key_exists($value, $this->options) ? [] : ['Bitte eine der angebotenen Möglichkeiten wählen.'],
             self::SIGNATURE => $this->signatureErrors($value),
             self::TEMPLATE => $this->templateErrors($value),
             self::HOSTS => $this->hostErrors($value),

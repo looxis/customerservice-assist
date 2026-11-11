@@ -16,6 +16,9 @@ final readonly class EocsOrder
 
     public const SHIPPING_STRONG_NOTICE_DAYS = 30;
 
+    /** Working days (Monday to Friday, no holiday calendar) after which an order without shipment is suspicious (PROJ-82). */
+    public const STUCK_WORKDAYS = 3;
+
     /**
      * @param  list<EocsShipment>  $shipments
      * @param  list<EocsOrderItem>  $items
@@ -78,6 +81,40 @@ final readonly class EocsOrder
             $days > self::SHIPPING_STRONG_NOTICE_DAYS => 'strong',
             default => 'notice',
         };
+    }
+
+    /**
+     * Working days (Monday to Friday, Berlin time, no holiday calendar) between the order date and today; null
+     * without an order date (PROJ-82).
+     */
+    public function workdaysSinceOrdered(CarbonImmutable $now): ?int
+    {
+        if ($this->orderedAt === null) {
+            return null;
+        }
+
+        $from = $this->orderedAt->setTimezone('Europe/Berlin')->startOfDay();
+        $to = $now->setTimezone('Europe/Berlin')->startOfDay();
+        $days = 0;
+
+        for ($day = $from->addDay(); $day <= $to; $day = $day->addDay()) {
+            if ($day->isWeekday()) {
+                $days++;
+            }
+        }
+
+        return $days;
+    }
+
+    /**
+     * Working days since the order date when the order has no shipment and is older than three working days:
+     * it may be stuck (PROJ-82); otherwise null.
+     */
+    public function stuckWorkdays(CarbonImmutable $now): ?int
+    {
+        $days = $this->workdaysSinceOrdered($now);
+
+        return $this->shipments === [] && $days !== null && $days > self::STUCK_WORKDAYS ? $days : null;
     }
 
     /**

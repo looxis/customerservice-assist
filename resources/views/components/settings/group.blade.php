@@ -3,7 +3,7 @@
 @php
     $name = 'settings['.$group->key.']';
     $messages = isset($errors) ? $errors->get('settings.'.$group->key) : [];
-    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS, \App\Settings\SettingGroup::RECORDS, \App\Settings\SettingGroup::WORD, \App\Settings\SettingGroup::SIGNATURE, \App\Settings\SettingGroup::TEMPLATE], true);
+    $single = in_array($group->kind, [\App\Settings\SettingGroup::NUMBER, \App\Settings\SettingGroup::PROMPT, \App\Settings\SettingGroup::MODEL, \App\Settings\SettingGroup::FORMATS, \App\Settings\SettingGroup::RECORDS, \App\Settings\SettingGroup::WORD, \App\Settings\SettingGroup::SIGNATURE, \App\Settings\SettingGroup::TEMPLATE, \App\Settings\SettingGroup::CHOICE], true);
     $current = old('settings.'.$group->key, $single ? '' : $value);
     if ($group->kind === \App\Settings\SettingGroup::HOSTS && ! is_array($current)) { $current = $value; }
     $rows = $single ? [] : array_values((array) $current);
@@ -59,6 +59,18 @@
             <textarea id="{{ $group->key }}-signatur" name="{{ $name }}" rows="{{ $group->kind === \App\Settings\SettingGroup::TEMPLATE ? 10 : 5 }}" maxlength="{{ $group->maxLength }}" @disabled(! $canEdit)
                       class="block w-full max-w-xl rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand disabled:bg-slate-50">{{ old('settings.'.$group->key, $value) }}</textarea>
         </div>
+    @elseif ($group->kind === \App\Settings\SettingGroup::CHOICE)
+        <fieldset class="mt-3" @disabled(! $canEdit)>
+            <legend class="sr-only">{{ $group->title }}</legend>
+            <div class="space-y-2">
+                @foreach ($group->options as $optionKey => $option)
+                    <label class="flex items-start gap-2 text-sm text-slate-900">
+                        <input type="radio" name="{{ $name }}" value="{{ $optionKey }}" @checked(old('settings.'.$group->key, $value) === $optionKey) @disabled(! $canEdit) class="mt-0.5 size-4 border-slate-300 text-brand focus:ring-brand">
+                        <span><span class="font-medium">{{ $option['label'] }}</span><span class="block text-slate-600">{{ $option['hint'] }}</span></span>
+                    </label>
+                @endforeach
+            </div>
+        </fieldset>
     @elseif ($group->kind === \App\Settings\SettingGroup::WORD)
         <div class="mt-3">
             <label class="sr-only" for="{{ $group->key }}-wort">{{ $group->title }}</label>

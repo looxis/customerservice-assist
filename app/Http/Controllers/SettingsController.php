@@ -10,6 +10,7 @@ use App\Http\Requests\ReleaseGroupRequest;
 use App\Http\Requests\TryDetectionRequest;
 use App\Http\Requests\TryMailSettingsRequest;
 use App\Http\Requests\ValuesSettingsRequest;
+use App\Http\Requests\WismoSettingsRequest;
 use App\Knowledge\CustomerGroup;
 use App\Models\SettingVersion;
 use App\Orders\OrderFormats;
@@ -55,6 +56,16 @@ class SettingsController extends Controller
         $outdated = collect($data['groups'])->filter(fn (SettingGroup $group): bool => $group->kind === SettingGroup::PROMPT && ! $data['defaults'][$group->key] && ($data['values'][$group->key]['base'] ?? null) !== $group->baseVersion())->keys()->all();
 
         return view('settings.prompts', [...$data, 'outdated' => $outdated, 'models' => $catalog->available()]);
+    }
+
+    public function wismo(Request $request, SettingsStore $settings, TestMode $testMode): View
+    {
+        return view('settings.wismo', $this->pageData(WismoSettingsRequest::PAGE, $request, $settings, $testMode));
+    }
+
+    public function updateWismo(WismoSettingsRequest $request, SettingsStore $settings, StaffDirectory $staff): RedirectResponse
+    {
+        return $this->saveDrafts($request, WismoSettingsRequest::PAGE, $settings, $staff);
     }
 
     public function detection(Request $request, SettingsStore $settings, TestMode $testMode): View
