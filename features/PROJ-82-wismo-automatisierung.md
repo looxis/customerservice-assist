@@ -1,8 +1,8 @@
 # PROJ-82: WISMO-Automatisierung (Umzug von n8n nach CSA)
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11 (refine: UPS-Recherche und Trackinglink-Regel eingearbeitet)
+**Last Updated:** 2026-11-11 (Tech Design)
 
 ## Dependencies
 - Requires: PROJ-66 (automatischer Ticket-Eingang), PROJ-78 und PROJ-80 (Ticket-Klassifikation, Kategorie „wismo“), PROJ-7 (Bestellung aus EOCS), PROJ-19 (Antwort nach Zammad senden), PROJ-79 (Hinweis im Bestellblock, gleiche Darstellung), PROJ-77 (Vorbild für den automatischen Versand), PROJ-31 (Prompt und Modell in den Einstellungen)
@@ -147,11 +147,115 @@ CSA ordnet jedes neue Ticket schon ein (PROJ-80, Kategorie `wismo`), liest EOCS 
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Weiche direkt an der Klassifikation, kein eigener Webhook | Einstufung `wismo` liegt dort schon vor; kein zweites Erkennen, keine Wartezeit auf Mitarbeiter | 2026-11-11 |
+| Ein Protokolleintrag je Ticket (einmalig) als Sperre gegen Doppelantworten, Prüfung in Zammad bei unklarem Versand | wie PROJ-77; Doppelte Kundenantworten sind das größte Risiko | 2026-11-11 |
+| Entscheidungen (Zustellproblem, Abholadresse, hängende Bestellung) im Code, Modell erhält nur freigegebene Daten | keine erfundenen Filialen, Fristen, Zusagen | 2026-11-11 |
+| Einheitliches Sendungsstatus-Format für DHL und UPS | Antwort-Baustein bleibt unabhängig vom Carrier, weitere Carrier später ergänzbar | 2026-11-11 |
+| Hinweise am Ticket aus gespeichertem Lauf und Bestelldaten, kein Carrier-Abruf beim Seitenaufruf | schnelle Seite, keine Last und Kosten bei jedem Öffnen | 2026-11-11 |
+| Technischer Zammad-Nutzer mit eigenem Token; eigene Artikel werden beim Abgleich erkannt | klar erkennbarer Absender, Schleifenschutz | 2026-11-11 |
+| Zammad-Schreibstelle um Status "offen" erweitern | wie n8n; bisher nur "geschlossen" und "Erinnerung" | 2026-11-11 |
+| Schalter in drei Stufen (aus, Trockenlauf, an), Standard aus | sicherer Vergleich mit n8n vor dem Scharfschalten | 2026-11-11 |
+| Prompt und Modell über die vorhandenen Einstellungen mit Verlauf und Versionsnummer | gleicher Weg wie alle anderen Prompts; Modelltest vorhanden | 2026-11-11 |
+| Gesendeter Text verschlüsselt und nach 90 Tagen geleert | enthält Kundenbezug; wie bei Sendungsnummer-Automatik | 2026-11-11 |
+| Nur UPS-Tracking-API, kein Quantum View, kein Locator | Wege laut Recherche unbelegt; Fallback mit Link genügt | 2026-11-11 |
+| Werktage zentral (Mo-Fr, ohne Feiertage), wiederverwendbar für PROJ-83 | eine Regel, ein Ort | 2026-11-11 |
+| Keine neuen Pakete | alle Bausteine vorhanden | 2026-11-11 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Backend nötig? Ja
+Die Automatik läuft im Hintergrund, ohne dass jemand eine Seite öffnet; dazu braucht es Datenbank, Warteschlange und Zugriff auf Zammad, EOCS, DHL, UPS und das Sprachmodell. Eine Oberfläche gibt es nur als kleine Ergänzung (Hinweise am Ticket, Admin-Übersicht, Einstellungen).
+
+### Ablauf (Bausteine)
+```
+Neues Ticket in Zammad
+  -> vorhandener Ticket-Eingang (PROJ-66) -> vorhandene Klassifikation (PROJ-80, "wismo")
+       -> NEU: Weiche "WISMO-Bearbeitung starten?"  (Schalter, Konfidenz, Testmenge, nicht schon bearbeitet)
+            -> NEU: WISMO-Bearbeitung (im Hintergrund, je Ticket einmal)
+                 1. Ticket prüfen        (kein Mitarbeiter hat geantwortet, keine neuere Kundennachricht, nicht zusammengeführt)
+                 2. Bestellnummer finden (vorhandene Erkennung, ohne KI)
+                 3. Bestellung laden     (vorhandene EOCS-Anbindung)
+                 4. Sendungsstatus holen (NEU: DHL- und UPS-Abfrage)
+                 5. Entscheiden im Code  (Zustellproblem? Abholadresse gesichert? hängende Bestellung?)
+                 6. Antwort formulieren  (NEU: ein KI-Aufruf, nur mit freigegebenen Daten)
+                 7. Senden oder Notiz    (vorhandene Zammad-Schreibstelle, technischer Nutzer)
+                 8. Protokoll schreiben
+```
+
+### Komponenten (PM-Sicht)
+```
+Hintergrund
++-- Weiche nach der Klassifikation        (neu, kleine Erweiterung der Klassifikation)
++-- WISMO-Bearbeitung                     (neu, Steuerung der acht Schritte)
++-- Sendungsstatus-Abfrage                (neu)
+|   +-- DHL-Abfrage (mit Empfänger-PLZ)
+|   +-- UPS-Abfrage (Anmeldung wird zwischengespeichert)
+|   +-- Auswertung: einheitlicher Sendungsstatus, Zustellproblem, Abholort
++-- Antwort-Baustein                      (neu: Prompt + Modell, Ausgabe: Antwort in Kundensprache + deutsche Fassung)
++-- Versand an Zammad                     (vorhanden, kleine Erweiterung: Status "offen" nach dem Senden)
+
+Oberfläche
++-- Ticketseite, Bestellblock             (vorhanden, erweitert)
+|   +-- Hinweis "Versand liegt X Tage zurück"      (vorhanden, PROJ-79)
+|   +-- NEU: Hinweis "Zustellproblem" (aus dem gespeicherten Lauf, kein neuer Abruf beim Öffnen)
+|   +-- NEU: Hinweis "Bestellung seit X Werktagen ohne Versand" (aus Bestelldaten, ohne Abruf)
++-- Einstellungen                         (vorhanden, erweitert)
+|   +-- Schalter aus / Trockenlauf / an
+|   +-- Prompt und Modell der WISMO-Antwort
+|   +-- Signatur und Hinweiszeile "automatisch verfasst"
++-- Admin: WISMO-Übersicht                (neu, Liste der Läufe mit Filter nach Ergebnis, Lauf öffnen)
+```
+
+### Daten (in Alltagssprache)
+Neu: **WISMO-Lauf** (ein Eintrag je Ticket, nur einmal möglich). Er enthält:
+- Ticket (Zammad-Nummer) und Zeitpunkt
+- Ergebnis: gesendet, Trockenlauf, Notiz geschrieben, Fehler, übersprungen, mit Grund
+- Bestellnummer, Carrier, Sendungsnummer
+- Zustellproblem ja/nein mit Grund aus den Trackingdaten; hängende Bestellung ja/nein
+- Prompt-Version, Modell, Tokens, Dauer
+- gesendeter Text und deutsche Fassung, verschlüsselt, nach 90 Tagen geleert
+- Zustand der Bearbeitung (wartet, sendet, fertig, Fehler) und Zahl der Versuche, damit nie doppelt gesendet wird
+
+Einstellungen (vorhandene Ablage mit Verlauf): Schalter, Prompt, Modell, Signatur, Hinweiszeile.
+Zugangsdaten (DHL-Tracking-Key, UPS-Anmeldung, Token des technischen Zammad-Nutzers) liegen nur in der Serverkonfiguration, nie in der Datenbank.
+
+### Tech-Entscheidungen (begründet)
+- **Auslöser direkt an der Klassifikation, nicht über Webhook-Kopie wie n8n.** Die Klassifikation sieht jedes neue Ticket ohnehin und weiß schon "wismo"; so entfällt die separate Erkennung, und die Weiche nutzt die Roh-Einstufung, ohne auf Mitarbeiter zu warten.
+- **Ein Eintrag je Ticket als Sperre gegen Doppelantworten.** Das Ticket wird zuerst "reserviert", erst dann gesendet. Bei unklarem Ausgang (Zeitüberschreitung) wird vor einem neuen Versuch in Zammad nachgesehen, ob die Antwort schon da ist (gleiche Idee wie bei der Sendungsnummer-Automatik PROJ-77).
+- **Entscheidungen im Code, nicht im Sprachmodell.** Zustellproblem, gesicherte Abholadresse und Werktage-Prüfung berechnet der Code; das Modell formuliert nur und bekommt nur freigegebene Angaben. So kann es keine Filiale oder Frist erfinden.
+- **Einheitlicher Sendungsstatus für DHL und UPS.** Beide Abfragen liefern dasselbe interne Format (Status, Ort, Zeit, voraussichtliche Lieferung, Zustellart, Abholort, Zustellproblem); weitere Carrier lassen sich später ergänzen, ohne Antwort-Baustein und Prompt anzufassen.
+- **Hinweise am Ticket aus dem gespeicherten Lauf.** Die Ticketseite ruft Carrier nie beim Öffnen ab; das "Zustellproblem" kommt aus dem Protokolleintrag, die "hängende Bestellung" aus den schon geladenen Bestelldaten, im selben Stil wie der Versandalter-Hinweis.
+- **Technischer Zammad-Nutzer mit eigenem Token.** Alle bisherigen Schreibzugriffe laufen unter Mitarbeitern; die Automatik braucht einen eigenen, klar erkennbaren Absender. Eigene Artikel dieses Nutzers werden beim Abgleich erkannt, damit die Antwort keine neue WISMO-Bearbeitung auslöst.
+- **Status "offen" nach dem Senden.** Bisher kennt die Schreibstelle nur "geschlossen" und "Erinnerung"; sie wird um "offen" erweitert (wie n8n), damit Mitarbeiter bei Rückfragen sofort sehen, dass das Ticket weiter bearbeitet werden kann.
+- **Drei Stufen für den Schalter (aus, Trockenlauf, an), Standard aus.** Trockenlauf schreibt nur Notiz und Protokoll, so lässt sich die Qualität gegen die n8n-Antworten vergleichen, bevor scharf geschaltet und n8n abgestellt wird.
+- **Nur UPS-Tracking, kein Quantum View, kein Locator.** Beides ist laut Recherche unbelegt (Berechtigung, Kennungen); die Abholadresse wird nur genannt, wenn der Code sie aus den Ereignissen belegen kann.
+- **Prompt und Modell über die vorhandenen Einstellungen.** Admins können beides ändern, mit Verlauf und Versionsnummer im Protokoll (wie bei den anderen Prompts); ein Modelltest vor dem Speichern gibt es schon.
+- **Wiederholungen begrenzt (drei Versuche) bei technischen Fehlern.** Danach interne Notiz statt Kundenantwort: Im Zweifel macht ein Mensch weiter.
+- **Zeitrechnung Montag bis Freitag ohne Feiertage** für die 3-Werktage-Prüfung, im Code zentral, damit PROJ-83 sie wiederverwendet.
+- **Trackinglinks:** Die Hosts `dhl.de` und `ups.com` müssen in den erlaubten Link-Hosts stehen (`ups.com` fehlt bisher); der Link wird nur aus fester Domain und kodierter Sendungsnummer gebaut.
+
+### Wiederverwendung (nichts doppelt bauen)
+Klassifikation und Ticket-Eingang, Bestellnummern-Erkennung, EOCS-Anbindung mit Sendungsdaten und PLZ, Zammad-Schreibstelle (Antwort, Notiz, Doppelversand-Prüfung), Aufruf des Sprachmodells mit Protokoll der Tokens, Prompt- und Modell-Einstellungen mit Verlauf, Hinweis-Baustein des Versandalters (PROJ-79), Muster der Sendungsnummer-Automatik (PROJ-77).
+
+### Dependencies (Pakete)
+Keine neuen Pakete: HTTP-Abfragen, Warteschlange, Verschlüsselung und Sprachmodell-Anbindung sind vorhanden.
+
+### Neue Zugangsdaten (Serverkonfiguration, legt Etienne in `.env` an)
+Token des technischen Zammad-Nutzers, DHL-Tracking-API-Key (getrennt vom Retouren-Zugang), UPS-Zugang (Client-Kennung und Geheimnis).
+
+### Teststrategie (Überblick)
+Alle externen Systeme werden im Test nachgestellt (Zammad, EOCS, DHL, UPS, Sprachmodell). Abgedeckt: zugestellt, unterwegs, Abholort mit und ohne Adresse, UPS-Adresse unvollständig oder überholt, Zustellproblem, keine Bestellnummer, Bestellung nicht gefunden, nicht versendet, hängende Bestellung, Fremdsprache, Doppelauslösung, Schalter aus und Trockenlauf, Mitarbeiter hat schon geantwortet, Link-Form und Klartext-Ausgabe.
+
+### Reihenfolge der Umsetzung (Vorschlag)
+1. Grundlagen: Protokolltabelle, Einstellungen, Zugangsdaten-Konfiguration, "offen" in der Schreibstelle
+2. Sendungsstatus-Abfrage (DHL, UPS) mit einheitlichem Format und Tests
+3. Entscheidungslogik im Code (Zustellproblem, Abholadresse, Werktage)
+4. Antwort-Baustein: Prompt, Modell, Klartext-Link, Signatur
+5. WISMO-Bearbeitung und Weiche an der Klassifikation, zuerst nur Trockenlauf
+6. Hinweise im Bestellblock und Admin-Übersicht
+7. Vergleichslauf gegen n8n, dann scharf schalten, n8n abschalten
 
 ## QA Test Results
 _To be added by /qa_
