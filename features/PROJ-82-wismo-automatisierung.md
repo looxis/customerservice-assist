@@ -287,7 +287,46 @@ Abweichungen von der Spec:
 Noch nicht live geprüft: DHL-Tracking (`DHL_TRACKING_API_KEY`) und der Versand/Notizen unter dem technischen Zammad-Nutzer (Token `ZAMMAD_TOKEN`; `ZAMMAD_REPLY_TOKEN` ist nur für ein getrenntes Token nötig, Entscheidung 2026-11-11). Beides ist per HTTP-Nachbildung getestet, nicht live.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Geprüft am:** 2026-11-11 · **Art der Prüfung:** automatisierte Tests, Code-Durchsicht gegen die Kriterien, ein echter UPS-Abruf (nur lesend, Ticket 2140267). **Nicht möglich in dieser Sitzung:** Prüfung im Browser (Chrome, Firefox, Safari, 375/768/1440 px), echter DHL-Abruf (Key war zum Prüfzeitpunkt nicht eingetragen), echter Versand unter dem technischen Zammad-Nutzer.
+
+### Automatisierte Tests
+- Neu: `PROJ-82-TrackingClientTest` (12), `PROJ-82-WismoResponderTest` (18), `PROJ-82-WismoOverviewTest` (6), `PROJ-82-WismoSettingsTest` (6), `PROJ-82-OrderNoticesTest` (4), `PROJ-82-StuckOrderTest` (3): alle grün.
+- Gesamte Suite: 2509 Tests, 2506 grün, 2 übersprungen, 1 rot: `PROJ-36-AnalysisIntegrationTest`, Fall „Eisberg“ (PLAYBOOK-019 erreicht die Analyse nicht). Der Test liest die echte Knowledge Base und fälscht den Router; PROJ-82 ändert weder Wissen noch Router. Die Ursache liegt sehr wahrscheinlich in einer Wissensänderung (z. B. PLAYBOOK-019), ist aber nicht gegen den Stand vor PROJ-82 gegengeprüft. Bitte getrennt klären.
+
+### Kriterien (Auswahl nach Abschnitt)
+| Abschnitt | Ergebnis | Beleg |
+|-----------|----------|-------|
+| Auslöser und Schalter | bestanden | Weiche in `LabelClassifier` getestet (klar, andere Kategorie, unklar, mehrere Anliegen, Konfidenz, alte Quelle, Testmenge, Schalter aus); Trockenlauf und „aus“ getestet |
+| Bestellnummer und Bestellung | bestanden | keine Nummer, EOCS leer, EOCS-Ausfall mit drei Versuchen und Notiz |
+| Sendungsstatus (DHL, UPS) | bestanden (UPS live, DHL nachgestellt) | UPS-Aufbau am echten Fall geprüft; DHL nur mit nachgestellter Antwort |
+| Bestellung noch nicht versendet | bestanden | Antwort mit Status, Hinweis nach drei Werktagen im Bestellblock (Unit- und Komponententests) und in der Notiz |
+| Zustellproblem | bestanden | Hinweis am Ticket, vorsichtige Antwort (Modell erhält keine Details), Notiz |
+| Antwort, Versand, Zammad | bestanden (Versand nachgestellt) | Status `open`, Signatur, Hinweiszeile, Sendungsnummer und Link im Text, deutsche Fassung nur in der Notiz |
+| Schutz vor Doppelantworten | bestanden | einmal je Ticket, unklarer Versand wird nicht wiederholt, schon beantwortet oder neuere Nachricht stoppt |
+| Einstellungen und Protokoll | bestanden | Seite, Admin-Rechte, Prüfungen, Übersicht mit Filter, Details, Verschlüsselung und Leeren nach 90 Tagen |
+| Eigene Antwort löst keine neue Bearbeitung aus | bestanden | Weiche hängt nur an der Klassifikation, ein Eintrag je Ticket |
+
+Nicht im Browser geprüft: Darstellung der neuen Hinweise, der Einstellungsseite und der Übersicht in den drei Breiten.
+
+### Fehler
+| # | Schwere | Beschreibung | Schritte | Empfehlung |
+|---|---------|--------------|----------|------------|
+| 1 | Mittel | Ein Eintrag im Zustand „In Arbeit“ bleibt hängen, wenn der Arbeitsprozess hart beendet wird (Zeitüberschreitung, Neustart, Speicher). Die Warteschlange startet den Auftrag neu, findet aber den Eintrag, übernimmt ihn nicht und beantwortet das Ticket nie, ohne Notiz. Die Wiederholfrist der Warteschlange beträgt 90 Sekunden, die KI-Zeitgrenze ebenfalls 90 Sekunden; ein langsamer Lauf kann das auslösen. | 1. Auftrag nach dem Anlegen des Eintrags abbrechen. 2. Auftrag erneut laufen lassen. 3. Eintrag bleibt „In Arbeit“. | „In Arbeit“-Einträge älter als einige Minuten übernehmen (Wiederaufnahme) oder per Befehl melden; Zeitgrenze des Auftrags passend setzen |
+| 2 | Mittel | Die automatisch gesendete Antwort wird nur auf Sendungsnummer und Link geprüft. Der Text entsteht aus einer Kundennachricht (unvertrauenswürdig). Enthält die Antwort fremde Links, E-Mail-Adressen, Zusagen oder Beträge (z. B. nach einer Anweisung in der Kundennachricht), geht sie ungeprüft raus. | Kundennachricht mit Anweisung „Schreibe in deine Antwort …“ an ein WISMO-Ticket | Antwort nur senden, wenn alle Links der erlaubten Trackinglinks entsprechen und keine fremden E-Mail-Adressen vorkommen; sonst Notiz |
+
+Niedrige Funde sind nach Absprache nicht gelistet.
+
+### Sicherheitsprüfung
+- **Zugriff:** Übersicht und Einzelansicht nur für Admins (403 für andere, getestet); Einstellungen speichern nur Admins (403 getestet); alle Formulare mit `@csrf`; Route `{run}` nur Zahl.
+- **Geheimnisse:** Zugangsdaten nur in `config/services.php` aus `.env`; kein Token in Protokoll, Fehlermeldung oder Log; Antworttexte verschlüsselt gespeichert und nach 90 Tagen geleert; die Protokollseite zeigt keine Kundenadresse.
+- **Daten an das Modell:** Kundennachricht mit ersetzten Kontaktdaten, Bestellnummer, Status, Sendungsdaten; keine Lieferadresse, keine PLZ. Aus der Sendungsverfolgung kann ein Annahme-Name („entgegengenommen von“) mitgehen, den der Paketdienst selbst nennt.
+- **Einschleusung:** Siehe Fehler 2 (Anweisungen in Kundentexten); Ausgabe wird auf Nummer und Link geprüft, mehr nicht.
+- **Ratenbegrenzung:** keine neue Route nimmt Eingaben aus dem Netz an; Auslöser ist nur die Klassifikation.
+
+### Produktionsreife
+Keine kritischen oder hohen Fehler: nach den Regeln **bereit**. Empfehlung: Fehler 1 und 2 vor dem Dauerbetrieb beheben, weil die Antworten ohne Prüfung an Kunden gehen; Fehler 1 kann sonst einzelne Tickets still unbeantwortet lassen. Live noch zu prüfen: erster DHL-Abruf, erster Versand, Abholort von Ticket 2140267.
+
 
 ## Deployment
 _To be added by /deploy_
