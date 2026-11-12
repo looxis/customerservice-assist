@@ -241,6 +241,9 @@ class ZammadReplySender
         $request = Http::baseUrl(rtrim((string) $this->config['url'], '/').'/api/v1/')
             ->withHeaders(['Authorization' => 'Token token='.$token])
             ->acceptJson()
+            // Guzzle sends "Expect: 100-continue" for bodies over 1 MB (an attachment of about 800 KB once Base64-coded);
+            // the connection in front of Zammad then waits and ends with status 408 (PROJ-62).
+            ->withOptions(['expect' => false])
             ->connectTimeout($timeout)
             ->timeout($timeout);
 

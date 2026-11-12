@@ -8,6 +8,7 @@ use App\Settings\SettingsStore;
 use App\Staff\StaffDirectory;
 use App\Zammad\ReplyTarget;
 use App\Zammad\ZammadClient;
+use App\Zammad\ZammadReplySender;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
@@ -500,6 +501,20 @@ describe('attachments (PROJ-61)', function () {
 
         expect(putRequests()[0]['article'])->not->toHaveKey('attachments');
         expect(Analysis::query()->where('uuid', $id)->value('reply_sent_attachments'))->toBeNull();
+    });
+
+    test('requests to Zammad switch off Expect 100-continue, which stalled bodies over 1 MB with status 408 (PROJ-62)', function () {
+        $options = [];
+        Http::fake(['zammad.test/*' => function (Request $request, array $guzzleOptions) use (&$options) {
+            $options[] = $guzzleOptions;
+
+            return Http::response(['id' => 501, 'firstname' => 'Nele', 'lastname' => 'Gorka']);
+        }]);
+
+        app(ZammadReplySender::class)->whoAmI('nele-secret-token');
+
+        expect($options)->not->toBeEmpty();
+        expect($options[0]['expect'])->toBeFalse();
     });
 
     test('two files with the same name both go along, the second one numbered', function () {
