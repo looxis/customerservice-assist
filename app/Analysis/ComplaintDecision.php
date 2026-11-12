@@ -123,10 +123,10 @@ final readonly class ComplaintDecision
 
         $unsure = $this->justified === 'unsicher';
         $lines[] = $unsure
-            ? '- Die Reklamation ist nicht abschließend geprüft oder unsicher. Der Austausch erfolgt trotzdem, ohne Anerkennung einer Rechtspflicht. Füge im Entwurf den Zusatz zur Kulanz ohne Rechtsanerkennung hinzu, sinngemäß nach POLICY-071 („Austausch ohne Anerkennung einer Rechtspflicht, gesetzliche Rechte bleiben unberührt“).'
+            ? '- Die Reklamation ist nicht abschließend geprüft oder unsicher. Der Austausch erfolgt trotzdem, ohne Anerkennung einer Rechtspflicht. Füge im Entwurf den Zusatz zur Kulanz ohne Rechtsanerkennung hinzu, sinngemäß nach POLICY-076 („Austausch ohne Anerkennung einer Rechtspflicht, gesetzliche Rechte bleiben unberührt“).'
             : '- Die Reklamation wurde nach Prüfung als berechtigt anerkannt.';
         $lines[] = match (true) {
-            $unsure && $this->return === 'ja' => '- Das beanstandete Produkt soll zur weiteren, detaillierten internen Prüfung zurückgesendet werden; der Kunde erhält dafür ein kostenfreies Retourenlabel. Füge den Zusatz zum Retourenlabel sinngemäß nach POLICY-071 hinzu.',
+            $unsure && $this->return === 'ja' => '- Das beanstandete Produkt soll zur weiteren, detaillierten internen Prüfung zurückgesendet werden; der Kunde erhält dafür ein kostenfreies Retourenlabel. Füge den Zusatz zum Retourenlabel sinngemäß nach POLICY-076 hinzu.',
             $this->return === 'ja' => '- Das defekte Produkt soll zurückgesendet werden. Erst nach dem Eingang der Rücksendung wird ersetzt: Nenne keinen Versandtermin für den Ersatz.',
             default => '- Das defekte Produkt muss nicht zurückgesendet werden.',
         };

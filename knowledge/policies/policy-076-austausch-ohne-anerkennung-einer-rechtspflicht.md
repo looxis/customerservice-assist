@@ -1,5 +1,5 @@
 ---
-id: POLICY-071
+id: POLICY-076
 title: Austausch ohne Anerkennung einer Rechtspflicht (unsichere oder ungeprüfte Reklamation)
 type: policy
 status: active
