@@ -1,8 +1,8 @@
 # PROJ-85: Automatische Vorab-Antwort bei Reklamation
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11
+**Last Updated:** 2026-11-12
 
 ## Dependencies
 - Requires: PROJ-80 (Klassifikation neuer Tickets, Kategorie `reklamation`)
@@ -119,12 +119,90 @@ _Alle bisherigen Fragen sind beantwortet (siehe Product Decisions)._
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Neuer Dienst und eigene Protokolltabelle nach Vorbild WISMO, kein Umbau des laufenden WISMO-Dienstes | WISMO läuft produktiv; ein gemeinsamer Unterbau wäre später ein eigener Aufräumauftrag | 2026-11-12 |
+| Fotozahl bestimmt der Code, ob die Beschreibung reicht, die KI; passt das KI-Szenario nicht zur Fotozahl, wird nicht gesendet | Ein Modellfehler darf nie die falsche Mail auslösen | 2026-11-12 |
+| ReplyGuard ohne erlaubte Links wiederverwenden, zusätzlich Wortprüfung auf Zusagen zu Ersatz, Erstattung, Kulanz | Antwort geht ohne menschliche Prüfung an den Kunden | 2026-11-12 |
+| Fotos aus der vorhandenen Anhangsliste (PROJ-60), Versandalter aus der PROJ-79-Berechnung, Grenze 30 Tage als Konstante im Code | Keine zweite Erkennung, gleiche Regeln überall | 2026-11-12 |
+| Auslöser im Klassifikationsschritt (neben WISMO), nur Quelle „Eingang“ | Antwort innerhalb weniger Minuten, nie bei alten oder erneut klassifizierten Tickets | 2026-11-12 |
+| Schalter, Signatur, Modell als versionierte Einstellungen, Prompt als Datei (zehnter Prompt), eigene Seite „Reklamations-Automatik“ und Protokoll-Seite | Bestehendes Muster aus PROJ-27/31/82, Rückgängig-Funktion inklusive | 2026-11-12 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Kurzfassung
+PROJ-85 ist ein Zwilling von PROJ-82 (WISMO-Automatik): gleicher Auslöser (die Klassifikation neuer Tickets), gleiche Sicherheitsnetze (Schalter, Trockenlauf, Protokoll, ReplyGuard, technischer Zammad-Nutzer), anderer Inhalt. Neu sind nur die Bedingungen („Versand höchstens 30 Tage her“, „Fotos vorhanden?“) und der Antworttext. Es wird nichts an der Oberfläche der Ticketseite umgebaut. Ein reiner Backend-Auftrag plus zwei Admin-Seiten, die den vorhandenen Seiten gleichen.
+
+### A) Ablauf (Entscheidungsbaum)
+```
+Neues Ticket wird klassifiziert (PROJ-80)
++-- Kategorie "reklamation", sicher (nicht unklar, nur ein Anliegen, Konfidenz über Schwelle), Quelle Eingang?
+|   +-- nein -> nichts geschieht, kein Protokoll
+|   +-- ja, Schalter "aus" -> nichts geschieht, kein Protokoll
+|   +-- ja -> Lauf wird angelegt (einer je Ticket, nie ein zweiter)
++-- Prüfungen (jede Absage = Lauf "übersprungen" bzw. "Notiz" mit Grund)
+|   +-- Ticket zusammengeführt / geschlossen / schon von Mitarbeiter beantwortet / neuere Kundennachricht -> übersprungen
+|   +-- keine Bestellnummer, Bestellung nicht in EOCS, kein Versanddatum, Versand > 30 Tage -> interne Notiz "Keine Vorab-Antwort: <Grund>"
+|   +-- keine eindeutige Antwortadresse -> interne Notiz
++-- Szenario wird bestimmt
+|   +-- 0 betrachtbare Fotos -> "Fotos bitte" (Fotohinweis ohne Zahlen, kurze Beschreibung prüfen, Zusage "in den nächsten Stunden")
+|   +-- Fotos, aber keine Beschreibung (Urteil KI) -> "Beschreibung bitte" (fragt nicht erneut nach Fotos)
+|   +-- Fotos und Beschreibung -> "Eingangsbestätigung" (Problem in einem Satz, Entschuldigung, Zusage)
++-- KI schreibt Antwort in Kundensprache + deutsche Fassung (Kundentext vorher pseudonymisiert)
++-- Kontrollen: ReplyGuard, keine Platzhalter, Szenario passt zur Fotozahl
++-- Schalter "Trockenlauf" -> interne Notiz mit Entwurf, Ende "Trockenlauf"
++-- Schalter "an" -> Antwort an Zammad (Ticket bleibt offen), interne Notiz "Vorab-Antwort automatisch gesendet"
+```
+
+### B) Bausteine (was neu ist, was bleibt)
+```
+Klassifikation neuer Tickets (vorhanden)
++-- stößt zusätzlich zu WISMO die Vorab-Antwort an   <- kleine Ergänzung
+Vorab-Antwort-Dienst (NEU, nach Vorbild WISMO-Antwortdienst)
++-- Prüfungen und Fotozählung (Fotozählung nutzt PROJ-60-Regeln, nichts Neues)
++-- Versandalter aus der Bestellung (PROJ-79, vorhanden)
++-- KI-Aufruf mit eigenem Prompt und eigenem Modell
++-- Wiederverwendet: ReplyGuard, Pseudonymisierung, Zammad-Versand, Notizen, Bestellnummern-Erkennung, EOCS-Abruf
+Hintergrundauftrag (NEU): wiederholt bis zu 3x bei vorübergehenden Fehlern
+Zeitplan (NEU, 2 Einträge): Wiederaufnahme hängender Läufe alle 5 Min, Texte nach 90 Tagen leeren
+Einstellungsseite "Reklamations-Automatik" (NEU, Muster der WISMO-Seite)
++-- Schalter (aus / Trockenlauf / an, Standard aus), Signatur
++-- Prompt und Modell erscheinen auf "Prompts und Modell" (dort entsteht ein zehnter Prompt)
+Protokoll-Seite (NEU, Muster "WISMO-Antworten", nur Admins)
++-- Liste und Detail je Ticket
+```
+
+### C) Datenmodell (Klartext)
+Neue Protokolltabelle, eine Zeile je Ticket (die Zeile selbst verhindert die Doppelantwort):
+- Ticket (Zammad-ID eindeutig, Ticketnummer), Schalterstand beim Lauf, Ergebnis (in Arbeit, wird wiederholt, Versand unklar, gesendet, Trockenlauf, Notiz, Fehler, übersprungen), Grund, Anzahl Versuche
+- Bestellnummer, Tage seit erstem Versand, Anzahl Fotos, Szenario (Fotos bitte / Beschreibung bitte / Eingangsbestätigung)
+- Prompt-Version, Modell, Tokens, Dauer
+- Antworttext und deutsche Fassung (verschlüsselt, nach 90 Tagen geleert)
+- Zeitpunkte für Versandbeginn und Abschluss
+Neue Einstellungen (versioniert, Verlauf, rückgängig machbar wie die übrigen): Schalter, Signatur, Modell. Der Prompt liegt als Datei mit Versionskennung wie die anderen.
+Gespeichert in: MySQL. Es gibt keine neue Spalte an bestehenden Tabellen.
+
+### D) Technische Entscheidungen (begründet)
+- **Neuer Dienst nach Vorbild WISMO statt Umbau von WISMO.** Der WISMO-Dienst läuft produktiv. Ein gemeinsamer Unterbau (Lauf anlegen, Wiederaufnahme, Versand ohne Doppelsendung) wäre sauberer, würde aber den Live-Betrieb von WISMO berühren. Wir kopieren daher das bewährte Muster und gleichen nur die kleinen Unterschiede an; ein späteres Zusammenführen steht als Aufräumpunkt im Spec.
+- **Eigene Protokolltabelle statt Mitnutzung der WISMO-Tabelle.** Andere Spalten (Fotos, Szenario, Tage), anderer Zweck, eigene Löschfrist; eine gemeinsame Tabelle würde beide Seiten verwässern.
+- **Schalter, Signatur und Modell in der Einstellungsseite, Prompt als Datei.** Wie bei WISMO: Änderungen sind versioniert und von Admins rückgängig zu machen; keine fachlichen Regeln im Code.
+- **Szenario entscheidet der Code, wo es objektiv ist (Fotozahl), die KI nur, wo es Sprachverständnis braucht (reicht die Beschreibung?).** Die KI nennt zusätzlich ihr Szenario; passt es nicht zur Fotozahl (z. B. „Eingangsbestätigung“ bei null Fotos), wird nicht gesendet, sondern eine Notiz geschrieben. So kann ein Modellfehler nie die falsche Mail auslösen.
+- **ReplyGuard unverändert wiederverwenden, ohne erlaubte Links.** Die Vorab-Antwort darf nie Links, Adressen, Beträge oder Rabatte nennen; „kostenlos“, „Gutschrift“ usw. fallen ebenso durch. Dazu kommt eine Wortprüfung auf Zusagen zu Ersatz/Erstattung/Kulanz (die Zusage „in den nächsten Stunden“ ist erlaubt).
+- **Foto = betrachtbares Bild (jpg, png, webp) in der aktuellen Kundennachricht, gezählt über die vorhandene Anhangsliste (PROJ-60).** Logos und Signaturbilder sind dort schon ausgefiltert; PDF und Video zählen nicht.
+- **Alter aus dem ersten Versand der Bestellung (PROJ-79-Berechnung), Grenze 30 Tage im Code als Konstante.** Ohne Versanddatum keine Antwort (verhindert Verwechslung mit WISMO).
+- **Auslöser im Klassifikationsschritt, nicht per Zeitplan.** Antwort kommt so innerhalb von Minuten; nur neue Tickets der Quelle „Eingang“, nie alte oder erneut klassifizierte.
+- **Pseudonymisierung des Kundentexts vor dem KI-Aufruf, Platzhalter-Kontrolle danach** (wie WISMO; Datenschutz).
+- **Ticket bleibt offen, kein Zuweisen, kein Schließen.** Versand mit Status „offen“, wie WISMO.
+- **Nur ein Versuch je Ticket.** Eine zweite Klassifikation oder ein neuer Aufruf antwortet nie ein zweites Mal.
+- **Reihenfolge mit WISMO:** Beide laufen nur je nach Kategorie; ein Ticket hat eine Kategorie, es gibt keine Überschneidung. Zusätzlich ist der Lauf je Ticket eindeutig.
+- **Testmenge:** Wird geantwortet, wechselt das Ticket wie bei WISMO in die Trainingsmenge.
+
+### E) Dependencies
+Keine neuen Pakete.
+
+### F) Teststrategie (für /backend und /qa)
+Pest-Tests mit simuliertem Zammad, EOCS und Sprachmodell, nach Vorbild der WISMO-Tests: Schalter aus/Trockenlauf/an, jedes Szenario, 30-Tage-Grenze, ohne Bestellung/Versand, Doppelanstoß, neuere Kundennachricht, ReplyGuard-Treffer, Szenario passt nicht zur Fotozahl, Wiederholung und unklarer Versand, Wiederaufnahme, Löschung nach 90 Tagen, Rechte auf der Einstellungsseite.
 
 ## QA Test Results
 _To be added by /qa_
