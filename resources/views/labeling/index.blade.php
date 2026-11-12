@@ -142,7 +142,7 @@
             <x-input name="test_target" type="number" label="Testziel je Kategorie" hint="Entschiedene Testtickets; ist es erreicht, erscheinen Testtickets mit diesem Vorschlag nicht mehr unter „Prüfen“" :value="$settings['test_target']" min="1" />
             <input type="hidden" name="excluded_groups" value="{{ $settings['excluded_groups'] }}">
             <div class="sm:col-span-2">
-                <x-textarea name="excluded_senders" label="Absenderfilter" hint="Mails von diesen Absendern werden nicht abgerufen und bereits erfasste beim Speichern entfernt. Volle Adressen oder Teile wie @amazon.it, durch Komma oder Zeilenumbruch getrennt." :value="$settings['excluded_senders']" rows="4" />
+                <x-textarea name="excluded_senders" label="Absenderfilter" hint="Mails von diesen Absendern werden nicht abgerufen und bereits erfasste beim Speichern entfernt. Volle Adressen oder Teile wie @amazon.it, durch Komma oder Zeilenumbruch getrennt. Mit ! davor eine Ausnahme, z. B. !france@looxis.com." :value="$settings['excluded_senders']" rows="4" />
             </div>
             <div class="sm:col-span-2">
                 <x-button type="submit" variant="secondary">Speichern</x-button>

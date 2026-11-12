@@ -14,6 +14,7 @@ class SenderFilter
 
     /**
      * The saved patterns: full addresses or parts such as "@amazon.it", separated by comma, semicolon or line break.
+     * A pattern with a leading "!" is an exception: a sender it matches is never filtered.
      *
      * @return list<string>
      */
@@ -31,14 +32,21 @@ class SenderFilter
         }
 
         $sender = mb_strtolower($sender);
+        $matched = false;
 
         foreach ($this->patterns() as $pattern) {
-            if (str_contains($sender, $pattern)) {
-                return true;
+            if (str_starts_with($pattern, '!')) {
+                if (str_contains($sender, substr($pattern, 1))) {
+                    return false;
+                }
+
+                continue;
             }
+
+            $matched = $matched || str_contains($sender, $pattern);
         }
 
-        return false;
+        return $matched;
     }
 
     /**

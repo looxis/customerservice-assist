@@ -12,6 +12,7 @@ use App\Labeling\LabelRunner;
 use App\Labeling\LabelStats;
 use App\Labeling\LabelTagging;
 use App\Labeling\ReviewQueue;
+use App\Labeling\SenderFilter;
 use App\Models\LabelPrediction;
 use App\Models\LabelRelease;
 use App\Models\LabelReview;
@@ -175,6 +176,15 @@ describe('retrieval', function () {
         expect($amazon->refresh()->state)->toBe(LabelTicket::EXCLUDED)->and($amazon->text)->toBeNull()
             ->and($customer->refresh()->state)->toBe('classified')
             ->and($tagged->refresh()->state)->toBe('classified');
+    });
+
+    it('lets an exception pattern with a leading exclamation mark pass a sender of a filtered domain', function () {
+        app(LabelingSettings::class)->save(['excluded_senders' => '@looxis.com, !france@looxis.com']);
+        $filter = app(SenderFilter::class);
+
+        expect($filter->matches('Intern <mail@looxis.com>'))->toBeTrue()
+            ->and($filter->matches('France LOOXIS <France@looxis.com>'))->toBeFalse()
+            ->and($filter->matches('Erika <erika@example.org>'))->toBeFalse();
     });
 
     it('does not capture a ticket twice', function () {
