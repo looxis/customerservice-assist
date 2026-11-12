@@ -18,9 +18,9 @@ beforeEach(function () {
  *
  * @param  array<string, mixed>  $ticket
  */
-function closableTicket(array $ticket = [], int $putStatus = 200): void
+function closableTicket(array $ticket = [], int $putStatus = 200, array $articles = []): void
 {
-    fakeZammad(ticket: $ticket, extra: [
+    fakeZammad($articles, ticket: $ticket, extra: [
         'zammad.test/api/v1/users/me' => Http::response(['id' => 99, 'firstname' => 'Nele', 'lastname' => 'Gorka']),
         'zammad.test/api/v1/users/99' => Http::response(['id' => 99, 'firstname' => 'Nele', 'lastname' => 'Gorka']),
         'zammad.test/api/v1/tickets/51234*' => fn (Request $request) => $request->method() === 'PUT'
@@ -69,6 +69,19 @@ describe('closing', function () {
 
         Http::assertSent(fn (Request $request): bool => $request->method() === 'PUT' && str_ends_with($request->url(), 'tickets/51234')
             && $request->data() === ['state' => 'closed'] && $request->hasHeader('Authorization', 'Token token=nele-token'));
+    });
+
+    test('after an Amazon notice it goes on to the "Fall lösen" page of that message', function () {
+        $link = 'https://sellercentral.amazon.de/nms/redirect/abc?nt=X&sk=Y&n=1&u=aHR0cHM6';
+        closableTicket(articles: [zammadArticle(['body' => '<p>Vielen lieben Dank</p><p><a href="'.e($link).'">Fall lösen</a></p>'])]);
+
+        closeTicket()->assertRedirect($link)->assertSessionHas('success', 'Ticket#2137942 wurde ohne Antwort geschlossen.');
+    });
+
+    test('without a "Fall lösen" link it goes back to the list', function () {
+        closableTicket(articles: [zammadArticle(['body' => '<p>Danke</p><p><a href="https://evil.example/x">Fall lösen</a></p>'])]);
+
+        closeTicket()->assertRedirect(route('tickets.analyze'));
     });
 
     test('a reason becomes an internal note in the same call', function () {
