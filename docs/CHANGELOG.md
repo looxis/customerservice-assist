@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-12
+
+- Große Anhänge: Antworten mit Anhängen über etwa 800 KB (z. B. 2-MB-Fotos) lassen sich wieder senden. Die Meldung „Zammad hat nicht rechtzeitig geantwortet“ erscheint dafür nicht mehr.
+
 ## 2026-11-11
 
 - Reklamationen geführt beantworten: Tickets der Art „Reklamation“ werden ab sofort geführt beantwortet. Wähle einfach die passenden Optionen (berechtigt, Retoure, Reklamationsnummer, Versand) und mache die Eingaben; bei Bedarf kannst du auf das Freitextfeld umschalten.
