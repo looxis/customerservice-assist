@@ -10,5 +10,5 @@
         <x-todo.panel :view="$todoView" :counts="$todoCounts" :list="$todoList" />
     </div>
 
-    <x-ticket.list :todo-tickets="$todoTickets" :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" />
+    <x-ticket.list :todo-tickets="$todoTickets" :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" :category-status="$categoryStatus" />
 </x-layouts.app>

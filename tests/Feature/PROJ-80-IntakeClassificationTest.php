@@ -392,6 +392,19 @@ it('shows in the ticket list why a ticket has no category yet', function () {
     expect($status)->toBe([701 => 'pending', 702 => 'pending', 703 => 'hidden', 704 => 'none']);
 });
 
+it('renders the hidden test proposal and the pending classification on the start page', function () {
+    TrackedTicket::factory()->create(['zammad_id' => 711, 'number' => '2140711', 'category' => null, 'zammad_created_at' => now()->subMinutes(5)]);
+    TrackedTicket::factory()->create(['zammad_id' => 712, 'number' => '2140712', 'category' => null, 'zammad_created_at' => now()->subMinutes(5)]);
+    LabelTicket::query()->create(['zammad_id' => 711, 'number' => '2140711', 'source' => 'eingang', 'split' => 'test', 'state' => 'classified']);
+    LabelTicket::query()->create(['zammad_id' => 712, 'number' => '2140712', 'source' => 'eingang', 'split' => 'training', 'state' => 'captured']);
+
+    $this->withCookie('staff_name', 'Etienne')->get('/')
+        ->assertOk()
+        ->assertSee('Testmenge, Vorschlag verborgen')
+        ->assertSee('Einordnung läuft noch')
+        ->assertDontSee('<span title="Noch nicht eingeordnet">', false);
+});
+
 it('takes a test ticket out of the test set when the automatic WISMO answer starts', function (string $mode, string $split, bool $dispatched) {
     Queue::fake();
     app(SettingsStore::class)->save('wismo_mode', $mode, 'Etienne');
