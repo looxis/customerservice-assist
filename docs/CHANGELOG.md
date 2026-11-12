@@ -6,7 +6,7 @@
 
 ## 2026-11-12
 
-- Große Anhänge: Antworten mit Anhängen über etwa 800 KB (z. B. 2-MB-Fotos) lassen sich wieder senden. Die Meldung „Zammad hat nicht rechtzeitig geantwortet“ erscheint dafür nicht mehr.
+- Amazon-Nachrichten: Schließt du ein Ticket mit „Ohne Antwort schließen“ und die letzte Kundennachricht kam über Amazon, öffnet sich danach direkt die Amazon-Seite „Fall lösen“, auf der du nur noch „Ja“ klickst.
 
 ## 2026-11-11
 
