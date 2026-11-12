@@ -97,6 +97,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Reklamationsformular in „Vorschlag erstellen“ (PROJ-86): bei Kategorie Reklamation geführte Eingaben statt Freitext (berechtigt Ja/Nein mit Grund und Kulanz, Retoure mit DHL-Label, Reklamationsnummer, Versand heute/morgen/zeitnah, ToDo „Sendungsnummer mitteilen“); „heute noch“ nur noch auf Wahl des Mitarbeiters | In Review |
 | Automatische Vorab-Antwort bei Reklamation (PROJ-85): Foto-Anforderung bzw. Eingangsbestätigung bei neuen Reklamations-Tickets bis 30 Tage nach Versand, Ticket bleibt offen, Schalter, Trockenlauf, Protokoll (dritte Ausnahme vom Ziel „Versand nur nach Klick“) | Planned |
 | Verschleierte Links erkennen (PROJ-84): Linktext nennt eine andere Adresse als das Linkziel, Warnvermerk im Mailtext und für die Klassifikation (Hinweis auf Spam) | In Review |
+| Automatik-Antworten auf gemeinsamen Unterbau zusammenführen (PROJ-87): Aufräumauftrag nach PROJ-82 und PROJ-85, später umzusetzen | Roadmap |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
