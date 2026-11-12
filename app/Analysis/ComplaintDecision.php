@@ -13,8 +13,10 @@ final readonly class ComplaintDecision
 
     public const string FREE = 'frei';
 
+    public const array ANSWERS = ['ja', 'nein', 'unsicher', 'info'];
+
     /**
-     * @param  'ja'|'nein'  $justified
+     * @param  'ja'|'nein'|'unsicher'|'info'  $justified  "unsicher": replaced without admitting a legal duty; "info": undecided, more information needed.
      * @param  'ja'|'nein'  $goodwill  Only meaningful when the complaint is not justified.
      * @param  'ja'|'nein'  $return  Whether the defective product is sent back; only meaningful when justified.
      * @param  'heute'|'morgen'|'zeitnah'  $shipping  When the new product is shipped; only meaningful when justified.
@@ -27,6 +29,7 @@ final readonly class ComplaintDecision
         public string $claimNumber,
         public string $shipping,
         public bool $trackingTodo,
+        public string $missingInfo = '',
     ) {}
 
     /**
@@ -36,7 +39,7 @@ final readonly class ComplaintDecision
      */
     public static function fromInput(array $input): ?self
     {
-        if (($input['formular'] ?? null) !== self::FORM || ! in_array($input['reklamation_berechtigt'] ?? null, ['ja', 'nein'], true)) {
+        if (($input['formular'] ?? null) !== self::FORM || ! in_array($input['reklamation_berechtigt'] ?? null, self::ANSWERS, true)) {
             return null;
         }
 
@@ -48,6 +51,7 @@ final readonly class ComplaintDecision
             claimNumber: trim((string) ($input['reklamationsnummer'] ?? '')),
             shipping: in_array($input['versand'] ?? null, ['heute', 'morgen', 'zeitnah'], true) ? $input['versand'] : 'zeitnah',
             trackingTodo: filter_var($input['sendungsnummer_todo'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            missingInfo: trim((string) ($input['reklamation_info'] ?? '')),
         );
     }
 
@@ -57,11 +61,19 @@ final readonly class ComplaintDecision
     }
 
     /**
-     * Whether a DHL return label belongs to this complaint: justified and the product is sent back.
+     * Whether the customer gets a replacement: justified, or replaced without admitting a legal duty.
+     */
+    public function isReplaced(): bool
+    {
+        return $this->isJustified() || $this->justified === 'unsicher';
+    }
+
+    /**
+     * Whether a DHL return label belongs to this complaint: replaced and the product is sent back.
      */
     public function wantsReturnLabel(): bool
     {
-        return $this->isJustified() && $this->return === 'ja';
+        return $this->isReplaced() && $this->return === 'ja';
     }
 
     /**
@@ -74,7 +86,11 @@ final readonly class ComplaintDecision
     {
         $stored = ['formular' => self::FORM, 'reklamation_berechtigt' => $this->justified];
 
-        if (! $this->isJustified()) {
+        if ($this->justified === 'info') {
+            return [...$stored, 'reklamation_info' => $this->missingInfo];
+        }
+
+        if (! $this->isReplaced()) {
             return [...$stored, 'reklamation_grund' => $this->reason, 'kulanz' => $this->goodwill];
         }
 
@@ -88,7 +104,14 @@ final readonly class ComplaintDecision
     {
         $lines = ['Angaben aus dem Reklamationsformular (geprüfte Entscheidungen und Fakten des Mitarbeiters):'];
 
-        if (! $this->isJustified()) {
+        if ($this->justified === 'info') {
+            $lines[] = '- Die Reklamation kann noch nicht entschieden werden: Es sind weitere Informationen nötig. Sage weder zu noch ab, kündige keine Neuproduktion und keinen Versand an.';
+            $lines[] = '- Für die Entscheidung werden diese Informationen benötigt (frage den Kunden gezielt danach): '.$this->missingInfo;
+
+            return implode("\n", $lines);
+        }
+
+        if (! $this->isReplaced()) {
             $lines[] = '- Die Reklamation wurde nach Prüfung nicht als berechtigt anerkannt.';
             $lines[] = '- Grund der Ablehnung: '.$this->reason;
             $lines[] = $this->goodwill === 'ja'
@@ -98,15 +121,20 @@ final readonly class ComplaintDecision
             return implode("\n", $lines);
         }
 
-        $lines[] = '- Die Reklamation wurde nach Prüfung als berechtigt anerkannt.';
-        $lines[] = $this->return === 'ja'
-            ? '- Das defekte Produkt soll zurückgesendet werden. Erst nach dem Eingang der Rücksendung wird ersetzt: Nenne keinen Versandtermin für den Ersatz.'
-            : '- Das defekte Produkt muss nicht zurückgesendet werden.';
+        $unsure = $this->justified === 'unsicher';
+        $lines[] = $unsure
+            ? '- Die Reklamation ist nicht abschließend geprüft oder unsicher. Der Austausch erfolgt trotzdem, ohne Anerkennung einer Rechtspflicht. Füge im Entwurf den Zusatz zur Kulanz ohne Rechtsanerkennung hinzu, sinngemäß nach dem Wissen („Austausch ohne Anerkennung einer Rechtspflicht, gesetzliche Rechte bleiben unberührt“).'
+            : '- Die Reklamation wurde nach Prüfung als berechtigt anerkannt.';
+        $lines[] = match (true) {
+            $unsure && $this->return === 'ja' => '- Das beanstandete Produkt soll zur weiteren, detaillierten internen Prüfung zurückgesendet werden; der Kunde erhält dafür ein kostenfreies Retourenlabel. Füge den Zusatz zum Retourenlabel sinngemäß nach dem Wissen hinzu.',
+            $this->return === 'ja' => '- Das defekte Produkt soll zurückgesendet werden. Erst nach dem Eingang der Rücksendung wird ersetzt: Nenne keinen Versandtermin für den Ersatz.',
+            default => '- Das defekte Produkt muss nicht zurückgesendet werden.',
+        };
         $lines[] = $this->claimNumber === ''
             ? '- Die Reklamationsnummer steht noch nicht fest: Verwende im Entwurf den Platzhalter [REKLAMATIONSNUMMER], nenne keine Nummer.'
             : '- Die Reklamationsnummer lautet '.$this->claimNumber.'.';
 
-        if ($this->return !== 'ja') {
+        if ($this->return !== 'ja' || $unsure) {
             $lines[] = match ($this->shipping) {
                 'heute' => '- Der Versand der Neuproduktion erfolgt voraussichtlich heute: Du darfst „voraussichtlich heute noch“ schreiben.',
                 'morgen' => '- Der Versand der Neuproduktion erfolgt voraussichtlich morgen: Schreibe „voraussichtlich morgen“.',

@@ -130,6 +130,7 @@ test('the complaint form needs the choice and for a refusal the reason, and noth
 })->with([
     'no choice' => [[], 'reklamation_berechtigt'],
     'refused without a reason' => [['reklamation_berechtigt' => 'nein', 'reklamation_grund' => '  '], 'reklamation_grund'],
+    'undecided without the needed information' => [['reklamation_berechtigt' => 'info', 'reklamation_info' => ' '], 'reklamation_info'],
     'a claim number of another build' => [['reklamation_berechtigt' => 'ja', 'reklamationsnummer' => '1234'], 'reklamationsnummer'],
     'an unknown shipping choice' => [['reklamation_berechtigt' => 'ja', 'versand' => 'sofort'], 'versand'],
 ]);
@@ -253,4 +254,33 @@ describe('the ToDo preselection from the complaint form', function () {
 test('the decision builds no facts for the free-text form', function () {
     expect(ComplaintDecision::fromInput(['formular' => 'frei', 'reklamation_berechtigt' => 'ja']))->toBeNull()
         ->and(ComplaintDecision::fromInput(['formular' => 'reklamation']))->toBeNull();
+});
+
+test('an unsure complaint is replaced without admitting a duty and asks for the knowledge-based additions', function () {
+    CaseAgent::fake([complaintAnswer()]);
+
+    complaintRun(['reklamation_berechtigt' => 'unsicher', 'retoure' => 'nein', 'versand' => 'zeitnah', 'reklamationsnummer' => 'R1-028-0861097-0545938'])->assertSessionHasNoErrors();
+
+    CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('ohne Anerkennung einer Rechtspflicht')
+        && $prompt->contains('muss nicht zurückgesendet werden')
+        && $prompt->contains('erfolgt zeitnah')
+        && ! $prompt->contains('kostenfreies Retourenlabel'));
+});
+
+test('an unsure complaint with a return sends the label addition and still names the shipping', function () {
+    $decision = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'unsicher', 'retoure' => 'ja', 'versand' => 'morgen']);
+
+    expect($decision->wantsReturnLabel())->toBeTrue()
+        ->and($decision->facts())->toContain('kostenfreies Retourenlabel')->toContain('detaillierten internen Prüfung')->toContain('voraussichtlich morgen');
+});
+
+test('an undecided complaint passes on the needed information and promises nothing', function () {
+    CaseAgent::fake([complaintAnswer()]);
+
+    complaintRun(['reklamation_berechtigt' => 'info', 'reklamation_info' => 'Foto der Rückseite', 'retoure' => 'ja', 'versand' => 'heute'])->assertSessionHasNoErrors();
+
+    CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('weitere Informationen nötig')
+        && $prompt->contains('Foto der Rückseite')
+        && ! $prompt->contains('Versand der Neuproduktion') && ! $prompt->contains('Reklamationsnummer'));
+    expect(Analysis::query()->latest()->first()->content['inputs'])->toMatchArray(['reklamation_berechtigt' => 'info', 'reklamation_info' => 'Foto der Rückseite'])->not->toHaveKey('retoure');
 });

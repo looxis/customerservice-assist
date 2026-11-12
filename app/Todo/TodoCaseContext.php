@@ -48,7 +48,7 @@ class TodoCaseContext
         if ($complaint !== null) {
             // The complaint form decides: a justified complaint with the ToDo ticked gets it, whatever the text names. Without
             // a claim number the ToDo is prepared but not automatic (no reference to look for).
-            $preselect = $complaint->isJustified() && $complaint->trackingTodo;
+            $preselect = $complaint->isReplaced() && $complaint->trackingTodo;
 
             return ['name' => $name, 'kind' => 'claim', 'number' => $complaint->claimNumber, 'preselect' => $preselect];
         }

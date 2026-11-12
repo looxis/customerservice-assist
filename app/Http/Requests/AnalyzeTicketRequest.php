@@ -82,7 +82,8 @@ class AnalyzeTicketRequest extends FormRequest
             'stand' => ['nullable', 'integer'],
             'return_label' => ['nullable', 'uuid'],
             'formular' => ['nullable', Rule::in([ComplaintDecision::FORM, ComplaintDecision::FREE])],
-            'reklamation_berechtigt' => ['nullable', Rule::in(['ja', 'nein'])],
+            'reklamation_berechtigt' => ['nullable', Rule::in(ComplaintDecision::ANSWERS)],
+            'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
             'kulanz' => ['nullable', Rule::in(['ja', 'nein'])],
             'retoure' => ['nullable', Rule::in(['ja', 'nein'])],
@@ -119,10 +120,12 @@ class AnalyzeTicketRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             if ($this->input('formular') === ComplaintDecision::FORM) {
-                if (! in_array($this->input('reklamation_berechtigt'), ['ja', 'nein'], true)) {
+                if (! in_array($this->input('reklamation_berechtigt'), ComplaintDecision::ANSWERS, true)) {
                     $validator->errors()->add('reklamation_berechtigt', 'Bitte angeben, ob die Reklamation berechtigt ist.');
                 } elseif ($this->input('reklamation_berechtigt') === 'nein' && trim((string) $this->input('reklamation_grund', '')) === '') {
                     $validator->errors()->add('reklamation_grund', 'Bitte den Grund eingeben, warum die Reklamation nicht berechtigt ist.');
+                } elseif ($this->input('reklamation_berechtigt') === 'info' && trim((string) $this->input('reklamation_info', '')) === '') {
+                    $validator->errors()->add('reklamation_info', 'Bitte angeben, welche Informationen für die Entscheidung nötig sind.');
                 }
             }
 
@@ -187,7 +190,7 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'reklamationsnummer' => 'Reklamationsnummer'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer'];
     }
 
     /**

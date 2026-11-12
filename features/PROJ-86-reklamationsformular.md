@@ -2,7 +2,7 @@
 
 ## Status: In Review
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-11
+**Last Updated:** 2026-11-12
 
 ## Dependencies
 - Requires: PROJ-80 (Kategorie `reklamation` aus der Klassifikation neuer Tickets)
@@ -234,6 +234,14 @@ Gebaut ist die Oberfläche; die Serverseite (Prüfung, Fakten für die KI, Speic
 - Prompt `analysis`: neue Version `analysis-2026-11-11.1` mit Hinweis zum Block „Angaben aus dem Reklamationsformular“; die Versionsprüfungen in drei bestehenden Tests sind angepasst.
 - Tests: `tests/Feature/PROJ-86-ComplaintFormTest.php` (24 Tests: Fakten, Versandwahl, Pflichtregeln, Freitext unverändert, Label-Regel, Speicherung, Anzeige nach Kategorie, ToDo-Vorauswahl).
 - Gesamtsuite: 2567 von 2571 grün. Zwei Tests in `PROJ-36-AnalysisIntegrationTest` schlagen auch ohne diese Änderungen fehl: „Eisberg-Fall PLAYBOOK-018/019“ (immer, hängt am echten Wissen) und „freie Neuproduktion lädt keine Kulanzregeln“ (wechselnd, flackert auch ohne diese Änderungen).
+
+## Änderung 2026-11-12: zwei weitere Antworten bei „berechtigt“
+Die Frage „Wird die Reklamation nach Prüfung als berechtigt anerkannt?“ hat jetzt vier Antworten:
+- **Ja / Nein** wie bisher.
+- **Unsicher / ungeprüft anerkennen** (`unsicher`): wie „Ja“ (Retoure-Frage mit DHL-Label, Reklamationsnummer, Versand, ToDo), aber die KI bekommt den Fakt, dass der Austausch ohne Anerkennung einer Rechtspflicht erfolgt und der Zusatz („… gesetzliche Rechte bleiben unberührt“) sinngemäß aus dem Wissen zu formulieren ist. Bei „Retoure: Ja“ kommt der Fakt dazu, dass der Kunde ein kostenfreies Retourenlabel zur weiteren, detaillierten internen Prüfung erhält; der Versandhinweis bleibt (der Ersatz wartet nicht auf die Rücksendung).
+- **Unsicher, weitere Informationen nötig** (`info`): Pflichtfeld „Nötige Informationen“ (`reklamation_info`); die KI sagt weder zu noch ab und fragt gezielt danach. Keine Retoure, Nummer, Versand oder ToDo.
+- Offen: Die Formulierungen stehen noch nicht im Wissen (Zusatz ohne Rechtsanerkennung, Zusatz zum Retourenlabel); die Fakten verweisen sinngemäß darauf. Wissensdokument ist noch zu verfassen (`/knowledge`).
+- Code: `ComplaintDecision`, `AnalyzeTicketRequest`, `TodoCaseContext` (ToDo-Vorauswahl auch bei `unsicher`), `complaint-fields.blade.php`, `form.blade.php`; Tests in `PROJ-86-ComplaintFormTest.php` (31 grün).
 
 ## QA Test Results
 

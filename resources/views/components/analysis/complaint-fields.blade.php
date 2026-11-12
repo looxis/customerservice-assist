@@ -4,6 +4,7 @@
     $oldInput = session()->hasOldInput();
     $pick = fn (string $key, mixed $default = null) => $oldInput ? old($key, $default) : ($inputs[$key] ?? $default);
     $yesNo = ['ja' => 'Ja', 'nein' => 'Nein'];
+    $verdicts = ['ja' => 'Ja', 'nein' => 'Nein', 'unsicher' => 'Unsicher / ungeprüft anerkennen', 'info' => 'Unsicher, weitere Informationen nötig'];
     $shipping = ['heute' => 'heute', 'morgen' => 'morgen', 'zeitnah' => 'zeitnah'];
     $todoOn = $oldInput ? (bool) old('sendungsnummer_todo') : (bool) ($inputs['sendungsnummer_todo'] ?? true);
 @endphp
@@ -13,7 +14,7 @@
 <fieldset x-show="mode === 'reklamation'" x-bind:disabled="mode !== 'reklamation'" x-cloak class="min-w-0 space-y-5 border-0 p-0">
     <legend class="sr-only">Reklamation</legend>
 
-    <x-analysis.choice name="reklamation_berechtigt" legend="Wird die Reklamation nach Prüfung als berechtigt anerkannt?" :options="$yesNo" model="berechtigt" :value="$pick('reklamation_berechtigt')" :required="true" />
+    <x-analysis.choice name="reklamation_berechtigt" legend="Wird die Reklamation nach Prüfung als berechtigt anerkannt?" :options="$verdicts" model="berechtigt" :value="$pick('reklamation_berechtigt')" :required="true" />
 
     {{-- Not justified: the reason and whether a goodwill offer is made. --}}
     <fieldset x-show="berechtigt === 'nein'" x-bind:disabled="berechtigt !== 'nein'" x-cloak class="min-w-0 space-y-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
@@ -22,8 +23,14 @@
         <x-analysis.choice name="kulanz" legend="Kulanzangebot unterbreiten?" :options="$yesNo" model="kulanz" :value="$pick('kulanz', 'nein')" />
     </fieldset>
 
-    {{-- Justified: return, claim number, shipping and the follow-up ToDo. --}}
-    <fieldset x-show="berechtigt === 'ja'" x-bind:disabled="berechtigt !== 'ja'" x-cloak class="min-w-0 space-y-5">
+    {{-- Undecided: what the customer still has to tell us. --}}
+    <fieldset x-show="berechtigt === 'info'" x-bind:disabled="berechtigt !== 'info'" x-cloak class="min-w-0 space-y-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+        <legend class="sr-only">Reklamation noch nicht entscheidbar</legend>
+        <x-textarea name="reklamation_info" id="reklamation_info" label="Nötige Informationen" rows="3" maxlength="1000" :required="true" placeholder="Welche Informationen sind nötig, um eine Entscheidung über die Reklamation treffen zu können?" :value="$pick('reklamation_info', '')" />
+    </fieldset>
+
+    {{-- Justified or replaced without admitting a duty (unsicher): return, claim number, shipping and the follow-up ToDo. --}}
+    <fieldset x-show="['ja', 'unsicher'].includes(berechtigt)" x-bind:disabled="! ['ja', 'unsicher'].includes(berechtigt)" x-cloak class="min-w-0 space-y-5">
         <legend class="sr-only">Reklamation berechtigt</legend>
 
         <div>
@@ -32,7 +39,7 @@
                 <p class="mt-1 text-sm text-slate-600">Höherwertige Produkte, die in Teilen noch (weiter-)verwendet werden können, sollten retourniert werden.</p>
             </x-intro>
             <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 text-sm font-medium text-danger-700" x-text="labelNote"></p>
-            <div x-show="berechtigt === 'ja' && retoure === 'ja'" x-cloak class="mt-3 space-y-4">
+            <div x-show="['ja', 'unsicher'].includes(berechtigt) && retoure === 'ja'" x-cloak class="mt-3 space-y-4">
                 @forelse ($labelOrders as $labelOrder)
                     <x-dhl.return-label :order="$labelOrder" :ticket-number="$number" mode="attach" :field="true" :configured="app(\App\Dhl\DhlClient::class)->isConfigured()" />
                 @empty
