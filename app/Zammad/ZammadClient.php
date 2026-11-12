@@ -521,7 +521,7 @@ class ZammadClient
                 signature: $parsed['signature'],
                 id: isset($article['id']) ? (int) $article['id'] : null,
                 order: $parsed['order'],
-                attachments: $this->attachments($article['attachments'] ?? [], $parsed['images'], $parsed['trailing_images'], trim(strip_tags($parsed['body']->toHtml())) === ''),
+                attachments: $this->attachments($article['attachments'] ?? [], $parsed['images'], $parsed['trailing_images'], trim(strip_tags($parsed['body']->toHtml())) === '', $this->referencedAttachmentIds((string) ($article['body'] ?? ''))),
                 channel: $type === '' ? null : (self::CHANNEL_LABELS[$type] ?? ucfirst($type)),
                 automatic: $sender === 'system',
                 type: $type === '' ? null : $type,
@@ -631,9 +631,11 @@ class ZammadClient
      * @param  list<int>  $trailingImages  IDs of the images embedded from the closing phrase on.
      * @param  bool  $withoutText  The message has no text of its own (the customer wrote only the subject): its
      *                             embedded images are then the content, not decoration.
+     * @param  list<int>  $referencedIds  IDs of the attachments the mail body points to; an image with a Content-ID
+     *                                    that the body never shows (Yahoo and other mobile apps) is a plain attachment.
      * @return list<TicketAttachment>
      */
-    private function attachments(mixed $attachments, array $inlineImages = [], array $trailingImages = [], bool $withoutText = false): array
+    private function attachments(mixed $attachments, array $inlineImages = [], array $trailingImages = [], bool $withoutText = false, array $referencedIds = []): array
     {
         $result = [];
 
@@ -646,6 +648,8 @@ class ZammadClient
                 default => $type,
             };
             $embedded = ! empty($preferences['content-id']) || str_starts_with(strtolower((string) ($preferences['content-disposition'] ?? '')), 'inline');
+            $unreferenced = $embedded && ! in_array((int) ($attachment['id'] ?? 0), $referencedIds, true) && (int) ($attachment['size'] ?? 0) >= self::MIN_EMBEDDED_IMAGE_BYTES;
+            $embedded = $embedded && ! $unreferenced;
 
             $originalMail = ! empty($preferences['content-alternative']) || ! empty($preferences['original-format']);
 
@@ -663,6 +667,16 @@ class ZammadClient
         }
 
         return $result;
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function referencedAttachmentIds(string $body): array
+    {
+        preg_match_all('#/ticket_attachment/\d+/\d+/(\d+)#', $body, $matches);
+
+        return array_values(array_unique(array_map('intval', $matches[1])));
     }
 
     private function time(mixed $value): CarbonImmutable

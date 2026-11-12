@@ -233,6 +233,15 @@ describe('images embedded in the mail text', function () {
         expect(app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments)->toHaveCount(1);
     });
 
+    test('images the mail text never shows (Yahoo app, Ticket 2140369) are plain attachments with "Ansehen"', function () {
+        embeddedTicket('<div>Welches Bild passt am besten?<br><br>Mit freundlichen Grüßen<br><br>Dennis Radon</div>', [[41, '1000206599.png', 3692270], [42, '1000213592.png', 1384024]]);
+
+        $attachments = app(ZammadClient::class)->ticket('2137942')->articles[0]->attachments;
+
+        expect($attachments)->toHaveCount(2)->and($attachments[0]->embedded)->toBeFalse();
+        $this->get('/tickets/2137942')->assertOk()->assertSeeText('1000206599.png')->assertSeeText('Ansehen');
+    });
+
     test('logos in the signature, images in a quote and small icons stay out', function () {
         embeddedTicket(
             '<div>Die Box ist kaputt.</div><div>'.embeddedImage(44).'</div><div>Mit freundlichen Grüßen</div><div>Erika Beispiel</div><div>'.embeddedImage(42).'</div>'
