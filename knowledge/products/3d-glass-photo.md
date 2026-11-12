@@ -47,6 +47,9 @@ order_keywords:
 - '10926'
 - '10927'
 customer_terms:
+- Glaskristall
+- 3D-Glaskristall
+- 3D Glaskristall
 - 3D Glasfoto
 - 3D-Glasfoto
 - 3D Glas Foto
@@ -62,6 +65,12 @@ customer_terms:
 - Giga
 - Big Block
 related_knowledge:
+- PLAYBOOK-054
+- POLICY-071
+- POLICY-072
+- POLICY-073
+- POLICY-074
+- POLICY-075
 - GLOSSARY-002
 - PLAYBOOK-002
 - PLAYBOOK-018
@@ -88,6 +97,10 @@ Die Kundenbegriffe in den Frontmatter-Feldern (zum Beispiel Glassteine, Viamant,
 
 # Regeln und Verweise
 
+- Kaufanfragen, 2,5D, zusätzliche Fotoansichten und die Wahl zwischen Standardbestellung und Sonderleistung: PLAYBOOK-054.
+- Vorschau bei Erstbestellung: POLICY-071. Individuelle 360°-Modellierung: POLICY-072. Fertige 3D-Kundendaten: POLICY-073. Diese Sonderleistungen werden nicht für Amazon angeboten (POLICY-075).
+- Bilddateiformate und Vorbereitung einer eigenen Freistellung: POLICY-074.
+
 - Eine frühere, separat erstellte Interpretation ist für einen neuen Interpretationsvorgang nicht automatisch verbindlich. Für Unterschiede zwischen getrennten Interpretationsvorgängen gelten GLOSSARY-002 und PLAYBOOK-002.
 - Schattenwurf, Lücken oder fehlende Motivbereiche: PLAYBOOK-008.
 - Dunkle oder kaum sichtbare Motive: PLAYBOOK-009. Das gemeinsame Prinzip von Helligkeit, Punktdichte und Sichtbarkeit steht in GLOSSARY-004.
@@ -98,3 +111,4 @@ Die Kundenbegriffe in den Frontmatter-Feldern (zum Beispiel Glassteine, Viamant,
 # Konsequenz für den Kundenservice
 
 Bei Beanstandungen zu 3D-Glasfotos die Produktfakten aus ProductForge heranziehen und die Bewertung nach den genannten Playbooks vornehmen.
+

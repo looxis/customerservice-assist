@@ -30,7 +30,8 @@
       "Bash(git ls-files:*)",
       "Bash(lsof:*)",
       "Bash(kill:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(curl:*)"
     ]
   }
 }
