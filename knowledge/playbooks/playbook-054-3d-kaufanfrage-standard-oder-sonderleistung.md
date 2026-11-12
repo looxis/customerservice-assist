@@ -87,7 +87,7 @@ Ist die gewünschte Ausführung regulär im Shop konfigurierbar und liegt kein S
 
 ## Fragen zu Aussehen, Rückseite und Wirkung der Gravur
 
-Das Verfahren (siehe oben, Details aus ProductForge) erklären, statt eine Prüfung oder Klärung anzubieten. Die Wirkung der Gravur im Glas ist auf den Produktfotos und Produktvideos der Produktseite zu sehen; darauf verweisen. Keine weitere interne Klärung und keine Wartezeit anbieten, wenn das Verfahren die Frage beantwortet.
+Das Verfahren (siehe oben, Details aus ProductForge) kurz erklären, statt eine Prüfung oder Klärung anzubieten. Die Wirkung der Gravur im Glas ist auf den Produktfotos und Produktvideos der Produktseite zu sehen; darauf verweisen. Unterhalb der Produktbeschreibung zeigt die Produktdetailseite im Shop ausführlich und bebildert, wie das Verfahren funktioniert, welche Fotos gut oder weniger gut geeignet sind (Beispiele) und wie die Punktwolke durch Lichtbrechung wirkt. Dazu nicht alles im Einzelnen wiedergeben, sondern kurz antworten und auf diese Hinweise und Beispiele auf der Produktseite verweisen. Keine weitere interne Klärung und keine Wartezeit anbieten, wenn das Verfahren die Frage beantwortet.
 
 ## Bestellweg und Ablauf
 
