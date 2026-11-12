@@ -5,6 +5,7 @@ namespace App\Labeling;
 use App\Analysis\AnalysisException;
 use App\Analysis\LanguageModel;
 use App\Analysis\Prompt;
+use App\Jobs\AnswerClaimTicket;
 use App\Jobs\AnswerWismoTicket;
 use App\Models\LabelPrediction;
 use App\Models\LabelTicket;
@@ -67,6 +68,7 @@ class LabelClassifier
 
         $ticket->update(['state' => 'classified', 'problem' => null]);
         $this->answerWismo($ticket, $prediction, $settings);
+        $this->answerClaim($ticket, $prediction, $settings);
         $ticket->shareCategory();
 
         return $prediction;
@@ -93,6 +95,29 @@ class LabelClassifier
             }
 
             AnswerWismoTicket::dispatch($ticket->id);
+        }
+    }
+
+    /**
+     * A new ticket that the model clearly takes for a complaint gets the automatic first reply (PROJ-85): only the
+     * proposal counts, never an old ticket. A ticket of the test set that is answered leaves the test set.
+     *
+     * @param  array<string, mixed>  $settings
+     */
+    private function answerClaim(LabelTicket $ticket, LabelPrediction $prediction, array $settings): void
+    {
+        $eligible = $ticket->source === 'eingang'
+            && $prediction->category === LabelCategory::Reklamation->value
+            && ! $prediction->unclear
+            && ! $prediction->multiple_concerns
+            && (float) $prediction->confidence >= (float) $settings['confidence'];
+
+        if ($eligible && (string) app(SettingsStore::class)->value('claim_reply_mode') !== 'off') {
+            if ($ticket->isTest() && $ticket->decision === null) {
+                $ticket->update(['split' => 'training']);
+            }
+
+            AnswerClaimTicket::dispatch($ticket->id);
         }
     }
 

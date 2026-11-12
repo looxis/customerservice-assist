@@ -33,3 +33,5 @@ foreach (['26 11', '7 16', '16 16', '34 18'] as $time) {
 Schedule::command('labeling:purge')->dailyAt('04:15');
 Schedule::command('wismo:purge')->dailyAt('04:30');
 Schedule::command('wismo:recover')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::command('claim-reply:purge')->dailyAt('04:35');
+Schedule::command('claim-reply:recover')->everyFiveMinutes()->withoutOverlapping(10);

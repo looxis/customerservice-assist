@@ -1,6 +1,6 @@
 # PROJ-85: Automatische Vorab-Antwort bei Reklamation
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-11
 **Last Updated:** 2026-11-12
 
@@ -203,6 +203,16 @@ Keine neuen Pakete.
 
 ### F) Teststrategie (für /backend und /qa)
 Pest-Tests mit simuliertem Zammad, EOCS und Sprachmodell, nach Vorbild der WISMO-Tests: Schalter aus/Trockenlauf/an, jedes Szenario, 30-Tage-Grenze, ohne Bestellung/Versand, Doppelanstoß, neuere Kundennachricht, ReplyGuard-Treffer, Szenario passt nicht zur Fotozahl, Wiederholung und unklarer Versand, Wiederaufnahme, Löschung nach 90 Tagen, Rechte auf der Einstellungsseite.
+
+## Implementation Notes (Backend, 2026-11-12)
+- Neuer Dienst `App\ClaimReply\ClaimReplyResponder` (Muster `WismoResponder`), Agent `ClaimReplyAgent`, `ClaimReplyGuard` (ReplyGuard ohne erlaubte Links plus Wortprüfung auf Ersatz/Erstattung/Kulanz in mehreren Sprachen), Job `AnswerClaimTicket`, Modell `ClaimReplyRun` (Tabelle `claim_reply_runs`), Befehle `claim-reply:purge` (täglich 04:35) und `claim-reply:recover` (alle 5 Minuten).
+- Auslöser: `LabelClassifier::answerClaim`, neben `answerWismo`; nur Quelle `eingang`, Kategorie `reklamation`, nicht unklar, ein Anliegen, Konfidenz über Schwelle, Schalter nicht „aus“; Testmenge wechselt in die Trainingsmenge.
+- Foto = betrachtbarer Bildanhang (jpg, png, webp) der letzten Kundennachricht, gezählt über `TicketAttachment::isViewable()` (PROJ-60-Filter gelten schon). Das Szenario nennt die KI; passt es nicht zur Fotozahl, wird nicht gesendet, sondern eine Notiz geschrieben.
+- Versandalter über `EocsOrder::daysSinceFirstShipment()` (PROJ-79), Grenze `ClaimReplyResponder::MAX_SHIPPED_DAYS = 30`: genau 30 Tage wird noch beantwortet.
+- Einstellungen: Seite `/einstellungen/reklamations-automatik` (Schalter `claim_reply_mode`, Signatur `claim_reply_signature`), Modell `model_claim_reply` und Prompt `claim-reply` (`resources/prompts/claim-reply.md`) unter „Prompts und Modell“ (jetzt zehn Prompts, sechs Modelle). Umgebungsvariable `CLAIM_REPLY_MODEL` optional.
+- Protokoll-Seite `/reklamations-vorab-antworten` (nur Admins), Eintrag „Vorab-Antworten Reklamation“ in der Seitenleiste.
+- Abweichung/Auslassung: Keine Hinweiszeile unter der Signatur (der Antworttext nennt den automatisierten Vorab-Check selbst). Interne Notiz bei „nicht gesendet“ erscheint nur bei Bestellnummer-/Bestell-/Versandproblemen, Antwortadresse, Prüffehlern und Fehlern, nicht bei „übersprungen“ (wie in der Spec).
+- Tests: `tests/Feature/PROJ-85-ClaimReplyTest.php` (30 Tests); `PROJ-31-PromptSettingsTest` angepasst (zehn Prompts, sechs Modelle).
 
 ## QA Test Results
 _To be added by /qa_

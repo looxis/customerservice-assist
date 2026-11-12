@@ -6,6 +6,7 @@ use App\Http\Controllers\AdvancedModeController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AnalysisOverviewController;
 use App\Http\Controllers\ChangelogController;
+use App\Http\Controllers\ClaimReplyRunController;
 use App\Http\Controllers\DhlReturnController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\IntroModeController;
@@ -57,12 +58,14 @@ Route::get('/einstellungen/mail-anzeige', [SettingsController::class, 'mail'])->
 Route::get('/einstellungen/prompts-und-modell', [SettingsController::class, 'prompts'])->name('settings.prompts');
 Route::get('/einstellungen/erkennungsregeln', [SettingsController::class, 'detection'])->name('settings.detection');
 Route::get('/einstellungen/wismo-automatik', [SettingsController::class, 'wismo'])->name('settings.wismo');
+Route::get('/einstellungen/reklamations-automatik', [SettingsController::class, 'claimReply'])->name('settings.claim-reply');
 Route::get('/einstellungen/kundengruppen-und-werte', [SettingsController::class, 'values'])->name('settings.values');
 Route::middleware('staff.selected')->group(function (): void {
     Route::put('/einstellungen/mail-anzeige', [SettingsController::class, 'updateMail'])->name('settings.mail.update');
     Route::put('/einstellungen/prompts-und-modell', [SettingsController::class, 'updatePrompts'])->name('settings.prompts.update');
     Route::put('/einstellungen/erkennungsregeln', [SettingsController::class, 'updateDetection'])->name('settings.detection.update');
     Route::put('/einstellungen/wismo-automatik', [SettingsController::class, 'updateWismo'])->name('settings.wismo.update');
+    Route::put('/einstellungen/reklamations-automatik', [SettingsController::class, 'updateClaimReply'])->name('settings.claim-reply.update');
     Route::put('/einstellungen/kundengruppen-und-werte', [SettingsController::class, 'updateValues'])->name('settings.values.update');
     Route::post('/einstellungen/kundengruppen/{group}/freigeben', [SettingsController::class, 'release'])->where('group', '[a-z0-9-]+')->name('settings.groups.release');
     Route::match(['put', 'post'], '/einstellungen/erkennungsregeln/ausprobieren', [SettingsController::class, 'tryDetection'])->middleware('throttle:30,1')->name('settings.detection.try');
@@ -93,6 +96,8 @@ Route::get('/analysen', [AnalysisOverviewController::class, 'index'])->name('ana
 Route::get('/ticket-uebersicht', [TicketOverviewController::class, 'index'])->name('ticket-overview.index');
 Route::get('/wismo-antworten', [WismoRunController::class, 'index'])->name('wismo-runs.index');
 Route::get('/wismo-antworten/{run}', [WismoRunController::class, 'show'])->whereNumber('run')->name('wismo-runs.show');
+Route::get('/reklamations-vorab-antworten', [ClaimReplyRunController::class, 'index'])->name('claim-reply-runs.index');
+Route::get('/reklamations-vorab-antworten/{run}', [ClaimReplyRunController::class, 'show'])->whereNumber('run')->name('claim-reply-runs.show');
 
 // PROJ-78: ticket tagging for training data (admins only).
 Route::get('/beschriftung', [LabelingController::class, 'index'])->name('labeling.index');

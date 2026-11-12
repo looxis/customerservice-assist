@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangeSettingVersionRequest;
+use App\Http\Requests\ClaimReplySettingsRequest;
 use App\Http\Requests\DetectionSettingsRequest;
 use App\Http\Requests\MailSettingsRequest;
 use App\Http\Requests\PromptSettingsRequest;
@@ -66,6 +67,16 @@ class SettingsController extends Controller
     public function updateWismo(WismoSettingsRequest $request, SettingsStore $settings, StaffDirectory $staff): RedirectResponse
     {
         return $this->saveDrafts($request, WismoSettingsRequest::PAGE, $settings, $staff);
+    }
+
+    public function claimReply(Request $request, SettingsStore $settings, TestMode $testMode): View
+    {
+        return view('settings.claim-reply', $this->pageData(ClaimReplySettingsRequest::PAGE, $request, $settings, $testMode));
+    }
+
+    public function updateClaimReply(ClaimReplySettingsRequest $request, SettingsStore $settings, StaffDirectory $staff): RedirectResponse
+    {
+        return $this->saveDrafts($request, ClaimReplySettingsRequest::PAGE, $settings, $staff);
     }
 
     public function detection(Request $request, SettingsStore $settings, TestMode $testMode): View

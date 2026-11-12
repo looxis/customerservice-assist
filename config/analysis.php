@@ -19,6 +19,7 @@ return [
         'summary' => env('SUMMARY_MODEL', 'gpt-5.4-mini'),
         'translation' => env('TRANSLATION_MODEL', env('SUMMARY_MODEL', 'gpt-5.4-mini')),
         'wismo' => env('WISMO_MODEL', env('SUMMARY_MODEL', 'gpt-5.4-mini')),
+        'claim_reply' => env('CLAIM_REPLY_MODEL', env('SUMMARY_MODEL', 'gpt-5.4-mini')),
     ],
 
     'timeout' => (int) env('ANALYSIS_TIMEOUT', 90),
@@ -44,6 +45,7 @@ return [
         'router' => resource_path('prompts/router.md'),
         'labeling' => resource_path('prompts/labeling.md'),
         'wismo' => resource_path('prompts/wismo.md'),
+        'claim-reply' => resource_path('prompts/claim-reply.md'),
     ],
 
     /*

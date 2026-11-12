@@ -46,9 +46,14 @@ final class SettingsRegistry
                 'description' => 'Ob die App Fragen nach dem Paketverbleib automatisch beantwortet (aus, Trockenlauf, an), mit welcher Signatur und welchem Hinweis; den Prompt und das Modell der Antwort gibt es unter „Prompts und Modell“.',
                 'route' => 'settings.wismo',
             ],
+            'claim_reply' => [
+                'title' => 'Reklamations-Automatik',
+                'description' => 'Ob die App neue Reklamationen automatisch mit einer Vorab-Antwort beantwortet (Fotos bitte, Eingangsbestätigung; aus, Trockenlauf, an) und mit welcher Signatur; den Prompt und das Modell der Antwort gibt es unter „Prompts und Modell“.',
+                'route' => 'settings.claim-reply',
+            ],
             'prompts' => [
                 'title' => 'Prompts und Modell',
-                'description' => 'Die Anweisungen an die KI (neun Prompts) und das Modell je KI-Aufruf.',
+                'description' => 'Die Anweisungen an die KI (zehn Prompts) und das Modell je KI-Aufruf.',
                 'route' => 'settings.prompts',
             ],
         ];
@@ -70,6 +75,7 @@ final class SettingsRegistry
             'router' => ['title' => 'Router', 'hint' => 'Beim zusätzlichen Wissensvorschlag nach dem gezielten Abruf.'],
             'summary' => ['title' => 'Zusammenfassung', 'hint' => 'Bei der Zusammenfassung des bisherigen Verlaufs.'],
             'wismo' => ['title' => 'WISMO-Antwort', 'hint' => 'Bei der automatischen Antwort auf „Wo ist mein Paket?“ (PROJ-82), mit Sendungsstatus von DHL oder UPS.'],
+            'claim-reply' => ['title' => 'Reklamation: Vorab-Antwort', 'hint' => 'Bei der automatischen ersten Antwort auf eine neue Reklamation (PROJ-85): Fotos bitte, Beschreibung bitte oder Eingangsbestätigung.'],
             'translation' => ['title' => 'Übersetzung', 'hint' => 'Bei jeder Übersetzung einer Nachricht und bei der Rückübersetzung des Antwortentwurfs.'],
         ];
     }
@@ -84,6 +90,7 @@ final class SettingsRegistry
             'model_summary' => ['Zusammenfassung', 'Das Modell für die Zusammenfassung des bisherigen Verlaufs.', fn (): string => (string) config('analysis.models.summary')],
             'model_translation' => ['Übersetzung', 'Das Modell für Übersetzungen und die Rückübersetzung des Antwortentwurfs.', fn (): string => (string) config('analysis.models.translation')],
             'model_wismo' => ['WISMO-Antwort', 'Das Modell für die automatische Antwort auf „Wo ist mein Paket?“.', fn (): string => (string) config('analysis.models.wismo')],
+            'model_claim_reply' => ['Reklamation: Vorab-Antwort', 'Das Modell für die automatische erste Antwort auf eine neue Reklamation.', fn (): string => (string) config('analysis.models.claim_reply')],
             'model_router' => ['Router', 'Das Modell für den zusätzlichen Wissensvorschlag.', fn (): string => (string) config('knowledge.router.model')],
         ];
         $groups = [];
@@ -127,6 +134,12 @@ final class SettingsRegistry
             ]),
             new SettingGroup('wismo_signature', 'wismo', 'WISMO-Antwort: Signatur', 'Steht unter dem Antworttext der automatischen Antwort. Der Absender ist der technische Nutzer, daher kein persönlicher Name.', SettingGroup::TEMPLATE, fn (): string => "Mit freundlichen Grüßen\nLOOXIS Kundenservice", maxLength: 300),
             new SettingGroup('wismo_notice', 'wismo', 'WISMO-Antwort: Hinweiszeile', 'Steht unter der Signatur, damit der Kunde weiß, dass die Auskunft automatisch entstanden ist.', SettingGroup::TEMPLATE, fn (): string => 'Diese Antwort wurde mit Infos des Paketdienstes automatisch verfasst.', maxLength: 300),
+            new SettingGroup('claim_reply_mode', 'claim_reply', 'Automatische Vorab-Antwort bei Reklamationen', 'Gilt für neue Tickets, die die Ticket-Klassifikation als Reklamation einordnet, wenn der erste Versand höchstens 30 Tage zurückliegt. Das Ticket bleibt immer offen.', SettingGroup::CHOICE, fn (): string => 'off', options: [
+                'off' => ['label' => 'Aus', 'hint' => 'Nichts wird gesendet und nichts geschrieben.'],
+                'dry' => ['label' => 'Trockenlauf', 'hint' => 'Die App bearbeitet den Fall und schreibt Protokoll und interne Notiz mit dem Antwortentwurf, sendet aber nichts an den Kunden.'],
+                'on' => ['label' => 'An', 'hint' => 'Die App sendet die Antwort an den Kunden (als customerserviceassist), das Ticket bleibt offen.'],
+            ]),
+            new SettingGroup('claim_reply_signature', 'claim_reply', 'Vorab-Antwort: Signatur', 'Steht unter dem Antworttext der automatischen Vorab-Antwort. Der Absender ist der technische Nutzer, daher kein persönlicher Name.', SettingGroup::TEMPLATE, fn (): string => "Mit freundlichen Grüßen\nLOOXIS Kundenservice", maxLength: 300),
             new SettingGroup('reply_signature', 'mail', 'Signatur für Antworten', 'Wird beim Versenden einer Antwort aus der App unter den Antworttext gesetzt (PROJ-19). {Name} steht für den vollen Namen des Mitarbeiters. Der Mitarbeiter kann die Signatur vor dem Senden ändern. Zunächst nur auf Deutsch.', SettingGroup::SIGNATURE, fn (): string => "Mit freundlichen Grüßen\n{Name}\nLOOXIS GmbH", maxLength: 600),
             new SettingGroup('todo_reply_shipping', 'mail', 'ToDo-Antwort: Sendungsnummer nachreichen', 'Entwurf der späteren Antwort, wenn beim ToDo „Sendungsnummer nachreichen“ gewählt wird. Platzhalter in eckigen Klammern: [Anrede] (Guten Tag), [Name] (Kundenname laut Ticket), [Bestellung/Reklamation] und [Nummer] werden beim Anlegen des ToDos aus dem Fall eingesetzt, soweit bekannt. [Sendungsnummer] und [Carrier] bleiben stehen und werden später ergänzt. Darunter kommt beim Senden die Signatur. Zunächst nur auf Deutsch.', SettingGroup::TEMPLATE, fn (): string => TodoReplyTexts::shipping(), maxLength: 1000, placeholders: TodoReplyTexts::SHIPPING_PLACEHOLDERS),
             new SettingGroup('todo_reply_refund', 'mail', 'ToDo-Antwort: (Teil-)Erstattung', 'Entwurf der späteren Antwort, wenn beim ToDo „(Teil-)Erstattung vornehmen“ gewählt wird. Platzhalter in eckigen Klammern: [Anrede], [Name], [Bestellung/Reklamation] und [Nummer] werden beim Anlegen des ToDos eingesetzt, soweit bekannt; [Betrag] bleibt stehen und wird vor dem Senden ergänzt. Zunächst nur auf Deutsch.', SettingGroup::TEMPLATE, fn (): string => TodoReplyTexts::refund(), maxLength: 1000, placeholders: TodoReplyTexts::REFUND_PLACEHOLDERS),
