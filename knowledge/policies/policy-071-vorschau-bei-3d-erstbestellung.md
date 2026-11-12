@@ -62,6 +62,8 @@ Bestelldetails und Foto nach PROCESS-016 aufnehmen. Die Zahlung erfolgt vor Erst
 
 Die Vorschau zur Prüfung schicken und um eine ausdrückliche schriftliche Freigabe bitten. Eine kurze Antwort sinngemäß „Hiermit gebe ich frei“ genügt. Erst nach ausdrücklicher Freigabe gravieren. Enthält die Antwort Änderungswünsche oder Bedingungen, ist die Produktion noch nicht eindeutig freigegeben.
 
+Was die Vorschau konkret zeigt und in welcher Form sie kommt, bewusst offen lassen; es wird geliefert, was gerade passt. Änderungen nach der Vorschau können kostenpflichtig sein, ohne dass dies vorab festgelegt wird.
+
 # No-Gos
 
 - Keine bestimmte Darstellung, Anzahl von Ansichten oder fotorealistische Simulation der Glaswirkung zusagen.
