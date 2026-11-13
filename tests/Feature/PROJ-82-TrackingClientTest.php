@@ -108,6 +108,24 @@ describe('UPS', function () {
             ->and($status->facts())->toHaveKey('pickup_location')->and($status->facts()['delivery_problem'])->toBeFalse();
     });
 
+    test('a drop-off at an access point that UPS reports as delivered keeps the pickup point and is not delivered (ticket 2140410)', function () {
+        fakeUps(upsPackage([
+            'deliveryDate' => [['type' => 'DEL', 'date' => '20261113']],
+            'currentStatus' => ['description' => 'Bereit für Abholung durch den Kunden', 'simplifiedTextDescription' => 'Sie können Ihr Paket jetzt vom genannten UPS Access Point™ abholen.'],
+            'deliveryInformation' => ['receivedBy' => 'BRIGITTE'],
+            'accessPointInformation' => ['companyName' => 'BLEU AZUR COPIE', 'pickupByDate' => '20261120', 'address' => ['addressLine1' => '5 REPUBLIQUE AVENUE DE LA ', 'addressLine2' => 'BIS BIS ', 'city' => 'NICE', 'postalCode' => '06300', 'countryCode' => 'FR']],
+            'activity' => [['location' => ['address' => []], 'status' => ['type' => 'D', 'description' => 'Beim UPS Access Point™ '], 'date' => '20261113', 'time' => '152342']],
+        ]));
+
+        $status = app(UpsTrackingClient::class)->track('1Z0000000000000001', null);
+
+        expect($status->delivered)->toBeFalse()
+            ->and($status->receivedBy)->toBeNull()
+            ->and($status->pickupReady)->toBeTrue()
+            ->and($status->pickupLocation)->toBe('BLEU AZUR COPIE, 5 REPUBLIQUE AVENUE DE LA BIS BIS, 06300 NICE, FR')
+            ->and($status->facts())->toHaveKey('pickup_location')->and($status->facts()['pickup_deadline'])->toBe('20.11.2026');
+    });
+
     test('once the storage time is over and the parcel goes back, it is a delivery problem again', function () {
         fakeUps(upsPackage([
             'currentStatus' => ['description' => 'Wird an Absender zurückgesendet'],

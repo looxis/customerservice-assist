@@ -248,7 +248,7 @@ class WismoResponder
             return;
         }
 
-        $body = $reply['text']."\n\n".trim((string) $this->settings->value('wismo_signature'))."\n\n".trim((string) $this->settings->value('wismo_notice'));
+        $body = $reply['text']."\n\n".$reply['signature']."\n\n".$reply['notice'];
         $run->update(['reply_text' => $body, 'reply_text_de' => $reply['de']]);
         $summary = collect($statuses)->map(fn (TrackingStatus $status): string => "{$status->carrier} {$status->trackingNumber}: {$status->status}")->implode("\n");
 
@@ -302,7 +302,7 @@ class WismoResponder
      *
      * @param  array<string, mixed>  $facts
      * @param  list<TrackingStatus>  $statuses
-     * @return array{text: string, de: string, german: bool}|string
+     * @return array{text: string, de: string, german: bool, signature: string, notice: string}|string
      *
      * @throws AnalysisException
      */
@@ -313,12 +313,16 @@ class WismoResponder
         $pseudonymizer = app(Pseudonymizer::class);
         $message = $this->customerText($ticket);
 
-        $input = "Nachricht des Kunden:\n".$pseudonymizer->apply($message)."\n\nAngaben zur Bestellung und Sendung (JSON):\n".json_encode($facts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $signature = trim((string) $this->settings->value('wismo_signature'));
+        $notice = trim((string) $this->settings->value('wismo_notice'));
+        $input = "Nachricht des Kunden:\n".$pseudonymizer->apply($message)."\n\nSignatur (deutsch):\n{$signature}\n\nHinweiszeile (deutsch):\n{$notice}\n\nAngaben zur Bestellung und Sendung (JSON):\n".json_encode($facts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $answer = $this->model->ask(new WismoAgent($prompt->text), $input, $model, 'wismo', $ticket->number, self::MODEL_TIMEOUT);
         $run->update(['prompt_version' => $prompt->version, 'model' => $model, 'input_tokens' => $answer['input_tokens'], 'output_tokens' => $answer['output_tokens'], 'duration_ms' => $answer['duration_ms']]);
 
         $text = trim($pseudonymizer->restorePlain((string) ($answer['data']['reply'] ?? '')));
         $de = trim($pseudonymizer->restorePlain((string) ($answer['data']['reply_de'] ?? '')));
+        $closing = trim($pseudonymizer->restorePlain((string) ($answer['data']['signature'] ?? '')));
+        $footer = trim($pseudonymizer->restorePlain((string) ($answer['data']['notice'] ?? '')));
 
         if ($text === '') {
             return 'Das Sprachmodell hat keinen Antworttext geliefert.';
@@ -328,7 +332,7 @@ class WismoResponder
             return 'Im Antworttext ist ein Platzhalter nicht gefüllt.';
         }
 
-        $guard = ReplyGuard::violation($text, array_values(array_filter(array_map(fn (TrackingStatus $status): ?string => $status->link, $statuses))));
+        $guard = ReplyGuard::violation($text."\n".$closing."\n".$footer, array_values(array_filter(array_map(fn (TrackingStatus $status): ?string => $status->link, $statuses))));
 
         if ($guard !== null) {
             return $guard;
@@ -347,7 +351,13 @@ class WismoResponder
         $language = mb_strtolower(trim((string) ($answer['data']['language'] ?? '')));
         $german = $language !== '' ? preg_match('/^(de\b|deutsch|german)/u', $language) === 1 : ($de === '' || $de === $text);
 
-        return ['text' => $text, 'de' => $de !== '' ? $de : $text, 'german' => $german];
+        return [
+            'text' => $text,
+            'de' => $de !== '' ? $de : $text,
+            'german' => $german,
+            'signature' => $german || $closing === '' ? $signature : $closing,
+            'notice' => $german || $footer === '' ? $notice : $footer,
+        ];
     }
 
     private function customerText(Ticket $ticket): string

@@ -116,9 +116,9 @@ class UpsTrackingClient implements TrackingClient
         }
 
         $dates = collect((array) ($package['deliveryDate'] ?? []))->filter(fn (mixed $entry): bool => is_array($entry));
-        $delivered = ($latest['status']['type'] ?? null) === 'D' || $dates->contains(fn (array $entry): bool => ($entry['type'] ?? null) === 'DEL');
+        $ready = DeliveryText::isPickupReady($currentText.' '.$simple.' '.$latestText);
+        $delivered = ! $ready && (($latest['status']['type'] ?? null) === 'D' || $dates->contains(fn (array $entry): bool => ($entry['type'] ?? null) === 'DEL'));
         $estimate = $dates->first(fn (array $entry): bool => ($entry['type'] ?? null) !== 'DEL' && ! empty($entry['date']));
-        $ready = ! $delivered && DeliveryText::isPickupReady($currentText.' '.$simple.' '.$latestText);
 
         return new TrackingStatus(
             carrier: 'UPS',

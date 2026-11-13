@@ -27,6 +27,8 @@ class WismoAgent implements Agent, HasStructuredOutput
         return [
             'language' => $schema->string()->description('Sprache der Kundennachricht auf Deutsch, z. B. Italienisch')->required(),
             'reply' => $schema->string()->description('Antworttext an den Kunden in dessen Sprache, ohne Grußformel und Signatur')->required(),
+            'signature' => $schema->string()->description('Grußformel und Signatur, in die Sprache der Kundennachricht übersetzt')->required(),
+            'notice' => $schema->string()->description('Hinweiszeile zur automatischen Antwort, in die Sprache der Kundennachricht übersetzt')->required(),
             'reply_de' => $schema->string()->description('Dieselbe Antwort auf Deutsch für interne Mitarbeiter')->required(),
         ];
     }

@@ -124,6 +124,15 @@ describe('the reply', function () {
         expect(wismoNotes()[0]['article']['body'])->toContain('Automatisch beantwortet (WISMO)')->toContain('Deutsche Fassung der Antwort');
     });
 
+    test('signature and notice follow the language of the customer (ticket 2140410)', function () {
+        wismoSetup();
+        WismoAgent::fake([array_merge(wismoReply("Bonjour,\n\nVotre numéro de suivi : ".WISMO_TRACKING."\n".WISMO_LINK), ['language' => 'Französisch', 'signature' => "Cordialement\nService client LOOXIS", 'notice' => 'Cette réponse a été rédigée automatiquement.'])]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect(WismoRun::query()->firstOrFail()->reply_text)->toContain('Service client LOOXIS')->toContain('rédigée automatiquement')->not->toContain('Mit freundlichen Grüßen');
+    });
+
     test('a ticket is answered only once', function () {
         wismoSetup();
         WismoAgent::fake([wismoReply(), wismoReply()]);
