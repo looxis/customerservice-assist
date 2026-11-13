@@ -131,6 +131,18 @@ describe('our replies after the last customer message', function () {
 
         $this->get($location)->assertOk()->assertSeeText('Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen');
     });
+
+    test('a new customer message after a direct reply folds the earlier draft away and opens the form', function () {
+        config(['staff.zammad_tokens' => ['Nele' => 'nele-secret-token']]);
+        fakeThread('C');
+        $location = test()->withCookie('staff_name', 'Nele')->post(route('tickets.manual-reply', ['number' => '2137942']))->headers->get('Location');
+
+        fakeThread('CAC');
+        $this->get($location)->assertOk()->assertSeeText('Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen');
+
+        fakeThread('CA');
+        $this->get($location)->assertOk()->assertDontSeeText('Früherer Vorschlag – seit dann sind neue Nachrichten eingegangen');
+    });
 });
 
 describe('the summary offer', function () {

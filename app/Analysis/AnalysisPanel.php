@@ -257,7 +257,10 @@ class AnalysisPanel
             ] : null,
             'has_reply' => is_array($stored['result']['reply'] ?? null),
             'sources' => $this->sources($stored),
-            'new_messages' => $lastSeen !== null && $last !== null && $last->id !== $lastSeen && ((new TicketContext($ticket))->lastConsidered()?->id !== $lastSeen),
+            'new_messages' => ($stored['meta']['manual'] ?? false)
+                // A direct reply (PROJ-69) has no analysed thread: it counts as outdated once the customer wrote after it was started.
+                ? ($stored['meta']['based_on_article_id'] ?? null) !== null && $ticket->lastCustomerArticleId() !== null && $ticket->lastCustomerArticleId() !== $stored['meta']['based_on_article_id']
+                : $lastSeen !== null && $last !== null && $last->id !== $lastSeen && ((new TicketContext($ticket))->lastConsidered()?->id !== $lastSeen),
         ];
     }
 
