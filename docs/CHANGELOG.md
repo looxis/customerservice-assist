@@ -10,7 +10,7 @@
 
 ## 2026-11-12
 
-- Reklamationen: Neue Tickets, die als Reklamation erkannt werden und höchstens 30 Tage nach dem Versand eingehen, kann die App automatisch beantworten: ohne Foto mit der Bitte um ein bis zwei Fotos, sonst mit einer Eingangsbestätigung. Das Ticket bleibt offen. Die Funktion ist zunächst ausgeschaltet; Admins stellen sie unter Einstellungen > Reklamations-Automatik auf Trockenlauf oder „an“ und sehen die Ergebnisse unter „Vorab-Antworten Reklamation“.
+- Reklamationen: Neue Tickets, die als Reklamation erkannt werden und höchstens 30 Tage nach dem Versand eingehen, kann die App automatisch beantworten: ohne Foto mit der Bitte um ein bis zwei Fotos, sonst mit einer Eingangsbestätigung. Das Ticket bleibt offen. 
 - Amazon-Nachrichten: Schließt du ein Ticket mit „Ohne Antwort schließen“ und die letzte Kundennachricht kam über Amazon, öffnet sich danach direkt die Amazon-Seite „Fall lösen“, auf der du nur noch „Ja“ klickst.
 
 ## 2026-11-11
