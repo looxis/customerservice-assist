@@ -341,3 +341,5 @@ _To be added by /deploy_
 
 ## Freigabe
 2026-11-11: Auftraggeber hat die Funktion mit zwei Testtickets (echte Bestellnummern) live bestätigt; Status Approved. Offen bleiben die unabhängige Bestätigung des UPS-Abholorts und die Unterscheidung „am Access Point zugestellt“ gegen „abgeholt“.
+
+2026-11-13 (Nachbesserung, Ticket 2140398): UPS meldete „Holen Sie Ihr Paket bald ab … eventuell an den Absender zurückgesendet wird“. Der Text wurde wegen „zurück“ + „Absender“ als Zustellproblem erkannt und blendete den Abholort aus, obwohl `accessPointInformation` die Adresse lieferte. `DeliveryText::isPickupReminder()` (Aufforderung zur Abholung und Möglichkeitsform, nicht bei „wird zurückgesendet“ oder „abgelaufen“) nimmt solche Erinnerungen aus der Problemerkennung; `isPickupReady()` erkennt sie als Abholbereitschaft.

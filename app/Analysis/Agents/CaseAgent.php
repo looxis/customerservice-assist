@@ -5,6 +5,8 @@ namespace App\Analysis\Agents;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
+use Laravel\Ai\Contracts\HasTools;
+use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Promptable;
 use Stringable;
 
@@ -12,7 +14,7 @@ use Stringable;
  * Assesses a case and drafts the reply in a fixed structure (PROJ-9, stage 2).
  * The value lists come from the configuration and the selected knowledge.
  */
-class CaseAgent implements Agent, HasStructuredOutput
+class CaseAgent implements Agent, HasStructuredOutput, HasTools
 {
     use Promptable;
 
@@ -21,6 +23,7 @@ class CaseAgent implements Agent, HasStructuredOutput
      * @param  list<string>  $actions
      * @param  list<string>  $knowledgeIds
      * @param  list<string>  $productNames  The products a detail question can belong to (PROJ-57).
+     * @param  list<Tool>  $tools  What the model may look up while it answers (PROJ-88).
      */
     public function __construct(
         private readonly string $prompt,
@@ -28,7 +31,16 @@ class CaseAgent implements Agent, HasStructuredOutput
         private readonly array $actions,
         private readonly array $knowledgeIds,
         private readonly array $productNames = [],
+        private readonly array $tools = [],
     ) {}
+
+    /**
+     * @return list<Tool>
+     */
+    public function tools(): iterable
+    {
+        return $this->tools;
+    }
 
     public function instructions(): Stringable|string
     {

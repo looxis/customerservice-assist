@@ -19,7 +19,7 @@ final class DeliveryText
     {
         $t = mb_strtolower((string) $text);
 
-        if ($t === '') {
+        if ($t === '' || self::isPickupReminder($t)) {
             return false;
         }
 
@@ -35,10 +35,26 @@ final class DeliveryText
     }
 
     /**
+     * A text that asks the customer to collect the shipment soon and only warns that it may go back otherwise ("Holen
+     * Sie Ihr Paket bald ab … eventuell an den Absender zurückgesendet"). The shipment still waits at the pickup point,
+     * so this is no delivery problem. A text that says the return is under way or the time is over is not a reminder.
+     */
+    public static function isPickupReminder(?string $text): bool
+    {
+        $t = mb_strtolower((string) $text);
+
+        $asksToCollect = preg_match('/holen sie .+ ab\b|abholen|please (pick|collect)|(pick|collect) (it |your \w+ )?up|collect (it|your)/u', $t) === 1;
+        $onlyWarns = preg_match('/eventuell|möglicherweise|andernfalls|otherwise|may be (returned|sent back)|might be (returned|sent back)/u', $t) === 1;
+        $overOrOnTheWay = preg_match('/abgelaufen|expired|wird an (den )?absender zurück|wurde an (den )?absender zurück/u', $t) === 1;
+
+        return $asksToCollect && $onlyWarns && ! $overOrOnTheWay;
+    }
+
+    /**
      * A text that says the shipment waits at a pickup point.
      */
     public static function isPickupReady(?string $text): bool
     {
-        return preg_match('/abholung|abholstation|abholbereit|paketshop|packstation|filiale|retail.?outlet|ready for pickup|available for pickup|hold for pickup|ready for collection/i', (string) $text) === 1;
+        return self::isPickupReminder($text) || preg_match('/abholung|abholstation|abholbereit|paketshop|packstation|filiale|retail.?outlet|ready for pickup|available for pickup|hold for pickup|ready for collection/i', (string) $text) === 1;
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Analysis;
 
 use App\Analysis\Agents\CaseAgent;
+use App\Analysis\Tools\ShipmentStatusTool;
 use App\Eocs\EocsOrder;
-use App\Eocs\EocsShipment;
 use App\Knowledge\CaseContext;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeSelection;
@@ -18,12 +18,13 @@ use App\Knowledge\Retrieval\RetrievalResult;
 use App\Knowledge\Retrieval\RetrievedDocument;
 use App\Knowledge\Retrieval\Router\KnowledgeRouter;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
+use App\Labeling\LabelCategory;
+use App\Models\LabelTicket;
 use App\Orders\OrderFormats;
 use App\ProductForge\ProductPromptBuilder;
 use App\ProductForge\ProductPromptState;
 use App\Settings\SettingsStore;
 use App\Tracking\ShipmentTracker;
-use App\Tracking\TrackingException;
 use App\Zammad\ArticleKind;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +36,8 @@ use Illuminate\Support\Facades\Log;
  */
 class CaseAnalyzer
 {
-    private const MAX_TRACKED_SHIPMENTS = 3;
+    /** The carrier tool of the running analysis (PROJ-88); one instance keeps its answer for all passes. */
+    private ?ShipmentStatusTool $statusTool = null;
 
     public function __construct(
         private readonly LanguageModel $model,
@@ -60,6 +62,7 @@ class CaseAnalyzer
     public function analyze(AnalysisRequest $request): string
     {
         $prompt = Prompt::load('analysis');
+        $this->statusTool = ! $request->isQuestion() && ShipmentStatusTool::applies($request->orders) ? new ShipmentStatusTool($request->orders, $this->tracker, $request->ticket->number) : null;
         $context = new CaseContext($request->customerGroup, $request->products);
         $selection = $this->selector->select($context);
         $pseudonymizer = app(Pseudonymizer::class);
@@ -226,7 +229,7 @@ class CaseAnalyzer
     {
         $input = $pseudonymizer->apply($this->compose($parts, $this->knowledgeSection($selection, $hints)));
         $knowledgeIds = array_map(fn (KnowledgeSelectionEntry $entry): string => $entry->document->id, $selection->selected);
-        $agent = new CaseAgent($prompt->text, config('knowledge.categories'), array_keys(config('knowledge.actions')), $knowledgeIds, array_keys($this->productQuestions->choices($request)));
+        $agent = new CaseAgent($prompt->text, config('knowledge.categories'), array_keys(config('knowledge.actions')), $knowledgeIds, array_keys($this->productQuestions->choices($request)), $this->statusTool === null ? [] : [$this->statusTool]);
         $attempts = 0;
 
         do {
@@ -580,6 +583,7 @@ class CaseAnalyzer
                 ."Kundengruppe: {$group->label}".($group->isUnclear() ? ' (Kundenart und Kanal noch nicht geklärt)' : " (Kundenart {$group->customerType}, Kanal {$group->salesChannel})")."\n"
                 .'Produkte: '.($request->products === [] ? ($request->unknownProduct === null ? 'kein Produktbezug / unklar' : 'kein Produkt aus der Wissensbasis') : implode(', ', $request->products))
                 .$this->customerNameLine($request)
+                .$this->classificationLine($request)
                 .($request->claimReferences === [] ? '' : "\n".implode("\n", array_map(fn (array $claim): string => 'Das Ticket nennt den Reklamationsauftrag '.app(OrderFormats::class)->claimPrefix()."{$claim['claim']} zur Bestellung {$claim['order']} (Folgevorgang einer Reklamation).", $request->claimReferences)))
                 .($request->unknownProduct === null ? '' : "\nProdukt ohne hinterlegtes Wissen: {$request->unknownProduct} ("
                     .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
@@ -697,31 +701,24 @@ class CaseAnalyzer
     }
 
     /**
-     * The current state of each shipment as the carrier reports it right now (DHL, UPS), so the draft is not based on
-     * an outdated status. A failing query never stops the analysis; the line is then simply missing.
-     *
-     * @return list<string>
+     * What the classification of the first customer message says (PROJ-78, PROJ-80), as a hint for the model: a ticket
+     * that starts as a question about the whereabouts of the order usually goes on about the delivery.
      */
-    private function carrierStatusLines(EocsOrder $order): array
+    private function classificationLine(AnalysisRequest $request): string
     {
-        $lines = [];
-        $postalCode = $order->shippingAddress?->postalCode;
-
-        foreach (collect($order->shipments)->filter(fn (EocsShipment $shipment): bool => trim((string) $shipment->trackingNumber) !== '')->take(self::MAX_TRACKED_SHIPMENTS) as $shipment) {
-            try {
-                $status = $this->tracker->track($shipment, $postalCode);
-            } catch (TrackingException $exception) {
-                Log::info('Sendungsstatus für die Analyse nicht abrufbar.', ['order' => $order->externalNumber, 'reason' => $exception->getMessage()]);
-
-                continue;
-            }
-
-            if ($status !== null) {
-                $lines[] = 'Aktueller Status laut Paketdienst (soeben abgefragt, hat Vorrang vor älteren Angaben): '.json_encode($status->facts(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            }
+        if ($request->isQuestion()) {
+            return '';
         }
 
-        return $lines;
+        $labelTicket = LabelTicket::query()->where('zammad_id', $request->ticket->id)->with('latestPrediction')->first();
+
+        if ($labelTicket === null || $labelTicket->state !== 'classified' || $labelTicket->isTest()) {
+            return '';
+        }
+
+        $category = LabelCategory::tryFrom((string) ($labelTicket->decision ?? $labelTicket->latestPrediction?->category));
+
+        return $category === null ? '' : "\nEinordnung der ersten Kundennachricht (automatisch, ggf. vom Mitarbeiter bestätigt): {$category->label()}";
     }
 
     private function orders(AnalysisRequest $request, bool $hasDeliveryAddress, bool $neutralShipping = false): string
@@ -740,10 +737,6 @@ class CaseAnalyzer
             foreach ($order->shipments as $shipment) {
                 $lines[] = 'Versand: '.($shipment->carrier ?? '–').($shipment->trackingNumber ? ", Sendungsnummer {$shipment->trackingNumber}" : '')
                     .($shipment->shippedAt ? ', versandt am '.$shipment->shippedAt->format('d.m.Y') : '').($shipment->delivered ? ', zugestellt' : '');
-            }
-
-            foreach ($this->carrierStatusLines($order) as $line) {
-                $lines[] = $line;
             }
 
             $daysSinceShipped = $order->daysSinceFirstShipment($now);

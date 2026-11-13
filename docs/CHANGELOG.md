@@ -6,7 +6,7 @@
 
 ## 2026-11-13
 
-- Vorschlag erstellen: Der Vorschlag fragt jetzt den aktuellen Stand der Sendung bei DHL bzw. UPS ab. Ist das Paket inzwischen zugestellt, steht das im Antwortentwurf, zusammen mit Sendungsnummer und Tracking-Link.
+- Vorschlag erstellen: Geht es in der Anfrage um den Verbleib oder die Zustellung eines Pakets, fragt der Vorschlag den aktuellen Stand der Sendung bei DHL bzw. UPS ab und übernimmt diese Informationen in den Antwort
 
 ## 2026-11-12
 

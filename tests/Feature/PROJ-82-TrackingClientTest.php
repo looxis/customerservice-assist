@@ -93,6 +93,35 @@ describe('UPS', function () {
         expect($status->problem)->not->toBeNull()->and($status->pickupLocation)->toBeNull()->and($status->facts()['delivery_problem'])->toBeTrue()->and($status->facts())->not->toHaveKey('pickup_location');
     });
 
+    test('a reminder to collect the parcel soon is no delivery problem and keeps the pickup point (ticket 2140398)', function () {
+        fakeUps(upsPackage([
+            'currentStatus' => ['description' => 'Holen Sie Ihr Paket bald ab, da es sich dem maximalen Aufbewahrungslimit nähert und eventuell an den Absender zurückgesendet wird.'],
+            'accessPointInformation' => ['companyName' => 'MYFLEXBOX 456', 'address' => ['addressLine1' => '128 LORY STRASSE ', 'addressLine2' => '', 'city' => 'WIEN', 'postalCode' => '1110', 'countryCode' => 'AT']],
+            'activity' => [['location' => ['address' => ['city' => 'Vienna']], 'status' => ['type' => 'X', 'description' => 'Holen Sie Ihr Paket bald ab, da es sich dem maximalen Aufbewahrungslimit nähert und eventuell an den Absender zurückgesendet wird.'], 'date' => '20261110', 'time' => '111849']],
+        ]));
+
+        $status = app(UpsTrackingClient::class)->track('1Z0000000000000001', null);
+
+        expect($status->problem)->toBeNull()
+            ->and($status->pickupLocation)->toBe('MYFLEXBOX 456, 128 LORY STRASSE, 1110 WIEN, AT')
+            ->and($status->pickupReady)->toBeTrue()
+            ->and($status->facts())->toHaveKey('pickup_location')->and($status->facts()['delivery_problem'])->toBeFalse();
+    });
+
+    test('once the storage time is over and the parcel goes back, it is a delivery problem again', function () {
+        fakeUps(upsPackage([
+            'currentStatus' => ['description' => 'Wird an Absender zurückgesendet'],
+            'activity' => [
+                ['status' => ['type' => 'X', 'description' => 'Die max. Aufbewahrungsdauer am UPS Access Point™ Standort ist abgelaufen. Paket w. zurückgesendet.'], 'date' => '20261113', 'time' => '144904'],
+                ['status' => ['type' => 'X', 'description' => 'Holen Sie Ihr Paket bald ab, da es sich dem maximalen Aufbewahrungslimit nähert und eventuell an den Absender zurückgesendet wird.'], 'date' => '20261110', 'time' => '111849'],
+            ],
+        ]));
+
+        $status = app(UpsTrackingClient::class)->track('1Z0000000000000001', null);
+
+        expect($status->problem)->not->toBeNull()->and($status->pickupLocation)->toBeNull()->and($status->facts())->not->toHaveKey('pickup_location');
+    });
+
     test('the token is fetched once and cached', function () {
         fakeUps(upsPackage());
 
