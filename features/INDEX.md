@@ -46,6 +46,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-85 | Automatische Vorab-Antwort bei Reklamation | Neue Tickets mit KI-Einstufung `reklamation` und Versand höchstens 30 Tage her werden automatisch beantwortet, Ticket bleibt offen: ohne Foto Bitte um 1 bis 2 Fotos in niedriger Auflösung und eine kurze Beschreibung, mit Foto(s) und Beschreibung Eingangsbestätigung mit kurzer Zusammenfassung und Zusage der Bearbeitung in den nächsten Stunden; Schalter, Trockenlauf, Protokoll wie PROJ-82 (dritte Ausnahme vom Ziel „Versand nur nach Klick“) | PROJ-80, PROJ-82, PROJ-60, PROJ-79 | In Progress | [Spec](PROJ-85-vorab-antwort-bei-reklamation.md) | 2026-11-12 |
 | PROJ-86 | Reklamationsformular in „Vorschlag erstellen“ | Bei Tickets der Kategorie Reklamation ersetzt ein geführtes Formular „Zusätzliche Informationen“ und die DHL-Checkbox: berechtigt Ja/Nein (Nein: Grund und Kulanz), Retoure Ja/Nein mit DHL-Label, Reklamationsnummer, Versand heute/morgen/zeitnah (Standard zeitnah), ToDo „Sendungsnummer mitteilen“ vorbelegt; Wissen tone-011 nennt „heute noch“ nur noch auf Wahl des Mitarbeiters (Anlass Ticket 2140357) | PROJ-80, PROJ-9, PROJ-10, PROJ-64, PROJ-70, PROJ-77 | In Review | [Spec](PROJ-86-reklamationsformular.md) | 2026-11-12 |
 | PROJ-87 | Automatik-Antworten auf gemeinsamen Unterbau zusammenführen | Aufräumauftrag, später umzusetzen (vorgemerkt 2026-11-12): Die Mechanik der automatischen Antworten (Lauf je Ticket anlegen, Wiederaufnahme hängender Läufe, Versand ohne Doppelsendung, Wiederholung bei vorübergehenden Fehlern, Notizen, Löschfristen) liegt nach PROJ-82 und PROJ-85 doppelt vor; in einen gemeinsamen Unterbau ziehen, abgesichert durch die vorhandenen Tests beider Automatiken. Bewusst nicht in PROJ-85 gemacht, um das laufende WISMO nicht zu berühren | PROJ-82, PROJ-85 | Roadmap | – | 2026-11-12 |
+| PROJ-88 | Live-Sendungsstatus im Antwortvorschlag | „Vorschlag erstellen“ fragt den aktuellen DHL/UPS-Status je Sendung ab und gibt ihn mit Tracking-Link an die KI; der Entwurf nennt eine bereits erfolgte Zustellung statt veraltetem Stand (Anlass Ticket 2140364) | PROJ-9, PROJ-82, PROJ-79 | In Progress | [Spec](PROJ-88-live-sendungsstatus-im-vorschlag.md) | 2026-11-13 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -65,4 +66,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-88
+## Next Available ID: PROJ-89

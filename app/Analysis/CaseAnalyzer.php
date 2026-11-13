@@ -4,6 +4,7 @@ namespace App\Analysis;
 
 use App\Analysis\Agents\CaseAgent;
 use App\Eocs\EocsOrder;
+use App\Eocs\EocsShipment;
 use App\Knowledge\CaseContext;
 use App\Knowledge\KnowledgeDocument;
 use App\Knowledge\KnowledgeSelection;
@@ -21,6 +22,8 @@ use App\Orders\OrderFormats;
 use App\ProductForge\ProductPromptBuilder;
 use App\ProductForge\ProductPromptState;
 use App\Settings\SettingsStore;
+use App\Tracking\ShipmentTracker;
+use App\Tracking\TrackingException;
 use App\Zammad\ArticleKind;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
@@ -32,6 +35,8 @@ use Illuminate\Support\Facades\Log;
  */
 class CaseAnalyzer
 {
+    private const MAX_TRACKED_SHIPMENTS = 3;
+
     public function __construct(
         private readonly LanguageModel $model,
         private readonly KnowledgeSelector $selector,
@@ -44,6 +49,7 @@ class CaseAnalyzer
         private readonly KnowledgeGapLog $gaps,
         private readonly ProductPromptBuilder $productPrompts,
         private readonly ProductQuestionLog $productQuestions,
+        private readonly ShipmentTracker $tracker,
     ) {}
 
     /**
@@ -690,6 +696,34 @@ class CaseAnalyzer
         return "Hinweis der App: Dieses Wissen wurde vom Mitarbeiter von Hand zugeschaltet.\n";
     }
 
+    /**
+     * The current state of each shipment as the carrier reports it right now (DHL, UPS), so the draft is not based on
+     * an outdated status. A failing query never stops the analysis; the line is then simply missing.
+     *
+     * @return list<string>
+     */
+    private function carrierStatusLines(EocsOrder $order): array
+    {
+        $lines = [];
+        $postalCode = $order->shippingAddress?->postalCode;
+
+        foreach (collect($order->shipments)->filter(fn (EocsShipment $shipment): bool => trim((string) $shipment->trackingNumber) !== '')->take(self::MAX_TRACKED_SHIPMENTS) as $shipment) {
+            try {
+                $status = $this->tracker->track($shipment, $postalCode);
+            } catch (TrackingException $exception) {
+                Log::info('Sendungsstatus für die Analyse nicht abrufbar.', ['order' => $order->externalNumber, 'reason' => $exception->getMessage()]);
+
+                continue;
+            }
+
+            if ($status !== null) {
+                $lines[] = 'Aktueller Status laut Paketdienst (soeben abgefragt, hat Vorrang vor älteren Angaben): '.json_encode($status->facts(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+        }
+
+        return $lines;
+    }
+
     private function orders(AnalysisRequest $request, bool $hasDeliveryAddress, bool $neutralShipping = false): string
     {
         $lines = [];
@@ -706,6 +740,10 @@ class CaseAnalyzer
             foreach ($order->shipments as $shipment) {
                 $lines[] = 'Versand: '.($shipment->carrier ?? '–').($shipment->trackingNumber ? ", Sendungsnummer {$shipment->trackingNumber}" : '')
                     .($shipment->shippedAt ? ', versandt am '.$shipment->shippedAt->format('d.m.Y') : '').($shipment->delivered ? ', zugestellt' : '');
+            }
+
+            foreach ($this->carrierStatusLines($order) as $line) {
+                $lines[] = $line;
             }
 
             $daysSinceShipped = $order->daysSinceFirstShipment($now);

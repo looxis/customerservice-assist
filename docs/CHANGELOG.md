@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-13
+
+- Vorschlag erstellen: Der Vorschlag fragt jetzt den aktuellen Stand der Sendung bei DHL bzw. UPS ab. Ist das Paket inzwischen zugestellt, steht das im Antwortentwurf, zusammen mit Sendungsnummer und Tracking-Link.
+
 ## 2026-11-12
 
 - Reklamationen: Neue Tickets, die als Reklamation erkannt werden und höchstens 30 Tage nach dem Versand eingehen, kann die App automatisch beantworten: ohne Foto mit der Bitte um ein bis zwei Fotos, sonst mit einer Eingangsbestätigung. Das Ticket bleibt offen. Die Funktion ist zunächst ausgeschaltet; Admins stellen sie unter Einstellungen > Reklamations-Automatik auf Trockenlauf oder „an“ und sehen die Ergebnisse unter „Vorab-Antworten Reklamation“.

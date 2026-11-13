@@ -3,6 +3,7 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Analysis\Agents\RouterAgent;
 use App\Models\Analysis;
+use App\Tracking\ShipmentTracker;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,7 @@ use Laravel\Ai\Prompts\AgentPrompt;
 beforeEach(function () {
     $this->withCookie('advanced_mode', '1');
     $this->withoutVite();
+    $this->mock(ShipmentTracker::class)->shouldReceive('track')->andReturn(null);
 
     config([
         'services.zammad.url' => 'https://zammad.test', 'services.zammad.token' => 'z-token',
@@ -440,12 +442,12 @@ describe('the standing instructions and the versions', function () {
         retrAnalyze();
         $third = retrStored();
 
-        expect($first->prompt_version)->toBe('analysis-2026-11-11.1+retrieval-2026-10-13.2')
+        expect($first->prompt_version)->toBe('analysis-2026-11-13.1+retrieval-2026-10-13.2')
             ->and($first->retrieval_version)->toMatch('/^2026-10-13\.1\/[0-9a-f]{8}$/')
             ->and($second->retrieval_version)->not->toBe($first->retrieval_version)
             ->and($first->content['retrieval']['configuration'])->toMatchArray(['version' => $first->retrieval_version])
             ->and($first->content['retrieval']['configuration']['budget']['target'])->toBe(40000)
-            ->and($third->prompt_version)->toBe('analysis-2026-11-11.1')->and($third->retrieval_version)->toBeNull();
+            ->and($third->prompt_version)->toBe('analysis-2026-11-13.1')->and($third->retrieval_version)->toBeNull();
     });
 });
 
