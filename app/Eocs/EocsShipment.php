@@ -27,7 +27,7 @@ final readonly class EocsShipment
         $carrier = mb_strtolower((string) $this->carrier);
 
         return match (true) {
-            str_contains($carrier, 'dhl') => 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode='.rawurlencode($number),
+            str_contains($carrier, 'dhl') => 'https://nolp.dhl.de/nextt-online-public/?piececode='.rawurlencode($number),
             str_contains($carrier, 'ups') => 'https://www.ups.com/track?tracknum='.rawurlencode($number),
             default => null,
         };

@@ -56,7 +56,7 @@ describe('UPS', function () {
             ->and($status->delivered)->toBeFalse()
             ->and($status->problem)->toBeNull()
             ->and($status->at)->toBe('04.11.2026, 19:47 Uhr')
-            ->and($status->link)->toBe('https://www.ups.com/track?loc=de_DE&tracknum=1Z0000000000000001');
+            ->and($status->link)->toBe('https://www.ups.com/track?tracknum=1Z0000000000000001');
     });
 
     test('an incomplete address is never passed off as the pickup point', function () {

@@ -18,7 +18,7 @@ use Laravel\Ai\Prompts\AgentPrompt;
 
 const WISMO_NUMBER = '028-1058128-5149960';
 const WISMO_TRACKING = '00340434171079146248';
-const WISMO_LINK = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode='.WISMO_TRACKING;
+const WISMO_LINK = 'https://nolp.dhl.de/nextt-online-public/?piececode='.WISMO_TRACKING;
 
 beforeEach(function () {
     Cache::flush();

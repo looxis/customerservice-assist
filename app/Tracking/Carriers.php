@@ -30,8 +30,8 @@ final class Carriers
     public static function link(?string $carrier, string $trackingNumber): ?string
     {
         return match (self::detect($carrier, $trackingNumber)) {
-            'DHL' => 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode='.rawurlencode($trackingNumber),
-            'UPS' => 'https://www.ups.com/track?loc=de_DE&tracknum='.rawurlencode($trackingNumber),
+            'DHL' => 'https://nolp.dhl.de/nextt-online-public/?piececode='.rawurlencode($trackingNumber),
+            'UPS' => 'https://www.ups.com/track?tracknum='.rawurlencode($trackingNumber),
             default => null,
         };
     }

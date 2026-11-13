@@ -2,7 +2,7 @@
 
 use App\Wismo\ReplyGuard;
 
-const GUARD_LINK = 'https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode=00340434171079146248';
+const GUARD_LINK = 'https://nolp.dhl.de/nextt-online-public/?piececode=00340434171079146248';
 
 it('lets a normal reply with the tracking link pass', function () {
     $text = "Guten Tag,\n\nIhre Sendungsnummer lautet: 00340434171079146248. Weitere Informationen gibt es auf der Webseite von DHL unter „Sendungsverfolgung“.\n\n".GUARD_LINK."\nFalls der Link nicht klickbar ist, bitte kopieren.";
