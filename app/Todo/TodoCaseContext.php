@@ -4,6 +4,7 @@ namespace App\Todo;
 
 use App\Analysis\ComplaintDecision;
 use App\Eocs\OrderLookup;
+use App\Models\TicketTodo;
 use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
 use App\Zammad\Ticket;
@@ -50,15 +51,33 @@ class TodoCaseContext
             // a claim number the ToDo is prepared but not automatic (no reference to look for).
             $preselect = $complaint->isReplaced() && $complaint->trackingTodo;
 
-            return ['name' => $name, 'kind' => 'claim', 'number' => $complaint->claimNumber, 'preselect' => $preselect];
+            return ['name' => $name, 'kind' => 'claim', 'number' => $complaint->claimNumber, 'preselect' => $preselect && ! $this->hasOpenTrackingTodo($ticket, $complaint->claimNumber)];
         }
 
         return [
             'name' => $name,
             'kind' => $number === null ? 'order' : 'claim',
             'number' => $number ?? ($selected[0]->value ?? ''),
-            'preselect' => $preselect,
+            'preselect' => $preselect && ! $this->hasOpenTrackingTodo($ticket, $number),
         ];
+    }
+
+    /**
+     * Whether the ticket already has an open ToDo that sends the tracking number of this claim, so a second one
+     * (and a second message to the customer) is not offered.
+     */
+    private function hasOpenTrackingTodo(Ticket $ticket, ?string $claimNumber): bool
+    {
+        if ($claimNumber === null || trim($claimNumber) === '') {
+            return false;
+        }
+
+        return TicketTodo::query()
+            ->where('ticket_number', $ticket->number)
+            ->where('external_ref', $claimNumber)
+            ->where('auto_send', true)
+            ->where('status', TodoStatus::Open->value)
+            ->exists();
     }
 
     /**

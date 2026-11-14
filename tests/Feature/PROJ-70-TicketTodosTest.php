@@ -430,6 +430,19 @@ describe('the number of the shipment', function () {
         expect($context)->toMatchArray(['number' => 'R1-7KA-0QH8-6AF8', 'kind' => 'claim', 'preselect' => true, 'name' => 'Erika Beispiel']);
     });
 
+    test('an open tracking ToDo of the same claim on the ticket suppresses the preselection', function () {
+        TicketTodo::factory()->create(['ticket_number' => '2137942', 'external_ref' => 'R1-7KA-0QH8-6AF8', 'auto_send' => true, 'auto_state' => 'watching', 'status' => TodoStatus::Open]);
+
+        expect(caseContext('Der Auftrag läuft unter der Nummer R1-7KA-0QH8-6AF8.'))->toMatchArray(['number' => 'R1-7KA-0QH8-6AF8', 'preselect' => false]);
+    });
+
+    test('a tracking ToDo of another ticket or a finished one does not suppress the preselection', function () {
+        TicketTodo::factory()->create(['ticket_number' => '9999999', 'external_ref' => 'R1-7KA-0QH8-6AF8', 'auto_send' => true, 'status' => TodoStatus::Open]);
+        TicketTodo::factory()->create(['ticket_number' => '2137942', 'external_ref' => 'R1-7KA-0QH8-6AF8', 'auto_send' => true, 'status' => TodoStatus::Done]);
+
+        expect(caseContext('Der Auftrag läuft unter der Nummer R1-7KA-0QH8-6AF8.'))->toMatchArray(['preselect' => true]);
+    });
+
     test('without a claim in the text the newest claim from EOCS is used and nothing is preselected', function () {
         $context = caseContext('Wir prüfen das.', ['R1-7KA-0QH8-6AF8', 'R2-7KA-0QH8-6AF8']);
 
