@@ -126,7 +126,8 @@ class TicketController extends Controller
 
     /**
      * What the complaint form in "Vorschlag erstellen" needs (PROJ-86): whether it is the default form (category
-     * complaint, confirmed or else proposed), whether the switch to it is offered, and a claim number to prefill.
+     * complaint, confirmed or else proposed), whether the switch to it is offered (always, a ticket can turn into a complaint
+     * during the dialogue), and a claim number to prefill.
      *
      * @param  array<string, mixed>|null  $labelState
      * @param  list<string>  $claimReferences
@@ -137,7 +138,6 @@ class TicketController extends Controller
     {
         $category = $labelState['decision'] ?? $labelState['suggestion'] ?? null;
         $default = $category === LabelCategory::Reklamation->value;
-        $undecided = $labelState !== null && ($labelState['decision'] ?? null) === null && (($labelState['suggestion'] ?? null) === null || ($labelState['unsure_by'] ?? null) !== null);
 
         $claims = $claimReferences;
 
@@ -149,7 +149,7 @@ class TicketController extends Controller
             }
         }
 
-        return ['default' => $default, 'toggle' => $default || $undecided, 'claimNumber' => $claims[0] ?? null];
+        return ['default' => $default, 'toggle' => true, 'claimNumber' => $claims[0] ?? null];
     }
 
     /**

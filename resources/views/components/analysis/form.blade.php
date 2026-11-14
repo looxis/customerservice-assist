@@ -45,6 +45,9 @@
                     <span class="text-sm text-slate-600">
                         Erstellt mit: {{ implode(' · ', array_filter([$usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
+                        @if ($complaintToggle)
+                            · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
+                        @endif
                     </span>
                 </summary>
         @else
@@ -78,6 +81,7 @@
                   },
               }"
               x-on:return-label-ready="labelNote = ''"
+              x-on:open-analysis-form.window="if ($event.detail?.mode) { mode = $event.detail.mode }"
               x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]:not(:disabled)')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf

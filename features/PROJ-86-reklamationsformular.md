@@ -30,7 +30,7 @@ Anlass ist Ticket 2140357 (2026-11-11). Der Mitarbeiter legt die Reklamation in 
 - Änderung der Entscheidungsregeln im Wissen, ob ein Anspruch berechtigt ist: der Mitarbeiter entscheidet, die App fragt nur ab.
 - Anlage der Reklamation in EOCS aus der App (der Mitarbeiter legt sie weiter in EOCS an und trägt die Nummer ein).
 - Uhrzeitabhängige automatische Umstellung von „heute“ auf „morgen“.
-- Reklamationsformular für Tickets ohne Kategorie `reklamation` (dort bleibt das bisherige Formular).
+- ~~Reklamationsformular für Tickets ohne Kategorie `reklamation`~~ (geändert 2026-11-14, Anlass Ticket 2140017, siehe „Nachtrag 2026-11-14“).
 
 ## Acceptance Criteria
 
@@ -337,6 +337,9 @@ Die Frage „Wird die Reklamation nach Prüfung als berechtigt anerkannt?“ hat
 - **Production Ready:** YES (keine Critical/High-Fehler); Handprüfung im Browser durch den Auftraggeber
 - **Recommendation:** Freigeben; BUG-1 nachziehen
 
+
+## Nachtrag 2026-11-14: Reklamationsformular bei jedem Ticket wählbar
+Anlass Ticket 2140017: Aus einer unklassifizierten Mail wurde im Dialog eine Reklamation. Der Umschalter zum Reklamationsformular ist jetzt bei jedem Ticket verfügbar (`TicketController::complaintForm()`: `toggle` immer `true`), auch bei bestätigter anderer Kategorie. Vorgewählt bleibt es nur bei Kategorie Reklamation. Zusätzlich steht in der Kopfzeile von „Vorschlag erstellen“ hinter „Eingaben ändern und neuen Vorschlag erstellen“ der Knopf „Als Reklamation abwickeln“: öffnet das Panel und schaltet auf das Reklamationsformular (Ereignis `open-analysis-form` mit `mode: reklamation`). Die Kategorie des Tickets bleibt unberührt. Tests in `PROJ-86-ComplaintFormTest.php` angepasst.
 
 ## Deployment
 _To be added by /deploy_

@@ -172,14 +172,14 @@ describe('the form on the ticket page', function () {
         LabelTicket::query()->create(['zammad_id' => 51234, 'number' => '2137942', 'text' => 'Hallo', 'state' => 'classified', 'split' => 'training', 'decision' => $decision, 'decision_origin' => 'zweifel']);
     }
 
-    test('an ordinary ticket keeps the free-text form', function () {
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Zusätzliche Informationen')->assertDontSee('Reklamationsformular verwenden')->assertDontSee('nach Prüfung als berechtigt anerkannt');
+    test('an ordinary ticket starts with the free-text form and offers the complaint form', function () {
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Zusätzliche Informationen')->assertSee('Reklamationsformular verwenden')->assertSee("mode: 'frei',", false);
     });
 
-    test('a ticket classified as another category keeps the free-text form', function () {
+    test('a ticket classified as another category starts with the free-text form and offers the complaint form', function () {
         classifiedAs('wismo');
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertDontSee('nach Prüfung als berechtigt anerkannt')->assertDontSee('Reklamationsformular verwenden');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Reklamationsformular verwenden')->assertSee("mode: 'frei',", false);
     });
 
     test('a complaint ticket shows the complaint form first and offers the switch to the free text', function () {
