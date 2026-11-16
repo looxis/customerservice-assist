@@ -98,6 +98,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Automatische Vorab-Antwort bei Reklamation (PROJ-85): Foto-Anforderung bzw. Eingangsbestätigung bei neuen Reklamations-Tickets bis 30 Tage nach Versand, Ticket bleibt offen, Schalter, Trockenlauf, Protokoll (dritte Ausnahme vom Ziel „Versand nur nach Klick“) | Planned |
 | Verschleierte Links erkennen (PROJ-84): Linktext nennt eine andere Adresse als das Linkziel, Warnvermerk im Mailtext und für die Klassifikation (Hinweis auf Spam) | In Review |
 | Automatik-Antworten auf gemeinsamen Unterbau zusammenführen (PROJ-87): Aufräumauftrag nach PROJ-82 und PROJ-85, später umzusetzen | Roadmap |
+| Verkaufskanal im Vorschlagsformular (PROJ-89): Pflichtfeld „Verkaufskanal“ vor der Kundengruppe, der Kanal setzt die Gruppe (neue Gruppe „Globus“ für „ehemals qobos“), Vorbelegung aus Bestellung oder Amazon-Absender, Wissen nach gewähltem Kanal, Kanal in der Startseiten-Übersicht | Planned |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
