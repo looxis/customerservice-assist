@@ -643,7 +643,9 @@ describe('the goodwill reproduction as its own measure', function () {
 describe('the real knowledge base end to end (QA)', function () {
     $analyze = function (string $text, array $answer = [], array $input = []): void {
         retrTicket($text);
-        CaseAgent::fake([retrAnswer($answer)]);
+        // The same answer for every pass: rules are reloaded in up to three more rounds (PROJ-72), and a fake
+        // without an answer left invents one with random actions, which loads random rules.
+        CaseAgent::fake(array_fill(0, 1 + (int) config('analysis.limits.safeguard_rounds'), retrAnswer($answer)));
         retrAnalyze(withProductAnswer(array_merge(['kein_produktbezug' => '1', 'kundengruppe' => 'private-looxis-de'], $input)));
     };
 
