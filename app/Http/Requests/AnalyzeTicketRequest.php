@@ -154,8 +154,6 @@ class AnalyzeTicketRequest extends FormRequest
             if ($this->input('formular') === SupportDecision::FORM) {
                 if (! in_array($this->input('support_loesung'), SupportDecision::ANSWERS, true)) {
                     $validator->errors()->add('support_loesung', 'Bitte angeben, ob eine Lösung bereits bekannt ist.');
-                } elseif ($this->input('support_loesung') === SupportDecision::UNCLEAR && trim((string) $this->input('support_info', '')) === '') {
-                    $validator->errors()->add('support_info', 'Bitte angeben, welche Informationen benötigt werden.');
                 }
             }
 

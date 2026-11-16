@@ -19,9 +19,10 @@
         <x-textarea name="support_hinweis" id="support_hinweis" label="Zusätzliche Hinweise zur Lösung – optional" rows="3" maxlength="1000" placeholder="z. B. Passwort-vergessen-Funktion nutzen" :value="$pick('support_hinweis', '')" />
     </fieldset>
 
-    {{-- Unclear: what the customer still has to tell us. --}}
+    {{-- Unclear: what the customer still has to tell us, on top of the standard request of the knowledge base (TONE-014). --}}
     <fieldset x-show="loesung === 'unklar'" x-bind:disabled="loesung !== 'unklar'" x-cloak class="min-w-0 border-0 p-0">
         <legend class="sr-only">Lösung unklar</legend>
-        <x-textarea name="support_info" id="support_info" label="Welche Informationen werden benötigt?" rows="3" maxlength="1000" :required="true" placeholder="z. B. bitte Screenshot senden" :value="$pick('support_info', '')" />
+        <x-textarea name="support_info" id="support_info" label="Welche Informationen werden benötigt? – optional" rows="3" maxlength="1000" placeholder="z. B. bitte die Fehlermeldung im Wortlaut nennen"
+                    hint="Um einen Screenshot sowie Betriebssystem und Browser mit Version bittet die Antwort immer. Was du hier einträgst, steht an erster Stelle." :value="$pick('support_info', '')" />
     </fieldset>
 </fieldset>

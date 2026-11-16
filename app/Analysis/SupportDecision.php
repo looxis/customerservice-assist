@@ -20,7 +20,7 @@ final readonly class SupportDecision
     /**
      * @param  'ja'|'unklar'  $solution  Whether a possible solution is known, or the customer has to tell us more first.
      * @param  string  $hint  Optional note of the employee on the solution; only meaningful when it is known.
-     * @param  string  $missingInfo  What the customer is asked for; only meaningful when the solution is unclear.
+     * @param  string  $missingInfo  What the customer is asked for on top of the standard request of the knowledge base; only meaningful when the solution is unclear.
      */
     public function __construct(
         public string $solution,
@@ -68,12 +68,16 @@ final readonly class SupportDecision
     public function facts(): string
     {
         $lines = ['Angaben aus dem Formular „Technischer Support“ (geprüfte Entscheidungen und Fakten des Mitarbeiters):'];
-        $lines[] = '- Es handelt sich um eine technische Anfrage zu einem unserer Shops (z. B. Zahlung, Passwort, Anmeldung, Bestellvorgang).';
+        $lines[] = '- Es handelt sich um eine technische Anfrage zu einem unserer Shops.';
 
         if (! $this->isKnown()) {
             $lines[] = '- Entscheidung des Mitarbeiters: Die Lösung ist noch unklar, zuerst werden weitere Informationen vom Kunden gebraucht. Diese Entscheidung geht dem Wissen vor: Auch wenn das Wissen für diesen Fall eine erste Antwort, eine Anleitung oder eine Lösung vorgibt, beschreibst du im Entwurf keine Lösungsschritte.';
             $lines[] = '- Der Entwurf besteht nur aus der Rückfrage: Sage dem Kunden freundlich und offen, dass wir das Problem anhand seiner Nachricht noch nicht eindeutig einordnen können. Sage keine Lösung zu und nenne keine vermutete Ursache als Tatsache.';
-            $lines[] = '- Bitte den Kunden gezielt um diese Informationen (formuliere sie als höfliche Bitte aus): '.$this->missingInfo;
+            $lines[] = '- Es geht um die Rückfrage zu einem unklaren technischen Problem: Bitte den Kunden um die Angaben, die das Wissen für diese Rückfrage vorgibt (TONE-014: Screenshot, Betriebssystem und Browser), soweit es im Abschnitt „Wissen“ steht.';
+
+            if ($this->missingInfo !== '') {
+                $lines[] = '- Angabe des Mitarbeiters, sie hat Vorrang und steht in der Rückfrage an erster Stelle (formuliere sie als höfliche Bitte aus): '.$this->missingInfo;
+            }
 
             return implode("\n", $lines);
         }

@@ -60,7 +60,7 @@ Das Reklamationsformular (PROJ-86) hat gezeigt, dass wenige Klick-Entscheidungen
 - [ ] Angenommen das Formular „Technischer Support“ ist gewählt, dann erscheint die Pflichtfrage „Ist eine mögliche Lösung bereits bekannt?“ mit den Antworten „Ja“ und „Unklar, bitte weitere Informationen erfragen“; nichts ist vorgewählt.
 - [ ] Angenommen keine Antwort ist gewählt, wenn der Mitarbeiter abschickt, dann erscheint die Fehlermeldung „Bitte angeben, ob eine Lösung bereits bekannt ist.“ und die Eingaben bleiben erhalten.
 - [ ] Angenommen der Mitarbeiter wählt „Ja“, dann erscheint ein Textfeld mit der Überschrift „Zusätzliche Hinweise zur Lösung – optional“ und dem Platzhalter „z. B. Passwort-vergessen-Funktion nutzen“; es darf leer bleiben.
-- [ ] Angenommen der Mitarbeiter wählt „Unklar, bitte weitere Informationen erfragen“, dann erscheint ein Textfeld mit der Überschrift „Welche Informationen werden benötigt?“ und dem Platzhalter „z. B. bitte Screenshot senden“; es ist Pflicht (Fehlermeldung: „Bitte angeben, welche Informationen benötigt werden.“).
+- [ ] Angenommen der Mitarbeiter wählt „Unklar, bitte weitere Informationen erfragen“, dann erscheint ein Textfeld mit der Überschrift „Welche Informationen werden benötigt? – optional“; es darf leer bleiben (geändert 2026-11-16, vorher Pflicht mit dem Platzhalter „z. B. bitte Screenshot senden“): Um Screenshot, Betriebssystem und Browser bittet der Entwurf immer (TONE-014), die Angabe des Mitarbeiters hat Vorrang und steht an erster Stelle.
 - [ ] Angenommen der Mitarbeiter wechselt zwischen „Ja“ und „Unklar“, dann bleiben beide Texte im Browser erhalten, gesendet wird nur der Text der gewählten Antwort.
 - [ ] Angenommen eines der beiden Textfelder, dann nimmt es höchstens 1.000 Zeichen an.
 
@@ -194,6 +194,13 @@ Abweichung von der Spec: keine.
 ## Änderung 2026-11-16: „Unklar“ geht dem Wissen vor
 Anlass: Test an Ticket 2140446 (Fachhändler kann sich nicht anmelden). Mit „Unklar“ und „bitte screenshot“ lieferte der Entwurf dieselbe Anleitung wie mit „Ja“ und bat erst am Ende um den Screenshot. Ursache war nicht der Wissensabruf: PLAYBOOK-032 schreibt für die erste Antwort „immer“ Shop-Adresse, Logo und Anmeldung vor, und die Sätze des Formulars widersprachen dem nicht deutlich genug. Die festen Sätze für „Unklar“ sagen jetzt ausdrücklich, dass die Entscheidung des Mitarbeiters dem Wissen vorgeht, der Entwurf nur aus der Rückfrage besteht und keine Lösungsschritte beschreibt. Die Wirkung auf den Entwurf ist an einem echten Ticket zu prüfen.
 
+## Änderung 2026-11-16 (2): Standard-Rückfrage bei „Unklar“, Feld optional
+Vorgabe des Auftraggebers nach dem Test: Bei „Unklar“ bittet die Antwort auch ohne Eintrag immer um einen Screenshot (mit sichtbarer Internetadresse), Betriebssystem und Browser jeweils mit Version; was der Mitarbeiter einträgt, hat Vorrang.
+- Die Standard-Rückfrage steht als Wissen in `TONE-014` (alle Kanäle). Die festen Sätze für „Unklar“ enthalten die Wendung „unklaren technischen Problem“, die dieses Dokument abruft; bei „Ja“ wird es nicht geladen (Test mit eingeschaltetem gezieltem Abruf).
+- Das Feld „Welche Informationen werden benötigt?“ ist optional, mit dem Hinweis, dass Screenshot, Betriebssystem und Browser immer erfragt werden. Neuer Platzhalter: „z. B. bitte die Fehlermeldung im Wortlaut nennen“.
+- Die festen Sätze nennen keine Beispielthemen mehr (Zahlung, Passwort, Anmeldung): Diese Wörter hätten bei jedem Supportticket fremdes Wissen abgerufen, weil die Angaben des Mitarbeiters für den Abruf mitzählen.
+- PLAYBOOK-032: „immer“ bei der ersten Antwort entfernt; die erste Antwort entfällt, wenn der Mitarbeiter zuerst Informationen erfragen will.
+
 ## QA Test Results
 
 **Tested:** 2026-11-16 (begonnen, noch nicht abgeschlossen)
@@ -223,7 +230,7 @@ Geprüft mit der Testsuite (`tests/Feature/PROJ-90-SupportFormTest.php`, 23 Test
 
 #### Lösung bekannt?
 - [x] Pflichtfrage, nichts vorgewählt, Fehlermeldung ohne Antwort
-- [x] „Ja“: optionaler Hinweis; „Unklar“: Pflichtfeld mit Fehlermeldung
+- [x] „Ja“: optionaler Hinweis; „Unklar“: optionales Feld, Standard-Rückfrage aus TONE-014 (27 Tests nach Änderung 2)
 - [x] Nur der Text der gewählten Antwort wird gesendet und gespeichert
 - [x] Höchstens 1.000 Zeichen
 
@@ -231,7 +238,7 @@ Geprüft mit der Testsuite (`tests/Feature/PROJ-90-SupportFormTest.php`, 23 Test
 - [x] „Ja“ ohne Hinweis: Lösung aus dem Wissen des Kanals (vom Auftraggeber am Fachhändler-Ticket bestätigt)
 - [x] „Ja“ mit Hinweis: Hinweis geht als geprüfte Angabe an die KI
 - [x] Kein Erfinden ohne passendes Wissen (als Anweisung an die KI; nicht an einem echten Fall geprüft)
-- [ ] BUG-1: „Unklar“ sagt keine Lösung zu und fragt gezielt nach (siehe unten; behoben, Nachprüfung offen)
+- [x] „Unklar“ sagt keine Lösung zu und fragt gezielt nach (BUG-1 behoben und vom Auftraggeber nachgeprüft)
 - [x] Antworten im Protokoll, „Erstellt mit“ nennt das Formular
 - [x] Nur feste Sätze gehen an die KI
 
@@ -254,13 +261,13 @@ Geprüft mit der Testsuite (`tests/Feature/PROJ-90-SupportFormTest.php`, 23 Test
   2. „Unklar, bitte weitere Informationen erfragen“ wählen, „bitte screenshot“ eintragen, Vorschlag erstellen.
   3. Erwartet: Der Entwurf sagt, dass das Problem noch unklar ist, und bittet um einen Screenshot.
   4. Tatsächlich: Der Entwurf beschreibt die Anmeldung im Fachhändler-Shop wie bei „Ja“ und bittet erst am Ende um den Screenshot.
-- **Status:** behoben am 2026-11-16 (siehe „Änderung 2026-11-16“); Nachprüfung an einem echten Ticket offen.
+- **Status:** behoben am 2026-11-16; vom Auftraggeber an Ticket 2140446 nachgeprüft, die Rückfrage kommt wie erwartet.
 
 ### Summary
-- **Acceptance Criteria:** 20 von 21 erfüllt, eines nach der Korrektur nachzuprüfen
-- **Bugs Found:** 1 (High, behoben, Nachprüfung offen)
+- **Acceptance Criteria:** 21 von 21 erfüllt
+- **Bugs Found:** 1 (High, behoben und nachgeprüft)
 - **Security:** Pass
-- **Production Ready:** erst nach der Nachprüfung von BUG-1
+- **Production Ready:** YES, sobald die Standard-Rückfrage (Änderung 2) an einem echten Ticket bestätigt ist
 
 ## Deployment
 _To be added by /deploy_

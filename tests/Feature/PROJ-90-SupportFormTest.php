@@ -96,7 +96,7 @@ describe('the fields', function () {
             ->assertSee('Zusätzliche Hinweise zur Lösung – optional')
             ->assertSee('z. B. Passwort-vergessen-Funktion nutzen')
             ->assertSee('Welche Informationen werden benötigt?')
-            ->assertSee('z. B. bitte Screenshot senden')
+            ->assertSee('Welche Informationen werden benötigt? – optional')
             ->assertDontSee('name="support_loesung" value="ja" x-model="loesung" checked', false);
     });
 
@@ -106,10 +106,18 @@ describe('the fields', function () {
         expect(Analysis::query()->count())->toBe(0);
     });
 
-    test('an unclear solution needs the information to ask for, and the inputs stay', function () {
-        supportRun(['support_loesung' => 'unklar', 'support_info' => ' ', 'support_hinweis' => 'Notiz'])
-            ->assertSessionHasErrors(['support_info' => 'Bitte angeben, welche Informationen benötigt werden.'])
-            ->assertSessionHasInput('support_hinweis', 'Notiz');
+    test('an unclear solution needs no further information: the standard request of the knowledge base applies', function () {
+        CaseAgent::fake([supportAnswer()]);
+
+        supportRun(['support_loesung' => 'unklar', 'support_info' => ' '])->assertSessionHasNoErrors();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Rückfrage zu einem unklaren technischen Problem')
+            && ! $prompt->contains('Angabe des Mitarbeiters, sie hat Vorrang'));
+    });
+
+    test('a failed validation keeps the typed texts', function () {
+        supportRun(['support_loesung' => 'unklar', 'support_info' => 'Fehlermeldung nennen', 'verkaufskanal' => ''])
+            ->assertSessionHasErrors('verkaufskanal')->assertSessionHasInput('support_info', 'Fehlermeldung nennen');
     });
 
     test('the text fields take at most 1,000 characters', function (string $answer, string $field) {
@@ -177,6 +185,7 @@ describe('what the model is told', function () {
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Sage keine Lösung zu')
             && $prompt->contains('Diese Entscheidung geht dem Wissen vor')
             && $prompt->contains('Der Entwurf besteht nur aus der Rückfrage')
+            && $prompt->contains('Angabe des Mitarbeiters, sie hat Vorrang')
             && $prompt->contains('Bitte einen Screenshot der Fehlermeldung senden')
             && ! $prompt->contains('Eine mögliche Lösung ist bekannt')
             && ! $prompt->contains('NICHT SENDEN'));
@@ -189,6 +198,26 @@ describe('what the model is told', function () {
         supportRun(['support_loesung' => 'ja', 'return_label' => $label->id])->assertSessionHasNoErrors();
 
         expect(Analysis::query()->latest()->first()->content['inputs']['return_label'])->toBeNull();
+    });
+});
+
+describe('the knowledge for the request', function () {
+    test('choosing "unclear" retrieves the standard request, a known solution does not', function (string $answer, bool $retrieved) {
+        config(['knowledge.retrieval.active' => true, 'knowledge.router.active' => false]);
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'tone/tone-014-x.md' => knowledgeDoc(['id' => 'TONE-014', 'type' => 'tone', 'title' => 'Screenshot erfragen', 'summary' => 'Legt fest, worum die Rückfrage bei einem unklaren technischen Problem immer bittet, zum Beispiel einen Screenshot.', 'retrieval' => 'binding', 'triggers' => ['unklaren technischen Problem']], "Gilt für alle Kundenarten und Vertriebskanäle.\n\n# Ziel\n\nSTANDARD-RUECKFRAGE: Screenshot mit sichtbarer Internetadresse."),
+        ]);
+        CaseAgent::fake([supportAnswer()]);
+
+        supportRun(['support_loesung' => $answer])->assertSessionHasNoErrors();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('STANDARD-RUECKFRAGE') === $retrieved);
+    })->with([['unklar', true], ['ja', false]]);
+
+    test('the sentences of the form do not name topics that would retrieve unrelated knowledge', function () {
+        expect((new SupportDecision('ja'))->facts().(new SupportDecision('unklar'))->facts())
+            ->not->toContain('Zahlung')->not->toContain('Passwort')->not->toContain('Anmeldung');
     });
 });
 
