@@ -20,7 +20,10 @@
     <fieldset x-show="berechtigt === 'nein'" x-bind:disabled="berechtigt !== 'nein'" x-cloak class="min-w-0 space-y-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
         <legend class="sr-only">Reklamation nicht berechtigt</legend>
         <x-textarea name="reklamation_grund" id="reklamation_grund" label="Grund" rows="3" maxlength="1000" :required="true" placeholder="Hier den Grund eingeben" :value="$pick('reklamation_grund', '')" />
-        <x-analysis.choice name="kulanz" legend="Kulanzangebot unterbreiten?" :options="$yesNo" model="kulanz" :value="$pick('kulanz', 'nein')" />
+        <x-analysis.choice name="kulanz" legend="Kulanzangebot unterbreiten?" :options="['ja' => 'Ja', 'nein' => 'Nein (sollte gut begründet sein!)']" model="kulanz" :value="$pick('kulanz', 'ja')" />
+        <div x-show="kulanz === 'ja'" x-bind:disabled="kulanz !== 'ja'" x-cloak>
+            <x-textarea name="kulanz_art" id="kulanz_art" label="Art des Kulanzangebots" rows="2" maxlength="500" placeholder="z. B. 10 % Rabatt in Form einer Erstattung auf eine Neubestellung" :value="$pick('kulanz_art', '')" />
+        </div>
     </fieldset>
 
     {{-- Undecided: what the customer still has to tell us. --}}

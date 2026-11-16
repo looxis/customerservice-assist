@@ -89,6 +89,7 @@ class AnalyzeTicketRequest extends FormRequest
             'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
             'kulanz' => ['nullable', Rule::in(['ja', 'nein'])],
+            'kulanz_art' => ['nullable', 'string', 'max:500'],
             'retoure' => ['nullable', Rule::in(['ja', 'nein'])],
             'reklamationsnummer' => ['nullable', 'string', 'max:60', 'regex:/^'.preg_quote(app(OrderFormats::class)->claimPrefix(), '/').'\d+-\S+$/i'],
             'versand' => ['nullable', Rule::in(['heute', 'morgen', 'zeitnah'])],
@@ -193,7 +194,7 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer'];
     }
 
     /**

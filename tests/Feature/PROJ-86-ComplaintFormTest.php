@@ -112,6 +112,15 @@ test('a complaint that is not justified sends the reason and the goodwill choice
         && ! $prompt->contains('GEHEIMER FREITEXT') && ! $prompt->contains('Versand der Neuproduktion') && ! $prompt->contains('R1-1-2'));
 });
 
+test('the kind of the goodwill offer goes to the model with the process to describe', function () {
+    CaseAgent::fake([complaintAnswer()]);
+
+    complaintRun(['reklamation_berechtigt' => 'nein', 'reklamation_grund' => 'Falsche Datei geliefert.', 'kulanz' => 'ja', 'kulanz_art' => '10 % Rabatt als Erstattung auf eine Neubestellung'])->assertSessionHasNoErrors();
+
+    CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Art des Angebots (Entscheidung des Mitarbeiters): 10 % Rabatt als Erstattung auf eine Neubestellung')
+        && $prompt->contains('neue Bestellnummer als Antwort auf diese E-Mail'));
+});
+
 test('without a goodwill offer the model is told so', function () {
     CaseAgent::fake([complaintAnswer()]);
 

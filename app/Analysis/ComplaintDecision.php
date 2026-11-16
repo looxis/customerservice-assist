@@ -30,6 +30,7 @@ final readonly class ComplaintDecision
         public string $shipping,
         public bool $trackingTodo,
         public string $missingInfo = '',
+        public string $goodwillKind = '',
     ) {}
 
     /**
@@ -52,6 +53,7 @@ final readonly class ComplaintDecision
             shipping: in_array($input['versand'] ?? null, ['heute', 'morgen', 'zeitnah'], true) ? $input['versand'] : 'zeitnah',
             trackingTodo: filter_var($input['sendungsnummer_todo'] ?? false, FILTER_VALIDATE_BOOLEAN),
             missingInfo: trim((string) ($input['reklamation_info'] ?? '')),
+            goodwillKind: trim((string) ($input['kulanz_art'] ?? '')),
         );
     }
 
@@ -91,7 +93,7 @@ final readonly class ComplaintDecision
         }
 
         if (! $this->isReplaced()) {
-            return [...$stored, 'reklamation_grund' => $this->reason, 'kulanz' => $this->goodwill];
+            return [...$stored, 'reklamation_grund' => $this->reason, 'kulanz' => $this->goodwill, 'kulanz_art' => $this->goodwillKind];
         }
 
         return [...$stored, 'retoure' => $this->return, 'reklamationsnummer' => $this->claimNumber, 'versand' => $this->shipping, 'sendungsnummer_todo' => $this->trackingTodo];
@@ -114,9 +116,14 @@ final readonly class ComplaintDecision
         if (! $this->isReplaced()) {
             $lines[] = '- Die Reklamation wurde nach Prüfung nicht als berechtigt anerkannt.';
             $lines[] = '- Grund der Ablehnung: '.$this->reason;
-            $lines[] = $this->goodwill === 'ja'
-                ? '- Dem Kunden wird ein Kulanzangebot unterbreitet; Art und Umfang richten sich nach dem Wissen.'
-                : '- Es wird kein Kulanzangebot unterbreitet.';
+            if ($this->goodwill !== 'ja') {
+                $lines[] = '- Es wird kein Kulanzangebot unterbreitet.';
+            } elseif ($this->goodwillKind === '') {
+                $lines[] = '- Dem Kunden wird ein Kulanzangebot unterbreitet; Art und Umfang richten sich nach dem Wissen.';
+            } else {
+                $lines[] = '- Dem Kunden wird ein Kulanzangebot unterbreitet. Art des Angebots (Entscheidung des Mitarbeiters): '.$this->goodwillKind;
+                $lines[] = '- Beschreibe im Entwurf kurz den Ablauf der Kulanz: Der Kunde bestellt das Produkt neu und teilt uns die neue Bestellnummer als Antwort auf diese E-Mail mit; nach dem Versand der neuen Bestellung erstatten wir ihm den vereinbarten Betrag auf Kulanz. Nenne die Art des Angebots wie angegeben, ohne Beträge oder Prozentsätze zu ergänzen oder zu ändern.';
+            }
 
             return implode("\n", $lines);
         }

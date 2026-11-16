@@ -72,7 +72,7 @@
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{
                   variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '',
-                  mode: @js($formMode), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), kulanz: @js($pickedAnswer('kulanz', 'nein')), versand: @js($pickedAnswer('versand', 'zeitnah')),
+                  mode: @js($formMode), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
                   syncLabel() { this.labelOn = this.mode === 'reklamation' && ['ja', 'unsicher'].includes(this.berechtigt) && this.retoure === 'ja' },
                   init() {
                       ['mode', 'berechtigt', 'retoure'].forEach((property) => this.$watch(property, () => this.syncLabel()))
