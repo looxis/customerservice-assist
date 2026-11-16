@@ -1,8 +1,10 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: Approved
+## Status: Planned
 **Created:** 2026-10-27
-**Last Updated:** 2026-10-27
+**Last Updated:** 2026-11-16
+
+> Wieder geöffnet am 2026-11-16: Erweiterung um Auslandsretouren aus Frankreich, Österreich, Belgien, den Niederlanden, Luxemburg und Italien (Anlass Ticket 2140387). Der Stand für Deutschland ist gebaut und freigegeben (QA vom 2026-10-27, siehe unten). Neue und geänderte Punkte sind mit „(2026-11-16)“ gekennzeichnet.
 
 ## Dependencies
 - Requires: PROJ-5 (Nutzerauswahl) – Name des Mitarbeiters für Protokoll und Versand
@@ -16,18 +18,24 @@
 ## Hintergrund
 Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür bekommt der Kunde ein vorfrankiertes DHL-Retourenlabel. Heute erstellt der Mitarbeiter es von Hand im Geschäftskundenportal und tippt dort Adresse und Referenzen ab. Die App soll das Label über die offizielle DHL-Schnittstelle (Parcel DE Returns, Produkt „DHL Retoure Online“) erzeugen. Die Daten kommen aus der Bestellung, der Mitarbeiter prüft die Adresse nur. Zwei Einstiege: eine eigene Seite „DHL Retoure“ und das Vorschlagsformular mit dem Antwortvorschlag.
 
+**Erweiterung Auslandsretouren (2026-11-16):** Bisher erzeugt die App nur Label für Absender in Deutschland. Ticket 2140387 (französischer Kunde, falsche Ware erhalten) braucht ein Label aus Frankreich. Der DHL-Vertrag hat für Deutschland, Frankreich, Österreich, Belgien, die Niederlande, Luxemburg und Italien je einen eigenen Retourenempfänger (lesend an der produktiven Schnittstelle geprüft am 2026-11-16); alle führen zur LOOXIS GmbH in Minden. Die App soll Label aus diesen sieben Ländern erzeugen.
+
 ## User Stories
 - Als **Mitarbeiter im Kundenservice** will ich zu einer Ticket- oder Bestellnummer ein Retourenlabel erzeugen, ohne die Adresse abzutippen, damit ich nicht mehr ins Geschäftskundenportal wechseln muss.
 - Als **Mitarbeiter** will ich die Lieferadresse vor dem Erzeugen sehen und korrigieren können, damit kein Label mit falscher Anschrift entsteht.
 - Als **Mitarbeiter** will ich das Label herunterladen können, damit ich es auch außerhalb der App verwenden kann.
 - Als **Mitarbeiter** will ich das Label mit einem Anleitungstext per Klick als Antwort auf ein Ticket oder als neues E-Mail-Ticket an den Kunden senden, damit der Kunde sofort alles bekommt.
 - Als **Mitarbeiter** will ich schon im Vorschlagsformular angeben, dass ein Retourenlabel beiliegt, damit der Antwortvorschlag das berücksichtigt, die Anleitung enthält und das PDF schon angehängt ist.
+- Als **Mitarbeiter** will ich auch für Kunden in Frankreich, Österreich, Belgien, den Niederlanden, Luxemburg und Italien ein Retourenlabel erzeugen, damit ich dafür nicht ins Geschäftskundenportal wechseln muss. (2026-11-16)
+- Als **Kunde im Ausland** will ich die Schritte zur Rücksendung in meiner Sprache und mit einem für mein Land zutreffenden Abgabeort lesen, damit ich das Paket richtig aufgebe. (2026-11-16)
 - Als **Aushilfe** will ich bei Amazon-Bestellungen (ohne Adresse in EOCS) einen klaren Hinweis, dass ich die Adresse selbst eintragen muss, damit ich nicht raten muss.
 
 ## Out of Scope
 - Verfolgen der Rücksendung über die DHL-Schnittstelle, Zählung der Retouren und Auswertung (PROJ-65).
 - Abholung der Ware beim Kunden (nur Einlieferung durch den Kunden in Filiale oder Paketshop).
-- Auslandsretouren und Zolldokumente: nur Absender in Deutschland.
+- Retouren aus Ländern außerhalb der sieben unterstützten (Deutschland, Frankreich, Österreich, Belgien, Niederlande, Luxemburg, Italien), insbesondere aus Nicht-EU-Ländern wie der Schweiz oder Großbritannien, und Zolldokumente. (2026-11-16, vorher: nur Deutschland)
+- Nennung des Postpartners je Land in der Kundenanleitung (der Abgabeort ist für das Ausland neutral formuliert). (2026-11-16)
+- Übersetzung der Kundenschritte durch die KI (es gibt feste, freigegebene Fassungen). (2026-11-16)
 - Mailversand durch DHL: Die E-Mail-Adresse des Kunden wird DHL nie übergeben; das Label geht nur mit unserer Mail raus.
 - Zusammenführen von Anleitungsseite und Label in einem PDF (kein PDF-Paket): Das Original-PDF wird unverändert angehängt, die Anleitung steht im Mailtext.
 - Automatische Erkennung, dass ein Label nötig sein könnte, und automatische Labelerzeugung bei Ticket-Eingang (PROJ-20).
@@ -49,12 +57,17 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - [ ] Angenommen kein Name ist gewählt, wenn eine Aktion der Seite ausgelöst wird, dann wird wie bei den übrigen Seiten zur Namenswahl aufgefordert.
 
 ### Adresse prüfen und Label erzeugen
-- [ ] Angenommen eine Bestellung mit Lieferadresse in Deutschland, wenn sie ausgewählt ist, dann sind Name, Straße, Hausnummer, PLZ und Ort im Formular vorbefüllt und änderbar.
+- [ ] Angenommen eine Bestellung mit Lieferadresse in einem der sieben unterstützten Länder, wenn sie ausgewählt ist, dann sind Name, Straße, Hausnummer, PLZ, Ort und Land im Formular vorbefüllt und änderbar. (2026-11-16, vorher: nur Deutschland)
 - [ ] Angenommen das Formular, wenn die feste Empfängeradresse (LOOXIS) angezeigt wird, dann kann der Mitarbeiter sie zur Kontrolle sehen, aber nicht ändern.
 - [ ] Angenommen eine Amazon-Bestellung oder eine Bestellung ohne Lieferadresse, wenn sie ausgewählt ist, dann bleiben die Adressfelder leer und ein Hinweis erklärt, dass die Adresse aus dem Ticket von Hand einzutragen ist.
 - [ ] Angenommen der Mitarbeiter hat den Haken „Adresse geprüft“ nicht gesetzt, wenn er „Label erzeugen“ wählt, dann wird nichts bei DHL beauftragt und ein Hinweis erscheint.
-- [ ] Angenommen ein Pflichtfeld fehlt oder ist zu lang (Name über 50, Straße über 50, Hausnummer über 10, Ort über 40 Zeichen) oder die PLZ hat nicht genau fünf Ziffern, wenn der Mitarbeiter „Label erzeugen“ wählt, dann zeigt das Formular die Fehler am Feld und schneidet nichts still ab.
-- [ ] Angenommen das Land ist nicht Deutschland, wenn der Mitarbeiter „Label erzeugen“ wählt, dann wird es abgelehnt mit dem Hinweis, dass die App nur Retouren aus Deutschland erzeugt.
+- [ ] Angenommen ein Pflichtfeld fehlt oder ist zu lang (Name über 50, Straße über 50, Hausnummer über 10, Ort über 40 Zeichen) oder die PLZ passt nicht zum gewählten Land (Deutschland, Frankreich, Italien: fünf Ziffern; Österreich, Belgien, Luxemburg: vier Ziffern; Niederlande: vier Ziffern und zwei Buchstaben), wenn der Mitarbeiter „Label erzeugen“ wählt, dann zeigt das Formular die Fehler am Feld und schneidet nichts still ab.
+- [ ] Angenommen das Land ist keines der sieben unterstützten, wenn der Mitarbeiter „Label erzeugen“ wählt, dann wird es abgelehnt mit einem Hinweis, der die unterstützten Länder nennt und für alle anderen auf das Geschäftskundenportal verweist. (2026-11-16, vorher: nur Deutschland)
+- [ ] Angenommen der Adressbereich, wenn der Mitarbeiter das Land ändern will (z. B. Amazon-Bestellung ohne Adresse oder falsches Land in EOCS), dann wählt er es aus einer Liste der sieben Länder; ein anderes Land lässt sich nicht eintragen. (2026-11-16)
+- [ ] Angenommen ein Absender im Ausland, wenn das Label bestellt wird, dann erhält DHL das Land des Absenders und den Retourenempfänger dieses Landes; für Deutschland bleibt der konfigurierte Empfänger. (2026-11-16)
+- [ ] Angenommen DHL nennt für das Land keinen oder mehr als einen Retourenempfänger, wenn der Mitarbeiter „Label erzeugen“ wählt, dann wird nichts bestellt und eine Meldung nennt den Grund und verweist auf das Geschäftskundenportal. (2026-11-16)
+- [ ] Angenommen ein Label aus dem Ausland wurde erzeugt, wenn die Seite es zeigt (auch unter „Bisherige Labels“), dann ist das Absenderland erkennbar. (2026-11-16)
+- [ ] Angenommen ein Land außerhalb Deutschlands ist gewählt, wenn der Adressbereich angezeigt wird, dann steht dort statt „nur für Rücksendungen aus Deutschland“ ein Hinweis, dass es eine Auslandsretoure ist. (2026-11-16)
 - [ ] Angenommen gültige Angaben, wenn das Label erzeugt wird, dann stehen im Label die Bestellnummer (bei Reklamationsaufträgen die Original-Bestellnummer) und, sofern bekannt, die Ticketnummer als Referenz; die Länge der gedruckten Referenz bleibt innerhalb der DHL-Grenze.
 - [ ] Angenommen DHL liefert das Label, wenn die Erstellung abgeschlossen ist, dann zeigt die Seite Sendungsnummer und „Herunterladen“; das PDF ist unverändert das von DHL.
 - [ ] Angenommen das Label wurde erzeugt, wenn der Mitarbeiter es herunterlädt, dann erhält er eine PDF-Datei mit sprechendem Namen (Bestellnummer, Retoure).
@@ -82,6 +95,15 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - [ ] Angenommen der Anleitungstext steht schon im Entwurf, wenn das Label erneut angehängt wird, dann wird er nicht doppelt eingefügt.
 - [ ] Angenommen eine `return_label_id` gehört nicht zum Ticket, wenn der Vorschlag erstellt wird, dann wird sie abgelehnt.
 
+### Kundenanleitung nach Sprache und Land (2026-11-16)
+- [ ] Angenommen ein Label und eine bekannte Sprache des Kunden (Deutsch, Französisch, Italienisch, Niederländisch oder Englisch), wenn die Schritte für den Kunden in den Entwurf oder in die Mail der Seite „DHL Retoure“ eingefügt werden, dann stehen sie in dieser Sprache als fester, hinterlegter Text.
+- [ ] Angenommen die Sprache des Kunden ist unbekannt oder keine der fünf, wenn die Schritte eingefügt werden, dann stehen sie bei einem Absender in Deutschland oder Österreich auf Deutsch, sonst auf Englisch.
+- [ ] Angenommen ein Absender in Deutschland, wenn die Schritte eingefügt werden, dann nennt Schritt 3 wie bisher die DHL-Filiale oder den DHL-Paketshop.
+- [ ] Angenommen ein Absender im Ausland, wenn die Schritte eingefügt werden, dann nennt Schritt 3 neutral den auf dem Label genannten Versanddienst (Postfiliale oder Paketshop) und keine DHL-Filiale.
+- [ ] Angenommen die Mail der Seite „DHL Retoure“ (Anrede, Einleitung, Betreff bei neuem Ticket), wenn sie vorbereitet wird, dann steht sie in derselben Sprache wie die Schritte und bleibt vor dem Senden änderbar.
+- [ ] Angenommen die Schritte stehen schon im Entwurf (in irgendeiner der fünf Sprachen), wenn das Label erneut angehängt wird, dann werden sie nicht doppelt eingefügt.
+- [ ] Angenommen ein Vorschlag mit Label, wenn die KI den Entwurf schreibt, dann erfährt sie weiterhin nur, dass ein Label beiliegt; Land und Adresse erhält sie nicht.
+
 ### Fehler und Sicherheit
 - [ ] Angenommen DHL lehnt die Anfrage ab (z. B. ungültige Adresse), wenn die Antwort eintrifft, dann zeigt die App eine verständliche deutsche Meldung und der Mitarbeiter kann korrigieren und erneut senden.
 - [ ] Angenommen die Zugangsdaten für DHL fehlen oder sind falsch, wenn ein Label verlangt wird, dann erscheint ein Hinweis auf die Konfiguration, ohne Geheimnisse zu nennen.
@@ -102,6 +124,13 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - Label ist erzeugt, aber die App bricht vor dem Speichern ab: wird als „Ausgang unklar“ behandelt, nicht neu beauftragt.
 - Großer Anhang: Das Label ist deutlich kleiner als die Anhangsgrenze (PROJ-61); Zammad-Probleme mit sehr großen Anhängen (PROJ-62) betreffen es kaum.
 - Der Anleitungstext enthält Platzhalter (Sendungsnummer, Bestellnummer): Sie werden beim Einfügen ersetzt.
+- Adresse im Ausland, bei der die Hausnummer vor der Straße steht (Frankreich: „12 rue de la Paix“) oder die EOCS nicht getrennt liefert: Der Mitarbeiter trägt Straße und Hausnummer in die beiden Felder ein; fehlt eines, ist es ein Pflichtfehler. (2026-11-16)
+- Niederländische PLZ mit oder ohne Leerzeichen („1234 AB“, „1234AB“): beides gültig. (2026-11-16)
+- Die Bestellung nennt ein Land außerhalb der sieben (z. B. Schweiz): Die Adresse wird gezeigt, „Label erzeugen“ ist gesperrt, der Hinweis verweist auf das Geschäftskundenportal. (2026-11-16)
+- Kunde in Frankreich schreibt Deutsch: Die Schritte sind deutsch (Sprache des Kunden), der Abgabeort ist neutral (Land des Absenders). (2026-11-16)
+- Seite „DHL Retoure“ ohne Ticket: Die Sprache des Kunden ist unbekannt, es gilt die Regel nach Land (Deutschland und Österreich Deutsch, sonst Englisch); der Text bleibt änderbar. (2026-11-16)
+- DHL verlangt für eine Auslandsretoure ein Feld, das die App nicht sendet: Die Ablehnung erscheint wie bisher mit dem Wortlaut von DHL; es entsteht kein Label. (2026-11-16)
+- Dieselbe Adresse mit anderem Land gilt als andere Anfrage (kein vorhandenes Label wird wiederverwendet). (2026-11-16)
 - Test mit der DHL-Sandbox: Eine Umstellung auf Produktion erfolgt nur über die Konfiguration.
 
 ## Technical Requirements (optional)
@@ -114,10 +143,12 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 
 ## Open Questions
 - [x] Zammad-Gruppe für neue Retouren-Tickets: „allg. Kunden“ (allgemeine Kunden; die zweite Gruppe ist „amazon“). Die persönlichen Zammad-Tokens der Mitarbeiter dürfen dort Tickets anlegen (geklärt 2026-10-27). Der genaue Gruppenname wird beim Bau gegen Zammad geprüft.
-- [ ] Ist der Vertrag „DHL Retoure Online“ für die API freigeschaltet? Benötigt: Systembenutzer, API-Key und -Secret, produktive Empfänger-ID mit Abrechnungsnummer, Freigabe für „nur Deutschland“. Der Auftraggeber sucht die Angaben im Geschäftskundenportal (Liste im Antwortbericht vom 2026-10-27).
+- [x] Ist der Vertrag „DHL Retoure Online“ für die API freigeschaltet? → Ja, produktiv im Einsatz; Empfänger gibt es für Deutschland, Frankreich, Österreich, Belgien, die Niederlande, Luxemburg und Italien (geprüft 2026-11-16). Ursprüngliche Frage: Benötigt: Systembenutzer, API-Key und -Secret, produktive Empfänger-ID mit Abrechnungsnummer, Freigabe für „nur Deutschland“. Der Auftraggeber sucht die Angaben im Geschäftskundenportal (Liste im Antwortbericht vom 2026-10-27).
 - [ ] Wortlaut des Anleitungstextes (Verpacken, Label aufkleben, Abgabe in Filiale/Paketshop, keine Abholung): Der Entwickler schlägt einen Standardtext vor, der Auftraggeber sucht die DHL-Textvorschläge heraus und gibt frei.
 - [ ] Nach dem Erzeugen im Formular: Soll das Ticket nach dem Versand ebenfalls „schließen“ oder „Erinnerung“ als Standard vorschlagen? Vorschlag: wie PROJ-19.
-- [ ] Die Schritte für den Kunden sind deutsch. Schreibt ein Kunde in einer anderen Sprache, bleibt der Block deutsch. Soll er übersetzt oder mehrsprachig vorgehalten werden?
+- [x] Die Schritte für den Kunden sind deutsch. Schreibt ein Kunde in einer anderen Sprache, bleibt der Block deutsch. Soll er übersetzt oder mehrsprachig vorgehalten werden? → Feste Fassungen in Deutsch, Französisch, Italienisch, Niederländisch und Englisch, gewählt nach der Sprache des Kunden (2026-11-16)
+- [ ] Verlangt DHL für Auslandsretouren weitere Pflichtangaben (z. B. Gewicht)? Lesend nicht prüfbar; zeigt sich an der ersten echten Bestellung (Ticket 2140387). Jede Testbestellung erzeugt ein echtes Label. (2026-11-16)
+- [ ] Wortlaut der französischen, italienischen, niederländischen und englischen Fassung: Der Entwickler schlägt sie vor, der Auftraggeber gibt sie frei. (2026-11-16)
 
 ## Decision Log
 
@@ -131,7 +162,11 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 | Nur Original-PDF als Anhang, Anleitung im Mailtext | Kein neues Paket nötig, Barcode bleibt unverändert | 2026-10-27 |
 | DHL bekommt keine E-Mail-Adresse | Das Label geht nur mit unserer Mail an den Kunden; gleiches Verhalten für Amazon und alle anderen | 2026-10-27 |
 | Neues Ticket nur auf ausdrücklichen Klick, mit manuell eingegebener Kundenmail | Kein ungewollter Versand an eine falsche Adresse; Betreff automatisch mit Bestellnummer und „DHL Retoure“ | 2026-10-27 |
-| Nur Deutschland | Auslandsretouren brauchen eigene Empfänger und Zolldokumente | 2026-10-27 |
+| Nur Deutschland (abgelöst am 2026-11-16) | Auslandsretouren brauchen eigene Empfänger und Zolldokumente | 2026-10-27 |
+| Label auch aus Frankreich, Österreich, Belgien, den Niederlanden, Luxemburg und Italien | Anlass Ticket 2140387; der Vertrag hat für diese Länder bereits Empfänger, alle in der EU, daher keine Zolldokumente. Andere Länder bleiben beim Geschäftskundenportal | 2026-11-16 |
+| Kundenschritte als feste Texte in fünf Sprachen (Deutsch, Französisch, Italienisch, Niederländisch, Englisch), Auswahl nach Sprache des Kunden, sonst nach Land | Verlässlicher Wortlaut ohne KI-Aufruf; deckt die Sprachen der sieben Länder ab, Englisch als Rückfall | 2026-11-16 |
+| Abgabeort im Ausland neutral formuliert („auf dem Label genannter Versanddienst“), Deutschland unverändert | Stimmt für jedes Land, auch wenn DHL den Partner wechselt; keine Liste zu pflegen | 2026-11-16 |
+| Land im Adressbereich als Auswahlliste der sieben Länder | Bei Amazon-Bestellungen und falschem Land in EOCS trägt der Mitarbeiter die Adresse selbst ein; freie Eingabe würde nicht unterstützte Länder zulassen | 2026-11-16 |
 | Referenz im Label: Bestellnummer und Ticketnummer | Der Kunde und das Lager können die Sendung zuordnen; die Ticketnummer sucht sich später auch für PROJ-65 | 2026-10-27 |
 | Tracking und Zählung als eigene Funktion PROJ-65 | Eigener Nutzen, eigene Schnittstelle (Sendungsverfolgung) | 2026-10-27 |
 
@@ -153,6 +188,8 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 | Nutzung des vorhandenen Anhangs-Versandwegs im Antwortvorschlag | Das PDF wird im Browser als Anhang vorgemerkt; der Server-Versand (PROJ-19, PROJ-61) bleibt unverändert | 2026-10-27 |
 | Web-Routen mit Blade, kleine Abrufe über JSON | Seite und Formular sind Blade; Erzeugen und Versenden brauchen Rückmeldung ohne Neuladen (wie das Senden in PROJ-19) | 2026-10-27 |
 | Keine neuen Pakete | Das PDF wird unverändert angehängt, es muss nur auf Gültigkeit geprüft werden | 2026-10-27 |
+| Retourenempfänger für das Ausland wird je Land bei DHL nachgeschlagen (zwischengespeichert), Deutschland bleibt bei `DHL_RECEIVER_ID` | Keine neuen Einträge in der `.env`; je Land gibt es genau einen Empfänger (LOOXIS, Minden). Bei keinem oder mehreren Empfängern wird nichts bestellt. Die Empfänger-ID kommt weiterhin nie aus dem Formular | 2026-11-16 |
+| Das Absenderland wird am Label gespeichert (zweistelliges Kürzel, keine Adresse) | Anzeige unter „Bisherige Labels“, Wahl des Abgabeorts im Text und Grundlage für PROJ-65 | 2026-11-16 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
@@ -250,6 +287,8 @@ Neue Konfiguration (`.env`): DHL-Adresse für Anmeldung und Labels, API-Key, API
 **Noch nicht geprüft:** Die Oberfläche (Alpine-Teil) wurde in keinem Browser ausprobiert, nur die Server-Seite per Test. Gegen die echte DHL-Sandbox lief noch kein Aufruf.
 
 ## QA Test Results
+
+> Stand vor der Erweiterung um Auslandsretouren (2026-11-16); die neuen Kriterien sind noch nicht geprüft.
 
 **Tested:** 2026-10-27
 **App URL:** http://localhost:8081 (Sail), DHL-Produktion durch den Auftraggeber
