@@ -402,7 +402,7 @@ it('renders the hidden test proposal and the pending classification on the start
         ->assertOk()
         ->assertSee('Testmenge, Vorschlag verborgen')
         ->assertSee('Einordnung läuft noch')
-        ->assertDontSee('<span title="Noch nicht eingeordnet">', false);
+        ->assertDontSee('<span title="Noch nicht klassifiziert">', false);
 });
 
 it('takes a test ticket out of the test set when the automatic WISMO answer starts', function (string $mode, string $split, bool $dispatched) {

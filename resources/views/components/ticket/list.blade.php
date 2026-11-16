@@ -73,7 +73,7 @@
                 </x-select>
                 <x-select name="klassifikation" label="Klassifikation">
                     <option value="">Alle</option>
-                    <option value="{{ $none }}" @selected($filter->category === $none)>Noch nicht eingeordnet</option>
+                    <option value="{{ $none }}" @selected($filter->category === $none)>Noch nicht klassifiziert</option>
                     @foreach ($options['categories'] as $category)
                         <option value="{{ $category }}" @selected($filter->category === $category)>{{ $categories[$category] ?? $category }}</option>
                     @endforeach
@@ -153,7 +153,7 @@
                                             @elseif ($status === \App\Labeling\CategoryStatus::HIDDEN)
                                                 <span title="Testmenge: wird ohne KI-Vorschlag eingeordnet"><x-icon name="eye-off" class="text-slate-400" /><span class="sr-only">Testmenge, Vorschlag verborgen</span></span>
                                             @else
-                                                <span title="Noch nicht eingeordnet"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Noch nicht eingeordnet</span></span>
+                                                <span title="Noch nicht klassifiziert"><x-icon name="x-circle" class="text-danger-500/60" /><span class="sr-only">Noch nicht klassifiziert</span></span>
                                             @endif
                                         @endif
                                     </td>

@@ -63,7 +63,7 @@ Die Mitarbeiter bestätigen oder korrigieren die Einordnung im Arbeitsalltag auf
 ### Ticketübersicht auf der Startseite
 - [ ] Angenommen ein Ticket ist klassifiziert, dann zeigt die Spalte „Klassifikation“ die Kategorie; ein KI-Vorschlag trägt den Zusatz „KI“, eine bestätigte Einordnung keinen
 - [ ] Angenommen ein Testticket ist noch nicht entschieden, dann zeigt die Übersicht keine Kategorie
-- [ ] Angenommen der Mitarbeiter filtert nach einer Kategorie oder nach „Noch nicht eingeordnet“, dann zeigt die Liste die passenden Tickets
+- [ ] Angenommen der Mitarbeiter filtert nach einer Kategorie oder nach „Noch nicht klassifiziert“, dann zeigt die Liste die passenden Tickets
 - [ ] Angenommen ein bereits erfasstes Ticket wird später wieder geöffnet, dann übernimmt die Übersicht dessen Einordnung
 
 ## Edge Cases
@@ -129,7 +129,7 @@ Plan vom 2026-11-10 (mit dem Auftraggeber abgestimmt), kurz:
   - Einstellungen: Schalter „Neue Tickets automatisch klassifizieren“.
 - **Übersicht:** Migration `add_staff_classification_columns` (`labeling_tickets.staff_unsure_by/at`, `tracked_tickets.category_confirmed`).
   - `LabelTicket::shareCategory()` wird aufgerufen nach Erfassen mit vorhandenem Tag, Vorschlag, Entscheidung (auch `amend`), automatischem Tag und Entfernen.
-  - Die Liste zeigt `LabelCategory::label()`, ein unbestätigter Vorschlag trägt das Badge „KI“; ohne Einordnung erscheint „Noch nicht eingeordnet“.
+  - Die Liste zeigt `LabelCategory::label()`, ein unbestätigter Vorschlag trägt das Badge „KI“; ohne Einordnung erscheint „Noch nicht klassifiziert“.
   - Bestand: `labeling:share-categories`.
 - **Tests:** `tests/Feature/PROJ-80-IntakeClassificationTest.php` (32 Tests). Angepasst wurden `PROJ-67-TicketListTest.php` (Bezeichnungen, Badge „KI“) und `PROJ-78-LabelingFlowTest.php` (Aufbewahrung nach Erstelldatum).
 - **Betrieb:** Nach dem Einspielen den Queue-Worker neu starten (`queue:restart`) und `labeling:share-categories` einmal ausführen.
