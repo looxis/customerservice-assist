@@ -46,6 +46,9 @@ class Pseudonymizer
     /** @var list<string> Exact strings that stand for the delivery address. */
     private array $deliveryParts = [];
 
+    /** @var list<string> All lines of the delivery address, name and country included. */
+    private array $deliveryLines = [];
+
     public function __construct(private readonly OrderNumberDetector $orders) {}
 
     /**
@@ -60,6 +63,7 @@ class Pseudonymizer
 
         if ($lines !== []) {
             $this->values[self::DELIVERY_ADDRESS] = implode("\n", $lines);
+            $this->deliveryLines = $lines;
             $this->deliveryParts = array_values(array_filter($lines, fn (string $line): bool => mb_strlen($line) >= 5 && preg_match('/\d/', $line)));
         }
 
@@ -73,10 +77,7 @@ class Pseudonymizer
 
     public function apply(string $text): string
     {
-        foreach ($this->deliveryParts as $part) {
-            $text = str_ireplace($part, self::DELIVERY_ADDRESS, $text);
-        }
-
+        $text = $this->replaceDeliveryAddress($text);
         $text = $this->replace(self::EMAIL, 'E-MAIL', $text);
         $text = $this->replace(self::PHONE, 'TELEFON', $text, fn (string $match): bool => $this->isPhone($match));
         $text = $this->replace(self::STREET, 'ADRESSE', $text);
@@ -131,6 +132,34 @@ class Pseudonymizer
         $instance->values = $values;
 
         return $instance;
+    }
+
+    /**
+     * The placeholder stands for the whole address, so a block of several
+     * address lines (name, street, town, country) becomes one placeholder –
+     * one per line would put the full address into the reply several times.
+     * A name or country alone, without street or town, stays as it is.
+     */
+    private function replaceDeliveryAddress(string $text): string
+    {
+        if ($this->deliveryParts === []) {
+            return $text;
+        }
+
+        $lines = $this->deliveryLines;
+        usort($lines, fn (string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
+
+        $line = '(?<![\p{L}\p{N}])(?:'.implode('|', array_map(fn (string $line): string => preg_quote($line, '/'), $lines)).')(?![\p{L}\p{N}])';
+
+        return preg_replace_callback("/{$line}(?:[\\s,;]+{$line})*/iu", function (array $match): string {
+            foreach ($this->deliveryParts as $part) {
+                if (mb_stripos($match[0], $part) !== false) {
+                    return self::DELIVERY_ADDRESS;
+                }
+            }
+
+            return $match[0];
+        }, $text) ?? $text;
     }
 
     private function replace(string $pattern, string $kind, string $text, ?callable $accept = null): string

@@ -197,6 +197,19 @@ describe('contact data', function () {
         'number at line end, capital word on next line' => ["Bestellnummer 30012\nMinden ist schön"],
     ]);
 
+    test('a delivery address written over several lines becomes one placeholder', function (string $text, string $expected) {
+        $pseudonymizer = app(Pseudonymizer::class)->withDeliveryAddress(['Erika Beispiel', 'Musterweg 7', '12345 Musterstadt', 'DE']);
+
+        expect($pseudonymizer->apply($text))->toBe($expected);
+    })->with([
+        'whole block with name' => ["Adresse geändert auf:\r\n\r\n Erika Beispiel\r\nMusterweg 7\r\n12345 Musterstadt\r\n\r\nDanke", "Adresse geändert auf:\r\n\r\n [LIEFERADRESSE]\r\n\r\nDanke"],
+        'one line with commas and country' => ['An Erika Beispiel, Musterweg 7, 12345 Musterstadt, DE senden', 'An [LIEFERADRESSE] senden'],
+        'street alone' => ['Wohne im musterweg 7.', 'Wohne im [LIEFERADRESSE].'],
+        'name alone stays' => ['Erika Beispiel schreibt der Firma', 'Erika Beispiel schreibt der Firma'],
+        'country code inside a word stays' => ['Musterweg 7 der Kunde', '[LIEFERADRESSE] der Kunde'],
+        'longer house number is another address' => ['Musterweg 71', '[ADRESSE_1]'],
+    ]);
+
     test('placeholders are put back for display, unknown ones are marked', function () {
         $pseudonymizer = app(Pseudonymizer::class);
         $masked = $pseudonymizer->apply('Mail erika@example.org');
