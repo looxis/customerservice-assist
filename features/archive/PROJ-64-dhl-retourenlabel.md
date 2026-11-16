@@ -1,6 +1,6 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-10-27
 **Last Updated:** 2026-11-16
 
@@ -147,7 +147,7 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - [ ] Wortlaut des Anleitungstextes (Verpacken, Label aufkleben, Abgabe in Filiale/Paketshop, keine Abholung): Der Entwickler schlägt einen Standardtext vor, der Auftraggeber sucht die DHL-Textvorschläge heraus und gibt frei.
 - [ ] Nach dem Erzeugen im Formular: Soll das Ticket nach dem Versand ebenfalls „schließen“ oder „Erinnerung“ als Standard vorschlagen? Vorschlag: wie PROJ-19.
 - [x] Die Schritte für den Kunden sind deutsch. Schreibt ein Kunde in einer anderen Sprache, bleibt der Block deutsch. Soll er übersetzt oder mehrsprachig vorgehalten werden? → Feste Fassungen in Deutsch, Französisch, Italienisch, Niederländisch und Englisch, gewählt nach der Sprache des Kunden (2026-11-16)
-- [ ] Verlangt DHL für Auslandsretouren weitere Pflichtangaben (z. B. Gewicht)? Laut der Schnittstellenbeschreibung (öffentliche SDKs, geprüft 2026-11-16) sind Gewicht, Warenwert und Zollangaben freiwillig und das Land steckt allein im Empfänger; der Beweis ist die erste echte Bestellung (Ticket 2140387). Jede Testbestellung erzeugt ein echtes Label. (2026-11-16)
+- [x] Verlangt DHL für Auslandsretouren weitere Pflichtangaben (z. B. Gewicht)? → Nein: Das erste echte Auslandslabel (Frankreich, Ticket 2140387) wurde ohne Gewicht und Zollangaben erzeugt (bestätigt vom Auftraggeber, 2026-11-16). Ursprüngliche Frage: Laut der Schnittstellenbeschreibung (öffentliche SDKs, geprüft 2026-11-16) sind Gewicht, Warenwert und Zollangaben freiwillig und das Land steckt allein im Empfänger; der Beweis ist die erste echte Bestellung (Ticket 2140387). Jede Testbestellung erzeugt ein echtes Label. (2026-11-16)
 - [ ] Wortlaut der französischen, italienischen, niederländischen und englischen Fassung: Der Entwickler schlägt sie vor, der Auftraggeber gibt sie frei. (2026-11-16)
 
 ## Decision Log
@@ -471,7 +471,7 @@ Keine neuen Pakete, keine neuen Einträge in der `.env`. Eine Migration (Spalte 
 
 ### Edge Cases Status
 - [x] Niederländische PLZ mit und ohne Leerzeichen; Land außerhalb der sieben (Adresse wird gezeigt, Server lehnt ab); Kunde in Frankreich schreibt Deutsch (deutsche Schritte, neutraler Abgabeort); gleiche Adresse mit anderem Land ist eine andere Anfrage; dieselbe Auslandsanfrage zweimal ergibt nur eine Bestellung; Label mit einem nicht mehr angebotenen Land zählt als deutsch
-- [ ] Nicht prüfbar ohne echte Bestellung: ob DHL eine Auslandsretoure ohne Gewicht und Zollangaben annimmt. Lehnt DHL ab, zeigt die App den Wortlaut von DHL (dieser Weg ist getestet)
+- [x] (vom Auftraggeber mit einem echten Label aus Frankreich bestätigt, 2026-11-16) Ob DHL eine Auslandsretoure ohne Gewicht und Zollangaben annimmt. Lehnt DHL ab, zeigt die App den Wortlaut von DHL (dieser Weg ist getestet)
 
 ### Security Audit Results
 - [x] Empfänger kommt nie aus dem Formular (für das Ausland aus der DHL-Liste, für Deutschland aus der Konfiguration); Land und Sprache nur aus festen Listen
@@ -487,7 +487,8 @@ Keine (Schönheitsfehler der Stufe „Low“ sind nicht aufgeführt).
 - **Bugs Found:** 0 (critical, high, medium)
 - **Security:** Pass
 - **Regression:** Gesamtlauf 2720 Tests, 2717 grün, 2 übersprungen, 1 Fehlschlag: `PROJ-36-AnalysisIntegrationTest` („a free reproduction … does not load the goodwill rules“, POLICY-007 wird geladen). Der Test läuft gegen die echte Wissensbasis; PROJ-64 hat weder Wissen noch Wissensabruf geändert. Die Ursache ist nicht untersucht.
-- **Production Ready:** Auf dem Server ja. Die Freigabe (Approved) steht noch aus, bis das erste echte Auslandslabel bei DHL bestellt ist (Ticket 2140387) und die Oberfläche einmal im Browser bedient wurde.
+- **Production Ready:** YES
+- **Freigabe (2026-11-16):** Der Auftraggeber hat das erste echte Auslandslabel in der App erzeugt (Frankreich, Ticket 2140387): DHL nimmt die Bestellung ohne Gewicht an, die Texte kamen in der richtigen Sprache. Damit ist auch die Oberfläche einmal im Browser bedient; die übrigen Länder und Browser- und Breitentests wurden nicht einzeln geprüft.
 
 ## Deployment
 _To be added by /deploy_
