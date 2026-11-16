@@ -6,6 +6,10 @@
 
 ## 2026-11-16
 
+- Verkaufskanal wählen: In „Vorschlag erstellen“ und „Frage stellen“ wählst du jetzt zuerst den Verkaufskanal (looxis.de, Amazon, fachhaendler.looxis.de, ehemals qobos, LOOXIS Pro, API). Die Kundengruppe wird daraus automatisch gesetzt und lässt sich bei Bedarf ändern. Ist eine Bestellung geladen oder kommt die Nachricht über Amazon, ist der Kanal schon vorbelegt. Ist der Kanal nicht erkennbar, wähle „Noch unklar“.
+- Neue Kundengruppe „Globus“ für den Kanal „ehemals qobos“.
+- Ticketübersicht: Die Spalte „Kanal“ füllt sich, sobald ein Ticket geöffnet oder ein Vorschlag erstellt wurde; nach dem Kanal lässt sich filtern.
+- Reklamation nicht berechtigt: „Kulanzangebot unterbreiten?“ steht jetzt auf „Ja“. Im neuen Feld „Art des Kulanzangebots“ kannst du das Angebot nennen (z. B. 10 % Rabatt als Erstattung auf eine Neubestellung); die Antwort beschreibt dann auch den Ablauf.
 - DHL-Retourenlabel aus dem Ausland: Labels gibt es jetzt auch für Rücksendungen aus Frankreich, Österreich, Belgien, den Niederlanden, Luxemburg und Italien. Das Land kommt aus der Bestellung und lässt sich im Adressbereich wählen. Die Schritte für den Kunden stehen auf Deutsch, Französisch, Italienisch, Niederländisch oder Englisch unter dem Entwurf; auf der Seite „DHL Retoure“ wählst du die Sprache der Mail selbst. Bei Adressen im Ausland bitte prüfen, dass Straße und Hausnummer in den richtigen Feldern stehen.
 
 ## 2026-11-13
