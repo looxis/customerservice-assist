@@ -182,13 +182,13 @@ describe('the form on the ticket page', function () {
     }
 
     test('an ordinary ticket starts with the free-text form and offers the complaint form', function () {
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Zusätzliche Informationen')->assertSee('Reklamationsformular verwenden')->assertSee("mode: 'frei',", false);
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Zusätzliche Informationen')->assertSee('name="formularwahl" value="reklamation"', false)->assertSee("mode: 'frei',", false);
     });
 
     test('a ticket classified as another category starts with the free-text form and offers the complaint form', function () {
         classifiedAs('wismo');
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('Reklamationsformular verwenden')->assertSee("mode: 'frei',", false);
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('name="formularwahl" value="reklamation"', false)->assertSee("mode: 'frei',", false);
     });
 
     test('a complaint ticket shows the complaint form first and offers the switch to the free text', function () {
@@ -196,7 +196,7 @@ describe('the form on the ticket page', function () {
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
             ->assertSee('Wird die Reklamation nach Prüfung als berechtigt anerkannt?')
-            ->assertSee('Freitext statt Reklamationsformular')
+            ->assertSee('name="formularwahl" value="frei"', false)
             ->assertSee('Versand voraussichtlich')
             ->assertSee("mode: 'reklamation',", false);
     });

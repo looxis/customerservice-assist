@@ -15,6 +15,7 @@ export default (config) => ({
     // Sales channel (PROJ-89): choosing one sets the customer group that belongs to it.
     channel: config.channel ?? '',
     channelGroups: config.channelGroups ?? {},
+    optionalFor: config.optionalFor ?? null,
     advanced: config.advanced ?? false,
     query: '',
     open: false,
@@ -336,7 +337,8 @@ export default (config) => ({
             parts.push('Die Kundengruppe ist „Noch unklar“. Dann gelten nur Regeln, die für alle Kundengruppen gelten.');
         }
 
-        if (this.withoutProduct) {
+        // In a guided form with an optional product (PROJ-90) a case without a product needs no second look.
+        if (this.withoutProduct && !(this.optionalFor !== null && this.mode === this.optionalFor)) {
             parts.push(this.mentioned.length > 0
                 ? `„Kein Produktbezug“ ist gewählt, im Ticket wird aber ${this.mentioned.join(', ')} erwähnt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.`
                 : '„Kein Produktbezug“ ist gewählt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.');

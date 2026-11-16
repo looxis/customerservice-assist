@@ -6,6 +6,8 @@ use App\Analysis\AnalysisStore;
 use App\Analysis\Clarification;
 use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
+use App\Analysis\GuidedForms;
+use App\Analysis\SupportDecision;
 use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Http\Requests\Concerns\ChoosesSalesChannel;
 use App\Knowledge\CustomerGroup;
@@ -57,6 +59,8 @@ class AnalyzeTicketRequest extends FormRequest
         $parent = $this->parentAnalysis();
 
         if ($parent === null) {
+            $this->relaxProductChoice();
+
             return;
         }
 
@@ -66,6 +70,17 @@ class AnalyzeTicketRequest extends FormRequest
             fn (mixed $value, string $key): bool => ! $this->has($key) && $value !== null,
             ARRAY_FILTER_USE_BOTH,
         ));
+    }
+
+    /**
+     * In the form for technical support the product is optional (PROJ-90): nothing chosen means a case without a
+     * product, and a tick left over from another form never stands next to a chosen product.
+     */
+    private function relaxProductChoice(): void
+    {
+        if ($this->input('formular') === SupportDecision::FORM) {
+            $this->merge(['kein_produktbezug' => $this->hasProductChoice() ? '0' : '1']);
+        }
     }
 
     /**
@@ -84,7 +99,10 @@ class AnalyzeTicketRequest extends FormRequest
             'kontext' => ['nullable', 'string', 'max:'.config('analysis.max_context_length')],
             'stand' => ['nullable', 'integer'],
             'return_label' => ['nullable', 'uuid'],
-            'formular' => ['nullable', Rule::in([ComplaintDecision::FORM, ComplaintDecision::FREE])],
+            'formular' => ['nullable', Rule::in(GuidedForms::keys())],
+            'support_loesung' => ['nullable', Rule::in(SupportDecision::ANSWERS)],
+            'support_hinweis' => ['nullable', 'string', 'max:1000'],
+            'support_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_berechtigt' => ['nullable', Rule::in(ComplaintDecision::ANSWERS)],
             'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
@@ -130,6 +148,14 @@ class AnalyzeTicketRequest extends FormRequest
                     $validator->errors()->add('reklamation_grund', 'Bitte den Grund eingeben, warum die Reklamation nicht berechtigt ist.');
                 } elseif ($this->input('reklamation_berechtigt') === 'info' && trim((string) $this->input('reklamation_info', '')) === '') {
                     $validator->errors()->add('reklamation_info', 'Bitte angeben, welche Informationen für die Entscheidung nötig sind.');
+                }
+            }
+
+            if ($this->input('formular') === SupportDecision::FORM) {
+                if (! in_array($this->input('support_loesung'), SupportDecision::ANSWERS, true)) {
+                    $validator->errors()->add('support_loesung', 'Bitte angeben, ob eine Lösung bereits bekannt ist.');
+                } elseif ($this->input('support_loesung') === SupportDecision::UNCLEAR && trim((string) $this->input('support_info', '')) === '') {
+                    $validator->errors()->add('support_info', 'Bitte angeben, welche Informationen benötigt werden.');
                 }
             }
 
@@ -194,7 +220,7 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen'];
     }
 
     /**
@@ -216,6 +242,14 @@ class AnalyzeTicketRequest extends FormRequest
     }
 
     /**
+     * The answers of the form for technical support (PROJ-90), or null when another form was used.
+     */
+    public function support(): ?SupportDecision
+    {
+        return SupportDecision::fromInput($this->validated());
+    }
+
+    /**
      * The DHL return label to attach: with the complaint form only when the complaint is justified and the
      * product is sent back, whatever else was sent.
      */
@@ -223,6 +257,10 @@ class AnalyzeTicketRequest extends FormRequest
     {
         $complaint = $this->complaint();
         $id = $this->validated('return_label');
+
+        if ($this->support() !== null) {
+            return null;
+        }
 
         return filled($id) && ($complaint === null || $complaint->wantsReturnLabel()) ? (string) $id : null;
     }

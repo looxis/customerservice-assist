@@ -6,6 +6,8 @@
 
 ## 2026-11-16
 
+- Technischer Support geführt beantworten: Tickets der Art „Technischer Support“ (Zahlung, Passwort, Anmeldung, Bestellprobleme im Shop) öffnen jetzt ein eigenes Formular. Du gibst an, ob eine Lösung bekannt ist: Bei „Ja“ kannst du einen kurzen Hinweis ergänzen, bei „Unklar“ trägst du ein, welche Informationen der Kunde liefern soll. Ein Produkt musst du dort nicht angeben.
+- Formular wählen: Statt des Knopfs „Reklamationsformular verwenden“ gibt es die Auswahl „Formular“ mit Technischer Support, Reklamation und Freitext. Vorgewählt ist das Formular, das zur Einordnung des Tickets passt.
 - Verkaufskanal wählen: In „Vorschlag erstellen“ und „Frage stellen“ wählst du jetzt zuerst den Verkaufskanal (looxis.de, Amazon, fachhaendler.looxis.de, ehemals qobos, LOOXIS Pro, API). Die Kundengruppe wird daraus automatisch gesetzt und lässt sich bei Bedarf ändern. Ist eine Bestellung geladen oder kommt die Nachricht über Amazon, ist der Kanal schon vorbelegt. Ist der Kanal nicht erkennbar, wähle „Noch unklar“.
 - Neue Kundengruppe „Globus“ für den Kanal „ehemals qobos“.
 - Ticketübersicht: Die Spalte „Kanal“ füllt sich, sobald ein Ticket geöffnet oder ein Vorschlag erstellt wurde; nach dem Kanal lässt sich filtern.

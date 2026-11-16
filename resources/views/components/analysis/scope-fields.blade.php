@@ -1,4 +1,4 @@
-@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen', 'advanced' => false])
+@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen', 'advanced' => false, 'optionalProductFor' => null])
 
 @php
     $products = collect($analysis['products'])->map(fn (array $product): array => [
@@ -16,6 +16,8 @@
         array_map(fn ($id): string => 'forge:'.(int) $id, (array) old('forge_produkte', [])),
         array_map(fn ($id): string => 'eocs:'.(int) $id, (array) old('eocs_produkte', [])),
     )) ?: array_values((array) $forge['selected']);
+    // In a guided form that does not need a product (PROJ-90) the product is optional; the form owns the Alpine property mode.
+    $optional = $optionalProductFor === null ? 'false' : "mode === '".$optionalProductFor."'";
     $channels = $analysis['channels'] ?? [];
     $chosenChannel = (string) old('verkaufskanal', $analysis['suggestedChannel'] ?? '');
     $config = [
@@ -34,6 +36,7 @@
         'none' => (bool) $noProduct,
         'group' => (string) old('kundengruppe', $analysis['suggestedGroup'] ?? ''),
         'channel' => $chosenChannel,
+        'optionalFor' => $optionalProductFor,
         'channelGroups' => array_column($channels, 'group', 'key'),
         'advanced' => (bool) $advanced,
     ];
@@ -67,7 +70,7 @@
     @if ($forgeEnabled)
         {{-- The concrete product from the catalog (PROJ-38): positions of the order or a search. --}}
         <fieldset class="min-w-0 md:col-span-2" @if (app(\App\Staff\IntroMode::class)->isActive(request())) aria-describedby="katalog-hinweis" @endif>
-            <legend class="block text-sm font-medium text-slate-900">Produkt</legend>
+            <legend class="block text-sm font-medium text-slate-900">Produkt<span class="font-normal text-slate-600" x-show="{{ $optional }}" x-cloak> (optional)</span></legend>
             <x-intro>
                 <p id="katalog-hinweis" class="mt-1 text-xs text-slate-600">Um welches Produkt geht es? Daraus holt die App Produktdaten und Servicewissen aus dem Produktkatalog; bei einer allgemeinen Frage genügt ein Master ohne Größe.</p>
             </x-intro>
@@ -116,12 +119,12 @@
 
     <fieldset class="min-w-0 {{ $forgeEnabled ? 'md:col-span-2' : '' }}" aria-describedby="produkt-hinweis">
         @if ($forgeEnabled)
-            <legend class="block text-sm font-medium text-slate-900" x-show="areaVisible">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0"> *</span></legend>
+            <legend class="block text-sm font-medium text-slate-900" x-show="areaVisible">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0 && ! ({{ $optional }})"> *</span><span class="font-normal text-slate-600" x-show="{{ $optional }}" x-cloak> (optional)</span></legend>
             <x-intro>
                 <p class="mt-1 text-xs text-slate-600" x-show="areaVisible">Zu welchem Bereich unserer Regeln gehört der Fall (z. B. Essbare Fotos)? Die App schlägt ihn aus dem Produkt vor; bitte nur ändern, wenn der Vorschlag nicht stimmt. Das ist nicht das Produkt selbst.</p>
             </x-intro>
         @else
-            <legend class="block text-sm font-medium text-slate-900">Produkt(e)<span class="text-danger-500" aria-hidden="true"> *</span></legend>
+            <legend class="block text-sm font-medium text-slate-900">Produkt(e)<span class="text-danger-500" aria-hidden="true" x-show="! ({{ $optional }})"> *</span><span class="font-normal text-slate-600" x-show="{{ $optional }}" x-cloak> (optional)</span></legend>
         @endif
 
         <div class="mt-1 flex flex-wrap gap-2" x-show="areaVisible && (selected.length > 0 || unknown !== '')">
@@ -164,7 +167,7 @@
             </ul>
         </div>
 
-        <label class="mt-3 flex items-start gap-2 text-sm text-slate-900" x-show="areaVisible">
+        <label class="mt-3 flex items-start gap-2 text-sm text-slate-900" x-show="areaVisible && ! ({{ $optional }})">
             <input type="checkbox" name="kein_produktbezug" value="1" x-model="none" x-on:change="toggleNone()" class="mt-0.5 size-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand">
             <span>Kein Produktbezug <span class="text-slate-600">(z. B. Sendungsverfolgung oder eine allgemeine Frage)</span></span>
         </label>
@@ -173,8 +176,8 @@
             <p class="mt-1 text-xs font-medium text-warning-700">Im Ticket erwähnt: {{ $titles[$mentionedSlug] ?? $mentionedSlug }} ({{ implode(' · ', $reasons[$mentionedSlug] ?? []) }}) – nicht ausgewählt</p>
         @endforeach
         <p x-show="unknown !== ''" x-cloak class="mt-1 text-xs font-medium text-warning-700">Zu diesem Produkt gibt es weder Katalogangaben noch Regeln; die App erfindet nichts dazu. Kennst du die gesuchte Information (z. B. eine Funktion)? Trage sie unter „{{ $infoField }}“ ein, die KI nutzt sie. Nach dem Vorschlag kannst du die Wissenslücke melden.</p>
-        <p x-show="withoutProduct" x-cloak class="mt-1 text-xs font-medium text-warning-700">Ohne Produkt werden weder Produktangaben aus dem Produktkatalog (ProductForge/Content Studio & EOCS) noch produktbezogene Regeln berücksichtigt. Geht es doch um ein Produkt, wähle es oder gib es oben ein – auch wenn es noch nicht in der Liste steht.</p>
-        <p id="produkt-hinweis" class="mt-1 text-xs text-slate-600" x-show="selected.length === 0 && unknown === '' && !none && forgeSelected.length === 0">Bitte ein Produkt wählen, ein unbekanntes Produkt eingeben oder „Kein Produktbezug“ ankreuzen.</p>
+        <p x-show="withoutProduct && ! ({{ $optional }})" x-cloak class="mt-1 text-xs font-medium text-warning-700">Ohne Produkt werden weder Produktangaben aus dem Produktkatalog (ProductForge/Content Studio & EOCS) noch produktbezogene Regeln berücksichtigt. Geht es doch um ein Produkt, wähle es oder gib es oben ein – auch wenn es noch nicht in der Liste steht.</p>
+        <p id="produkt-hinweis" class="mt-1 text-xs text-slate-600" x-show="selected.length === 0 && unknown === '' && !none && forgeSelected.length === 0 && ! ({{ $optional }})">Bitte ein Produkt wählen, ein unbekanntes Produkt eingeben oder „Kein Produktbezug“ ankreuzen.</p>
         @error('produkte')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror
         @error('kein_produktbezug')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror
         @error('produkt_ohne_wissen')<p class="mt-1 text-sm text-danger-500">{{ $message }}</p>@enderror

@@ -27,16 +27,23 @@ trait ChecksProductChoice
         ];
     }
 
+    /**
+     * Whether a product was named in any of the three ways: knowledge area, typed name or catalog product.
+     */
+    protected function hasProductChoice(): bool
+    {
+        return array_values(array_filter((array) $this->input('produkte', []), 'is_string')) !== []
+            || trim((string) $this->input('produkt_ohne_wissen', '')) !== ''
+            || $this->forgeSelection() !== [] || $this->eocsSelection() !== [];
+    }
+
     protected function checkProductChoice(Validator $validator): void
     {
-        $hasProduct = array_values(array_filter((array) $this->input('produkte', []), 'is_string')) !== [];
-        $hasName = trim((string) $this->input('produkt_ohne_wissen', '')) !== '';
-        $hasCatalogProduct = $this->forgeSelection() !== [] || $this->eocsSelection() !== [];
         $none = $this->boolean('kein_produktbezug');
 
-        if (! $hasProduct && ! $hasName && ! $hasCatalogProduct && ! $none) {
+        if (! $this->hasProductChoice() && ! $none) {
             $validator->errors()->add('produkte', 'Bitte ein Produkt wählen, ein Produkt nennen, das nicht im Produktkatalog steht, oder „Kein Produktbezug“ bestätigen.');
-        } elseif ($none && ($hasProduct || $hasName || $hasCatalogProduct)) {
+        } elseif ($none && $this->hasProductChoice()) {
             $validator->errors()->add('kein_produktbezug', 'Entweder Produkte angeben oder „Kein Produktbezug“ wählen, nicht beides.');
         }
     }

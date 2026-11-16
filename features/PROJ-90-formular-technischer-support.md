@@ -1,6 +1,6 @@
 # PROJ-90: Geführtes Formular „Technischer Support“ in „Vorschlag erstellen“
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -178,6 +178,18 @@ Keine neuen Pakete.
 ### Risiken
 - Die Formularwahl ersetzt den Umschaltknopf des getesteten Reklamationsformulars; dessen Tests werden angepasst und laufen mit.
 - Ob „Ja ohne Hinweis“ gute Entwürfe liefert, hängt vom Wissen je Kanal ab (PROJ-91).
+
+## Implementation Notes (2026-11-16)
+Oberfläche und Backend in einem Schritt umgesetzt.
+
+- **Antworten:** neue Klasse `App\Analysis\SupportDecision` (Formularschlüssel `support`, Felder `support_loesung` mit `ja`/`unklar`, `support_hinweis`, `support_info`): prüft, speichert nur den gewählten Zweig und liefert die festen Sätze für die KI.
+- **Liste der Formulare:** `App\Analysis\GuidedForms` (Technischer Support, Reklamation, Freitext) mit Vorwahl je Kategorie; `TicketController::complaintForm()` liefert das vorgewählte Formular.
+- **Formular:** Auswahl „Formular“ (Radioknöpfe, an die Alpine-Eigenschaft `mode` gebunden) ersetzt den Umschaltknopf; neuer Baustein `x-analysis.support-fields`. Die Zeile „Erstellt mit“ nennt ein geführtes Formular beim Namen.
+- **Produkt optional:** `x-analysis.scope-fields` blendet im Supportformular Pflichtstern, Haken „Kein Produktbezug“ und die zugehörigen Hinweise aus. Der Server wertet „kein Produkt gewählt“ als Fall ohne Produktbezug (`AnalyzeTicketRequest::relaxProductChoice()`); die Rückfrage vor dem Abschicken entfällt dort.
+- **DHL-Label:** wird im Supportformular nie angehängt, auch wenn eine Label-ID mitgesendet wird.
+- **Tests:** `tests/Feature/PROJ-90-SupportFormTest.php` (23 Tests); drei Tests des Reklamationsformulars an die Formularwahl angepasst.
+
+Abweichung von der Spec: keine.
 
 ## QA Test Results
 _To be added by /qa_

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisPanel;
 use App\Analysis\AnalysisStore;
+use App\Analysis\GuidedForms;
 use App\Analysis\ReplyDelivery;
 use App\Analysis\TicketActivityLog;
 use App\Analysis\Translator;
@@ -143,7 +144,7 @@ class TicketController extends Controller
      * @param  array<string, mixed>|null  $labelState
      * @param  list<string>  $claimReferences
      * @param  list<OrderLookup>  $lookups
-     * @return array{default: bool, toggle: bool, claimNumber: ?string}
+     * @return array{default: bool, form: string, toggle: bool, claimNumber: ?string}
      */
     private function complaintForm(?array $labelState, array $claimReferences, array $lookups): array
     {
@@ -160,7 +161,7 @@ class TicketController extends Controller
             }
         }
 
-        return ['default' => $default, 'toggle' => true, 'claimNumber' => $claims[0] ?? null];
+        return ['default' => $default, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null), 'toggle' => true, 'claimNumber' => $claims[0] ?? null];
     }
 
     /**

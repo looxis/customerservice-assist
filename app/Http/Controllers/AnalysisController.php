@@ -163,6 +163,7 @@ class AnalysisController extends Controller
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
         $complaint = $request->complaint();
+        $guided = $complaint ?? $request->support();
         $returnLabelId = $request->returnLabelId();
         $returnLabel = $returnLabelId === null ? null : ReturnLabel::query()->find($returnLabelId);
 
@@ -186,10 +187,10 @@ class AnalysisController extends Controller
                 products: array_values($request->validated('produkte', [])),
                 orders: $orders,
                 manualOrder: $orders === [] ? $request->manualOrder() : [],
-                employeeContext: trim(implode("\n", array_filter([$complaint === null ? (string) $request->validated('kontext', '') : '', $complaint?->facts() ?? '', $returnLabel === null ? '' : ReturnInstructions::fact()]))),
+                employeeContext: trim(implode("\n", array_filter([$guided === null ? (string) $request->validated('kontext', '') : '', $guided?->facts() ?? '', $returnLabel === null ? '' : ReturnInstructions::fact()]))),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), SalesChannels::FIELD => $channel, 'kontext' => $complaint === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $complaint === null ? ($request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null) : ComplaintDecision::FORM, ...($complaint?->storedInput() ?? []), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), SalesChannels::FIELD => $channel, 'kontext' => $guided === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null, ...($guided?->storedInput() ?? []), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),

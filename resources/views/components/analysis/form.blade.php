@@ -25,11 +25,13 @@
     $unknownName = (string) ($oldInput ? old('produkt_ohne_wissen', '') : ($inputs['produkt_ohne_wissen'] ?? ''));
     $noProduct = $oldInput ? (bool) old('kein_produktbezug') : (bool) ($inputs['kein_produktbezug'] ?? ($inputs !== [] && ($inputs['produkte'] ?? []) === [] && $unknownName === '' && ($inputs['forge_produkte'] ?? []) === [] && ($inputs['eocs_produkte'] ?? []) === []));
     $usedVariant = \App\Analysis\ContextVariant::tryFrom((string) ($inputs['variante'] ?? ''))?->label();
-    // Complaint form (PROJ-86): the default for a complaint ticket, a switch back to the free text where it is offered.
+    // Guided forms (PROJ-86, PROJ-90): the form of the ticket's category is preselected, every form can be chosen.
     $complaintToggle = (bool) ($complaint['toggle'] ?? false);
-    $defaultForm = ($complaint['default'] ?? false) ? 'reklamation' : 'frei';
+    $forms = \App\Analysis\GuidedForms::options();
+    $defaultForm = $complaint['form'] ?? (($complaint['default'] ?? false) ? 'reklamation' : 'frei');
     $chosenForm = $oldInput ? old('formular') : ($inputs['formular'] ?? null);
-    $formMode = ! $complaintToggle ? 'frei' : (in_array($chosenForm, ['reklamation', 'frei'], true) ? $chosenForm : $defaultForm);
+    $formMode = ! $complaintToggle ? 'frei' : (is_string($chosenForm) && isset($forms[$chosenForm]) ? $chosenForm : $defaultForm);
+    $usedForm = \App\Analysis\GuidedForms::guidedLabel($inputs['formular'] ?? null);
     $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($inputs[$key] ?? $default);
     $labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
 @endphp
@@ -43,7 +45,7 @@
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
                     <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
                     <span class="text-sm text-slate-600">
-                        Erstellt mit: {{ implode(' · ', array_filter([$analysis['usedChannelLabel'] ?? null, $usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
+                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
                         @if ($complaintToggle)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
@@ -72,7 +74,7 @@
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{
                   variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '',
-                  mode: @js($formMode), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
+                  mode: @js($formMode), loesung: @js($pickedAnswer('support_loesung')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
                   syncLabel() { this.labelOn = this.mode === 'reklamation' && ['ja', 'unsicher'].includes(this.berechtigt) && this.retoure === 'ja' },
                   init() {
                       ['mode', 'berechtigt', 'retoure'].forEach((property) => this.$watch(property, () => this.syncLabel()))
@@ -94,7 +96,7 @@
                 <x-analysis.related-tickets :related="$analysis['related']" />
             @endif
 
-            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" />
+            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" />
 
             @unless ($analysis['hasOrders'])
                 <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}</p>
@@ -157,12 +159,19 @@
 
             <input type="hidden" name="formular" x-bind:value="mode" value="{{ $formMode }}">
             @if ($complaintToggle)
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <p class="text-sm font-medium text-slate-900" x-text="mode === 'reklamation' ? 'Reklamation: geführte Eingaben' : 'Freitext: Zusätzliche Informationen'"></p>
-                    <x-button type="button" variant="secondary" x-on:click="mode = mode === 'reklamation' ? 'frei' : 'reklamation'">
-                        <span x-text="mode === 'reklamation' ? 'Freitext statt Reklamationsformular' : 'Reklamationsformular verwenden'"></span>
-                    </x-button>
-                </div>
+                {{-- Which form the proposal is made with: preselected from the category of the ticket. --}}
+                <fieldset>
+                    <legend class="block text-sm font-medium text-slate-900">Formular</legend>
+                    <div class="mt-1 flex flex-wrap gap-x-6 gap-y-1">
+                        @foreach ($forms as $formKey => $formLabel)
+                            <label class="flex min-h-9 items-center gap-2 text-sm text-slate-900">
+                                <input type="radio" name="formularwahl" value="{{ $formKey }}" x-model="mode" @checked($formMode === $formKey) class="size-4 border-slate-300 text-brand focus:ring-brand">
+                                {{ $formLabel }}
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+                <x-analysis.support-fields :inputs="$inputs" />
                 <x-analysis.complaint-fields :inputs="$inputs" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
             @endif
 
