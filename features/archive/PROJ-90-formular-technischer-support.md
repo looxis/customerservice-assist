@@ -1,6 +1,6 @@
 # PROJ-90: Geführtes Formular „Technischer Support“ in „Vorschlag erstellen“
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -88,7 +88,7 @@ Das Reklamationsformular (PROJ-86) hat gezeigt, dass wenige Klick-Entscheidungen
 - Bedienbar per Tastatur, Fehlermeldungen am jeweiligen Feld.
 
 ## Open Questions
-- [ ] Reicht bei „Ja“ ohne Hinweis das vorhandene Wissen je Kanal aus, oder muss PROJ-91 vor dem Einsatz fertig sein? (Im Betrieb an echten Tickets prüfen.)
+- [x] Reicht bei „Ja“ ohne Hinweis das vorhandene Wissen je Kanal aus? Am Fachhändler-Ticket 2140446 lieferte es gute Ergebnisse (2026-11-16); weiteres Wissen je Kanal folgt mit PROJ-91.
 
 ## Decision Log
 
@@ -203,7 +203,7 @@ Vorgabe des Auftraggebers nach dem Test: Bei „Unklar“ bittet die Antwort auc
 
 ## QA Test Results
 
-**Tested:** 2026-11-16 (begonnen, noch nicht abgeschlossen)
+**Tested:** 2026-11-16
 **App URL:** http://192.168.1.109:8081
 **Tester:** QA Engineer (AI)
 
@@ -267,7 +267,7 @@ Geprüft mit der Testsuite (`tests/Feature/PROJ-90-SupportFormTest.php`, 23 Test
 - **Acceptance Criteria:** 21 von 21 erfüllt
 - **Bugs Found:** 1 (High, behoben und nachgeprüft)
 - **Security:** Pass
-- **Production Ready:** YES, sobald die Standard-Rückfrage (Änderung 2) an einem echten Ticket bestätigt ist
+- **Production Ready:** YES; vom Auftraggeber an Ticket 2140446 geprüft und am 2026-11-16 freigegeben (beide Zweige, Standard-Rückfrage bei „Unklar“)
 
 ## Deployment
 _To be added by /deploy_
