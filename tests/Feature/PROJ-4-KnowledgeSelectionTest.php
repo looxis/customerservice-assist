@@ -100,6 +100,7 @@ describe('value lists', function () {
             ['b2c', 'looxis-de'],
             ['b2c', 'amazon'],
             ['b2b-reseller', 'fachhaendler'],
+            ['b2b-reseller', 'qobos'],
             ['b2b-pro', 'looxis-pro'],
             ['b2b-whitelabel', 'masterpics'],
             [null, null],

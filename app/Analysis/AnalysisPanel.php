@@ -252,7 +252,7 @@ class AnalysisPanel
         return match ($detected[1] ?? null) {
             SalesChannels::BY_ORDER => [$detected[0], 'aus dem Kanal der Bestellung'],
             SalesChannels::BY_SENDER => [$detected[0], 'aus der Absenderadresse'],
-            default => ['', null],
+            default => [$stored === null ? '' : $selectable($stored[0]), null],
         };
     }
 

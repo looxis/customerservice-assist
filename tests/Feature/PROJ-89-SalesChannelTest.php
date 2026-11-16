@@ -77,7 +77,7 @@ function channelRun(array $fields = [])
     return test()->withCookie('staff_name', 'Nele')->from('/tickets/2137942')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf', ...$fields]);
 }
 
-function ticketPage()
+function channelTicketPage()
 {
     channelTicket();
 
@@ -124,7 +124,7 @@ describe('channels and groups', function () {
 
 describe('the form', function () {
     test('the ticket form asks for the sales channel before the customer group', function () {
-        ticketPage()->assertOk()
+        channelTicketPage()->assertOk()
             ->assertSeeInOrder(['name="verkaufskanal"', 'ehemals qobos', 'API (masterpics)', 'name="kundengruppe"'], false)
             ->assertSee('Globus');
     });
@@ -149,13 +149,13 @@ describe('the form', function () {
 
 describe('preselection', function () {
     test('without an order and with a neutral sender nothing is preselected', function () {
-        ticketPage()->assertOk()->assertSee('<option value="" selected>Bitte wählen</option>', false)->assertDontSee('Vorbelegt: aus');
+        channelTicketPage()->assertOk()->assertSee('<option value="" selected>Bitte wählen</option>', false)->assertDontSee('Vorbelegt: aus');
     });
 
     test('the channel of the loaded order is preselected together with its group', function () {
         channelTicket('<p>Bestellung 7JQ-18SU-DVA4: Ich kann nicht bezahlen.</p>');
 
-        ticketPage()->assertOk()
+        channelTicketPage()->assertOk()
             ->assertSee('<option value="looxis-de" selected>looxis.de</option>', false)
             ->assertSee('<option value="private-looxis-de" selected>', false)
             ->assertSee('Vorbelegt: aus dem Kanal der Bestellung');
@@ -164,7 +164,7 @@ describe('preselection', function () {
     test('an amazon marketplace sender preselects amazon', function () {
         channelTicket(email: 'abc123@marketplace.amazon.de');
 
-        ticketPage()->assertOk()
+        channelTicketPage()->assertOk()
             ->assertSee('<option value="amazon" selected>Amazon</option>', false)
             ->assertSee('<option value="private-amazon" selected>', false)
             ->assertSee('Vorbelegt: aus der Absenderadresse');
@@ -173,14 +173,20 @@ describe('preselection', function () {
     test('the order counts before the sender address', function () {
         channelTicket('<p>Bestellung 7JQ-18SU-DVA4</p>', 'abc123@marketplace.amazon.de');
 
-        ticketPage()->assertOk()->assertSee('<option value="looxis-de" selected>looxis.de</option>', false);
+        channelTicketPage()->assertOk()->assertSee('<option value="looxis-de" selected>looxis.de</option>', false);
     });
 
     test('the channel an employee chose for the ticket is preselected again', function () {
         TrackedTicket::factory()->create(['number' => '2137942', 'channel' => 'qobos', 'channel_source' => 'staff']);
         channelTicket('<p>Bestellung 7JQ-18SU-DVA4</p>');
 
-        ticketPage()->assertOk()->assertSee('<option value="qobos" selected>ehemals qobos</option>', false);
+        channelTicketPage()->assertOk()->assertSee('<option value="qobos" selected>ehemals qobos</option>', false);
+    });
+
+    test('a channel recognised earlier stays preselected when it can no longer be recognised', function () {
+        TrackedTicket::factory()->create(['number' => '2137942', 'channel' => 'looxis-de', 'channel_source' => 'order']);
+
+        channelTicketPage()->assertOk()->assertSee('<option value="looxis-de" selected>looxis.de</option>', false);
     });
 });
 
@@ -226,7 +232,7 @@ describe('knowledge', function () {
         $content = Analysis::query()->latest()->first()->content;
         expect($content['inputs']['verkaufskanal'])->toBe('qobos')->and($content['meta']['sales_channel'])->toBe('qobos');
 
-        ticketPage()->assertSeeText('Erstellt mit: ehemals qobos · Globus');
+        channelTicketPage()->assertSeeText('Erstellt mit: ehemals qobos · Globus');
     });
 
     test('a question uses the chosen channel', function () {
@@ -256,7 +262,7 @@ describe('the channel with the ticket', function () {
         TrackedTicket::factory()->create(['number' => '2137942']);
         channelTicket('<p>Bestellung 7JQ-18SU-DVA4</p>');
 
-        ticketPage()->assertOk();
+        channelTicketPage()->assertOk();
 
         expect(TrackedTicket::query()->where('number', '2137942')->first())->channel->toBe('looxis-de')->channel_source->toBe('order');
     });
@@ -265,7 +271,7 @@ describe('the channel with the ticket', function () {
         TrackedTicket::factory()->create(['number' => '2137942', 'channel' => 'qobos', 'channel_source' => 'staff']);
         channelTicket('<p>Bestellung 7JQ-18SU-DVA4</p>');
 
-        ticketPage()->assertOk();
+        channelTicketPage()->assertOk();
 
         expect(TrackedTicket::query()->where('number', '2137942')->first())->channel->toBe('qobos')->channel_source->toBe('staff');
     });
@@ -274,7 +280,7 @@ describe('the channel with the ticket', function () {
         TrackedTicket::factory()->create(['number' => '2137942', 'channel' => null, 'channel_source' => 'staff']);
         channelTicket(email: 'abc123@marketplace.amazon.de');
 
-        ticketPage()->assertOk();
+        channelTicketPage()->assertOk();
 
         expect(TrackedTicket::query()->where('number', '2137942')->value('channel'))->toBeNull();
     });

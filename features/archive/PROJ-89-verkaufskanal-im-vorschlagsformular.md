@@ -1,6 +1,6 @@
 # PROJ-89: Verkaufskanal im Vorschlagsformular
 
-## Status: In Progress
+## Status: Approved
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -192,7 +192,79 @@ Abweichungen von der Spec:
 - Ein automatisch erkannter Kanal wird durch eine später geladene Bestellung mit anderem Kanal ersetzt; nur die Wahl eines Mitarbeiters ist geschützt.
 
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-11-16
+**App URL:** http://192.168.1.109:8081
+**Tester:** QA Engineer (AI)
+
+Geprüft mit der Testsuite (`tests/Feature/PROJ-89-SalesChannelTest.php`, 28 Tests; Gesamtsuite 2756 Tests grün), mit Abrufen der echten Seiten (Ticket 2140446, „Frage stellen“) und mit einem Lauf der Formularlogik (Kanal setzt Gruppe, Hinweis bei Abweichung) außerhalb des Browsers. Nicht geprüft: Bedienung im Browser von Hand, verschiedene Browser, schmale Bildschirme.
+
+### Acceptance Criteria Status
+
+#### Kanäle und Kundengruppen
+- [x] Sieben Einträge im Dropdown in der erwarteten Reihenfolge, „Noch unklar“ zuletzt (Test und echte Seite)
+- [x] Gruppe „Globus“ mit Kundenart `b2b-reseller` und Kanal „ehemals qobos“
+- [x] Abgeschaltete Gruppe: Kanal nicht mehr wählbar und vom Server abgelehnt, Name bleibt erhalten
+- [x] Neuer Kanal mit freigegebener Gruppe wird wählbar (folgt aus derselben Regel; nicht eigens getestet)
+
+#### Formular
+- [x] Pflichtfeld vor der Kundengruppe am Ticket, auch im Reklamationsformular (gemeinsamer Baustein)
+- [x] Ebenso bei „Frage stellen“
+- [x] Leerer oder unbekannter Kanal: Fehlermeldung, Eingaben bleiben erhalten, kein Vorschlag
+- [x] Kanalwahl setzt die Kundengruppe (Formularlogik geprüft, nicht im Browser)
+- [x] Abweichende Gruppe: gelber Hinweis, Abschicken möglich (Server nimmt die Kombination an)
+- [x] „Noch unklar“ zeigt den bisherigen Hinweis der Kundengruppe
+
+#### Vorbelegung
+- [x] Frühere Wahl des Mitarbeiters ist vorbelegt, auch gegen eine geladene Bestellung
+- [x] Bestellung: Kanal und Gruppe vorbelegt, Vermerk „aus dem Kanal der Bestellung“
+- [x] Amazon-Absender: „Amazon“ vorbelegt, Vermerk „aus der Absenderadresse“; Bestellung hat Vorrang
+- [x] Sonst „Bitte wählen“ (so auch an Ticket 2140446)
+
+#### Wissensauswahl
+- [x] Gewählter Kanal entscheidet über kanalbeschränkte Dokumente, Kundenart aus der Gruppe
+- [x] „ehemals qobos“ mit Globus: Wissen des Kanals ja, Wissen nur für fachhaendler.looxis.de nein
+- [x] „Noch unklar“: kein kanalbeschränktes Wissen
+- [x] Kanal im Protokoll (`inputs`, `meta`) und in „Erstellt mit“
+- [x] `knowledge:check` nimmt den Kanal `qobos` im Kopf eines Dokuments an; echte Wissensbasis: 0 Fehler
+
+#### Kanal am Ticket und Startseite
+- [x] Vorschlag speichert den Kanal, „Noch unklar“ als leer
+- [x] Ticketseite speichert den erkannten Kanal
+- [x] Wahl des Mitarbeiters wird nicht überschrieben, auch nicht „Noch unklar“ durch den Absender
+- [x] Startseite zeigt den Kanalnamen in Spalte und Filter, Filter wirkt
+
+### Edge Cases Status
+- [x] Bestellung vor Absender; unbekannter EOCS-Kanalname ohne Vorbelegung
+- [x] Abgeschalteter Kanal am Ticket: Formular zeigt „Bitte wählen“
+- [x] Älterer Vorschlag oder Anfrage ohne Kanal: Kanal der Kundengruppe
+- [x] Ticket ohne Eintrag in der Übersicht: Vorschlag funktioniert, nichts wird gespeichert
+- [x] Gespeicherte Einstellungen: Migration ergänzt Kanal und Gruppe, eigene Namen bleiben
+
+### Security Audit Results
+- [x] Eingabe: nur wählbare Kanalschlüssel werden angenommen, alles andere abgelehnt
+- [x] Ausgabe: Kanalnamen aus den Einstellungen werden von Blade maskiert
+- [x] CSRF: Feld liegt in den bestehenden Formularen mit `@csrf`
+- [x] Daten: Die Absenderadresse wird nur geprüft, am Ticket steht nur der Kanalschlüssel
+- [x] Anmeldung und Rechte: unverändert (keine Anmeldung im MVP)
+
+### Regression
+- [x] Reklamationsformular (PROJ-86), „Frage stellen“ (PROJ-40), Pflichtangaben (PROJ-42), Einstellungen (PROJ-50), Ticketübersicht (PROJ-67), Ergebnisansicht (PROJ-10): Suiten grün
+- Vier bestehende Tests an die siebte Kundengruppe und die Zeile „Erstellt mit“ angepasst.
+
+### Bugs Found
+Während der QA gefunden und behoben:
+- Ein früher erkannter Kanal war nicht mehr vorbelegt, sobald er sich nicht erneut erkennen ließ (z. B. Bestellung abgewählt). Jetzt bleibt der gespeicherte Kanal vorbelegt.
+- Die Hilfsfunktion der neuen Tests hieß wie eine vorhandene und brach den Lauf der Gesamtsuite ab; umbenannt.
+
+Offen: keine Critical-, High- oder Medium-Fehler.
+
+### Summary
+- **Acceptance Criteria:** 23 von 23 erfüllt
+- **Bugs Found:** 2, beide behoben
+- **Security:** Pass
+- **Production Ready:** YES
+- **Recommendation:** Freigeben; die Bedienung im Browser (Kanal setzt Gruppe, Hinweis bei Abweichung) einmal von Hand ansehen
 
 ## Deployment
 _To be added by /deploy_

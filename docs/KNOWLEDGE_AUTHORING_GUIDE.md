@@ -252,19 +252,21 @@ Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 | `looxis-de` | eigener Online-Shop looxis.de (Privatkunden; früher `shop`) |
 | `amazon` | Amazon |
 | `fachhaendler` | Fachhändler-Shop fachhaendler.looxis.de |
+| `qobos` | früherer Shop „ehemals qobos“ (Kundengruppe Globus; der Kanal entfällt, sobald der Shop ersetzt ist) |
 | `looxis-pro` | Bestellweg für LOOXIS-Pro |
-| `masterpics` | Aufträge des White-Label-Kunden masterpics |
+| `masterpics` | Aufträge des White-Label-Kunden masterpics (im Formular „API (masterpics)“) |
 
 Regeln:
 
 - **Leer heißt: gilt für alle.** Die Felder nur füllen, wenn das Dokument wirklich eingeschränkt ist. Ein Dokument für beide Kundenarten lässt `customer_types` leer, statt beide Werte aufzuzählen.
-- Beide Felder sind YAML-Listen. Die App wählt nach Kundengruppe aus; jede Gruppe hat genau eine Kundenart und einen Kanal:
+- Beide Felder sind YAML-Listen. Der Mitarbeiter wählt im Formular den Verkaufskanal; daraus ergibt sich die Kundengruppe (PROJ-89). Über `sales_channels` entscheidet der gewählte Kanal, über `customer_types` die Kundenart der Gruppe. Jede Gruppe hat genau eine Kundenart und einen Kanal:
 
   | Kundengruppe | Kundenart | Kanal |
   |---|---|---|
   | Privatkunde, looxis.de | `b2c` | `looxis-de` |
   | Privatkunde, Amazon | `b2c` | `amazon` |
   | Foto-Fachhändler / Reseller | `b2b-reseller` | `fachhaendler` |
+  | Globus | `b2b-reseller` | `qobos` |
   | LOOXIS-Pro | `b2b-pro` | `looxis-pro` |
   | White-Label-Kunde, masterpics | `b2b-whitelabel` | `masterpics` |
   | Noch unklar | – | – |
