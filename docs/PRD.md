@@ -99,7 +99,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Verschleierte Links erkennen (PROJ-84): Linktext nennt eine andere Adresse als das Linkziel, Warnvermerk im Mailtext und für die Klassifikation (Hinweis auf Spam) | In Review |
 | Automatik-Antworten auf gemeinsamen Unterbau zusammenführen (PROJ-87): Aufräumauftrag nach PROJ-82 und PROJ-85, später umzusetzen | Roadmap |
 | Verkaufskanal im Vorschlagsformular (PROJ-89): Pflichtfeld „Verkaufskanal“ vor der Kundengruppe, der Kanal setzt die Gruppe (neue Gruppe „Globus“ für „ehemals qobos“), Vorbelegung aus Bestellung oder Amazon-Absender, Wissen nach gewähltem Kanal, Kanal in der Startseiten-Übersicht | Approved |
-| Geführtes Formular „Technischer Support“ (PROJ-90): bei dieser Kategorie Klick-Entscheidung „Lösung bekannt?“ mit Hinweis zur Lösung oder benötigten Informationen statt Freitext, Produkt optional, Formularwahl je Ticket; erstes von mehreren Formularen je Klassifikations-Kategorie | Planned |
+| Geführtes Formular „Technischer Support“ (PROJ-90): bei dieser Kategorie Klick-Entscheidung „Lösung bekannt?“ mit Hinweis zur Lösung oder benötigten Informationen statt Freitext, Produkt optional, Formularwahl je Ticket; erstes von mehreren Formularen je Klassifikations-Kategorie | Architected |
 | Wissen zu technischem Support je Kanal anpassen (PROJ-91) | Roadmap |
 | Kanal ohne Bestellung erkennen für Fachhändler und LOOXIS Pro (PROJ-92) | Roadmap |
 

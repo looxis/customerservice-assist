@@ -51,18 +51,7 @@ describe('figures', function () {
 });
 
 describe('sidebar', function () {
-    test('everybody sees the figures, also without admin rights, with the version', function () {
-        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc()]);
-        Analysis::factory()->create();
-        KnowledgeGap::factory()->count(2)->create();
-        KnowledgeGap::factory()->create(['status' => 'done', 'resolved_by' => 'Etienne', 'resolved_at' => now()]);
-
-        $this->withCookie('staff_name', 'Nele')->get('/')
-            ->assertSeeTextInOrder(['Aktueller Stand', 'Wissensstand', 'Wissen', '1 Dateien', 'Bearbeitete Tickets', '1', 'Gemeldete Wissenslücken', '3', 'Davon noch offen', '2', 'Gemeldete Lücken werden bearbeitet', 'Version '.config('app.version')])
-            ->assertDontSeeText('Version dev');
-    });
-
-    test('the hint about the work on gaps only shows when gaps were reported', function () {
-        $this->get('/')->assertSeeText('Gemeldete Wissenslücken')->assertDontSeeText('Gemeldete Lücken werden bearbeitet');
+    test('the figures are no longer shown in the sidebar', function () {
+        $this->get('/')->assertDontSeeText('Aktueller Stand')->assertDontSeeText('Gemeldete Wissenslücken');
     });
 });

@@ -1,6 +1,6 @@
 # PROJ-90: Geführtes Formular „Technischer Support“ in „Vorschlag erstellen“
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -107,11 +107,77 @@ Das Reklamationsformular (PROJ-86) hat gezeigt, dass wenige Klick-Entscheidungen
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Aufbau wie beim Reklamationsformular: ein eigener Baustein für die Antworten, der sie prüft, speichert und in feste Sätze für die KI übersetzt | Bewährtes Muster aus PROJ-86; die Regeln bleiben im Wissen, das Formular liefert nur Entscheidungen | 2026-11-16 |
+| Eine kleine Liste der geführten Formulare (Schlüssel, Name, zugehörige Kategorie) statt verstreuter Einzelprüfungen | Jede weitere Kategorie wird ein Eintrag plus ein Feld-Baustein; Vorwahl, Formularwahl und Prüfung lesen dieselbe Liste | 2026-11-16 |
+| Das vorhandene Feld „formular“ bekommt den dritten Wert für den technischen Support | Gespeicherte Vorschläge und das Reklamationsformular bleiben unverändert lesbar | 2026-11-16 |
+| Keine Datenbankänderung: Die Antworten liegen wie bei der Reklamation in den Formularangaben des Vorschlags | Dort stehen sie im Protokoll und dienen der Vorbelegung | 2026-11-16 |
+| Produkt optional über eine Ausnahme in der bestehenden Produktprüfung, nur für dieses Formular | Für Freitext, Reklamation und „Frage stellen“ bleibt die Pflichtangabe aus PROJ-42 unverändert | 2026-11-16 |
+| Umschalten der Formulare im Browser mit Alpine.js, ohne Neuladen | Wie beim Reklamationsformular; ausgeblendete Zweige werden nicht gesendet, getippte Werte bleiben erhalten | 2026-11-16 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Oberfläche und Backend, keine Datenbankänderung, keine neuen Pakete. Das Formular folgt dem Aufbau des Reklamationsformulars (PROJ-86) und nutzt den Verkaufskanal aus PROJ-89.
+
+### Aufbau der Oberfläche
+```
+Vorschlag erstellen (Ticket)
++-- Zusammengehörige Tickets (unverändert)
++-- Verkaufskanal, Kundengruppe (PROJ-89)
++-- Produkt
+|   +-- bei „Technischer Support“: als optional beschriftet, ohne Haken „Kein Produktbezug“
++-- Bestellangaben (unverändert)
++-- NEU: Formularwahl „Technischer Support | Reklamation | Freitext“
+|   (ersetzt den Knopf „Reklamationsformular verwenden“; vorgewählt nach Kategorie)
++-- je nach Wahl genau einer der drei Bereiche:
+|   +-- NEU: Technischer Support
+|   |   +-- Frage „Ist eine mögliche Lösung bereits bekannt?“ (Ja / Unklar)
+|   |   +-- bei Ja: „Zusätzliche Hinweise zur Lösung – optional“
+|   |   +-- bei Unklar: „Welche Informationen werden benötigt?“ (Pflicht)
+|   +-- Reklamation (vorhanden, unverändert)
+|   +-- Freitext mit DHL-Label-Option (vorhanden, unverändert)
++-- Knöpfe (unverändert)
++-- Zeile „Erstellt mit“: zusätzlich der Name des Formulars
+```
+Der Knopf „Als Reklamation abwickeln“ in der eingeklappten Kopfzeile bleibt.
+
+### Daten
+Mit dem Vorschlag gespeichert (kein neuer Speicherort):
+- welches Formular verwendet wurde
+- die Antwort auf „Lösung bekannt?“ (Ja oder Unklar)
+- nur der Text des gewählten Zweigs: Hinweis zur Lösung oder benötigte Informationen (je höchstens 1.000 Zeichen)
+
+Daraus entstehen Protokoll, Vorbelegung beim nächsten Vorschlag und die Zeile „Erstellt mit“.
+
+### Wie die Angaben zur KI kommen
+Die App übersetzt die Antworten in wenige feste Sätze, die an derselben Stelle stehen wie bisher die „Zusätzlichen Informationen“:
+- **Ja ohne Hinweis:** Es handelt sich um eine technische Anfrage zum gewählten Verkaufskanal; die Lösung ist aus dem Wissen zu beschreiben, nichts erfinden.
+- **Ja mit Hinweis:** zusätzlich der Hinweis als geprüfte Angabe des Mitarbeiters, an die sich der Entwurf hält.
+- **Unklar:** keine Lösung zusagen, keine vermutete Ursache als Tatsache nennen, den Kunden gezielt um die genannten Informationen bitten.
+
+Der Prompt selbst und das Wissen bleiben unverändert.
+
+### Technische Entscheidungen in Kürze
+- **Liste der geführten Formulare:** Technischer Support und Reklamation stehen mit Namen und Kategorie in einer gemeinsamen Liste. Vorwahl, Formularwahl und Serverprüfung lesen sie; spätere Kategorien kommen als weiterer Eintrag dazu.
+- **Serverprüfung:** Antwort Pflicht, bei „Unklar“ der Text Pflicht; Felder der nicht gewählten Formulare und Zweige werden ignoriert.
+- **Produkt:** Nur bei diesem Formular gilt „kein Produkt gewählt“ als Fall ohne Produktbezug.
+- **„Frage stellen“** bleibt unberührt; der gemeinsame obere Formularteil zeigt dort weiter den Haken „Kein Produktbezug“.
+
+### Betroffene Bereiche
+- Vorschlagsformular am Ticket (Formularwahl, neuer Feld-Baustein, Zeile „Erstellt mit“)
+- gemeinsamer Baustein „Kanal, Kundengruppe, Produkt“ (Produkt optional je Formular)
+- Eingabeprüfung des Vorschlags und Produktprüfung
+- Ticketseite (Vorwahl des Formulars aus der Kategorie)
+- Übergabe an die Analyse (feste Sätze, gespeicherte Angaben)
+
+### Abhängigkeiten
+Keine neuen Pakete.
+
+### Risiken
+- Die Formularwahl ersetzt den Umschaltknopf des getesteten Reklamationsformulars; dessen Tests werden angepasst und laufen mit.
+- Ob „Ja ohne Hinweis“ gute Entwürfe liefert, hängt vom Wissen je Kanal ab (PROJ-91).
 
 ## QA Test Results
 _To be added by /qa_

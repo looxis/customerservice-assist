@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Analysis\AppStats;
 use App\Analysis\KnowledgeGapLog;
 use App\Dhl\DhlClient;
 use App\Eocs\EocsClient;
@@ -95,7 +94,6 @@ class AppServiceProvider extends ServiceProvider
                 'assignees' => $staff->assignableNames(),
                 'currentStaffName' => $staff->current(request()),
                 'ticketOverviewAvailable' => $testMode->isAvailable(request()),
-                'stats' => app(AppStats::class)->all(),
                 'openGapCount' => app(KnowledgeGapLog::class)->openCount(),
                 'todoCounts' => app(TodoBoard::class)->counts($staff->current(request())),
             ]);
