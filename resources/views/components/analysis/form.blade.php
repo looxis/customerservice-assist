@@ -43,7 +43,7 @@
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
                     <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
                     <span class="text-sm text-slate-600">
-                        Erstellt mit: {{ implode(' · ', array_filter([$usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
+                        Erstellt mit: {{ implode(' · ', array_filter([$analysis['usedChannelLabel'] ?? null, $usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
                         @if ($complaintToggle)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>

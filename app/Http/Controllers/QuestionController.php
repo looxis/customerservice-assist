@@ -14,6 +14,7 @@ use App\Analysis\QuestionTicket;
 use App\Http\Requests\AskQuestionRequest;
 use App\Http\Requests\FollowUpQuestionRequest;
 use App\Knowledge\KnowledgeSelector;
+use App\Knowledge\SalesChannels;
 use App\ProductForge\ProductForgeClient;
 use App\ProductForge\ProductResolver;
 use App\Staff\StaffDirectory;
@@ -28,7 +29,7 @@ use Illuminate\Http\Request;
  */
 class QuestionController extends Controller
 {
-    public function create(Request $request, KnowledgeSelector $selector, AnalysisStore $store, StaffDirectory $staff, ProductForgeClient $forge): View
+    public function create(Request $request, KnowledgeSelector $selector, AnalysisStore $store, StaffDirectory $staff, ProductForgeClient $forge, SalesChannels $channels): View
     {
         $name = $staff->current($request);
 
@@ -37,6 +38,9 @@ class QuestionController extends Controller
                 'groups' => $selector->selectableGroups(),
                 'suggestedGroup' => '',
                 'groupSource' => null,
+                'channels' => $channels->options(),
+                'suggestedChannel' => '',
+                'channelSource' => null,
                 'products' => $selector->products(),
                 'suggestedProducts' => [],
                 'productReasons' => [],
@@ -50,7 +54,7 @@ class QuestionController extends Controller
     /**
      * Ask a new question and show the proposal.
      */
-    public function store(AskQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff, ProductResolver $productResolver): RedirectResponse
+    public function store(AskQuestionRequest $request, CaseAnalyzer $analyzer, KnowledgeSelector $selector, StaffDirectory $staff, ProductResolver $productResolver, SalesChannels $channels): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -69,14 +73,14 @@ class QuestionController extends Controller
             $id = $analyzer->analyze(new AnalysisRequest(
                 ticket: QuestionTicket::make($number, $text),
                 staffName: (string) $staff->current($request),
-                customerGroup: $selector->customerGroup($request->validated('kundengruppe')),
+                customerGroup: $channels->applyTo($selector->customerGroup($request->validated('kundengruppe')), $request->salesChannel()),
                 products: $products,
                 orders: [],
                 manualOrder: [],
                 employeeContext: '',
                 variant: ContextVariant::FullThread,
                 summary: null,
-                formInput: ['kundengruppe' => $request->validated('kundengruppe'), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'forge_produkte' => array_column($request->forgeSelection(), 'id'), 'eocs_produkte' => $request->eocsSelection(), 'forge_sku' => array_filter(array_column($request->forgeSelection(), 'sku', 'id')), 'antwortentwurf' => $replyWanted],
+                formInput: ['kundengruppe' => $request->validated('kundengruppe'), SalesChannels::FIELD => $request->salesChannel(), 'produkte' => $products, 'kein_produktbezug' => $request->boolean('kein_produktbezug'), 'produkt_ohne_wissen' => $request->unknownProduct(), 'forge_produkte' => array_column($request->forgeSelection(), 'id'), 'eocs_produkte' => $request->eocsSelection(), 'forge_sku' => array_filter(array_column($request->forgeSelection(), 'sku', 'id')), 'antwortentwurf' => $replyWanted],
                 questionText: $text,
                 replyWanted: $replyWanted,
                 unknownProduct: $unknownProduct,
@@ -126,7 +130,7 @@ class QuestionController extends Controller
             $id = $analyzer->analyze(new AnalysisRequest(
                 ticket: QuestionTicket::make($number, $text),
                 staffName: $by,
-                customerGroup: $selector->customerGroup((string) ($inputs['kundengruppe'] ?? 'unclear')) ?? $selector->customerGroup('unclear'),
+                customerGroup: app(SalesChannels::class)->applyTo($selector->customerGroup((string) ($inputs['kundengruppe'] ?? 'unclear')) ?? $selector->customerGroup('unclear'), is_string($inputs[SalesChannels::FIELD] ?? null) ? $inputs[SalesChannels::FIELD] : null),
                 products: $products,
                 orders: [],
                 manualOrder: [],

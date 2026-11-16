@@ -1,6 +1,6 @@
 # PROJ-89: Verkaufskanal im Vorschlagsformular
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -175,6 +175,21 @@ Keine neuen Pakete.
 ### Risiken
 - Das getestete Reklamationsformular teilt den oberen Formularteil; seine Tests laufen bei der Umsetzung mit.
 - Bestehende Tests schicken keinen Kanal mit. Für ältere gespeicherte Vorschläge und beim Fortsetzen nach interner Klärung wird der Kanal aus der Gruppe abgeleitet.
+
+## Implementation Notes (2026-11-16)
+Oberfläche und Backend in einem Schritt umgesetzt.
+
+- **Kanäle und Gruppe:** `config/knowledge.php` kennt den Kanal `qobos` („ehemals qobos“) und die Gruppe `globus` („Globus“, Kundenart `b2b-reseller`). Die Kanalnamen lauten jetzt looxis.de, Amazon, fachhaendler.looxis.de, ehemals qobos, LOOXIS Pro, API (masterpics). Eine Migration ergänzt beides in bereits gespeicherten Einstellungen und benennt Kanäle um, die noch ihren alten Standardnamen tragen.
+- **Kanal-Logik:** neue Klasse `App\Knowledge\SalesChannels` (wählbare Kanäle aus den aktiven Gruppen, Gruppe je Kanal, Erkennung aus Bestellung und Amazon-Absender, Speichern am Ticket). `CustomerGroup::withChannel()` setzt den gewählten Kanal für den einen Vorschlag ein.
+- **Formular:** Feld `verkaufskanal` im gemeinsamen Baustein `x-analysis.scope-fields` (Ticket und „Frage stellen“), Alpine setzt die Gruppe, gelber Hinweis bei Abweichung. Prüfung im gemeinsamen Trait `ChoosesSalesChannel`.
+- **Ticket:** neue Spalte `tracked_tickets.channel_source` (`staff`, `order`, `sender`). Die Ticketseite speichert den erkannten Kanal, „Vorschlag erstellen“ die Wahl des Mitarbeiters. Die Startseite zeigt den Kanalnamen in Spalte und Filter.
+- **Protokoll:** Kanal in den Formularangaben (`inputs.verkaufskanal`) und in den Kenndaten (`meta.sales_channel`) der Analyse; die Zeile „Erstellt mit“ nennt ihn.
+- **Tests:** `tests/Feature/PROJ-89-SalesChannelTest.php` (27 Tests). Vier bestehende Tests an sieben Kundengruppen bzw. die neue Zeile „Erstellt mit“ angepasst.
+
+Abweichungen von der Spec:
+- Das Feld ist im Formular Pflicht (leer oder unbekannt wird abgelehnt). Eine Anfrage ganz ohne das Feld (Fortsetzen eines Vorschlags aus der Zeit vor dem Kanal) übernimmt den Kanal der Kundengruppe.
+- Im Testmodus mit zurückgespultem Ticket wird kein Kanal am Ticket gespeichert, wie bei der gemerkten Kundengruppe.
+- Ein automatisch erkannter Kanal wird durch eine später geladene Bestellung mit anderem Kanal ersetzt; nur die Wahl eines Mitarbeiters ist geschützt.
 
 ## QA Test Results
 _To be added by /qa_

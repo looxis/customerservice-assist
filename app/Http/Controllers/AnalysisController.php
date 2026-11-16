@@ -27,6 +27,7 @@ use App\Http\Requests\SendReplyRequest;
 use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
+use App\Knowledge\SalesChannels;
 use App\Models\ReturnLabel;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
@@ -55,7 +56,7 @@ class AnalysisController extends Controller
      * Run an analysis (stage 2, creating or refreshing the summary first when
      * that variant is chosen) and show the ticket with the result.
      */
-    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode, ProductResolver $productResolver, RelatedContextBuilder $relatedBuilder): RedirectResponse
+    public function analyze(string $number, AnalyzeTicketRequest $request, ZammadClient $zammad, EocsClient $eocs, OrderNumberDetector $detector, CaseAnalyzer $analyzer, Summarizer $summarizer, AnalysisStore $store, StaffDirectory $staff, KnowledgeSelector $selector, TestMode $testMode, ProductResolver $productResolver, RelatedContextBuilder $relatedBuilder, SalesChannels $channels): RedirectResponse
     {
         set_time_limit((int) config('analysis.timeout') * 2 + 30);
 
@@ -109,6 +110,12 @@ class AnalysisController extends Controller
         $shown = array_values(array_unique([...array_map(fn (OrderNumber $order): string => $order->value, $requested), ...array_map(fn (OrderNumber $order): string => $order->value, array_filter($toLoad, fn (OrderNumber $order): bool => in_array($order->value, $loaded, true)))]));
 
         $store->putCaseChoice($number, $request->validated('kundengruppe'), array_values($request->validated('produkte', [])), (string) $staff->current($request), $request->relatedNumbers());
+
+        $channel = $request->salesChannel();
+
+        if ($ticket->rewoundTo === null) {
+            $channels->remember($number, $channel, SalesChannels::BY_STAFF);
+        }
 
         if ($request->validated('kundengruppe') !== 'unclear' && $ticket->rewoundTo === null) {
             $store->putCustomerGroup($ticket->customerKey(), $request->validated('kundengruppe'));
@@ -175,14 +182,14 @@ class AnalysisController extends Controller
             $id = $analyzer->analyze(new AnalysisRequest(
                 ticket: $ticket,
                 staffName: (string) $staff->current($request),
-                customerGroup: $selector->customerGroup($request->validated('kundengruppe')),
+                customerGroup: $channels->applyTo($selector->customerGroup($request->validated('kundengruppe')), $channel),
                 products: array_values($request->validated('produkte', [])),
                 orders: $orders,
                 manualOrder: $orders === [] ? $request->manualOrder() : [],
                 employeeContext: trim(implode("\n", array_filter([$complaint === null ? (string) $request->validated('kontext', '') : '', $complaint?->facts() ?? '', $returnLabel === null ? '' : ReturnInstructions::fact()]))),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), 'kontext' => $complaint === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $complaint === null ? ($request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null) : ComplaintDecision::FORM, ...($complaint?->storedInput() ?? []), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), SalesChannels::FIELD => $channel, 'kontext' => $complaint === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $complaint === null ? ($request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null) : ComplaintDecision::FORM, ...($complaint?->storedInput() ?? []), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),

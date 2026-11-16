@@ -16,6 +16,8 @@
         array_map(fn ($id): string => 'forge:'.(int) $id, (array) old('forge_produkte', [])),
         array_map(fn ($id): string => 'eocs:'.(int) $id, (array) old('eocs_produkte', [])),
     )) ?: array_values((array) $forge['selected']);
+    $channels = $analysis['channels'] ?? [];
+    $chosenChannel = (string) old('verkaufskanal', $analysis['suggestedChannel'] ?? '');
     $config = [
         'forge' => [
             'enabled' => $forgeEnabled,
@@ -31,12 +33,26 @@
         'unknown' => (string) $unknownName,
         'none' => (bool) $noProduct,
         'group' => (string) old('kundengruppe', $analysis['suggestedGroup'] ?? ''),
+        'channel' => $chosenChannel,
+        'channelGroups' => array_column($channels, 'group', 'key'),
         'advanced' => (bool) $advanced,
     ];
 @endphp
 
-{{-- The two required answers of a proposal (PROJ-42): customer group and product. Shared by the ticket form and the question form. --}}
+{{-- The required answers of a proposal: sales channel (PROJ-89), customer group and product (PROJ-42). Shared by the ticket form and the question form. --}}
 <div x-data="scopeFields(@js($config))" class="grid gap-4 md:grid-cols-2">
+    @if ($channels !== [])
+        {{-- The channel sets the customer group; the group can still be changed by hand. --}}
+        <div>
+            <x-select name="verkaufskanal" label="Verkaufskanal" :hint="($analysis['channelSource'] ?? null) ? 'Vorbelegt: '.$analysis['channelSource'] : null" required x-model="channel" x-on:change="applyChannel()">
+                <option value="" @selected($chosenChannel === '')>Bitte wählen</option>
+                @foreach ($channels as $channel)
+                    <option value="{{ $channel['key'] }}" @selected($chosenChannel === $channel['key'])>{{ $channel['label'] }}</option>
+                @endforeach
+            </x-select>
+        </div>
+    @endif
+
     <div>
         <x-select name="kundengruppe" label="Kundengruppe" :hint="($analysis['groupSource'] ?? null) ? 'Vorbelegt: '.$analysis['groupSource'] : null" required x-model="group">
             <option value="" @selected(old('kundengruppe', $analysis['suggestedGroup'] ?? '') === '')>Bitte wählen</option>
@@ -44,6 +60,7 @@
                 <option value="{{ $group->key }}" @selected(old('kundengruppe', $analysis['suggestedGroup'] ?? '') === $group->key)>{{ $group->label }}</option>
             @endforeach
         </x-select>
+        <p x-show="channelMismatch" x-cloak class="mt-1 text-xs font-medium text-warning-700">Diese Kundengruppe gehört nicht zum gewählten Verkaufskanal. Es gelten das Wissen für den Kanal und die Kundenart der Gruppe.</p>
         <p x-show="groupUnclear" x-cloak class="mt-1 text-xs font-medium text-warning-700">Bei „Noch unklar“ gelten nur Regeln für alle Kundengruppen. Passt die Bestellung oder der Kanal, bitte die Gruppe wählen.</p>
     </div>
 

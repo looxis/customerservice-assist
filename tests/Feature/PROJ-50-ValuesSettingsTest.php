@@ -72,7 +72,7 @@ describe('the page', function () {
     test('nothing saved means the behaviour of before', function () {
         saveValues()->assertSessionHas('saved', 0);
 
-        expect(Setting::query()->count())->toBe(0)->and(array_keys(config('knowledge.actions')))->toContain('refund')->and(count(app(KnowledgeSelector::class)->selectableGroups()))->toBe(6);
+        expect(Setting::query()->count())->toBe(0)->and(array_keys(config('knowledge.actions')))->toContain('refund')->and(count(app(KnowledgeSelector::class)->selectableGroups()))->toBe(7);
     });
 
     test('the copy text lists the current allowed values', function () {
@@ -144,7 +144,7 @@ describe('a new customer group', function () {
 
         saveValues(['kn_groups' => $groups])->assertSessionHas('saved', 1);
 
-        expect(groupRow('reseller')['status'])->toBe('preparing')->and(app(KnowledgeSelector::class)->selectableGroups())->toHaveCount(5);
+        expect(groupRow('reseller')['status'])->toBe('preparing')->and(app(KnowledgeSelector::class)->selectableGroups())->toHaveCount(6);
     });
 
     test('the form for a case lists only active groups and a stored one still resolves', function () {

@@ -2,6 +2,7 @@
 
 namespace App\Analysis;
 
+use App\Knowledge\SalesChannels;
 use App\Models\TrackedTicket;
 use App\Models\ZammadSyncRun;
 use App\Zammad\SyncStatus;
@@ -93,7 +94,7 @@ class TicketList
     /**
      * The values for the selection lists; the owner is identified by the ID, the name is only shown.
      *
-     * @return array{owners: array<int, string>, channels: list<string>, categories: list<string>}
+     * @return array{owners: array<int, string>, channels: array<string, string>, categories: list<string>}
      */
     public function options(): array
     {
@@ -103,7 +104,9 @@ class TicketList
             ->map(fn (?string $name, int $id): string => $name ?? "Zammad-Benutzer {$id}");
         $values = fn (string $column): array => TrackedTicket::query()->whereNotNull($column)->distinct()->orderBy($column)->pluck($column)->all();
 
-        return ['owners' => $owners->all(), 'channels' => $values('channel'), 'categories' => $values('category')];
+        $channels = app(SalesChannels::class);
+
+        return ['owners' => $owners->all(), 'channels' => collect($values('channel'))->mapWithKeys(fn (string $channel): array => [$channel => $channels->label($channel)])->all(), 'categories' => $values('category')];
     }
 
     /**

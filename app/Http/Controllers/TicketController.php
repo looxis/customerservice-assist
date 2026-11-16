@@ -12,6 +12,7 @@ use App\Eocs\EocsException;
 use App\Eocs\OrderLookup;
 use App\Http\Requests\AddOrderRequest;
 use App\Http\Requests\TicketLookupRequest;
+use App\Knowledge\SalesChannels;
 use App\Labeling\LabelCategory;
 use App\Labeling\TicketLabelState;
 use App\Models\LabelTicket;
@@ -98,6 +99,16 @@ class TicketController extends Controller
         if (is_array($analysis['result'] ?? null)) {
             $analysis['result']['send'] = $delivery->offer($analysis['result'], $ticket, $staff->current($request));
             $analysis['result']['todo_context'] = app(TodoCaseContext::class)->build($ticket, $selected, $lookups, $this->claimReferences($suggestions), (string) ($analysis['result']['reply_text'] ?? ''), (array) ($analysis['inputs'] ?? []));
+        }
+
+        // The channel the app recognises (order, Amazon sender) is kept with the ticket for the overview (PROJ-89).
+        if ($ticket->rewoundTo === null) {
+            $channels = app(SalesChannels::class);
+            $detected = $channels->detect($ticket, collect($lookups)->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->values()->all());
+
+            if ($detected !== null) {
+                $channels->remember($ticket->number, $detected[0], $detected[1]);
+            }
         }
 
         $labelState = $this->labelState($ticket);

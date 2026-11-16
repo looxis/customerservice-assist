@@ -12,6 +12,9 @@ export default (config) => ({
     unknown: config.unknown,
     none: config.none,
     group: config.group,
+    // Sales channel (PROJ-89): choosing one sets the customer group that belongs to it.
+    channel: config.channel ?? '',
+    channelGroups: config.channelGroups ?? {},
     advanced: config.advanced ?? false,
     query: '',
     open: false,
@@ -302,6 +305,20 @@ export default (config) => ({
     move(step) {
         this.open = true;
         this.active = this.choices === 0 ? 0 : (this.active + step + this.choices) % this.choices;
+    },
+
+    applyChannel() {
+        const group = this.channelGroups[this.channel];
+
+        if (group) {
+            this.group = group;
+        }
+    },
+
+    get channelMismatch() {
+        const group = this.channelGroups[this.channel];
+
+        return this.channel !== '' && this.group !== '' && group !== undefined && group !== this.group;
     },
 
     get groupUnclear() {

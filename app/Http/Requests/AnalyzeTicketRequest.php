@@ -7,6 +7,7 @@ use App\Analysis\Clarification;
 use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
 use App\Http\Requests\Concerns\ChecksProductChoice;
+use App\Http\Requests\Concerns\ChoosesSalesChannel;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
 use App\Orders\OrderFormats;
@@ -20,6 +21,7 @@ use Illuminate\Validation\Validator;
 class AnalyzeTicketRequest extends FormRequest
 {
     use ChecksProductChoice;
+    use ChoosesSalesChannel;
 
     /**
      * Fields for order data typed in by hand, with their German label for the model.
@@ -75,6 +77,7 @@ class AnalyzeTicketRequest extends FormRequest
 
         return [
             'kundengruppe' => ['required', 'string', Rule::in(array_map(fn (CustomerGroup $group): string => $group->key, $selector->selectableGroups()))],
+            ...$this->salesChannelRules(),
             'produkte' => ['sometimes', 'array', 'max:10'],
             'produkte.*' => ['string', Rule::in(array_column($selector->products(), 'slug'))],
             'variante' => ['required', 'string', Rule::enum(ContextVariant::class)],
@@ -200,7 +203,7 @@ class AnalyzeTicketRequest extends FormRequest
     {
         $prefix = app(OrderFormats::class)->claimPrefix();
 
-        return ['reklamationsnummer.regex' => "Die Reklamationsnummer hat den Aufbau {$prefix}1-… (Nummer, Bindestrich, Bestellnummer), zum Beispiel {$prefix}1-028-0861097-0545938."];
+        return [...$this->salesChannelMessages(), 'reklamationsnummer.regex' => "Die Reklamationsnummer hat den Aufbau {$prefix}1-… (Nummer, Bindestrich, Bestellnummer), zum Beispiel {$prefix}1-028-0861097-0545938."];
     }
 
     /**

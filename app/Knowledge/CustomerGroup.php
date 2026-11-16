@@ -47,6 +47,14 @@ final readonly class CustomerGroup
         return $result;
     }
 
+    /**
+     * This group with the sales channel the employee chose for the case (PROJ-89); the customer type stays.
+     */
+    public function withChannel(?string $salesChannel): self
+    {
+        return new self($this->key, $this->label, $this->customerType, $salesChannel, $this->status);
+    }
+
     public function isUnclear(): bool
     {
         return $this->customerType === null && $this->salesChannel === null;

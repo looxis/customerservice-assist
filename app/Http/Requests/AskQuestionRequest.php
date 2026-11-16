@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ChecksProductChoice;
+use App\Http\Requests\Concerns\ChoosesSalesChannel;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -17,6 +18,7 @@ use Illuminate\Validation\Validator;
 class AskQuestionRequest extends FormRequest
 {
     use ChecksProductChoice;
+    use ChoosesSalesChannel;
 
     public function authorize(): bool
     {
@@ -36,6 +38,7 @@ class AskQuestionRequest extends FormRequest
             'produkte' => ['sometimes', 'array', 'max:10'],
             'produkte.*' => ['string', Rule::in(array_column($selector->products(), 'slug'))],
             'antwortentwurf' => ['nullable', 'boolean'],
+            ...$this->salesChannelRules(),
             ...$this->productRules(),
         ];
     }
@@ -54,6 +57,14 @@ class AskQuestionRequest extends FormRequest
     public function attributes(): array
     {
         return ['text' => 'Frage', 'kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return $this->salesChannelMessages();
     }
 
     protected function getRedirectUrl(): string

@@ -18,6 +18,7 @@ use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
 use App\Knowledge\ProcedureFinder;
 use App\Knowledge\ProcedureRenderer;
+use App\Knowledge\SalesChannels;
 use App\Models\ReturnLabel;
 use App\Orders\OrderNumberDetector;
 use App\ProductForge\ForgeProduct;
@@ -53,6 +54,7 @@ class AnalysisPanel
         private readonly EocsClient $eocs,
         private readonly RelatedTicketFinder $relatedFinder,
         private readonly OrderNumberDetector $orderNumbers,
+        private readonly SalesChannels $channels,
     ) {}
 
     /**
@@ -91,12 +93,24 @@ class AnalysisPanel
             [$group, $groupSource] = [$inputs['kundengruppe'], 'wie im angezeigten Vorschlag'];
         }
 
+        [$channel, $channelSource] = $this->suggestedChannel($ticket, $orders, $inputs, $choice);
+
+        // The recognised channel sets the group too, unless a group was chosen for this ticket before (PROJ-89).
+        if ($choice === null && ! is_string($inputs['kundengruppe'] ?? null) && $channel !== '' && $channelSource !== null) {
+            [$group, $groupSource] = [$this->channels->groupFor($channel) ?? $group, $channelSource];
+        }
+
         $chosenGroup = $inputs['kundengruppe'] ?? $choice['group'] ?? null;
+        $usedChannel = is_string($inputs[SalesChannels::FIELD] ?? null) ? $inputs[SalesChannels::FIELD] : null;
 
         return [
             'groups' => $this->selector->selectableGroups(),
             'suggestedGroup' => $group,
             'groupSource' => $groupSource,
+            'channels' => $this->channels->options(),
+            'suggestedChannel' => $channel,
+            'channelSource' => $channelSource,
+            'usedChannelLabel' => $usedChannel === null || $usedChannel === SalesChannels::UNCLEAR ? null : $this->channels->label($usedChannel),
             'chosenGroupLabel' => $chosenGroup === null ? null : collect($this->selector->customerGroups())->firstWhere('key', $chosenGroup)?->label,
             ...$this->productSuggestions($context, $orders, $inputs['produkte'] ?? $choice['products'] ?? null),
             'forge' => $this->forgeChoice($orders, $inputs, $result, $context->customerTexts()),
@@ -203,6 +217,43 @@ class AnalysisPanel
         }
 
         return ['', null];
+    }
+
+    /**
+     * The channel to preselect and why (PROJ-89): as in the shown proposal, chosen earlier for this ticket,
+     * from a loaded order, from an Amazon sender address, or none. A channel that can no longer be chosen is
+     * not preselected.
+     *
+     * @param  list<EocsOrder>  $orders
+     * @param  array<string, mixed>  $inputs
+     * @param  array{group: string, staff: string, at: string}|null  $choice
+     * @return array{0: string, 1: string|null}
+     */
+    private function suggestedChannel(Ticket $ticket, array $orders, array $inputs, ?array $choice): array
+    {
+        $selectable = fn (string $channel): string => in_array($channel, $this->channels->keys(), true) ? $channel : '';
+
+        if (is_string($inputs['kundengruppe'] ?? null)) {
+            return [$selectable(is_string($inputs[SalesChannels::FIELD] ?? null) ? $inputs[SalesChannels::FIELD] : $this->channels->ofGroup($inputs['kundengruppe'])), null];
+        }
+
+        $stored = $this->channels->stored($ticket->number);
+
+        if ($stored !== null && $stored[1] === SalesChannels::BY_STAFF) {
+            return [$selectable($stored[0]), null];
+        }
+
+        if ($choice !== null) {
+            return [$selectable($this->channels->ofGroup($choice['group'])), null];
+        }
+
+        $detected = $this->channels->detect($ticket, $orders);
+
+        return match ($detected[1] ?? null) {
+            SalesChannels::BY_ORDER => [$detected[0], 'aus dem Kanal der Bestellung'],
+            SalesChannels::BY_SENDER => [$detected[0], 'aus der Absenderadresse'],
+            default => ['', null],
+        };
     }
 
     /**
@@ -515,8 +566,10 @@ class AnalysisPanel
     private function procedures(array $result, CaseLinks $links): array
     {
         $finder = app(ProcedureFinder::class);
-        $group = $this->selector->customerGroup((string) ($result['inputs']['kundengruppe'] ?? $result['meta']['customer_group'] ?? 'unclear'))
-            ?? $this->selector->customerGroup('unclear');
+        $group = $this->channels->applyTo(
+            $this->selector->customerGroup((string) ($result['inputs']['kundengruppe'] ?? $result['meta']['customer_group'] ?? 'unclear')) ?? $this->selector->customerGroup('unclear'),
+            is_string($result['inputs'][SalesChannels::FIELD] ?? null) ? $result['inputs'][SalesChannels::FIELD] : null,
+        );
         $products = array_values((array) ($result['meta']['products'] ?? []));
 
         return [

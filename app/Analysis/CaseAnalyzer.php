@@ -184,6 +184,7 @@ class CaseAnalyzer
                 ...$this->routerFigures($retrieval, $router),
                 'variant' => $request->variant->value,
                 'customer_group' => $request->customerGroup->key,
+                'sales_channel' => $request->customerGroup->salesChannel,
                 'products' => $request->products,
                 'unknown_product' => $request->unknownProduct,
                 'product_info_status' => $request->productPackage->status(),

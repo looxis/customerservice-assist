@@ -88,7 +88,7 @@ describe('layout', function () {
         runAnalysis(['produkte' => [], 'kontext' => 'Telefonat geführt']);
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeText('Erstellt mit: Foto-Fachhändler / Reseller · kein Produktbezug · Ganzer Verlauf')
+            ->assertSeeText('Erstellt mit: fachhaendler.looxis.de · Foto-Fachhändler / Reseller · kein Produktbezug · Ganzer Verlauf')
             ->getContent();
 
         expect($html)->not->toContain('>Telefonat geführt</textarea>')->toMatch('/<option value="reseller"\s+selected/');
@@ -259,7 +259,7 @@ describe('ticket header', function () {
         CaseAgent::fake([resultAnswer()]);
         runAnalysis(['kein_produktbezug' => '1', 'kundengruppe' => 'reseller']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Erstellt mit: Foto-Fachhändler / Reseller');
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertSeeText('Erstellt mit: fachhaendler.looxis.de · Foto-Fachhändler / Reseller');
     });
 });
 

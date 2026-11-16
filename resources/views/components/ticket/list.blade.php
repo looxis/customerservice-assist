@@ -67,8 +67,8 @@
                 <x-select name="kanal" label="Kanal">
                     <option value="">Alle</option>
                     <option value="{{ $none }}" @selected($filter->channel === $none)>Unbekannt</option>
-                    @foreach ($options['channels'] as $channel)
-                        <option value="{{ $channel }}" @selected($filter->channel === $channel)>{{ $channel }}</option>
+                    @foreach ($options['channels'] as $channel => $channelName)
+                        <option value="{{ $channel }}" @selected($filter->channel === $channel)>{{ $channelName }}</option>
                     @endforeach
                 </x-select>
                 <x-select name="klassifikation" label="Klassifikation">
@@ -141,7 +141,7 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-slate-900">{{ ucfirst($states[$row->state] ?? $row->state) }}</td>
                                     <td class="px-4 py-3 align-top whitespace-nowrap text-slate-900">{{ $row->owner_zammad_id === null ? '–' : ($row->owner_name ?? "Zammad-Benutzer {$row->owner_zammad_id}") }}</td>
-                                    <td class="px-4 py-3 align-top text-slate-900">{{ $row->channel ?? '–' }}</td>
+                                    <td class="px-4 py-3 align-top text-slate-900">{{ $row->channel === null ? '–' : ($options['channels'][$row->channel] ?? $row->channel) }}</td>
                                     <td class="px-4 py-3 align-top text-slate-900">
                                         @if ($row->category)
                                             {{ $categories[$row->category] ?? $row->category }}
