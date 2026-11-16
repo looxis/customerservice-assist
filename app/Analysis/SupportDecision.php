@@ -68,16 +68,17 @@ final readonly class SupportDecision
     public function facts(): string
     {
         $lines = ['Angaben aus dem Formular „Technischer Support“ (geprüfte Entscheidungen und Fakten des Mitarbeiters):'];
-        $lines[] = '- Es handelt sich um eine technische Anfrage zu einem unserer Shops (z. B. Zahlung, Passwort, Anmeldung, Bestellvorgang). Maßgeblich ist das Wissen für den gewählten Verkaufskanal.';
+        $lines[] = '- Es handelt sich um eine technische Anfrage zu einem unserer Shops (z. B. Zahlung, Passwort, Anmeldung, Bestellvorgang).';
 
         if (! $this->isKnown()) {
-            $lines[] = '- Die Lösung ist noch unklar: Sage keine Lösung zu und nenne keine vermutete Ursache als Tatsache.';
-            $lines[] = '- Für die Lösung werden diese Informationen benötigt (bitte den Kunden gezielt und freundlich darum): '.$this->missingInfo;
+            $lines[] = '- Entscheidung des Mitarbeiters: Die Lösung ist noch unklar, zuerst werden weitere Informationen vom Kunden gebraucht. Diese Entscheidung geht dem Wissen vor: Auch wenn das Wissen für diesen Fall eine erste Antwort, eine Anleitung oder eine Lösung vorgibt, beschreibst du im Entwurf keine Lösungsschritte.';
+            $lines[] = '- Der Entwurf besteht nur aus der Rückfrage: Sage dem Kunden freundlich und offen, dass wir das Problem anhand seiner Nachricht noch nicht eindeutig einordnen können. Sage keine Lösung zu und nenne keine vermutete Ursache als Tatsache.';
+            $lines[] = '- Bitte den Kunden gezielt um diese Informationen (formuliere sie als höfliche Bitte aus): '.$this->missingInfo;
 
             return implode("\n", $lines);
         }
 
-        $lines[] = '- Eine mögliche Lösung ist bekannt: Beschreibe sie dem Kunden Schritt für Schritt.';
+        $lines[] = '- Eine mögliche Lösung ist bekannt: Beschreibe sie dem Kunden Schritt für Schritt. Maßgeblich ist das Wissen für den gewählten Verkaufskanal.';
         $lines[] = $this->hint === ''
             ? '- Die Lösung ergibt sich aus dem Wissen. Enthält das Wissen keine passende Lösung, erfinde keine und weise auf das fehlende Wissen hin.'
             : '- Hinweis des Mitarbeiters zur Lösung (halte dich daran und ergänze passendes Wissen, z. B. die richtige Adresse des Shops): '.$this->hint;

@@ -1,6 +1,6 @@
 # PROJ-90: Geführtes Formular „Technischer Support“ in „Vorschlag erstellen“
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -191,8 +191,76 @@ Oberfläche und Backend in einem Schritt umgesetzt.
 
 Abweichung von der Spec: keine.
 
+## Änderung 2026-11-16: „Unklar“ geht dem Wissen vor
+Anlass: Test an Ticket 2140446 (Fachhändler kann sich nicht anmelden). Mit „Unklar“ und „bitte screenshot“ lieferte der Entwurf dieselbe Anleitung wie mit „Ja“ und bat erst am Ende um den Screenshot. Ursache war nicht der Wissensabruf: PLAYBOOK-032 schreibt für die erste Antwort „immer“ Shop-Adresse, Logo und Anmeldung vor, und die Sätze des Formulars widersprachen dem nicht deutlich genug. Die festen Sätze für „Unklar“ sagen jetzt ausdrücklich, dass die Entscheidung des Mitarbeiters dem Wissen vorgeht, der Entwurf nur aus der Rückfrage besteht und keine Lösungsschritte beschreibt. Die Wirkung auf den Entwurf ist an einem echten Ticket zu prüfen.
+
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-11-16 (begonnen, noch nicht abgeschlossen)
+**App URL:** http://192.168.1.109:8081
+**Tester:** QA Engineer (AI)
+
+Geprüft mit der Testsuite (`tests/Feature/PROJ-90-SupportFormTest.php`, 23 Tests) und einem Abruf der echten Seite von Ticket 2140446. Der Auftraggeber hat beide Zweige an diesem Ticket ausprobiert. Nicht geprüft: Bedienung im Browser durch die QA, verschiedene Browser, schmale Bildschirme.
+
+### Acceptance Criteria Status
+
+#### Formularwahl
+- [x] Kategorie Technischer Support wählt das Formular vor (Test und Ticket 2140446)
+- [x] Auswahl „Formular“ mit drei Einträgen ersetzt den Umschaltknopf, bei jedem Ticket
+- [x] Reklamation wählt „Reklamation“ vor, alles andere „Freitext“
+- [x] Gesendet werden nur die Angaben des gewählten Formulars (Server ignoriert die übrigen)
+- [x] Früherer Vorschlag: Formular und Antworten vorbelegt
+
+#### Felder
+- [x] Reihenfolge und Inhalte wie beschrieben; Freitextfeld, Schreibhilfe und DHL-Label-Option nur im Freitext
+- [x] Bestellangaben und zusammengehörige Tickets unverändert
+
+#### Produkt
+- [x] „(optional)“, kein Haken „Kein Produktbezug“ im Supportformular
+- [x] Ohne Produkt wird der Vorschlag als Fall ohne Produktbezug erstellt
+- [x] Mit Produkt fließt es wie bisher ein
+- [x] Freitext und Reklamation verlangen das Produkt weiter
+
+#### Lösung bekannt?
+- [x] Pflichtfrage, nichts vorgewählt, Fehlermeldung ohne Antwort
+- [x] „Ja“: optionaler Hinweis; „Unklar“: Pflichtfeld mit Fehlermeldung
+- [x] Nur der Text der gewählten Antwort wird gesendet und gespeichert
+- [x] Höchstens 1.000 Zeichen
+
+#### Wirkung auf den Vorschlag
+- [x] „Ja“ ohne Hinweis: Lösung aus dem Wissen des Kanals (vom Auftraggeber am Fachhändler-Ticket bestätigt)
+- [x] „Ja“ mit Hinweis: Hinweis geht als geprüfte Angabe an die KI
+- [x] Kein Erfinden ohne passendes Wissen (als Anweisung an die KI; nicht an einem echten Fall geprüft)
+- [ ] BUG-1: „Unklar“ sagt keine Lösung zu und fragt gezielt nach (siehe unten; behoben, Nachprüfung offen)
+- [x] Antworten im Protokoll, „Erstellt mit“ nennt das Formular
+- [x] Nur feste Sätze gehen an die KI
+
+### Security Audit Results
+- [x] Eingabe: Formularschlüssel und Antworten nur aus festen Listen, Texte längenbegrenzt
+- [x] Ausgabe: Texte werden von Blade maskiert
+- [x] CSRF: bestehendes Formular mit `@csrf`
+- [x] Ein mitgesendetes Retourenlabel wird im Supportformular nie angehängt
+
+### Regression
+- [x] Reklamationsformular (PROJ-86): 32 Tests grün, drei an die Formularwahl angepasst
+- Gesamtsuite: 2774 von 2778 grün; die zwei Fehlschläge betreffen die Seitenleiste (Version, „Wissen zur Überprüfung“) und stammen aus dem Commit zu PROJ-41, nicht aus diesem Feature.
+
+### Bugs Found
+
+#### BUG-1: „Unklar“ lieferte dieselbe Anleitung wie „Ja“
+- **Severity:** High
+- **Steps to Reproduce:**
+  1. Ticket 2140446 öffnen, Formular „Technischer Support“, Kanal fachhaendler.looxis.de.
+  2. „Unklar, bitte weitere Informationen erfragen“ wählen, „bitte screenshot“ eintragen, Vorschlag erstellen.
+  3. Erwartet: Der Entwurf sagt, dass das Problem noch unklar ist, und bittet um einen Screenshot.
+  4. Tatsächlich: Der Entwurf beschreibt die Anmeldung im Fachhändler-Shop wie bei „Ja“ und bittet erst am Ende um den Screenshot.
+- **Status:** behoben am 2026-11-16 (siehe „Änderung 2026-11-16“); Nachprüfung an einem echten Ticket offen.
+
+### Summary
+- **Acceptance Criteria:** 20 von 21 erfüllt, eines nach der Korrektur nachzuprüfen
+- **Bugs Found:** 1 (High, behoben, Nachprüfung offen)
+- **Security:** Pass
+- **Production Ready:** erst nach der Nachprüfung von BUG-1
 
 ## Deployment
 _To be added by /deploy_

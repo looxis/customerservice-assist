@@ -175,6 +175,8 @@ describe('what the model is told', function () {
         supportRun(['support_loesung' => 'unklar', 'support_info' => 'Bitte einen Screenshot der Fehlermeldung senden', 'support_hinweis' => 'NICHT SENDEN'])->assertSessionHasNoErrors();
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Sage keine Lösung zu')
+            && $prompt->contains('Diese Entscheidung geht dem Wissen vor')
+            && $prompt->contains('Der Entwurf besteht nur aus der Rückfrage')
             && $prompt->contains('Bitte einen Screenshot der Fehlermeldung senden')
             && ! $prompt->contains('Eine mögliche Lösung ist bekannt')
             && ! $prompt->contains('NICHT SENDEN'));
