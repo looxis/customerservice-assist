@@ -12,6 +12,7 @@ use App\Returns\ReturnLanguage;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -364,4 +365,77 @@ test('dhl:check shows per country whether there is exactly one receiver', functi
         ->expectsOutputToContain('Lager_FR_CB02')
         ->expectsOutputToContain('genau ein Empfänger nötig')
         ->assertSuccessful();
+});
+
+describe('QA', function () {
+    test('the same request from abroad orders one label only', function () {
+        abroadStore()->assertOk()->assertJsonPath('reused', false);
+        abroadStore()->assertOk()->assertJsonPath('reused', true)->assertJsonPath('country', 'FR');
+
+        expect($this->orders)->toHaveCount(1)->and(ReturnLabel::query()->count())->toBe(1);
+    });
+
+    test('a failed order abroad leaves no texts and logs neither address nor receiver', function () {
+        Log::spy();
+        $this->receivers['fra'] = [];
+
+        abroadStore()->assertStatus(502)->assertJsonPath('code', 'no_receiver')->assertJsonMissingPath('texts');
+
+        expect(ReturnLabel::query()->sole()->payload()['texts'])->toBe([]);
+        Log::shouldNotHaveReceived('warning', fn (string $message, array $context = []) => str_contains(json_encode($context), 'Paix') || str_contains(json_encode($context), 'Camille'));
+    });
+
+    test('the message without a receiver names the reason and the portal', function () {
+        expect(DhlProblem::NoReceiver->message())->toContain('Geschäftskundenportal');
+    });
+
+    test('a label with a country that is no longer offered counts as German', function () {
+        $label = abroadLabel(['country' => 'CH']);
+
+        expect($label->returnCountry())->toBe(ReturnCountry::Germany)
+            ->and($label->payload()['language'])->toBe('de')
+            ->and($label->payload()['block'])->toContain('DHL-Filiale');
+    });
+
+    test('an order from a country without labels is shown with its country, and the label is refused on the server', function () {
+        $this->eocsOrder = returnEocsOrder(['shipping' => ['first_name' => 'Urs', 'last_name' => 'Beispiel', 'street' => 'Bahnhofstrasse', 'street_no' => '1', 'zipcode' => '8001', 'city' => 'Zürich', 'country_code' => 'ch']]);
+
+        $this->withCookie('staff_name', 'Nele')->get(route('dhl-return.index', ['suche' => '7JQ-18SU-DVA4']))
+            ->assertOk()->assertSee('\u0022country\u0022:\u0022CH\u0022', false)->assertSee('Geschäftskundenportal');
+
+        abroadStore(['country' => 'CH', 'postal_code' => '8001'])->assertStatus(422)->assertJsonValidationErrors('country');
+        expect($this->orders)->toBe([]);
+    });
+
+    test('a label tied to a proposal afterwards gets the steps in the language of the draft', function () {
+        CaseAgent::fake([abroadAnswer('Italienisch', 'Buongiorno')]);
+        $response = $this->withCookie('staff_name', 'Nele')->post(route('tickets.analysis.run', ['number' => '2137942']), ['kein_produktbezug' => '1', 'kundengruppe' => 'reseller', 'variante' => 'verlauf']);
+        parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
+        $label = abroadLabel(['country' => 'IT']);
+
+        $this->withCredentials()->withCookie('staff_name', 'Nele')
+            ->putJson(route('tickets.analysis.return-label', ['number' => '2137942', 'analysis' => $query['analyse']]), ['label' => $label->id])->assertOk();
+
+        $this->withCookie('staff_name', 'Nele')->get($response->headers->get('Location'))->assertOk()
+            ->assertSee('Ecco come restituire la merce')->assertSee('corriere indicato')->assertDontSee('filiale DHL');
+    });
+
+    test('a direct reply without the model gets the steps in the language usual for the country', function () {
+        $response = $this->withCredentials()->withCookie('staff_name', 'Nele')->post(route('tickets.manual-reply', ['number' => '2137942']));
+        parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
+        $label = abroadLabel();
+
+        $this->withCredentials()->withCookie('staff_name', 'Nele')
+            ->putJson(route('tickets.analysis.return-label', ['number' => '2137942', 'analysis' => $query['analyse']]), ['label' => $label->id])->assertOk();
+
+        preg_match('#<textarea[^>]*x-ref="text"[^>]*>(.*?)</textarea>#s', $this->withCookie('staff_name', 'Nele')->get($response->headers->get('Location'))->assertOk()->getContent(), $draft);
+
+        expect($draft[1] ?? '')->toContain('Voici comment nous retourner la marchandise')->not->toContain('So senden Sie die Ware zurück');
+    });
+
+    test('the page of a ticket with a label from abroad does not carry the address', function () {
+        abroadDraft(abroadLabel(), 'Französisch', 'Bonjour');
+
+        $this->withCookie('staff_name', 'Nele')->get(route('tickets.show', ['number' => '2137942']))->assertOk()->assertDontSee('rue de la Paix');
+    });
 });

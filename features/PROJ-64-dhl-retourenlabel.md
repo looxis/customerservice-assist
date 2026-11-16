@@ -1,6 +1,6 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-10-27
 **Last Updated:** 2026-11-16
 
@@ -352,7 +352,7 @@ Keine neuen Pakete, keine neuen Einträge in der `.env`. Eine Migration (Spalte 
 
 ## QA Test Results
 
-> Stand vor der Erweiterung um Auslandsretouren (2026-11-16); die neuen Kriterien sind noch nicht geprüft.
+> Zuerst der Stand vor der Erweiterung (2026-10-27). Die Prüfung der Auslandsretouren steht darunter im Abschnitt „QA Auslandsretouren (2026-11-16)“.
 
 **Tested:** 2026-10-27
 **App URL:** http://localhost:8081 (Sail), DHL-Produktion durch den Auftraggeber
@@ -442,6 +442,52 @@ Keine neuen Pakete, keine neuen Einträge in der `.env`. Eine Migration (Spalte 
 - **BUG-3:** „Weiteres Label erstellen“ bleibt nach dem Versand sichtbar und öffnet wieder die Adresse; das neue Label wird bewusst bestellt (auch nach einem unklaren Ausgang). Zugleich ist behoben, dass ein im Formular erzeugtes Label sonst an den Entwurf eines früheren Vorschlags auf derselben Seite gehangen hätte.
 - **BUG-4:** Im Antwortfeld steht immer „DHL-Retourenlabel (Sendungsnummer …): Herunterladen“, mit Hinweis, ob das PDF vorgemerkt ist oder von Hand angehängt werden muss. Ein bei „Interne Abläufe“ erzeugtes Label wird dem Vorschlag zugeordnet (`PUT …/retourenlabel`) und kommt nach dem Neuladen wieder.
 - Tests dazu in `tests/Feature/PROJ-64-*`; Gesamtlauf 2008 Tests, 2004 grün (die 4 anderen hängen an der lokalen `.env`, siehe oben). Die Oberfläche wurde auch nach den Korrekturen nicht in einem Browser bedient.
+
+## QA Auslandsretouren (2026-11-16)
+
+**Tested:** 2026-11-16
+**App URL:** http://localhost:8081 (Sail)
+**Tester:** QA Engineer (AI)
+
+**Wie getestet wurde:** Server-Seite per Pest (`tests/Feature/PROJ-64-DhlReturnAbroadTest.php`, jetzt 77 Fälle, davon 8 neu aus dieser Prüfung) und Durchsicht des Codes gegen jedes neue Kriterium. DHL ist in den Tests nachgestellt. Nicht getestet: die Oberfläche im Browser (Länderauswahl, Sperre bei anderem Land, Sprachwechsel; auch keine Browser- und Breitentests) und eine echte Bestellung eines Auslandslabels bei DHL.
+
+### Acceptance Criteria Status (neue und geänderte Kriterien)
+
+#### Adresse prüfen und Label erzeugen (7)
+- [x] Vorbefüllung mit Land für die sieben Länder (EOCS-Kürzel wird groß geschrieben übernommen)
+- [x] PLZ je Land (DE, FR, IT fünf Ziffern; AT, BE, LU vier Ziffern; NL vier Ziffern und zwei Buchstaben, mit und ohne Leerzeichen), Fehlertext nennt die Regel des Landes
+- [x] Anderes Land (Schweiz, klein geschrieben, dreistellig, leer) wird auf dem Server abgelehnt, Hinweis nennt die Länder und das Geschäftskundenportal; es entsteht kein Label und kein DHL-Aufruf
+- [x] Land nur aus der Liste (Server prüft unabhängig von der Oberfläche)
+- [x] Label für den Empfänger des Landes (alle sechs Länder), Deutschland mit dem konfigurierten Empfänger und ohne Abfrage der Empfängerliste
+- [x] Kein oder mehrere Empfänger: nichts wird bestellt, Meldung mit Grund und Geschäftskundenportal
+- [x] Absenderland am Label und unter „Bisherige Labels“; Hinweis „Auslandsretoure“ statt „nur aus Deutschland“ (Text vorhanden; das Ein- und Ausblenden im Browser ist nicht geprüft)
+
+#### Kundenanleitung nach Sprache und Land (7)
+- [x] Feste Texte in fünf Sprachen, Vorbelegung nach Land, Sprache des Entwurfs geht vor (auch bei nachträglich zugeordnetem Label und bei „Direkt antworten“)
+- [x] Deutschland nennt DHL-Filiale und DHL-Paketshop (Text wortgleich wie vorher), Ausland nennt neutral den Versanddienst auf dem Label, in keiner Sprache „DHL“ im Mailtext
+- [x] Mailtext und Betreff in der gewählten Sprache; unbekannte Sprache wird abgelehnt
+- [x] Schritte nicht doppelt, auch wenn sie in einer anderen Sprache im Entwurf stehen
+- [x] Die KI erfährt weder Land noch Adresse noch Sendungsnummer
+
+### Edge Cases Status
+- [x] Niederländische PLZ mit und ohne Leerzeichen; Land außerhalb der sieben (Adresse wird gezeigt, Server lehnt ab); Kunde in Frankreich schreibt Deutsch (deutsche Schritte, neutraler Abgabeort); gleiche Adresse mit anderem Land ist eine andere Anfrage; dieselbe Auslandsanfrage zweimal ergibt nur eine Bestellung; Label mit einem nicht mehr angebotenen Land zählt als deutsch
+- [ ] Nicht prüfbar ohne echte Bestellung: ob DHL eine Auslandsretoure ohne Gewicht und Zollangaben annimmt. Lehnt DHL ab, zeigt die App den Wortlaut von DHL (dieser Weg ist getestet)
+
+### Security Audit Results
+- [x] Empfänger kommt nie aus dem Formular (für das Ausland aus der DHL-Liste, für Deutschland aus der Konfiguration); Land und Sprache nur aus festen Listen
+- [x] Betreff wird auf dem Server aus der geprüften Bestellnummer und der Sprache gebaut
+- [x] Adresse weder im HTML der Ticketseite noch im Prompt noch im Log (auch beim neuen Fehler „kein eindeutiger Empfänger“)
+- [x] Keine neuen Routen, keine neuen Umgebungsvariablen, Rate-Limits unverändert
+
+### Bugs Found
+Keine (Schönheitsfehler der Stufe „Low“ sind nicht aufgeführt).
+
+### Summary
+- **Acceptance Criteria:** 14/14 neue und geänderte Kriterien auf dem Server bestanden
+- **Bugs Found:** 0 (critical, high, medium)
+- **Security:** Pass
+- **Regression:** Gesamtlauf 2720 Tests, 2717 grün, 2 übersprungen, 1 Fehlschlag: `PROJ-36-AnalysisIntegrationTest` („a free reproduction … does not load the goodwill rules“, POLICY-007 wird geladen). Der Test läuft gegen die echte Wissensbasis; PROJ-64 hat weder Wissen noch Wissensabruf geändert. Die Ursache ist nicht untersucht.
+- **Production Ready:** Auf dem Server ja. Die Freigabe (Approved) steht noch aus, bis das erste echte Auslandslabel bei DHL bestellt ist (Ticket 2140387) und die Oberfläche einmal im Browser bedient wurde.
 
 ## Deployment
 _To be added by /deploy_
