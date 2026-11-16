@@ -1,8 +1,8 @@
 # PROJ-86: Reklamationsformular in „Vorschlag erstellen“
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-12
+**Last Updated:** 2026-11-16
 
 ## Dependencies
 - Requires: PROJ-80 (Kategorie `reklamation` aus der Klassifikation neuer Tickets)
@@ -44,7 +44,7 @@ Anlass ist Ticket 2140357 (2026-11-11). Der Mitarbeiter legt die Reklamation in 
 
 ### Berechtigt Ja/Nein
 - [ ] Angenommen das Reklamationsformular ist sichtbar, wenn noch keine Wahl getroffen wurde, dann sind die weiteren Felder ausgeblendet und „Vorschlag erstellen“ lässt sich nicht abschicken (Fehlermeldung: „Bitte angeben, ob die Reklamation berechtigt ist.“).
-- [ ] Angenommen der Mitarbeiter wählt „Nein“, dann erscheinen das Textfeld „Hier den Grund eingeben“ (Pflicht) und der Schalter „Kulanzangebot unterbreiten?“ (Ja/Nein, Standard Nein); Retoure, Reklamationsnummer, Versand und ToDo sind ausgeblendet und werden nicht gesendet.
+- [ ] Angenommen der Mitarbeiter wählt „Nein“, dann erscheinen das Textfeld „Hier den Grund eingeben“ (Pflicht) und der Schalter „Kulanzangebot unterbreiten?“ (Ja/Nein, seit 2026-11-16 Standard Ja, bei Ja das optionale Textfeld „Art des Kulanzangebots“); Retoure, Reklamationsnummer, Versand und ToDo sind ausgeblendet und werden nicht gesendet.
 - [ ] Angenommen der Mitarbeiter wählt „Ja“, dann erscheinen Retoure, Reklamationsnummer, Versand und ToDo.
 - [ ] Angenommen der Mitarbeiter wechselt von „Ja“ auf „Nein“ und zurück, dann bleiben zuvor eingegebene Werte erhalten, aber nur die Werte des gewählten Zweigs werden gesendet.
 
@@ -340,6 +340,12 @@ Die Frage „Wird die Reklamation nach Prüfung als berechtigt anerkannt?“ hat
 
 ## Nachtrag 2026-11-14: Reklamationsformular bei jedem Ticket wählbar
 Anlass Ticket 2140017: Aus einer unklassifizierten Mail wurde im Dialog eine Reklamation. Der Umschalter zum Reklamationsformular ist jetzt bei jedem Ticket verfügbar (`TicketController::complaintForm()`: `toggle` immer `true`), auch bei bestätigter anderer Kategorie. Vorgewählt bleibt es nur bei Kategorie Reklamation. Zusätzlich steht in der Kopfzeile von „Vorschlag erstellen“ hinter „Eingaben ändern und neuen Vorschlag erstellen“ der Knopf „Als Reklamation abwickeln“: öffnet das Panel und schaltet auf das Reklamationsformular (Ereignis `open-analysis-form` mit `mode: reklamation`). Die Kategorie des Tickets bleibt unberührt. Tests in `PROJ-86-ComplaintFormTest.php` angepasst.
+
+## Nachtrag 2026-11-16: Art des Kulanzangebots, Freigabe
+- Bei „nicht berechtigt“ ist „Kulanzangebot unterbreiten?“ jetzt mit „Ja“ vorbelegt; „Nein“ trägt den Zusatz „(sollte gut begründet sein!)“.
+- Bei „Ja“ erscheint das optionale Feld „Art des Kulanzangebots“ (höchstens 500 Zeichen, z. B. „10 % Rabatt in Form einer Erstattung auf eine Neubestellung“). Ist es ausgefüllt, nennt der Entwurf die Art wie angegeben, ohne Beträge oder Prozentsätze zu ändern, und beschreibt den Ablauf: Neubestellung, neue Bestellnummer als Antwort auf die E-Mail, Erstattung nach dem Versand. Leer richtet sich das Angebot wie bisher nach dem Wissen.
+- Test ergänzt in `PROJ-86-ComplaintFormTest.php` (32 Tests grün).
+- **Freigabe:** Vom Auftraggeber im Betrieb geprüft und am 2026-11-16 freigegeben. BUG-1 (Medium, Formularangaben in der Zeile „Erstellt mit“ nicht erkennbar) bleibt offen.
 
 ## Deployment
 _To be added by /deploy_
