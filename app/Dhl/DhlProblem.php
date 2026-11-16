@@ -8,6 +8,7 @@ namespace App\Dhl;
 enum DhlProblem: string
 {
     case Misconfigured = 'misconfigured';
+    case NoReceiver = 'no_receiver';
     case Unauthorized = 'unauthorized';
     case Forbidden = 'forbidden';
     case Rejected = 'rejected';
@@ -21,6 +22,7 @@ enum DhlProblem: string
     {
         return match ($this) {
             self::Misconfigured => 'Die DHL-Anbindung ist nicht vollständig eingerichtet (Zugangsdaten oder Empfänger-ID fehlen). Es wurde kein Label erzeugt.',
+            self::NoReceiver => 'Für dieses Land ist bei DHL kein eindeutiger Retourenempfänger eingerichtet. Es wurde kein Label erzeugt; bitte das Label im Geschäftskundenportal erstellen.',
             self::Unauthorized => 'DHL lehnt die Anmeldung oder den Zugriff ab (Zugangsdaten falsch oder abgelaufen, oder die App hat keinen Zugriff auf die Returns-API). Es wurde kein Label erzeugt.',
             self::Forbidden => 'DHL erlaubt diese Aktion nicht (fehlende Berechtigung für Retouren oder den Empfänger). Es wurde kein Label erzeugt.',
             self::Rejected => 'DHL hat die Angaben nicht angenommen. Bitte die Adresse prüfen und korrigieren. Es wurde kein Label erzeugt.',

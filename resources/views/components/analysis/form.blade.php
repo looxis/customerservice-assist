@@ -188,7 +188,7 @@
                         <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>
                     </label>
                     <x-intro>
-                        <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Nur für Rücksendungen aus Deutschland.</p>
+                        <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Möglich für Rücksendungen aus {{ \App\Returns\ReturnCountry::sentence() }}.</p>
                     </x-intro>
                     <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 pl-6 text-sm font-medium text-danger-700" x-text="labelNote"></p>
                     <div x-show="labelOn" x-cloak class="mt-3 space-y-4">

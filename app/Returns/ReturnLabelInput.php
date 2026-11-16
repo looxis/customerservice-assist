@@ -16,14 +16,18 @@ final readonly class ReturnLabelInput
         public string $houseNumber,
         public string $postalCode,
         public string $city,
+        public ReturnCountry $country = ReturnCountry::Germany,
     ) {}
 
     /**
-     * Identifies the same request again (same ticket, order and address) without keeping the address.
+     * Identifies the same request again (same ticket, order and address) without keeping the address. The country
+     * only counts abroad, so that German labels ordered before returns from abroad existed are still recognised.
      */
     public function fingerprint(): string
     {
-        return hash('sha256', mb_strtolower(implode('|', [$this->ticketNumber, $this->eocsOrderId, $this->name, $this->street, $this->houseNumber, $this->postalCode, $this->city])));
+        $parts = [$this->ticketNumber, $this->eocsOrderId, $this->name, $this->street, $this->houseNumber, $this->postalCode, $this->city];
+
+        return hash('sha256', mb_strtolower(implode('|', $this->country->isDomestic() ? $parts : [...$parts, $this->country->value])));
     }
 
     /**

@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-16
+
+- DHL-Retourenlabel aus dem Ausland: Labels gibt es jetzt auch für Rücksendungen aus Frankreich, Österreich, Belgien, den Niederlanden, Luxemburg und Italien. Das Land kommt aus der Bestellung und lässt sich im Adressbereich wählen. Die Schritte für den Kunden stehen auf Deutsch, Französisch, Italienisch, Niederländisch oder Englisch unter dem Entwurf; auf der Seite „DHL Retoure“ wählst du die Sprache der Mail selbst. Bei Adressen im Ausland bitte prüfen, dass Straße und Hausnummer in den richtigen Feldern stehen.
+
 ## 2026-11-13
 
 - Vorschlag erstellen: Geht es in der Anfrage um den Verbleib oder die Zustellung eines Pakets, fragt der Vorschlag den aktuellen Stand der Sendung bei DHL bzw. UPS ab und übernimmt diese Informationen in den Antwort

@@ -1,4 +1,4 @@
-@props(['order', 'ticket' => null, 'ticketNumber' => null, 'mode' => 'page', 'field' => false, 'seenArticle' => 0, 'label' => null, 'signature' => '', 'hasToken' => false, 'configured' => true, 'returnGroup' => '', 'receiver' => null])
+@props(['order', 'ticket' => null, 'ticketNumber' => null, 'mode' => 'page', 'field' => false, 'seenArticle' => 0, 'label' => null, 'signature' => '', 'hasToken' => false, 'configured' => true, 'returnGroup' => '', 'receivers' => []])
 
 @php
     $address = $order->shippingAddress;
@@ -15,6 +15,8 @@
         'seenArticle' => $seenArticle,
         'signature' => $signature,
         'label' => $label?->payload(true),
+        'countries' => \App\Returns\ReturnCountry::options(),
+        'receivers' => $receivers,
         // On the page of a ticket the address is not in the HTML: it is fetched when the option is opened.
         'addressUrl' => $mode === 'attach' ? route('dhl-return.address', ['bestellung' => $order->externalNumber]) : null,
         'addressMissing' => $mode === 'page' && $address === null,
@@ -72,18 +74,24 @@
             </div>
             <div class="sm:col-span-2">
                 <label for="z-{{ $order->id }}" class="block text-sm font-medium text-slate-900">PLZ</label>
-                <input id="z-{{ $order->id }}" type="text" x-model="form.postal_code" maxlength="10" inputmode="numeric" autocomplete="off" class="{{ $inputClass }}">
+                <input id="z-{{ $order->id }}" type="text" x-model="form.postal_code" maxlength="10" autocomplete="off" class="{{ $inputClass }}">
             </div>
-            <div class="sm:col-span-3">
+            <div class="sm:col-span-2">
                 <label for="c-{{ $order->id }}" class="block text-sm font-medium text-slate-900">Ort</label>
                 <input id="c-{{ $order->id }}" type="text" x-model="form.city" maxlength="60" autocomplete="off" class="{{ $inputClass }}">
             </div>
-            <div class="sm:col-span-1">
+            <div class="sm:col-span-2">
                 <label for="l-{{ $order->id }}" class="block text-sm font-medium text-slate-900">Land</label>
-                <input id="l-{{ $order->id }}" type="text" x-model="form.country" maxlength="2" readonly class="{{ $inputClass }} bg-slate-50">
+                <select id="l-{{ $order->id }}" x-model="form.country" class="{{ $inputClass }}">
+                    <option value="" disabled x-show="! supported" x-text="unsupportedCountry ? unsupportedCountry + ' (nicht möglich)' : 'Bitte wählen'"></option>
+                    @foreach (\App\Returns\ReturnCountry::options() as $code => $countryName)
+                        <option value="{{ $code }}">{{ $countryName }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
-        <p x-show="form.country !== 'DE'" x-cloak role="alert" class="text-sm font-medium text-danger-700">Retourenlabel gibt es nur für Rücksendungen aus Deutschland.</p>
+        <p x-show="! supported" x-cloak role="alert" class="text-sm font-medium text-danger-700">Die Bestellung nennt als Land <span x-text="unsupportedCountry || 'kein Land'"></span>. Retourenlabel erzeugt die App nur für {{ \App\Returns\ReturnCountry::sentence() }}. Für andere Länder bitte das Geschäftskundenportal nutzen; stimmt das Land nicht, wähle es oben aus.</p>
+        <p x-show="supported && form.country !== 'DE'" x-cloak class="text-sm text-slate-700"><span class="font-medium">Auslandsretoure aus <span x-text="countries[form.country]"></span>.</span> Der Kunde gibt das Paket bei dem Versanddienst ab, der auf dem Label steht.</p>
 
         @if ($ticket === null && $ticketNumber === null)
             <div class="sm:max-w-xs">
@@ -92,16 +100,14 @@
             </div>
         @endif
 
-        @if ($receiver)
-            <p class="text-sm text-slate-700"><span class="font-medium">Rücksendung an:</span> {{ $receiver }}</p>
-        @endif
+        <p x-show="receivers[form.country]" @if (($receivers['DE'] ?? null) === null) x-cloak @endif class="text-sm text-slate-700"><span class="font-medium">Rücksendung an:</span> <span x-text="receivers[form.country]">{{ $receivers['DE'] ?? '' }}</span></p>
 
         <label class="flex items-start gap-2 text-sm text-slate-900">
             <input type="checkbox" x-model="confirmed" class="mt-0.5 rounded text-brand focus:ring-brand">
             <span>Adresse geprüft: Das Label wird mit diesen Angaben bei DHL bestellt.</span>
         </label>
         <p x-show="error !== ''" x-cloak role="alert" class="text-sm font-medium text-danger-700"><span x-text="error"></span> <span x-show="detail !== ''" x-text="'(DHL: ' + detail + ')'"></span></p>
-        <x-button x-on:click="create(false)" x-bind:disabled="busy || ! confirmed || form.country !== 'DE'" :disabled="! $configured"><x-icon name="doc" size="16" /> <span x-text="busy ? 'Label wird erzeugt …' : 'Label erzeugen'">Label erzeugen</span></x-button>
+        <x-button x-on:click="create(false)" x-bind:disabled="busy || ! confirmed || ! supported" :disabled="! $configured"><x-icon name="doc" size="16" /> <span x-text="busy ? 'Label wird erzeugt …' : 'Label erzeugen'">Label erzeugen</span></x-button>
     </section>
 
     {{-- 2. Unclear outcome --}}
@@ -115,6 +121,7 @@
         <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
             <x-badge tone="success">Label erzeugt</x-badge>
             <span class="text-sm text-slate-900">Sendungsnummer <span class="font-mono" x-text="label ? label.shipment_no : ''"></span></span>
+            <span x-show="label && label.country !== 'DE'" x-cloak class="text-sm text-slate-900">aus <span x-text="label ? label.country_name : ''"></span></span>
             <span x-show="label && label.reused" class="text-sm text-slate-600">(bereits vorhanden, es wurde nichts neu bestellt)</span>
             <a x-bind:href="label ? label.download_url : '#'" class="inline-flex items-center gap-1 text-sm font-semibold text-brand underline"><x-icon name="upload" size="16" /> Herunterladen</a>
             <button type="button" x-on:click="newLabel()" class="text-sm font-medium text-slate-600 underline hover:text-slate-900">Weiteres Label erstellen</button>
@@ -148,7 +155,16 @@
                 <div x-show="send.mode === 'new'" x-cloak class="space-y-1 sm:max-w-md">
                     <label for="em-{{ $order->id }}" class="block text-sm font-medium text-slate-900">E-Mail-Adresse des Kunden</label>
                     <input id="em-{{ $order->id }}" type="email" x-model="send.email" maxlength="200" autocomplete="off" class="{{ $inputClass }}">
-                    <p class="text-xs text-slate-600">Betreff: <span class="font-medium">{{ \App\Returns\ReturnInstructions::subject($order->externalNumber) }}</span> · Gruppe in Zammad: {{ $returnGroup }}</p>
+                    <p class="text-xs text-slate-600">Betreff: <span class="font-medium" x-text="subject">{{ \App\Returns\ReturnInstructions::subject($order->externalNumber) }}</span> · Gruppe in Zammad: {{ $returnGroup }}</p>
+                </div>
+                <div class="sm:max-w-xs">
+                    <label for="lg-{{ $order->id }}" class="block text-sm font-medium text-slate-900">Sprache der Mail</label>
+                    <select id="lg-{{ $order->id }}" x-bind:value="send.language" x-on:change="changeLanguage($event.target.value)" class="{{ $inputClass }}">
+                        @foreach (\App\Returns\ReturnLanguage::options() as $code => $languageName)
+                            <option value="{{ $code }}">{{ $languageName }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-slate-600" x-text="send.languageNote || 'Vorbelegt nach dem Land des Absenders. Ein Wechsel tauscht Text und Betreff.'"></p>
                 </div>
                 <div>
                     <label for="tx-{{ $order->id }}" class="block text-sm font-medium text-slate-900">Text der Nachricht <span class="font-normal text-slate-600">(änderbar; das Label hängt als PDF an)</span></label>

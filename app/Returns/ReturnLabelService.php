@@ -108,13 +108,14 @@ class ReturnLabelService
             'ticket_number' => $input->ticketNumber,
             'order_number' => $input->orderNumber,
             'eocs_order_id' => $input->eocsOrderId,
+            'country' => $input->country->value,
             'status' => ReturnLabel::CREATING,
             'fingerprint' => $input->fingerprint(),
             'created_by' => $staff,
         ]);
 
         try {
-            $result = $this->dhl->createReturn(new ReturnRequest($input->name, $input->street, $input->houseNumber, $input->postalCode, $input->city, $input->customerReference(), $input->shipmentReference()));
+            $result = $this->dhl->createReturn(new ReturnRequest($input->name, $input->street, $input->houseNumber, $input->postalCode, $input->city, $input->customerReference(), $input->shipmentReference(), $input->country));
         } catch (DhlException $exception) {
             $label->update([
                 'status' => match (true) {

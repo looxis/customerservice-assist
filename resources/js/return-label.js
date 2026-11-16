@@ -22,6 +22,10 @@ export default (config) => ({
     eocsOrderId: config.eocsOrderId,
     seenArticle: config.seenArticle ?? 0,
     form: { ...config.address },
+    countries: config.countries ?? {},
+    receivers: config.receivers ?? {},
+    // What EOCS named when it is a country no label can be ordered from.
+    unsupportedCountry: '',
     addressMissing: config.addressMissing ?? false,
     addressLoading: false,
     addressLoaded: false,
@@ -36,6 +40,8 @@ export default (config) => ({
         ticket: config.ticketNumber ?? '',
         email: '',
         text: '',
+        language: config.label?.language ?? 'de',
+        languageNote: '',
         signature: config.signature ?? '',
         after: 'reminder',
         days: 7,
@@ -48,9 +54,43 @@ export default (config) => ({
     },
 
     init() {
+        this.normalizeCountry();
+
         if (this.label?.instructions) {
             this.send.text = this.label.instructions;
         }
+    },
+
+    get supported() {
+        return Object.hasOwn(this.countries, this.form.country);
+    },
+
+    /**
+     * A country without labels (for example CH) cannot be an option of the selection: it is remembered for the hint
+     * and the selection is left empty until the employee picks one.
+     */
+    normalizeCountry() {
+        if (! this.supported) {
+            this.unsupportedCountry = this.form.country || '';
+            this.form.country = '';
+        }
+    },
+
+    get subject() {
+        return this.label?.texts?.[this.send.language]?.subject ?? '';
+    },
+
+    /**
+     * Another language for the mail: the text is exchanged as long as it is still the fixed one, a text the employee
+     * changed stays.
+     */
+    changeLanguage(code) {
+        const texts = this.label?.texts ?? {};
+        const untouched = this.send.text.trim() === '' || this.send.text === (texts[this.send.language]?.mail ?? '');
+
+        this.send.languageNote = untouched ? '' : 'Der Text wurde von Hand geändert und bleibt, wie er ist. Nur der Betreff wechselt die Sprache.';
+        if (untouched && texts[code]) { this.send.text = texts[code].mail }
+        this.send.language = code;
     },
 
     async loadAddress() {
@@ -63,7 +103,7 @@ export default (config) => ({
 
             if (! response.ok) { throw new Error(data.message || response.status) }
 
-            if (data.found) { this.form = { ...data.address } }
+            if (data.found) { this.form = { ...data.address }; this.normalizeCountry() }
             this.addressMissing = ! data.found;
             this.addressLoaded = true;
         } catch (exception) {
@@ -107,6 +147,8 @@ export default (config) => ({
                 this.label = data;
                 this.send.done = data.sent;
                 this.send.text = data.instructions || '';
+                this.send.language = data.language || 'de';
+                this.send.languageNote = '';
                 this.confirmed = false;
                 this.additionalNext = false;
 
@@ -150,6 +192,7 @@ export default (config) => ({
                 ticket_number: this.send.mode === 'reply' ? this.send.ticket : null,
                 email: this.send.mode === 'new' ? this.send.email : null,
                 text: this.send.text,
+                language: this.send.language,
                 signature: this.send.signature,
                 after: this.send.after,
                 days: this.send.after === 'reminder' ? this.send.days : null,

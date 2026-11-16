@@ -2,6 +2,7 @@
 
 namespace App\Dhl;
 
+use App\Returns\ReturnCountry;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -48,7 +49,8 @@ class DhlClient
     }
 
     /**
-     * Orders one return label (PDF, A4) for a sender in Germany.
+     * Orders one return label (PDF, A4). The country of the sender is expressed by the return receiver: DHL has one
+     * per country and the address itself carries no country.
      *
      * @throws DhlException
      */
@@ -57,7 +59,7 @@ class DhlClient
         $this->ensureConfigured();
 
         $payload = [
-            'receiverId' => (string) $this->config['receiver_id'],
+            'receiverId' => $this->receiverId($return->country),
             'shipper' => [
                 'name1' => $return->name,
                 'addressStreet' => $return->street,
@@ -86,19 +88,19 @@ class DhlClient
     }
 
     /**
-     * The return receivers set up for the contract; proves that login and permissions work.
+     * The return receivers set up for the contract for senders in one country; proves that login and permissions work.
      *
      * @return list<array{receiverId: string, billingNumber: ?string, name: ?string, address: ?string}>
      *
      * @throws DhlException
      */
-    public function locations(): array
+    public function locations(ReturnCountry $country = ReturnCountry::Germany): array
     {
         if (! $this->hasLogin()) {
             throw new DhlException(DhlProblem::Misconfigured);
         }
 
-        $response = $this->send(fn (PendingRequest $request): Response => $request->get($this->url('locations'), ['countryCode' => 'deu']), $this->token(), certain: true);
+        $response = $this->send(fn (PendingRequest $request): Response => $request->get($this->url('locations'), ['countryCode' => $country->dhlCode()]), $this->token(), certain: true);
 
         if (! $response->successful()) {
             $problem = $this->problem($response);
@@ -122,24 +124,58 @@ class DhlClient
     }
 
     /**
-     * The configured return receiver as one line ("Name, Straße Nr, PLZ Ort"), for the employee to check; null when
-     * unknown or DHL cannot be asked. Cached for an hour.
+     * The return receiver for senders in a country as one line ("Name, Straße Nr, PLZ Ort"), for the employee to
+     * check; null when unknown or DHL cannot be asked. Cached for an hour.
      */
-    public function receiverLine(): ?string
+    public function receiverLine(ReturnCountry $country = ReturnCountry::Germany): ?string
     {
         if (! $this->isConfigured()) {
             return null;
         }
 
-        return Cache::remember('dhl.receiver.'.sha1((string) $this->config['receiver_id']), now()->addHour(), function (): ?string {
+        return Cache::remember('dhl.receiver.'.$country->value.'.'.sha1((string) $this->config['receiver_id']), now()->addHour(), function () use ($country): ?string {
             try {
-                $row = collect($this->locations())->firstWhere('receiverId', (string) $this->config['receiver_id']);
+                $rows = $this->locations($country);
             } catch (DhlException) {
                 return null;
             }
 
+            $row = $country->isDomestic() ? collect($rows)->firstWhere('receiverId', (string) $this->config['receiver_id']) : (count($rows) === 1 ? $rows[0] : null);
+
             return is_array($row) && filled($row['address'] ?? null) ? $row['address'] : null;
         });
+    }
+
+    /**
+     * The receiver a label from this country is ordered for: the configured one for Germany, for the other countries
+     * the single receiver DHL lists for it (looked up once an hour). The ID never comes from a form.
+     *
+     * @throws DhlException
+     */
+    private function receiverId(ReturnCountry $country): string
+    {
+        if ($country->isDomestic()) {
+            return (string) $this->config['receiver_id'];
+        }
+
+        $key = 'dhl.receiver-id.'.$country->value.'.'.sha1((string) $this->config['url'].'|'.(string) $this->config['username']);
+        $cached = Cache::get($key);
+
+        if (is_string($cached) && $cached !== '') {
+            return $cached;
+        }
+
+        $ids = array_values(array_filter(array_map(fn (array $row): string => $row['receiverId'], $this->locations($country))));
+
+        if (count($ids) !== 1) {
+            $this->log(DhlProblem::NoReceiver);
+
+            throw new DhlException(DhlProblem::NoReceiver);
+        }
+
+        Cache::put($key, $ids[0], now()->addHour());
+
+        return $ids[0];
     }
 
     /**

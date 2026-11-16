@@ -4,12 +4,13 @@ namespace App\Console\Commands;
 
 use App\Dhl\DhlClient;
 use App\Dhl\DhlException;
+use App\Returns\ReturnCountry;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('dhl:check')]
-#[Description('Prüft die DHL-Anbindung (Anmeldung) und listet die eingerichteten Retourenempfänger')]
+#[Description('Prüft die DHL-Anbindung (Anmeldung) und listet die eingerichteten Retourenempfänger je Land')]
 class CheckDhl extends Command
 {
     public function handle(DhlClient $dhl): int
@@ -44,6 +45,26 @@ class CheckDhl extends Command
         $this->table(['Empfänger-ID', 'Abrechnungsnummer', 'Name'], array_map(fn (array $row): array => [$row['receiverId'], $row['billingNumber'] ?? '–', $row['name'] ?? '–'], $locations));
 
         $this->line($dhl->isConfigured() ? 'DHL_RECEIVER_ID ist gesetzt.' : 'Trage die gewünschte Empfänger-ID als DHL_RECEIVER_ID in die .env ein.');
+
+        $this->newLine();
+        $this->line('Empfänger für Rücksendungen aus dem Ausland (die App nimmt den einen Empfänger des Landes):');
+
+        $rows = [];
+
+        foreach (ReturnCountry::cases() as $country) {
+            if ($country->isDomestic()) {
+                continue;
+            }
+
+            try {
+                $found = $dhl->locations($country);
+                $rows[] = [$country->label(), implode(', ', array_map(fn (array $row): string => $row['receiverId'], $found)) ?: '–', count($found) === 1 ? 'in Ordnung' : 'kein Label möglich: genau ein Empfänger nötig'];
+            } catch (DhlException $exception) {
+                $rows[] = [$country->label(), '–', 'Abfrage fehlgeschlagen (HTTP '.($exception->httpStatus ?? 'keine Antwort').')'];
+            }
+        }
+
+        $this->table(['Land', 'Empfänger-ID', 'Stand'], $rows);
 
         return self::SUCCESS;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Returns\ReturnLanguage;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,7 @@ class SendReturnLabelRequest extends FormRequest
             'signature' => ['nullable', 'string', 'max:600'],
             'after' => ['required', Rule::in(['close', 'reminder'])],
             'days' => ['required_if:after,reminder', 'nullable', 'integer', Rule::in([1, 3, 7])],
+            'language' => ['nullable', Rule::in(array_keys(ReturnLanguage::options()))],
             'seen_article' => ['nullable', 'integer', 'min:0'],
             'confirm_newer' => ['sometimes', 'boolean'],
             'confirm_resend' => ['sometimes', 'boolean'],

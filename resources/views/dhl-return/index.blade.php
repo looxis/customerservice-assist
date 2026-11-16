@@ -5,7 +5,7 @@
                 <x-icon name="doc" class="mt-0.5 text-brand" />
                 <div class="min-w-0 flex-1">
                     <h2 class="text-base font-semibold text-slate-900">DHL-Retourenlabel erstellen</h2>
-                    <p class="mt-1 text-sm text-slate-600">Ticketnummer oder Bestellnummer eingeben. Die Bestellung wird aus EOCS geladen, die Lieferadresse kannst du prüfen und ändern. Das Label gilt nur für Rücksendungen aus Deutschland; DHL schickt dem Kunden selbst keine E-Mail.</p>
+                    <p class="mt-1 text-sm text-slate-600">Ticketnummer oder Bestellnummer eingeben. Die Bestellung wird aus EOCS geladen, die Lieferadresse kannst du prüfen und ändern. Labels gibt es für Rücksendungen aus {{ \App\Returns\ReturnCountry::sentence() }}; DHL schickt dem Kunden selbst keine E-Mail.</p>
                     <form method="GET" action="{{ route('dhl-return.index') }}" role="search" aria-label="Bestellung suchen" class="mt-4 flex flex-col gap-3 sm:flex-row">
                         <label for="suche" class="sr-only">Ticketnummer oder Bestellnummer</label>
                         <input type="text" id="suche" name="suche" value="{{ $query }}" autocomplete="off" autofocus placeholder="Ticket#2137942 oder Bestellnummer"
@@ -52,7 +52,7 @@
                     :has-token="$hasToken"
                     :configured="$configured"
                     :return-group="$returnGroup"
-                    :receiver="$receiver"
+                    :receivers="$receivers"
                 />
             @endforeach
         @endforeach
@@ -66,6 +66,7 @@
                             <span class="font-mono">{{ $past->order_number }}</span>
                             <span>{{ $past->created_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }} Uhr · {{ $past->created_by }}</span>
                             <span class="text-slate-600">Sendungsnr. {{ $past->shipment_no ?? '–' }}</span>
+                            @unless ($past->returnCountry()->isDomestic())<span class="text-slate-600">aus {{ $past->returnCountry()->label() }}</span>@endunless
                             <x-badge :tone="match ($past->status) { 'created' => 'success', 'failed' => 'danger', 'creating' => 'neutral', default => 'warning' }">{{ match ($past->status) { 'created' => 'erzeugt', 'failed' => 'abgelehnt', 'creating' => 'wird erzeugt', 'outcome_unknown' => 'Ausgang unklar', default => 'Datei unbrauchbar' } }}</x-badge>
                             @if ($past->sent_at)<span class="text-slate-600">gesendet an Ticket {{ $past->sent_ticket_number }} von {{ $past->sent_by }}</span>@endif
                             @if ($past->hasFile())<a href="{{ route('dhl-return.download', ['label' => $past->id, 'ticket' => $past->ticket_number]) }}" class="font-medium text-brand underline">Herunterladen</a>@endif

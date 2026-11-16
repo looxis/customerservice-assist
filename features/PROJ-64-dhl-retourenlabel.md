@@ -1,6 +1,6 @@
 # PROJ-64: DHL-Retourenlabel erstellen und versenden
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-10-27
 **Last Updated:** 2026-11-16
 
@@ -64,7 +64,7 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - [ ] Angenommen ein Pflichtfeld fehlt oder ist zu lang (Name über 50, Straße über 50, Hausnummer über 10, Ort über 40 Zeichen) oder die PLZ passt nicht zum gewählten Land (Deutschland, Frankreich, Italien: fünf Ziffern; Österreich, Belgien, Luxemburg: vier Ziffern; Niederlande: vier Ziffern und zwei Buchstaben), wenn der Mitarbeiter „Label erzeugen“ wählt, dann zeigt das Formular die Fehler am Feld und schneidet nichts still ab.
 - [ ] Angenommen das Land ist keines der sieben unterstützten, wenn der Mitarbeiter „Label erzeugen“ wählt, dann wird es abgelehnt mit einem Hinweis, der die unterstützten Länder nennt und für alle anderen auf das Geschäftskundenportal verweist. (2026-11-16, vorher: nur Deutschland)
 - [ ] Angenommen der Adressbereich, wenn der Mitarbeiter das Land ändern will (z. B. Amazon-Bestellung ohne Adresse oder falsches Land in EOCS), dann wählt er es aus einer Liste der sieben Länder; ein anderes Land lässt sich nicht eintragen. (2026-11-16)
-- [ ] Angenommen ein Absender im Ausland, wenn das Label bestellt wird, dann erhält DHL das Land des Absenders und den Retourenempfänger dieses Landes; für Deutschland bleibt der konfigurierte Empfänger. (2026-11-16)
+- [ ] Angenommen ein Absender im Ausland, wenn das Label bestellt wird, dann wird es für den Retourenempfänger dieses Landes bestellt (darüber erkennt DHL das Land des Absenders; ein eigenes Länderfeld hat die Schnittstelle nicht); für Deutschland bleibt der konfigurierte Empfänger. (2026-11-16)
 - [ ] Angenommen DHL nennt für das Land keinen oder mehr als einen Retourenempfänger, wenn der Mitarbeiter „Label erzeugen“ wählt, dann wird nichts bestellt und eine Meldung nennt den Grund und verweist auf das Geschäftskundenportal. (2026-11-16)
 - [ ] Angenommen ein Label aus dem Ausland wurde erzeugt, wenn die Seite es zeigt (auch unter „Bisherige Labels“), dann ist das Absenderland erkennbar. (2026-11-16)
 - [ ] Angenommen ein Land außerhalb Deutschlands ist gewählt, wenn der Adressbereich angezeigt wird, dann steht dort statt „nur für Rücksendungen aus Deutschland“ ein Hinweis, dass es eine Auslandsretoure ist. (2026-11-16)
@@ -147,7 +147,7 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 - [ ] Wortlaut des Anleitungstextes (Verpacken, Label aufkleben, Abgabe in Filiale/Paketshop, keine Abholung): Der Entwickler schlägt einen Standardtext vor, der Auftraggeber sucht die DHL-Textvorschläge heraus und gibt frei.
 - [ ] Nach dem Erzeugen im Formular: Soll das Ticket nach dem Versand ebenfalls „schließen“ oder „Erinnerung“ als Standard vorschlagen? Vorschlag: wie PROJ-19.
 - [x] Die Schritte für den Kunden sind deutsch. Schreibt ein Kunde in einer anderen Sprache, bleibt der Block deutsch. Soll er übersetzt oder mehrsprachig vorgehalten werden? → Feste Fassungen in Deutsch, Französisch, Italienisch, Niederländisch und Englisch, gewählt nach der Sprache des Kunden (2026-11-16)
-- [ ] Verlangt DHL für Auslandsretouren weitere Pflichtangaben (z. B. Gewicht)? Lesend nicht prüfbar; zeigt sich an der ersten echten Bestellung (Ticket 2140387). Jede Testbestellung erzeugt ein echtes Label. (2026-11-16)
+- [ ] Verlangt DHL für Auslandsretouren weitere Pflichtangaben (z. B. Gewicht)? Laut der Schnittstellenbeschreibung (öffentliche SDKs, geprüft 2026-11-16) sind Gewicht, Warenwert und Zollangaben freiwillig und das Land steckt allein im Empfänger; der Beweis ist die erste echte Bestellung (Ticket 2140387). Jede Testbestellung erzeugt ein echtes Label. (2026-11-16)
 - [ ] Wortlaut der französischen, italienischen, niederländischen und englischen Fassung: Der Entwickler schlägt sie vor, der Auftraggeber gibt sie frei. (2026-11-16)
 
 ## Decision Log
@@ -190,7 +190,7 @@ Manche Reklamationen lösen sich nur, wenn die Ware an uns zurückgeht. Dafür b
 | Keine neuen Pakete | Das PDF wird unverändert angehängt, es muss nur auf Gültigkeit geprüft werden | 2026-10-27 |
 | Retourenempfänger für das Ausland wird je Land bei DHL nachgeschlagen (zwischengespeichert), Deutschland bleibt bei `DHL_RECEIVER_ID` | Keine neuen Einträge in der `.env`; je Land gibt es genau einen Empfänger (LOOXIS, Minden). Bei keinem oder mehreren Empfängern wird nichts bestellt. Die Empfänger-ID kommt weiterhin nie aus dem Formular | 2026-11-16 |
 | Gemeinsame Länderliste (Kürzel, Name, DHL-Kennung, PLZ-Muster) für Prüfung, Auswahl und DHL-Aufruf | Eine Stelle statt verstreuter Länderregeln; ein weiteres EU-Land ist später ein Eintrag | 2026-11-16 |
-| Anfrage an DHL für Deutschland bleibt unverändert, nur das Ausland bekommt Land und nachgeschlagenen Empfänger | Der freigegebene, täglich genutzte Weg wird nicht angefasst | 2026-11-16 |
+| Anfrage an DHL für Deutschland bleibt unverändert, nur das Ausland bekommt den nachgeschlagenen Empfänger seines Landes (die Adresse hat bei DHL kein Länderfeld) | Der freigegebene, täglich genutzte Weg wird nicht angefasst | 2026-11-16 |
 | Sprache: im Vorschlag die des Entwurfs, auf der Seite „DHL Retoure“ Vorbelegung nach Land mit Umschalter | Die Seite kennt die Kundensprache nicht zuverlässig; ein Umschalter ist einfacher und sicherer als eine Erkennung | 2026-11-16 |
 | Kundentexte als feste Texte im Programm, nicht in den Einstellungen | Fünf Sprachen mal zwei Abgabeorte ändern sich selten; Freigabe einmalig durch den Auftraggeber. Später als Einstellung nachrüstbar | 2026-11-16 |
 | Das Absenderland wird am Label gespeichert (zweistelliges Kürzel, keine Adresse) | Anzeige unter „Bisherige Labels“, Wahl des Abgabeorts im Text und Grundlage für PROJ-65 | 2026-11-16 |
@@ -303,7 +303,7 @@ Die fünf Fassungen der Kundentexte (Schritte, Mailtext, Betreff, je einmal mit 
 #### Technische Entscheidungen
 - **Eine Länderliste an einer Stelle:** Kürzel, Name, DHL-Länderkennung und PLZ-Muster der sieben Länder stehen in einer gemeinsamen Liste. Formularprüfung, Auswahlliste und DHL-Aufruf lesen daraus; ein weiteres EU-Land wäre später ein Eintrag.
 - **Empfänger je Land bei DHL nachschlagen:** Für das Ausland fragt die App die Empfängerliste des Landes ab und speichert das Ergebnis eine Stunde zwischen. Genau ein Empfänger wird verwendet, sonst gibt es eine Meldung und keine Bestellung. Deutschland bleibt beim konfigurierten Empfänger; damit ändert sich am laufenden Betrieb nichts.
-- **Absenderland in der Bestellung an DHL:** Die Anfrage nennt das Land des Absenders. Für Deutschland bleibt die Anfrage wie heute, damit der freigegebene Weg unverändert ist.
+- **Absenderland in der Bestellung an DHL:** DHL erkennt das Land am Retourenempfänger; die Adresse selbst hat an der Schnittstelle kein Länderfeld (beim Bau geklärt). Für Deutschland bleibt die Anfrage wie heute, damit der freigegebene Weg unverändert ist.
 - **Sprache der Kundentexte:** Im Antwortvorschlag gilt die Sprache des Entwurfs (sie ist dort schon bekannt). Auf der Seite „DHL Retoure“ kennt die App die Sprache nicht zuverlässig; sie belegt nach Land vor (Deutschland und Österreich Deutsch, Frankreich Französisch, Italien Italienisch, Niederlande Niederländisch, Belgien und Luxemburg Englisch) und der Mitarbeiter kann umschalten. Das weicht leicht vom Kriterium „sonst Englisch“ ab und trifft die Sprache des Kunden häufiger.
 - **Abgabeort nach Land, nicht nach Sprache:** Ob „DHL-Filiale“ oder „auf dem Label genannter Versanddienst“ steht, entscheidet das gespeicherte Absenderland.
 - **Kein doppeltes Einfügen:** Die App erkennt die Schritte an der Sendungsnummer im Text, unabhängig von der Sprache.
@@ -330,6 +330,25 @@ Keine neuen Pakete, keine neuen Einträge in der `.env`. Eine Migration (Spalte 
 - Löscht der Mitarbeiter die Schritte aus dem Entwurf und speichert, erscheinen sie beim nächsten Laden des Vorschlags wieder.
 
 **Noch nicht geprüft:** Die Oberfläche (Alpine-Teil) wurde in keinem Browser ausprobiert, nur die Server-Seite per Test. Gegen die echte DHL-Sandbox lief noch kein Aufruf.
+
+### Erweiterung Auslandsretouren (gebaut 2026-11-16)
+- `App\Returns\ReturnCountry` (sieben Länder: Name, DHL-Kennung, PLZ-Muster, übliche Sprache) und `App\Returns\ReturnLanguage` (fünf Sprachen, liest den deutschen Sprachnamen der KI).
+- `ReturnInstructions`: Schritte, Mailtext und Betreff in fünf Sprachen; der Abgabeort und die Bezeichnung des Labels richten sich nach dem Land (Deutschland: DHL, Ausland: „auf dem Label genannter Versanddienst“, ohne „DHL“). Der deutsche Text für Deutschland ist wortgleich geblieben.
+- `DhlClient`: Für das Ausland wird der Empfänger über die Empfängerliste des Landes nachgeschlagen (eine Stunde zwischengespeichert); kein oder mehrere Empfänger ergeben die neue Fehlerart „kein eindeutiger Empfänger“ ohne Bestellung. Deutschland nutzt weiter `DHL_RECEIVER_ID`.
+- Spalte `return_labels.country` (Standard `DE`); das Land fließt nur im Ausland in die Kurzfassung der Anfrage ein, damit vorhandene deutsche Labels weiter erkannt werden.
+- Formularprüfung: Land aus der Liste, PLZ je Land, Fehlertexte nennen die Regel des Landes bzw. die unterstützten Länder und das Geschäftskundenportal.
+- Adressbereich: Land als Auswahlliste, Hinweis „Auslandsretoure“, Sperre bei einem Land ohne Label (bis der Mitarbeiter ein Land wählt), Empfängeranzeige je Land (Seite „DHL Retoure“, für die Länder der gefundenen Bestellungen und Deutschland).
+- Seite „DHL Retoure“: Auswahl „Sprache der Mail“ (vorbelegt nach Land); ein Wechsel tauscht Text und Betreff, ein von Hand geänderter Text bleibt. Absenderland am Ergebnis und unter „Bisherige Labels“.
+- Antwortvorschlag: Die Schritte folgen der Sprache des Entwurfs, sonst der üblichen Sprache des Landes (auch bei „Direkt antworten“, dessen Sprache nicht bekannt ist). Ob die Schritte schon im Entwurf stehen, erkennt die App an der Sendungsnummer.
+- `dhl:check` zeigt je Land Empfänger und Stand.
+- Tests: `tests/Feature/PROJ-64-DhlReturnAbroadTest.php` (71 Fälle); die bisherigen PROJ-64-Tests laufen unverändert, bis auf einen Datensatz, der die Ablehnung von Italien erwartete (jetzt Schweiz).
+
+**Abweichungen von Spec und Entwurf:**
+- Der Betreff eines neuen Tickets enthält auch im Ausland „DHL“ (in der gewählten Sprache), damit die Suche in Zammad nach einem unklaren Versand einheitlich bleibt.
+- Die Empfängeranzeige gibt es nur für die Länder der gefundenen Bestellungen und Deutschland; wählt der Mitarbeiter von Hand ein anderes Land, fehlt die Zeile (das Label wird trotzdem für den richtigen Empfänger bestellt).
+- Der Satz an die KI („vorfrankiertes DHL-Retourenlabel“) ist unverändert, auch im Ausland.
+
+**Noch nicht geprüft:** Die geänderte Oberfläche (Länderauswahl, Sprachwechsel) wurde in keinem Browser bedient. Die Seite „DHL Retoure“ wurde für Ticket 2140387 serverseitig geladen: Land Frankreich und der Empfänger werden erkannt; EOCS liefert dort Hausnummer und Straße zusammen im Straßenfeld, der Mitarbeiter muss sie trennen. Eine echte Auslandsbestellung bei DHL steht aus.
 
 ## QA Test Results
 

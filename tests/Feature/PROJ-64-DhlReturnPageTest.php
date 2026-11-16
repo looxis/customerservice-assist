@@ -155,7 +155,7 @@ describe('ordering the label', function () {
         'not confirmed' => [['confirmed' => false], 'confirmed'],
         'postcode too short' => [['postal_code' => '1099'], 'postal_code'],
         'postcode with letters' => [['postal_code' => '0109A'], 'postal_code'],
-        'abroad' => [['country' => 'IT'], 'country'],
+        'a country without labels' => [['country' => 'CH'], 'country'],
         'name too long' => [['name' => str_repeat('A', 51)], 'name'],
         'street too long' => [['street' => str_repeat('A', 51)], 'street'],
         'house number too long' => [['house_number' => str_repeat('1', 11)], 'house_number'],

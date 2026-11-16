@@ -27,6 +27,7 @@ use App\ProductForge\ProductForgeException;
 use App\ProductForge\ProductForgeProblem;
 use App\ProductForge\SkuDetector;
 use App\Returns\ReturnInstructions;
+use App\Returns\ReturnLanguage;
 use App\Zammad\ArticleKind;
 use App\Zammad\RelatedTicketFinder;
 use App\Zammad\Ticket;
@@ -233,11 +234,14 @@ class AnalysisPanel
         $original = $this->originalReply($stored);
         $edit = $stored['reply_edit'] ?? null;
         $label = $this->returnLabel($stored, $ticket);
+        // The steps follow the language of the draft; in a language without a fixed text, or for a reply written
+        // without the model (its language is not known), the one usual for the country.
+        $labelLanguage = (($stored['meta']['manual'] ?? false) ? null : ReturnLanguage::fromName($stored['result']['reply']['language'] ?? null)) ?? $label?->returnCountry()->language() ?? ReturnLanguage::German;
         $shown = is_array($edit) ? (string) $edit['text'] : $original;
 
         // The steps for the customer (PROJ-64) stand under the draft, unless they are in it already.
-        if ($label !== null && is_array($stored['result']['reply'] ?? null) && ! str_contains($shown, 'Retouren-Sendungsnummer: '.$label->shipment_no)) {
-            $shown = rtrim($shown)."\n\n".ReturnInstructions::block((string) $label->shipment_no);
+        if ($label !== null && is_array($stored['result']['reply'] ?? null) && ! str_contains($shown, (string) $label->shipment_no)) {
+            $shown = rtrim($shown)."\n\n".ReturnInstructions::block((string) $label->shipment_no, $labelLanguage, $label->returnCountry());
         }
         $last = $ticket->articles === [] ? null : $ticket->articles[array_key_last($ticket->articles)];
         $lastSeen = $stored['thread']['last_article_id'] ?? null;
@@ -247,7 +251,7 @@ class AnalysisPanel
             'id' => $id,
             'reply_original' => $original,
             'reply_text' => $shown,
-            'return_label' => $label?->payload(true),
+            'return_label' => $label?->payload(true, $labelLanguage),
             'reply_edited' => is_array($edit) ? 'bearbeitet von '.$edit['staff'].' am '.CarbonImmutable::parse($edit['at'])->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr' : null,
             'inserted' => $this->inserted($reply, $stored['placeholders'] ?? []),
             'reply_foreign' => ! str_starts_with(mb_strtolower(trim((string) ($stored['result']['reply']['language'] ?? 'Deutsch'))), 'deutsch'),

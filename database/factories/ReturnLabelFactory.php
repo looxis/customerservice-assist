@@ -19,6 +19,7 @@ class ReturnLabelFactory extends Factory
             'ticket_number' => (string) fake()->numberBetween(2100000, 2149999),
             'order_number' => '402-'.fake()->numerify('#######').'-'.fake()->numerify('#######'),
             'eocs_order_id' => fake()->numberBetween(1000, 999999),
+            'country' => 'DE',
             'shipment_no' => fake()->numerify('############'),
             'status' => ReturnLabel::CREATED,
             'fingerprint' => hash('sha256', fake()->uuid()),

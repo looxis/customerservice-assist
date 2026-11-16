@@ -16,9 +16,11 @@ use App\Http\Requests\SendReturnLabelRequest;
 use App\Models\ReturnLabel;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
+use App\Returns\ReturnCountry;
 use App\Returns\ReturnInstructions;
 use App\Returns\ReturnLabelInput;
 use App\Returns\ReturnLabelService;
+use App\Returns\ReturnLanguage;
 use App\Staff\StaffDirectory;
 use App\Zammad\ArticleKind;
 use App\Zammad\OutgoingAttachment;
@@ -61,7 +63,7 @@ class DhlReturnController extends Controller
             'hasToken' => $staff->zammadToken($staff->current($request)) !== null,
             'signature' => ($name = $staff->current($request)) === null ? '' : app(ReplyDelivery::class)->signature($name),
             'returnGroup' => (string) config('services.zammad.return_group'),
-            'receiver' => null,
+            'receivers' => [],
         ];
 
         if ($query === '') {
@@ -89,13 +91,13 @@ class DhlReturnController extends Controller
             return view('dhl-return.index', [...$view, 'problem' => 'Bitte eine Ticketnummer oder eine Bestellnummer eingeben.']);
         }
 
-        $view['receiver'] = $dhl->receiverLine();
-
         try {
             $view['lookups'] = $eocs->lookup($numbers);
         } catch (EocsException $exception) {
             $view['problem'] = $exception->problem->message();
         }
+
+        $view['receivers'] = $this->receivers($view['lookups'], $dhl);
 
         $orderNumbers = collect($view['lookups'])->flatMap(fn (OrderLookup $lookup): array => array_map(fn ($found): string => $found->externalNumber, $lookup->orders))->all();
         $ticketNumber = $view['ticket']?->number;
@@ -165,6 +167,7 @@ class DhlReturnController extends Controller
                 $data['house_number'],
                 $data['postal_code'],
                 $data['city'],
+                ReturnCountry::from($data['country']),
             ), $name, $request->boolean('additional'));
         } catch (DhlException $exception) {
             return response()->json([
@@ -254,6 +257,7 @@ class DhlReturnController extends Controller
         $until = $after === 'close' ? null : ReplyDelivery::reminderDate((int) $request->validated('days'));
         $file = [new OutgoingAttachment(ReturnInstructions::filename($label->order_number), 'application/pdf', $pdf)];
         $asNew = $request->validated('mode') === 'new';
+        $subject = ReturnInstructions::subject($label->order_number, ReturnLanguage::tryFrom((string) $request->validated('language')) ?? $label->returnCountry()->language());
         $ticket = null;
         $target = null;
 
@@ -286,7 +290,7 @@ class DhlReturnController extends Controller
             } elseif (! $request->boolean('confirm_resend')) {
                 return response()->json([
                     'message' => $asNew || $label->send_started_target === 'new'
-                        ? 'Der letzte Versand hatte einen unklaren Ausgang. Bitte in Zammad nachsehen, ob schon ein Ticket „'.ReturnInstructions::subject($label->order_number).'“ mit dem Label existiert. Nur wenn nicht, erneut senden.'
+                        ? 'Der letzte Versand hatte einen unklaren Ausgang. Bitte in Zammad nachsehen, ob schon ein Ticket „'.$subject.'“ mit dem Label existiert. Nur wenn nicht, erneut senden.'
                         : 'Der letzte Versand an Ticket '.$label->send_started_target.' hatte einen unklaren Ausgang. Bitte dort nachsehen, ob die Nachricht angekommen ist. Nur wenn nicht, erneut senden.',
                     'code' => 'unclear_resend',
                 ], 409);
@@ -316,7 +320,7 @@ class DhlReturnController extends Controller
 
         try {
             if ($asNew) {
-                $created = $sender->createTicket($token, new OutgoingTicket((string) config('services.zammad.return_group'), (string) $request->validated('email'), ReturnInstructions::subject($label->order_number), $body, $state, $until, $file));
+                $created = $sender->createTicket($token, new OutgoingTicket((string) config('services.zammad.return_group'), (string) $request->validated('email'), $subject, $body, $state, $until, $file));
                 $ticketNumber = $created->number;
                 $url = $created->url;
             } else {
@@ -331,7 +335,7 @@ class DhlReturnController extends Controller
 
             return response()->json([
                 'message' => $asNew && ! $exception->problem->notSent()
-                    ? 'Zammad hat nicht rechtzeitig geantwortet. Es ist unklar, ob das Ticket angelegt wurde. Bitte in Zammad nach „'.ReturnInstructions::subject($label->order_number).'“ suchen, bevor erneut gesendet wird.'
+                    ? 'Zammad hat nicht rechtzeitig geantwortet. Es ist unklar, ob das Ticket angelegt wurde. Bitte in Zammad nach „'.$subject.'“ suchen, bevor erneut gesendet wird.'
                     : $exception->problem->message($name),
                 'code' => $exception->problem->value,
             ], 502);
@@ -340,6 +344,27 @@ class DhlReturnController extends Controller
         $label->update(['sent_at' => now(), 'sent_by' => $name, 'sent_ticket_number' => $ticketNumber, 'sent_as_new_ticket' => $asNew, 'send_started_at' => null, 'send_started_target' => null]);
 
         return response()->json(['sent' => true, 'by' => $name, 'ticket_number' => $ticketNumber, 'ticket_url' => $url, 'new_ticket' => $asNew]);
+    }
+
+    /**
+     * Where a return goes, per country of the orders found (Germany always): shown for the employee to check.
+     *
+     * @param  list<OrderLookup>  $lookups
+     * @return array<string, string>
+     */
+    private function receivers(array $lookups, DhlClient $dhl): array
+    {
+        $countries = collect($lookups)
+            ->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)
+            ->map(fn ($order): ?ReturnCountry => ReturnCountry::tryFrom((string) $order->shippingAddress?->countryCode))
+            ->filter()
+            ->push(ReturnCountry::Germany)
+            ->unique(fn (ReturnCountry $country): string => $country->value);
+
+        return $countries
+            ->mapWithKeys(fn (ReturnCountry $country): array => [$country->value => $dhl->receiverLine($country)])
+            ->filter()
+            ->all();
     }
 
     private function replyTicket(string $number, ZammadClient $zammad): Ticket|JsonResponse

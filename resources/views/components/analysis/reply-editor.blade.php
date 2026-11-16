@@ -75,8 +75,10 @@
         },
         async attachLabel(label) {
             if (! label || ! label.download_url || ! this.sendReady || this.send.sent) { return }
-            if (label.block && ! this.text.includes(label.block)) {
-                this.text = this.text.replace(/\s+$/, '') + '\n\n' + label.block;
+            // The steps in the language of the draft; they count as present once the shipment number stands in the text.
+            const block = (label.texts && label.texts[@js(\App\Returns\ReturnLanguage::fromName($language)?->value)]?.block) || label.block;
+            if (block && ! this.text.includes(label.shipment_no)) {
+                this.text = this.text.replace(/\s+$/, '') + '\n\n' + block;
                 this.changed();
             }
             if (this.send.files.some((file) => file.name === label.filename)) { return }
