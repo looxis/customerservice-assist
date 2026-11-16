@@ -1,6 +1,6 @@
 # PROJ-89: Verkaufskanal im Vorschlagsformular
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-16
 **Last Updated:** 2026-11-16
 
@@ -109,11 +109,72 @@ Heute wählt der Mitarbeiter nur die Kundengruppe; jede Gruppe hat genau einen f
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Kein neues Stammdaten-Modell: Die wählbaren Kanäle ergeben sich aus den aktiven Kundengruppen und ihrem Kanal | Kanäle, Gruppen und ihre Zuordnung sind seit PROJ-50 in den Einstellungen pflegbar; ein Kanal ohne aktive Gruppe verschwindet von selbst aus dem Dropdown | 2026-11-16 |
+| Der gewählte Kanal überschreibt für diesen einen Vorschlag den Kanal der Kundengruppe, an der einen Stelle, die heute schon über den Geltungsbereich entscheidet | Wissensauswahl, Router, Arbeitsabläufe und ProductForge arbeiten unverändert weiter; kein zweiter Prüfweg | 2026-11-16 |
+| Neues Formularfeld und Prüfung in einem gemeinsamen Baustein für Ticket und „Frage stellen“ | Beide Formulare nutzen schon denselben oberen Teil; so bleibt das Verhalten gleich | 2026-11-16 |
+| Kanal am Ticket in der vorhandenen Spalte, dazu eine neue Spalte für die Herkunft (Mitarbeiter, Bestellung, Absender) | Nur so kann die Wahl des Mitarbeiters Vorrang vor der automatischen Erkennung behalten; PROJ-66 hat die Herkunftsangabe bereits vorgesehen | 2026-11-16 |
+| Automatisches Speichern beim Öffnen der Ticketseite, nicht im Hintergrund-Abgleich | Bestellung und Absender liegen dort ohnehin vor; keine zusätzlichen Abrufe bei EOCS oder Zammad | 2026-11-16 |
+| „Globus“ und „ehemals qobos“ kommen als Standardwerte mit; sind die Einstellungen schon von Hand gespeichert, ergänzt sie ein einmaliger Datenschritt, Gruppe direkt aktiv | Sonst erschiene die Gruppe auf dem Produktivsystem nicht bzw. erst nach der Freigabe-Prüfung „in Vorbereitung“ | 2026-11-16 |
+| Schlüssel des Kanals `qobos`, der Gruppe `globus`; nur die Namen lauten „ehemals qobos“ und „Globus“ | Schlüssel stehen im Kopf der Wissensdateien und sind nach dem Speichern fest; Namen bleiben änderbar | 2026-11-16 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+Es braucht Oberfläche und Backend, aber kein neues Datenmodell für Kanäle: Kanäle, Kundengruppen und die Zuordnung „Gruppe gehört zu Kanal“ gibt es seit PROJ-50 in den Einstellungen. Neu sind das Formularfeld, die Vorbelegung, die Wirkung auf die Wissensauswahl und das Speichern am Ticket.
+
+### Aufbau der Oberfläche
+```
+Vorschlag erstellen (Ticket)  /  Frage stellen
++-- Gemeinsamer oberer Teil (vorhandener Baustein „Kundengruppe und Produkt“)
+|   +-- NEU: Verkaufskanal (Pflicht-Dropdown, Vermerk zur Vorbelegung)
+|   +-- Kundengruppe (wie bisher, wird vom Kanal gesetzt, bleibt änderbar)
+|   |   +-- NEU: gelber Hinweis, wenn Gruppe und Kanal nicht zusammenpassen
+|   +-- Produkt (unverändert)
++-- Rest des Formulars (unverändert, auch Reklamation)
++-- Zeile „Erstellt mit“: zusätzlich der Kanal
+
+Startseite, Ticketübersicht
++-- Spalte „Kanal“: zeigt jetzt den Namen des gespeicherten Kanals
++-- Filter „Kanal“: vorhandene Werte und „unbekannt“ (Filter existiert bereits)
+
+Einstellungen (vorhandene Seiten, keine neue Oberfläche)
++-- Vertriebskanäle: neuer Eintrag „ehemals qobos“, Namen wie im Dropdown
++-- Kundengruppen: neue Gruppe „Globus“
+```
+
+### Daten
+- **Kanäle im Dropdown:** jeder Kanal, zu dem es eine aktive Kundengruppe gibt, mit dem Namen aus den Einstellungen; dazu „Noch unklar“. Die Gruppe eines Kanals ist die erste aktive Gruppe mit diesem Kanal.
+- **Am Vorschlag gespeichert:** der gewählte Kanal, zusammen mit den übrigen Formularangaben (Protokoll, Vorbelegung beim nächsten Vorschlag, „Erstellt mit“).
+- **Am Ticket gespeichert** (Tabelle der Ticketübersicht aus PROJ-66): der Kanalschlüssel in der vorhandenen Spalte und neu seine Herkunft: vom Mitarbeiter gewählt, aus der Bestellung oder aus dem Absender. Automatisch erkannte Werte überschreiben nie eine Wahl des Mitarbeiters.
+- **Keine Kundendaten:** Die Absenderadresse wird nur geprüft, nicht gespeichert.
+
+### Ablauf
+1. Ticketseite öffnet: Die App bestimmt den Kanal in der Reihenfolge frühere Wahl, Bestellung, Amazon-Absender. Ist am Ticket noch keiner gespeichert, wird der erkannte Kanal dort abgelegt.
+2. Formular: Der Kanal ist vorbelegt oder steht auf „Bitte wählen“. Die Wahl setzt die Gruppe im Browser sofort um, ohne Neuladen.
+3. Abschicken: Der Server prüft, dass der Kanal wählbar ist. Für die Wissensauswahl gilt die Kundenart der Gruppe und der gewählte Kanal.
+4. Nach dem Vorschlag: Kanal am Ticket als „vom Mitarbeiter gewählt“ gespeichert.
+
+### Technische Entscheidungen in Kürze
+- **Eine Stelle für den Geltungsbereich:** Der gewählte Kanal wird dort eingesetzt, wo heute die Kundengruppe über Kundenart und Kanal entscheidet. Alles Nachgelagerte (gezielter Abruf, Router, Arbeitsabläufe, Wissenslücken, ProductForge) bleibt unverändert.
+- **Wissensprüfung:** Der neue Kanal gehört zur Liste der gültigen Kanäle; die bestehende Prüfung, dass jedes Dokument für mindestens eine Gruppe erreichbar ist, bleibt gültig.
+- **Reaktion im Formular mit Alpine.js** im vorhandenen Baustein, keine neue Seite, kein zusätzlicher Serveraufruf.
+- **Eine Datenbankänderung:** die Herkunftsspalte am Ticket. Keine neuen Tabellen.
+
+### Betroffene Bereiche
+- Formularbaustein „Kundengruppe und Produkt“, Formulare für Ticket und „Frage stellen“ samt ihrer Eingabeprüfung
+- Vorbelegung im Analyse-Panel (heute: Gruppe aus dem Bestellkanal)
+- Wissensauswahl (Kundengruppe mit gewähltem Kanal)
+- Ticketseite (automatisches Speichern), Ticketübersicht (Kanalname)
+- Standardwerte und Einstellungen für Kanäle und Gruppen
+
+### Abhängigkeiten
+Keine neuen Pakete.
+
+### Risiken
+- Das getestete Reklamationsformular teilt den oberen Formularteil; seine Tests laufen bei der Umsetzung mit.
+- Bestehende Tests schicken keinen Kanal mit. Für ältere gespeicherte Vorschläge und beim Fortsetzen nach interner Klärung wird der Kanal aus der Gruppe abgeleitet.
 
 ## QA Test Results
 _To be added by /qa_
