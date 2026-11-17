@@ -293,3 +293,27 @@ test('an undecided complaint passes on the needed information and promises nothi
         && ! $prompt->contains('Versand der Neuproduktion') && ! $prompt->contains('Reklamationsnummer'));
     expect(Analysis::query()->latest()->first()->content['inputs'])->toMatchArray(['reklamation_berechtigt' => 'info', 'reklamation_info' => 'Foto der Rückseite'])->not->toHaveKey('retoure');
 });
+
+it('asks the customer to return the product first and drops claim number, shipping and ToDo when the replacement waits for the return', function () {
+    $decision = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'ja', 'retoure' => 'ja', 'retoure_vor_ersatz' => 'nein']);
+
+    expect($decision->awaitReturn)->toBeTrue()
+        ->and($decision->facts())->toContain('frühestens nach Erhalt')->not->toContain('REKLAMATIONSNUMMER')->not->toContain('Sendungsnummer wird dem Kunden')->not->toContain('Versand der Neuproduktion')
+        ->and($decision->storedInput())->toMatchArray(['retoure' => 'ja', 'retoure_vor_ersatz' => 'nein'])->not->toHaveKey('reklamationsnummer');
+});
+
+it('keeps the previous behaviour when processed before the return or without a return', function () {
+    $no = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'ja', 'retoure' => 'ja', 'retoure_vor_ersatz' => 'ja', 'versand' => 'morgen']);
+    $noReturn = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'ja', 'retoure' => 'nein', 'retoure_vor_ersatz' => 'nein']);
+
+    expect($no->awaitReturn)->toBeFalse()->and($no->facts())->toContain('REKLAMATIONSNUMMER')
+        ->and($noReturn->awaitReturn)->toBeFalse();
+});
+
+it('tells the model that the return has already arrived and keeps claim number and shipping', function () {
+    $decision = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'ja', 'retoure' => 'erhalten', 'versand' => 'morgen']);
+
+    expect($decision->return)->toBe('erhalten')->and($decision->wantsReturnLabel())->toBeFalse()->and($decision->awaitReturn)->toBeFalse()
+        ->and($decision->facts())->toContain('Rücksendung erhalten und geprüft')->toContain('voraussichtlich morgen')->not->toContain('Erst nach dem Eingang')
+        ->and($decision->storedInput())->toMatchArray(['retoure' => 'erhalten']);
+});

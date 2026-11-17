@@ -37,11 +37,14 @@
         <legend class="sr-only">Reklamation berechtigt</legend>
 
         <div>
-            <x-analysis.choice name="retoure" legend="Soll das defekte Produkt retourniert werden?" :options="$yesNo" model="retoure" :value="$pick('retoure', 'nein')" />
+            <x-analysis.choice name="retoure" legend="Soll das defekte Produkt retourniert werden?" :options="[...$yesNo, 'erhalten' => 'Retoure bereits erhalten']" model="retoure" :value="$pick('retoure', 'nein')" />
             <x-intro>
                 <p class="mt-1 text-sm text-slate-600">Höherwertige Produkte, die in Teilen noch (weiter-)verwendet werden können, sollten retourniert werden.</p>
             </x-intro>
             <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 text-sm font-medium text-danger-700" x-text="labelNote"></p>
+            <fieldset x-show="retoure === 'ja'" x-bind:disabled="retoure !== 'ja'" x-cloak class="mt-3 min-w-0 border-0 p-0">
+                <x-analysis.choice name="retoure_vor_ersatz" legend="Wird die Reklamation (Ersatz) bearbeitet, bevor der Kunde sein Produkt retourniert hat?" :options="$yesNo" model="vorErsatz" :value="$pick('retoure_vor_ersatz', 'ja')" />
+            </fieldset>
             <div x-show="['ja', 'unsicher'].includes(berechtigt) && retoure === 'ja'" x-cloak class="mt-3 space-y-4">
                 @forelse ($labelOrders as $labelOrder)
                     <x-dhl.return-label :order="$labelOrder" :ticket-number="$number" mode="attach" :field="true" :configured="app(\App\Dhl\DhlClient::class)->isConfigured()" />
@@ -51,6 +54,7 @@
             </div>
         </div>
 
+        <fieldset x-show="! (retoure === 'ja' && vorErsatz === 'nein')" x-bind:disabled="retoure === 'ja' && vorErsatz === 'nein'" class="min-w-0 space-y-5 border-0 p-0">
         <x-input name="reklamationsnummer" label="Reklamationsnummer" :value="$pick('reklamationsnummer', $complaint['claimNumber'] ?? null)" maxlength="60" autocomplete="off"
                  hint="Bitte Reklamation in EOCS erstellen und die Reklamationsnummer hier einfügen. Ohne Nummer steht im Entwurf ein Platzhalter." />
 
@@ -62,5 +66,6 @@
                 <x-intro><span class="block text-xs font-normal text-slate-600">Die App reicht die Sendungsnummer nach dem Versand automatisch nach (nur bei deutscher Antwort und mit Reklamationsnummer).</span></x-intro>
             </span>
         </label>
+        </fieldset>
     </fieldset>
 </fieldset>
