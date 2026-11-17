@@ -71,6 +71,8 @@ Diese Erklärung nur verwenden, wenn tatsächlich getrennte Interpretationsvorg�
 
 # Grüne Markierung erklären
 
+Gilt für das 2D-Glasfoto und für 3D-Glasfotos im bisherigen Konfigurator. Im neuen 3D-Konfigurator gibt es keine Markierung (siehe unten).
+
 Die Markierung als Hilfe für eine eindeutige Umsetzung beschreiben.
 
 Formulierungshilfe:
@@ -78,6 +80,26 @@ Formulierungshilfe:
 „Damit Sie bei solchen Bildbereichen selbst eindeutig festlegen können, was im Glas erhalten bleiben soll, gibt es im Konfigurator die grüne Markierung. Alles, was Sie damit klar markieren, wird als Teil des gewünschten Hauptmotivs berücksichtigt.“
 
 Bei einem 2D-Glasfoto gilt diese Markierungsoption, wenn „Hintergrund entfernen“ gewählt wurde.
+
+# Neuer Konfigurator ohne Markierung (3D-Glasfoto)
+
+Gilt für Bestellungen im neuen Konfigurator, laut Produktwissen „Neuer Konfigurator seit [Datum]“ (PLAYBOOK-010).
+
+Aufbau der Antwort: Zuerst auf die Frage des Kunden eingehen, dann den Konfigurator erklären, ganz am Ende in ein bis zwei Sätzen den Hinweis zur eigenen Freistellung. Keine Schritt-für-Schritt-Anleitung und keine Aufzählung dazu.
+
+Konfigurator erklären (Formulierungshilfe):
+
+„Wir stellen die Konfiguration der 3D-Glasfotos derzeit Schritt für Schritt, Glasgröße für Glasgröße, auf einen neuen Konfigurator um. Bei den bereits umgestellten Größen passen Sie Ihr Foto visuell ein; die grüne Markierung gibt es dort nicht mehr. Den Hintergrund entfernen wir bei der Aufbereitung nach bestem Wissen.“
+
+Gilt die Umstellung laut Produktwissen für die Größe des Kunden nicht, nur den Stand nennen („wird schrittweise umgestellt“), keine Termine zusagen.
+
+Hinweis zur eigenen Freistellung (Formulierungshilfe, am Ende der Antwort, kurz halten):
+
+„Wenn Sie auf den Hintergrund Einfluss nehmen möchten, können Sie ihn vorab selbst entfernen, zum Beispiel mit einem kostenlosen Foto-Editor oder KI-Werkzeug, und das Foto als PNG hochladen, da nur PNG Transparenz unterstützt.“
+
+Für die Neufertigung, ob kostenpflichtig oder kostenfrei:
+
+„Wir stellen den Auftrag gerne neu ein und berücksichtigen Ihre gewünschten Änderungen. Teilen Sie uns dazu bitte mit, welche Bereiche erhalten bleiben oder entfallen sollen, oder senden Sie uns Ihr Foto bereits freigestellt als PNG.“
 
 # Kostenpflichtige Kulanz bei unmarkiertem Grenzbereich
 
@@ -106,3 +128,5 @@ Nicht eine klare grüne Kundenmarkierung als bloße Empfehlung oder unverbindlic
 Bei einer missachteten klaren Markierung nicht von „Geschmackssache“ oder „Interpretationsspielraum“ sprechen.
 
 Den Kunden bei unmarkierten Grenzbereichen nicht vorwurfsvoll fragen, warum er die Markierungsfunktion nicht benutzt habe. Die Funktion als Möglichkeit zur eindeutigen Steuerung erklären.
+
+Im neuen 3D-Konfigurator nicht andeuten, der Kunde habe die Markierung versäumt, und nicht erklären, warum sie entfallen ist. Die eigene Freistellung nicht ausführlich erläutern: kein Vier-Schritte-Ablauf, keine lange Erklärung zu Transparenz, höchstens zwei Sätze am Ende.

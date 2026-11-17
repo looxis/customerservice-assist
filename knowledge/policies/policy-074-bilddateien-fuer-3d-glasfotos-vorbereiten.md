@@ -15,7 +15,7 @@ topics:
   - interpretation
   - customer-configuration
   - product-expectation
-summary: "Ein Kunde liefert BMP-Dateien, fragt nach JPG oder PNG oder hat den Hintergrund seines Fotos selbst weiß gemacht beziehungsweise freigestellt. Regelt verwendbare Uploads und Empfehlungen zur Vorbereitung; daraus folgt keine kostenlose Dateikonvertierung."
+summary: "Ein Kunde liefert BMP-Dateien, fragt nach JPG oder PNG oder hat den Hintergrund seines Fotos selbst weiß gemacht beziehungsweise freigestellt. Regelt verwendbare Uploads und Empfehlungen zur Vorbereitung; daraus folgt keine kostenlose Dateikonvertierung. Gilt auch, wenn der Kunde beim 3D-Glasfoto Einfluss darauf nehmen möchte, was als Hintergrund entfernt wird."
 retrieval: triggered
 triggers:
   - "BMP-Datei"
@@ -29,6 +29,10 @@ triggers:
   - "Hintergrund entfernt"
   - "weißer Hintergrund"
   - "weisser Hintergrund"
+  - "Hintergrund selbst entfernen"
+  - "Hintergrund markieren"
+  - "Hintergrund entfernen"
+  - "Pinsel"
 exclude_triggers:
 when:
 actions:
@@ -48,6 +52,10 @@ Bevorzugt PNG oder JPG verwenden. Per E-Mail können auch BMP-Dateien eingehen. 
 Die Grafiker konzentrieren sich bei der üblichen 2D-zu-3D-Aufbereitung auf das Hauptmotiv; der Hintergrund entfällt. Eine vorherige Freistellung durch den Kunden ist deshalb nicht erforderlich.
 
 Hat der Kunde den Hintergrund selbst ausgeblendet, sollte er bei JPG pechschwarz sein oder vorzugsweise tatsächlich transparent als PNG vorliegen. Ein weiß gestalteter Hintergrund ist keine Transparenz und für diese Vorbereitung kontraproduktiv. Ein PNG ist nicht allein durch sein Dateiformat bereits transparent.
+
+Der neue Konfigurator für 3D-Glasfotos hat keine grüne Markierung. Der Hintergrund wird nach bestem Wissen entfernt. Möchte der Kunde Einfluss nehmen, entfernt er den Hintergrund selbst. Das geht mit breit verfügbaren, teils kostenlosen Foto-Editoren, teils automatisch, teils von Hand, zum Teil auch kostenlos mit künstlicher Intelligenz. Das Foto muss dann als PNG vorliegen, weil nur PNG Transparenz unterstützt.
+
+Der neue Konfigurator wird Schritt für Schritt, Glasgröße für Glasgröße, eingeführt; welche Größen schon umgestellt sind, steht im Produktwissen. Der Hinweis auf die eigene Freistellung ist eine knappe Zusatzempfehlung am Ende der Antwort (ein bis zwei Sätze), keine Anleitung.
 
 # Vorgehen
 
