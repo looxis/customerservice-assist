@@ -12,7 +12,7 @@ categories:
 topics:
   - delivery-failure
   - delivery-options
-summary: "Ein Paket kommt vom Paketdienst an LOOXIS zurück, oder ein Kunde sagt, es sei nicht zugestellt worden, es habe niemand geklingelt oder er sei zuhause gewesen. Erklärt, dass die Zustellung die Mitwirkung des Empfängers voraussetzt (zustellfähige Adresse, Zustellung ermöglichen oder abholen), dass er vorab informiert wird und Zustelloptionen selbst ändern kann, und dass im Einzelfall nichts unterstellt wird. Das Vorgehen je Kundengruppe regeln POLICY-046, POLICY-047 und POLICY-048."
+summary: "Ein Paket kommt vom Paketdienst an LOOXIS zurück, oder ein Kunde sagt, es sei nicht zugestellt worden, es habe niemand geklingelt, er sei zuhause gewesen oder er habe es nie erhalten. Erklärt, dass die Zustellung die Mitwirkung des Empfängers voraussetzt (zustellfähige Adresse, Zustellung ermöglichen oder abholen), dass er vorab per E-Mail informiert wird (Zustellung heute, Abholhinweis) und Zustelloptionen selbst ändern kann, und dass im Einzelfall nichts unterstellt wird. Das Vorgehen je Kundengruppe regeln POLICY-046, POLICY-047 und POLICY-048."
 retrieval: triggered
 triggers:
   - unzustellbar
@@ -30,6 +30,8 @@ triggers:
   - neu zustellen
   - nie geklingelt
   - falsche Adresse
+  - nie angekommen
+  - nie erhalten
 related_knowledge:
   - POLICY-002
   - POLICY-011
@@ -51,7 +53,9 @@ Bei LOOXIS-Bestellungen besteht in aller Regel kein Widerrufsrecht, weil sie von
 
 # Hintergrund
 
-- Der Kunde erhält automatisch eine E-Mail von LOOXIS, sobald das Paket in die Zustellung geht („Ihr Paket kommt heute“), und kennt seine Sendungsnummer. Er kann die Lieferung aktiv verfolgen.
+- Der Kunde erhält automatisch eine E-Mail von LOOXIS, sobald das Paket in die Zustellung geht („Ihr Paket kommt heute“, mit Tracking-Link und dem Hinweis, dass sich Zustelloptionen dort ändern lassen), und kennt seine Sendungsnummer. Er kann die Lieferung aktiv verfolgen.
+- Konnte der Paketdienst nicht zustellen und hat das Paket an einen Abholort gebracht (Filiale, Packstation, Paketshop), erhält der Kunde automatisch eine weitere E-Mail von LOOXIS mit dem Hinweis, dass das Paket dort abgeholt werden kann.
+- Ist eine dieser E-Mails für die Bestellung belegt (Datum und Uhrzeit liegen vor), nennt die Antwort sie mit Datum, freundlich und ohne Vorwurf, als Beispiel dafür, dass wir den Kunden bei der Zustellung unterstützen. Ist keine E-Mail belegt, behauptet die Antwort keine.
 - Kommt eine Zustellung trotzdem nicht zustande, kann der Kunde das mit der Sendungsnummer direkt mit dem Paketdienst klären.
 - Vor der Zustellung lassen sich teilweise Zustelloptionen ändern und Abstellgenehmigungen erteilen. LOOXIS kann solche Anweisungen nicht für den Empfänger hinterlegen (POLICY-015).
 
