@@ -102,6 +102,39 @@ describe('heartbeat and release', function () {
         expect(TicketLock::query()->value('staff_name'))->toBe('Nele');
     });
 
+    test('the holder gets the lock back after a pause when nobody took the ticket', function () {
+        lockTicket('Nele', minutesAgo: 10);
+
+        $this->withCredentials()->withCookie('staff_name', 'Nele')->postJson(route('tickets.lock.heartbeat', ['number' => '2137942']), ['claim' => true])
+            ->assertOk()->assertJson(['locked_by' => null]);
+
+        expect(app(TicketLocks::class)->holder('2137942', 'Cara')?->staff_name)->toBe('Nele');
+    });
+
+    test('without a chosen name the heartbeat takes no lock', function () {
+        $this->postJson(route('tickets.lock.heartbeat', ['number' => '2137942']), ['claim' => true])
+            ->assertOk()->assertJson(['locked_by' => null]);
+
+        expect(TicketLock::query()->count())->toBe(0);
+    });
+
+    test('a name that is not on the list counts as no name', function () {
+        $this->withCredentials()->withCookie('staff_name', '<script>alert(1)</script>')->postJson(route('tickets.lock.heartbeat', ['number' => '2137942']), ['claim' => true])
+            ->assertOk();
+
+        expect(TicketLock::query()->count())->toBe(0);
+    });
+
+    test('the lock routes only take ticket numbers', function () {
+        $this->postJson('/tickets/abc/sperre', ['claim' => true])->assertNotFound();
+        $this->post('/tickets/F123/sperre/freigeben')->assertNotFound();
+    });
+
+    test('the page of the holder carries the heartbeat, a locked page only the status question', function () {
+        openTicketAs('Nele')->assertSee('ticketLock(', false)->assertSee('lockedBy: null', false);
+        openTicketAs('Cara')->assertSee('ticketLock(', false)->assertSee("lockedBy: 'Nele'", false);
+    });
+
     test('the status question without claim takes no lock', function () {
         $this->withCredentials()->withCookie('staff_name', 'Cara')->postJson(route('tickets.lock.heartbeat', ['number' => '2137942']), ['claim' => false])
             ->assertOk()->assertJson(['locked_by' => null]);
