@@ -1,10 +1,11 @@
-@props(['value' => ''])
+@props(['value' => '', 'bare' => false, 'label' => 'Ticket aus Zammad'])
 
 @php
     $serverError = isset($errors) ? $errors->first('ticket') : null;
 @endphp
 
-{{-- Ticket input (PROJ-6). Works as a plain GET form; Alpine adds paste, cleanup and the double-submit lock. --}}
+{{-- Ticket input (PROJ-6). Works as a plain GET form; Alpine adds paste, cleanup and the double-submit lock.
+     "bare" leaves out the card and the visible label, for a surrounding box that carries the title. --}}
 <form
     method="GET"
     action="{{ route('tickets.lookup') }}"
@@ -14,10 +15,10 @@
     x-on:pageshow.window="reset()"
     role="search"
     aria-label="Ticket laden"
-    {{ $attributes->merge(['class' => 'rounded-lg bg-white p-6 shadow-1 ring-1 ring-slate-200']) }}
+    {{ $attributes->merge(['class' => $bare ? '' : 'rounded-lg bg-white p-6 shadow-1 ring-1 ring-slate-200']) }}
 >
-    <label for="ticket" class="block text-sm font-medium text-slate-900">Ticket aus Zammad</label>
-    <div class="mt-1 flex flex-col gap-3 sm:flex-row">
+    <label for="ticket" class="{{ $bare ? 'sr-only' : 'block text-sm font-medium text-slate-900' }}">{{ $label }}</label>
+    <div class="{{ $bare ? '' : 'mt-1' }} flex flex-col gap-3 sm:flex-row">
         <input
             type="text"
             name="ticket"
@@ -28,7 +29,7 @@
             value="{{ old('ticket', $value) }}"
             placeholder="Ticket#2137942 oder Adresse aus Zammad"
             autocomplete="off"
-            autofocus
+            @unless ($bare) autofocus @endunless
             inputmode="text"
             aria-describedby="ticket-help"
             x-bind:aria-invalid="error ? 'true' : null"

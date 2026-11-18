@@ -9,9 +9,9 @@
     $link = fn (array $changes): string => route('tickets.analyze', array_filter([...$filter->parameters(), ...$changes], fn (?string $value): bool => $value !== null));
     $sortLink = fn (string $sort): string => $link([
         'sort' => $sort === \App\Analysis\TicketList::DEFAULT_SORT ? null : $sort,
-        'richtung' => ($filter->sort === $sort ? ($filter->direction === 'desc' ? 'asc' : 'desc') : 'desc') === \App\Analysis\TicketList::DEFAULT_DIRECTION ? null : 'asc',
+        'richtung' => $filter->sort === $sort && $filter->direction === 'asc' ? 'desc' : null,
     ]);
-    $columns = ['nummer' => 'Ticket', 'status' => 'Zammad-Status', 'aktivitaet' => 'Letzte Aktivität', 'erstellt' => 'Erstellt'];
+    $columns = ['aktivitaet' => 'Letzte Aktivität', 'klassifikation' => 'Klassifikation'];
     $sortHeader = fn (string $sort): array => ['href' => $sortLink($sort), 'label' => $columns[$sort], 'active' => $filter->sort === $sort, 'arrow' => $filter->direction === 'asc' ? '↑' : '↓', 'sort' => $filter->direction === 'asc' ? 'ascending' : 'descending'];
 @endphp
 
@@ -111,19 +111,17 @@
                     <table class="w-full min-w-[64rem] text-left text-sm wrap-normal">
                         <thead class="border-b border-slate-200 text-xs font-semibold text-slate-600">
                             <tr class="whitespace-nowrap">
-                                @php($header = $sortHeader('nummer'))
-                                <th scope="col" class="px-4 py-3" @if ($header['active']) aria-sort="{{ $header['sort'] }}" @endif><a href="{{ $header['href'] }}" class="hover:text-slate-900">{{ $header['label'] }} @if ($header['active'])<span aria-hidden="true">{{ $header['arrow'] }}</span>@endif</a></th>
+                                <th scope="col" class="px-4 py-3">Ticket</th>
                                 <th scope="col" class="px-4 py-3">Betreff</th>
-                                @php($header = $sortHeader('status'))
-                                <th scope="col" class="px-4 py-3" @if ($header['active']) aria-sort="{{ $header['sort'] }}" @endif><a href="{{ $header['href'] }}" class="hover:text-slate-900">{{ $header['label'] }} @if ($header['active'])<span aria-hidden="true">{{ $header['arrow'] }}</span>@endif</a></th>
+                                <th scope="col" class="px-4 py-3">Zammad-Status</th>
                                 <th scope="col" class="px-4 py-3">Mitarbeiter</th>
                                 <th scope="col" class="px-4 py-3">Kanal</th>
-                                <th scope="col" class="px-4 py-3">Klassifikation</th>
+                                @php($header = $sortHeader('klassifikation'))
+                                <th scope="col" class="px-4 py-3" @if ($header['active']) aria-sort="{{ $header['sort'] }}" @endif><a href="{{ $header['href'] }}" class="hover:text-slate-900">{{ $header['label'] }} @if ($header['active'])<span aria-hidden="true">{{ $header['arrow'] }}</span>@endif</a></th>
                                 <th scope="col" class="px-4 py-3">CSA-Status</th>
                                 @php($header = $sortHeader('aktivitaet'))
                                 <th scope="col" class="px-4 py-3" @if ($header['active']) aria-sort="{{ $header['sort'] }}" @endif><a href="{{ $header['href'] }}" class="hover:text-slate-900">{{ $header['label'] }} @if ($header['active'])<span aria-hidden="true">{{ $header['arrow'] }}</span>@endif</a></th>
-                                @php($header = $sortHeader('erstellt'))
-                                <th scope="col" class="px-4 py-3" @if ($header['active']) aria-sort="{{ $header['sort'] }}" @endif><a href="{{ $header['href'] }}" class="hover:text-slate-900">{{ $header['label'] }} @if ($header['active'])<span aria-hidden="true">{{ $header['arrow'] }}</span>@endif</a></th>
+                                <th scope="col" class="px-4 py-3">Erstellt</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">

@@ -8,24 +8,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * The lists of ticket ToDos (PROJ-70): the open ones that people work on on the start page (the automatic ones only on the ToDo page), everything of the last 12 months on the ToDo page.
+ * The lists of ticket ToDos (PROJ-70): the counts for the sidebar, everything of the last 12 months on the ToDo page.
  */
 class TodoBoard
 {
-    public const array VIEWS = ['meine' => 'Meine', 'alle' => 'Alle offen', 'ueberfaellig' => 'Überfällig'];
-
-    public const string DEFAULT_VIEW = 'meine';
-
-    public const int START_LIMIT = 15;
-
     public const int PAGE_SIZE = 100;
 
     public const int MONTHS = 12;
-
-    public static function view(mixed $value): string
-    {
-        return is_string($value) && array_key_exists($value, self::VIEWS) ? $value : self::DEFAULT_VIEW;
-    }
 
     /**
      * @param  Builder<TicketTodo>  $query
@@ -46,24 +35,6 @@ class TodoBoard
             'alle' => TicketTodo::query()->manual()->unfinished()->count(),
             'ueberfaellig' => TicketTodo::query()->manual()->overdue()->count(),
         ];
-    }
-
-    /**
-     * @return array{rows: Collection<int, TicketTodo>, more: bool}
-     */
-    public function start(string $view, ?string $name): array
-    {
-        $query = TicketTodo::query()->manual()->unfinished();
-
-        match ($view) {
-            'meine' => $query->whereIn('assignee', [$name ?? '', TodoRules::EVERYONE]),
-            'ueberfaellig' => $query->overdue(),
-            default => null,
-        };
-
-        $rows = $this->ordered($query)->limit(self::START_LIMIT + 1)->get();
-
-        return ['rows' => $rows->take(self::START_LIMIT), 'more' => $rows->count() > self::START_LIMIT];
     }
 
     /**

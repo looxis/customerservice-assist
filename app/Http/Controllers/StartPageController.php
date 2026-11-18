@@ -13,7 +13,7 @@ use Illuminate\Contracts\View\View;
 class StartPageController extends Controller
 {
     /**
-     * The manual ticket lookup with the list of tracked tickets below it (PROJ-67).
+     * The list of tracked tickets (PROJ-67) with the manual lookup folded above it; the open ToDos are on their own page.
      */
     public function __invoke(TicketListRequest $request, TicketList $list, StaffDirectory $staff, Changelog $changelog, TodoBoard $todos, CategoryStatus $categoryStatus): View
     {
@@ -21,12 +21,8 @@ class StartPageController extends Controller
         $name = $staff->current($request);
         $staffZammadId = $staff->zammadUserId($name);
         $rows = $list->page($filter, $staffZammadId, (int) $request->validated('page', 1))->appends($filter->parameters());
-        $todoView = TodoBoard::view($request->query('todos'));
 
         return view('tickets.analyze', [
-            'todoView' => $todoView,
-            'todoCounts' => $todos->counts($name),
-            'todoList' => $todos->start($todoView, $name),
             'todoTickets' => $todos->ticketsWithOpen($rows->getCollection()->pluck('zammad_id')),
             'categoryStatus' => $categoryStatus->forRows($rows->getCollection()),
             'ticketFilter' => $filter,

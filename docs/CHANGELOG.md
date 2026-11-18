@@ -6,6 +6,10 @@
 
 ## 2026-11-18
 
+- Startseite aufgeräumt: Die Ticketliste zeigt jetzt das Ticket mit der ältesten letzten Aktivität ganz oben. Mit einem Klick auf „Letzte Aktivität“ oder „Klassifikation“ sortierst du um, ein zweiter Klick kehrt die Reihenfolge um.
+- Das Feld für die Ticketnummer ist eingeklappt: Klick auf „Ticket aus Zammad manuell abrufen“ öffnet es.
+- Die ToDos stehen nicht mehr auf der Startseite, sondern nur noch unter „ToDos“ in der Seitenleiste.
+- Diese Änderungen erscheinen jetzt als kleines Fenster unten rechts. Mit dem X blendest du es für heute aus.
 - Amazon-Nachrichten ohne Antwort schließen: In der Rückfrage steht neben dem Knopf die bereits angehakte Checkbox „Fall auch bei Amazon lösen“. Bleibt sie angehakt, öffnet sich die Amazon-Seite „Fall lösen“ in einem neuen Tab; dort „Ja“ klicken und den Tab schließen. CSA geht gleichzeitig zur Ticketliste. War das Ticket nur zur Erinnerung offen, nimm den Haken heraus.
 
 ## 2026-11-16

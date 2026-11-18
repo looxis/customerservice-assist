@@ -3,6 +3,7 @@
 namespace App\Analysis;
 
 use App\Knowledge\SalesChannels;
+use App\Labeling\LabelCategory;
 use App\Models\TrackedTicket;
 use App\Models\ZammadSyncRun;
 use App\Zammad\SyncStatus;
@@ -23,7 +24,8 @@ class TicketList
 
     public const string DEFAULT_SORT = 'aktivitaet';
 
-    public const string DEFAULT_DIRECTION = 'desc';
+    /** Oldest activity first: the ticket that waits longest is on top. */
+    public const string DEFAULT_DIRECTION = 'asc';
 
     public const string UNREADABLE = 'problem';
 
@@ -38,12 +40,10 @@ class TicketList
         'geschlossen' => ['label' => 'Geschlossen', 'closed' => true, 'owner' => null],
     ];
 
-    /** Sortable columns by their address value. */
+    /** Sortable columns by their address value; the category goes by its shown name. */
     public const array SORTS = [
         'aktivitaet' => 'last_activity_at',
-        'nummer' => 'zammad_id',
-        'status' => 'state',
-        'erstellt' => 'zammad_created_at',
+        'klassifikation' => 'category',
     ];
 
     /**
@@ -77,10 +77,31 @@ class TicketList
     {
         $rows = $this->query($filter, $staffZammadId)
             ->select(['id', 'zammad_id', 'number', 'title', 'state', 'owner_zammad_id', 'owner_name', 'channel', 'category', 'category_confirmed', 'processing_state', 'sync_status', 'last_activity_at', 'zammad_created_at'])
-            ->orderBy(self::SORTS[$filter->sort], $filter->direction)->orderBy('id', $filter->direction)
+            ->tap(fn (Builder $query) => $this->sort($query, $filter))
             ->paginate(self::PER_PAGE, page: max(1, $page));
 
         return $page > $rows->lastPage() && $rows->lastPage() > 0 ? $this->page($filter, $staffZammadId, $rows->lastPage()) : $rows;
+    }
+
+    /**
+     * By category: in the order of the shown names, unknown values after them and tickets
+     * not yet classified at the end; within one category the oldest activity first.
+     *
+     * @param  Builder<TrackedTicket>  $query
+     */
+    private function sort(Builder $query, TicketListFilter $filter): void
+    {
+        if ($filter->sort === 'klassifikation') {
+            $names = collect(LabelCategory::cases())->sortBy(fn (LabelCategory $category): string => $category->label(), SORT_NATURAL | SORT_FLAG_CASE)->pluck('value')->values();
+            $query->orderByRaw(
+                'case when category is null then ? '.str_repeat('when category = ? then ? ', $names->count()).'else ? end '.$filter->direction,
+                [$names->count() + 1, ...$names->flatMap(fn (string $value, int $index): array => [$value, $index])->all(), $names->count()],
+            )->orderBy('last_activity_at')->orderBy('id');
+
+            return;
+        }
+
+        $query->orderBy(self::SORTS[$filter->sort], $filter->direction)->orderBy('id', $filter->direction);
     }
 
     /**

@@ -95,32 +95,19 @@ describe('creating', function () {
 });
 
 describe('the lists', function () {
-    test('the start page shows open ToDos by view and never finished ones', function () {
+    test('the start page no longer shows the ToDos, the ToDo page and the sidebar do', function () {
         TicketTodo::factory()->create(['description' => 'Meins offen', 'assignee' => 'Nele']);
-        TicketTodo::factory()->create(['description' => 'Von Cara offen', 'assignee' => 'Cara']);
-        TicketTodo::factory()->create(['description' => 'Überfälliges von Cara', 'assignee' => 'Cara', 'due_on' => now('Europe/Berlin')->subDay()]);
-        TicketTodo::factory()->done()->create(['description' => 'Längst erledigt']);
-
-        $mine = $this->withCookie('staff_name', 'Nele')->get('/')->assertOk()->assertSeeText('Meins offen')->assertDontSeeText('Von Cara offen')->assertDontSeeText('Längst erledigt');
-        $mine->assertSeeText('Meine (1)')->assertSeeText('Alle offen (3)')->assertSeeText('Überfällig (1)');
-
-        $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->assertSeeText('Meins offen')->assertSeeText('Von Cara offen')->assertDontSeeText('Längst erledigt');
-        $this->withCookie('staff_name', 'Nele')->get('/?todos=ueberfaellig')->assertSeeText('Überfälliges von Cara')->assertSeeText('Überfällig seit')->assertDontSeeText('Meins offen');
-    });
-
-    test('automatic ToDos stay off the start page and out of its counts, the ToDo page lists them', function () {
-        TicketTodo::factory()->create(['description' => 'Von Hand zu erledigen', 'assignee' => 'Nele']);
         TicketTodo::factory()->create(['description' => 'Läuft automatisch', 'assignee' => 'Nele', 'auto_send' => true]);
 
-        $this->withCookie('staff_name', 'Nele')->get('/')->assertOk()->assertSeeText('Von Hand zu erledigen')->assertDontSeeText('Läuft automatisch')->assertSeeText('Meine (1)')->assertSeeText('Alle offen (1)');
-        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSeeText('Läuft automatisch')->assertSeeText('Automatisiert offen');
+        $this->withCookie('staff_name', 'Nele')->get('/')->assertOk()->assertDontSeeText('Meins offen')->assertDontSee('id="todo-heading"', false)->assertSee(route('todos.index'), false);
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSeeText('Meins offen')->assertSeeText('Läuft automatisch')->assertSeeText('Automatisiert offen');
     });
 
     test('a ToDo for everyone shows up in the view of each employee', function () {
         TicketTodo::factory()->create(['description' => 'Für alle da', 'assignee' => 'Alle']);
         TicketTodo::factory()->create(['description' => 'Von Cara offen', 'assignee' => 'Cara']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/')->assertSeeText('Für alle da')->assertSeeText('Meine (1)')->assertDontSeeText('Von Cara offen');
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index', ['zustaendig' => 'Nele']))->assertSeeText('Für alle da')->assertDontSeeText('Von Cara offen');
         $this->withCookie('staff_name', 'Cara')->get(route('todos.index', ['zustaendig' => 'Cara']))->assertSeeText('Für alle da')->assertSeeText('Von Cara offen');
         createTodo(['assignee' => 'Alle'])->assertSessionHasNoErrors();
         expect(TicketTodo::query()->latest('id')->first()->assignee)->toBe('Alle');
@@ -139,11 +126,7 @@ describe('the lists', function () {
         TicketTodo::factory()->create(['description' => 'Nach dem Schließen', 'zammad_id' => 51234, 'ticket_number' => '2137942']);
         TicketTodo::factory()->create(['description' => 'Ticket nie erfasst', 'zammad_id' => 999]);
 
-        $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->assertSeeText('Nach dem Schließen')->assertSeeText('Ticket nie erfasst');
-    });
-
-    test('an empty view says so', function () {
-        $this->withCookie('staff_name', 'Nele')->get('/')->assertOk()->assertSeeText('Keine offenen ToDos');
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertSeeText('Nach dem Schließen')->assertSeeText('Ticket nie erfasst');
     });
 
     test('the ticket list marks tickets with open ToDos', function () {
@@ -259,10 +242,8 @@ describe('QA: protection', function () {
     test('texts are escaped everywhere they are shown', function () {
         $todo = TicketTodo::factory()->create(['description' => '<script>alert(1)</script>', 'waiting_for' => '<b>x</b>', 'kind' => 'waiting']);
 
-        foreach (['/?todos=alle', route('todos.index')] as $url) {
-            $html = $this->withCookie('staff_name', 'Nele')->get($url)->assertOk()->getContent();
-            expect($html)->not->toContain('<script>alert(1)</script>')->and($html)->not->toContain('<b>x</b>');
-        }
+        $html = $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertOk()->getContent();
+        expect($html)->not->toContain('<script>alert(1)</script>')->and($html)->not->toContain('<b>x</b>');
 
         expect($todo->refresh()->description)->toBe('<script>alert(1)</script>');
     });
@@ -284,9 +265,9 @@ describe('QA: protection', function () {
 
         expect($todo->refresh()->status)->toBe(TodoStatus::Open)->and($todo->description)->not->toBe('x');
 
-        $html = $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->getContent();
+        $html = $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->getContent();
         TicketTodo::factory()->create();
-        expect(substr_count($this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->getContent(), 'name="_token"'))->toBeGreaterThanOrEqual(2);
+        expect(substr_count($this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->getContent(), 'name="_token"'))->toBeGreaterThanOrEqual(2);
     });
 
     test('the filter of the ToDo page refuses unknown values', function () {
@@ -302,7 +283,7 @@ describe('QA fixes', function () {
     test('a ToDo whose assignee left the list is marked, and editing without a new name keeps the old one', function () {
         $todo = TicketTodo::factory()->create(['assignee' => 'Ehemalige', 'description' => 'Alt']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->assertOk()->assertSeeText('Zuständiger nicht mehr in der Liste')->assertSee('– Name wählen –', false);
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertOk()->assertSeeText('Zuständiger nicht mehr in der Liste')->assertSee('– Name wählen –', false);
 
         $this->withCookie('staff_name', 'Nele')->patch(route('todos.update', $todo), ['description' => 'Neu', 'kind' => 'direct', 'due_in' => 'keep'])->assertSessionHas('success');
         expect($todo->refresh()->assignee)->toBe('Ehemalige')->and($todo->description)->toBe('Neu');
@@ -314,7 +295,7 @@ describe('QA fixes', function () {
     test('a listed assignee is not marked', function () {
         TicketTodo::factory()->create(['assignee' => 'Cara']);
 
-        $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->assertDontSeeText('Zuständiger nicht mehr in der Liste');
+        $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertDontSeeText('Zuständiger nicht mehr in der Liste');
     });
 
     test('a prepared reply that is no longer the newest proposal is replaced by a new one', function () {
@@ -361,7 +342,7 @@ describe('QA fixes', function () {
     test('"Antwort öffnen" is a button that goes through the ToDo, not a fixed link', function () {
         TicketTodo::factory()->create(['status' => TodoStatus::NotifyPending, 'notify_customer' => true, 'notify_analysis_uuid' => 'gone']);
 
-        $html = $this->withCookie('staff_name', 'Nele')->get('/?todos=alle')->assertOk()->assertSeeText('Antwort öffnen')->getContent();
+        $html = $this->withCookie('staff_name', 'Nele')->get(route('todos.index'))->assertOk()->assertSeeText('Antwort öffnen')->getContent();
 
         expect($html)->not->toContain('#antwort-versenden');
     });

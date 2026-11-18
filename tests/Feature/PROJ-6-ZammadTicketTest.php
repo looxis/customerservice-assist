@@ -17,11 +17,11 @@ beforeEach(function () {
 });
 
 describe('input', function () {
-    test('the start page has the central input with the load button and no paste button', function () {
+    test('the start page has the folded input with the load button and no paste button', function () {
         $this->get('/')
             ->assertOk()
             ->assertSee('name="ticket"', false)
-            ->assertSee('autofocus', false)
+            ->assertDontSee('autofocus', false)
             ->assertSeeInOrder(['Ticket laden', 'mit Strg+V einfügen'])
             ->assertDontSee('paste()', false);
     });

@@ -40,6 +40,8 @@ Unterhalb der manuellen Ticketnummer-Eingabe erscheint eine einfache Liste der e
 - [ ] Angenommen Filter und Sortierung, wenn weitergeblättert wird, dann bleiben sie erhalten.
 - [ ] Angenommen eine von Hand veränderte Adresse (unbekannte Werte, falsche Form, Seite außerhalb), wenn sie aufgerufen wird, dann erscheint die Liste ohne Fehler.
 - [ ] Angenommen eine Spalte aus der festen Liste (letzte Aktivität, Nummer, Status, Erstellt), wenn danach sortiert wird, dann stimmt die Reihenfolge; Standard ist letzte Aktivität, neueste zuerst.
+- [x] Geändert 2026-11-18: Sortierbar sind nur „Letzte Aktivität“ und „Klassifikation“ (Klick auf die Spaltenüberschrift, zweiter Klick kehrt um). Standard ist letzte Aktivität, älteste zuerst. Klassifikation sortiert nach dem angezeigten Namen, nicht klassifizierte Tickets stehen am Ende, innerhalb einer Kategorie die älteste Aktivität zuerst.
+- [x] Geändert 2026-11-18: Das Eingabefeld steht eingeklappt unter „Ticket aus Zammad manuell abrufen“ und öffnet sich bei einem Eingabefehler von selbst. Die ToDos stehen nicht mehr auf der Startseite, nur noch unter /todos. Die aktuellen Änderungen schweben unten rechts (höchstens ein Drittel der Fensterhöhe und -breite, Inhalt scrollt).
 
 ### Klick und Bestand
 - [ ] Angenommen ein Ticket in der Liste, wenn es angeklickt wird, dann öffnet die vorhandene Ticketseite.
@@ -73,6 +75,7 @@ Unterhalb der manuellen Ticketnummer-Eingabe erscheint eine einfache Liste der e
 | Sichtbar für alle, nicht nur Admins | „Meine offenen Tickets“ wäre sonst sinnlos; Kundenname wird nicht gespeichert | 2026-10-31 |
 | „Offen“ schließt Wartende ein | Status ist sichtbar und filterbar; im Betrieb leicht zu ändern | 2026-10-31 |
 | Ausgeblendete Tickets werden gezählt | Nichts soll still verschwinden | 2026-10-31 |
+| Älteste Aktivität oben, nur zwei Spalten sortierbar, Eingabe eingeklappt | Neue Tickets kommen automatisch (PROJ-66); wer am längsten wartet, soll zuerst bearbeitet werden. Platz auf der Startseite gehört der Liste | 2026-11-18 |
 
 ### Technical Decisions
 | Decision | Rationale | Date |

@@ -50,6 +50,14 @@ describe('the notice on the start page', function () {
             ->assertSee('|2026-11-10', false);
     });
 
+    test('it floats at the bottom right, at most a third of the window, and scrolls inside', function () {
+        changelogText("## 2026-11-10\n\n- Heute neu\n");
+
+        $html = $this->get('/')->getContent();
+
+        expect($html)->toContain('fixed right-4 bottom-4')->toContain('max-h-[33vh]')->toContain('lg:w-[33vw]')->toContain('min-h-0 overflow-y-auto');
+    });
+
     test('it is left out without a day of the last week', function () {
         changelogText("## 2026-10-01\n\n- Alt\n");
 

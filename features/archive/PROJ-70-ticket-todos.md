@@ -117,6 +117,7 @@ Ticket 2140201: Die Kundin hat die Bestellnummer geschickt. Die Gutschrift kann 
 | Standard-Zuständiger ist der Anlegende, wechselbar | Klare Verantwortlichkeit ohne Zusatzaufwand | 2026-11-04 |
 | Kennzeichen offener ToDos in der Ticketliste | Sofort sichtbar, dass Folgeaufgaben offen sind | 2026-11-04 |
 | KI-Vorschläge und EOCS-Anbindung nicht in Phase 1, Datenmodell nur vorbereitet | Vorgabe des Auftraggebers: nicht implementieren, aber spätere Anlage ermöglichen | 2026-11-04 |
+| ToDos nicht mehr auf der Startseite, nur unter /todos und als Zahl in der Seitenleiste | Startseite gehört der Ticketliste | 2026-11-18 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->

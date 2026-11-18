@@ -25,6 +25,16 @@ describe('the start page stays what it was', function () {
         $this->get('/')->assertOk()->assertViewIs('tickets.analyze')->assertSeeInOrder([route('tickets.lookup'), 'Tasse kaputt'], false);
     });
 
+    test('the lookup is folded under its own title and opens again with an error', function () {
+        $html = $this->get('/')->assertSeeText('Ticket aus Zammad manuell abrufen')->getContent();
+
+        expect($html)->toMatch('/<details\s+class="[^"]*"\s*>\s*<summary/')->not->toContain('autofocus');
+
+        $html = $this->from('/')->followingRedirects()->get(route('tickets.lookup', ['ticket' => 'quatsch']))->assertOk()->getContent();
+
+        expect($html)->toMatch('/<details\s+open\s/');
+    });
+
     test('the manual lookup still opens a ticket', function () {
         $this->get(route('tickets.lookup', ['ticket' => 'Ticket#2137942']))->assertRedirect(route('tickets.show', '2137942'));
     });
@@ -112,7 +122,7 @@ describe('filters', function () {
     test('paging keeps view, filter and sorting', function () {
         TrackedTicket::factory()->count(30)->create(['state' => 'pending reminder']);
 
-        $this->get('/?ansicht=offen&status=pending+reminder&sort=erstellt&richtung=asc')->assertOk()->assertSee('ansicht=offen', false)->assertSee('status=pending%20reminder', false)->assertSee('sort=erstellt', false)->assertSee('page=2', false);
+        $this->get('/?ansicht=offen&status=pending+reminder&sort=klassifikation&richtung=desc')->assertOk()->assertSee('ansicht=offen', false)->assertSee('status=pending%20reminder', false)->assertSee('sort=klassifikation', false)->assertSee('richtung=desc', false)->assertSee('page=2', false);
     });
 
     test('a hand-changed address shows the list instead of an error', function (string $query) {
@@ -128,23 +138,42 @@ describe('filters', function () {
 });
 
 describe('sorting', function () {
-    test('sorts by the fixed columns, newest activity first by default', function () {
-        TrackedTicket::factory()->create(['number' => '1', 'zammad_id' => 1, 'state' => 'open', 'last_activity_at' => now()->subHour(), 'zammad_created_at' => now()->subDays(1)]);
-        TrackedTicket::factory()->create(['number' => '2', 'zammad_id' => 2, 'state' => 'new', 'last_activity_at' => now(), 'zammad_created_at' => now()->subDays(2)]);
+    test('the oldest last activity is on top by default, a click on the header turns it round', function () {
+        TrackedTicket::factory()->create(['number' => '1', 'zammad_id' => 1, 'last_activity_at' => now()->subHour()]);
+        TrackedTicket::factory()->create(['number' => '2', 'zammad_id' => 2, 'last_activity_at' => now()]);
+        TrackedTicket::factory()->create(['number' => '3', 'zammad_id' => 3, 'last_activity_at' => now()->subDays(3)]);
 
-        expect(ticketListNumbers($this->get('/')))->toBe(['2', '1']);
-        expect(ticketListNumbers($this->get('/?sort=aktivitaet&richtung=asc')))->toBe(['1', '2']);
-        expect(ticketListNumbers($this->get('/?sort=nummer')))->toBe(['2', '1']);
-        expect(ticketListNumbers($this->get('/?sort=status&richtung=asc')))->toBe(['2', '1']);
-        expect(ticketListNumbers($this->get('/?sort=erstellt')))->toBe(['1', '2']);
+        expect(ticketListNumbers($this->get('/')))->toBe(['3', '1', '2']);
+        expect(ticketListNumbers($this->get('/?richtung=desc')))->toBe(['2', '1', '3']);
+
+        $this->get('/')->assertSee('aria-sort="ascending"', false)->assertSee(route('tickets.analyze', ['richtung' => 'desc']), false);
+        $this->get('/?richtung=desc')->assertSee('aria-sort="descending"', false);
     });
 
-    test('an unknown column falls back to the default', function () {
+    test('by category in the order of the shown names, unclassified last, oldest first within one', function () {
+        TrackedTicket::factory()->create(['number' => '1', 'category' => 'wismo', 'last_activity_at' => now()]);
+        TrackedTicket::factory()->create(['number' => '2', 'category' => null, 'last_activity_at' => now()->subDays(5)]);
+        TrackedTicket::factory()->create(['number' => '3', 'category' => 'reklamation', 'last_activity_at' => now()]);
+        TrackedTicket::factory()->create(['number' => '4', 'category' => 'angebotsanfrage', 'last_activity_at' => now()]);
+        TrackedTicket::factory()->create(['number' => '5', 'category' => 'reklamation', 'last_activity_at' => now()->subDay()]);
+
+        expect(ticketListNumbers($this->get('/?sort=klassifikation')))->toBe(['4', '5', '3', '1', '2']);
+        expect(ticketListNumbers($this->get('/?sort=klassifikation&richtung=desc')))->toBe(['2', '1', '5', '3', '4']);
+    });
+
+    test('only „Letzte Aktivität“ and „Klassifikation“ can be sorted', function () {
+        TrackedTicket::factory()->create();
+        $html = $this->get('/')->getContent();
+
+        expect($html)->toContain('sort=klassifikation')->not->toContain('sort=nummer')->not->toContain('sort=status')->not->toContain('sort=erstellt');
+    });
+
+    test('an unknown or former column falls back to the default', function (string $sort) {
         TrackedTicket::factory()->create(['number' => '1', 'last_activity_at' => now()->subHour()]);
         TrackedTicket::factory()->create(['number' => '2', 'last_activity_at' => now()]);
 
-        expect(ticketListNumbers($this->get('/?sort=title')))->toBe(['2', '1']);
-    });
+        expect(ticketListNumbers($this->get("/?sort={$sort}")))->toBe(['1', '2']);
+    })->with(['title', 'nummer', 'erstellt']);
 });
 
 describe('a row', function () {
