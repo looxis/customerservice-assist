@@ -7,6 +7,7 @@ use App\Changelog\Changelog;
 use App\Http\Requests\TicketListRequest;
 use App\Labeling\CategoryStatus;
 use App\Staff\StaffDirectory;
+use App\Tickets\TicketLocks;
 use App\Todo\TodoBoard;
 use Illuminate\Contracts\View\View;
 
@@ -15,7 +16,7 @@ class StartPageController extends Controller
     /**
      * The list of tracked tickets (PROJ-67) with the manual lookup folded above it; the open ToDos are on their own page.
      */
-    public function __invoke(TicketListRequest $request, TicketList $list, StaffDirectory $staff, Changelog $changelog, TodoBoard $todos, CategoryStatus $categoryStatus): View
+    public function __invoke(TicketListRequest $request, TicketList $list, StaffDirectory $staff, Changelog $changelog, TodoBoard $todos, CategoryStatus $categoryStatus, TicketLocks $locks): View
     {
         $filter = $list->filter($request->validated());
         $name = $staff->current($request);
@@ -25,6 +26,8 @@ class StartPageController extends Controller
         return view('tickets.analyze', [
             'todoTickets' => $todos->ticketsWithOpen($rows->getCollection()->pluck('zammad_id')),
             'categoryStatus' => $categoryStatus->forRows($rows->getCollection()),
+            // Tickets someone else is working on right now are greyed out (PROJ-96).
+            'lockedTickets' => $locks->activeFor($rows->getCollection()->pluck('number'), $name),
             'ticketFilter' => $filter,
             'ticketRows' => $rows,
             'ticketOptions' => $list->options(),

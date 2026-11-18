@@ -23,6 +23,7 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
+use App\Tickets\TicketLocks;
 use App\Todo\TodoCaseContext;
 use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
@@ -72,6 +73,8 @@ class TicketController extends Controller
         ['ticket' => $ticket, 'later' => $later, 'problem' => $rewindProblem] = $testMode->rewind($ticket, $request, $request->query('stand'));
         $selected = $this->selection($request, $detector);
         $activity->recordVisit($ticket, $staff->current($request));
+        // Opening a free ticket locks it for the others; a ticket someone else works on is shown read-only (PROJ-96).
+        $lockedBy = $this->lock($number, $staff->current($request));
         // A channel without products (PROJ-94, e.g. WeCreateYour) has no orders in EOCS: no numbers are searched, nothing is loaded.
         $channels = app(SalesChannels::class);
         $earlyChannel = $channels->beforeOrders($ticket);
@@ -124,6 +127,7 @@ class TicketController extends Controller
         return response()->view('tickets.show', [
             'number' => $number,
             'ticket' => $ticket,
+            'lockedBy' => $lockedBy,
             'later' => $later,
             'translations' => $translator->translations($full),
             'untranslated' => count($translator->pending($ticket)),
@@ -142,6 +146,16 @@ class TicketController extends Controller
             'labelState' => $labelState,
             'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups, $channels->withoutProducts(is_string($analysis['suggestedChannel'] ?? null) ? $analysis['suggestedChannel'] : null)),
         ]);
+    }
+
+    /**
+     * Takes the lock for the person opening the ticket, or names who holds it (PROJ-96). Without a name nothing is locked.
+     */
+    private function lock(string $number, ?string $me): ?string
+    {
+        $locks = app(TicketLocks::class);
+
+        return $me === null ? $locks->holder($number, null)?->staff_name : $locks->touch($number, $me)?->staff_name;
     }
 
     /**

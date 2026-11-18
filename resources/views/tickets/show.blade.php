@@ -1,9 +1,11 @@
 @php
     $ticket ??= null;
     $problem ??= null;
+    $lockedBy ??= null;
+    $locked = $ticket !== null && $lockedBy !== null;
 @endphp
 
-<x-layouts.app :title="'Ticket#'.$number" width="5xl">
+<x-layouts.app :title="'Ticket#'.$number" width="5xl" :locked="$locked">
     <x-staff.hint :names="$staffNames" :current="$currentStaff" />
 
     @unless ($ticket)
@@ -24,6 +26,23 @@
     @endif
 
     @if ($ticket)
+        {{-- The lock while someone works on the ticket (PROJ-96): the holder's activity keeps it, everybody else only reads. --}}
+        @if ($locked || ($currentStaffName ?? null) !== null)
+            <div x-data="ticketLock({ heartbeat: @js(route('tickets.lock.heartbeat', ['number' => $number])), release: @js(route('tickets.lock.release', ['number' => $number])), lockedBy: @js($lockedBy) })" class="space-y-3">
+                @if ($locked)
+                    <x-alert type="error" x-show="!free"><strong>{{ $lockedBy }}</strong> bearbeitet dieses Ticket gerade – nur Ansicht. Es wird frei, sobald {{ $lockedBy }} es schließt oder {{ \App\Tickets\TicketLocks::TTL_MINUTES }} Minuten nicht mehr daran arbeitet.</x-alert>
+                @endif
+                <x-alert type="success" x-cloak x-show="free">
+                    Das Ticket ist wieder frei.
+                    <button type="button" x-on:click="location.reload()" class="ml-2 underline hover:no-underline">Neu laden</button>
+                </x-alert>
+                <x-alert type="error" x-cloak x-show="lost">
+                    <span x-text="lostBy"></span> bearbeitet dieses Ticket jetzt, weil du {{ \App\Tickets\TicketLocks::TTL_MINUTES }} Minuten nicht aktiv warst. Deine Änderungen werden nicht mehr gespeichert.
+                    <button type="button" x-on:click="location.reload()" class="ml-2 underline hover:no-underline">Neu laden</button>
+                </x-alert>
+            </div>
+        @endif
+
         {{-- The message to read first (PROJ-43); a further ticket is fetched via "Ticket analysieren". --}}
         <x-ticket.focus-message :ticket="$ticket" :translations="$translations ?? []" />
 
@@ -31,17 +50,21 @@
             <x-alert type="warning">{{ $rewindProblem }}</x-alert>
         @endif
 
-        @php($canCloseTicket = ($canCloseTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
-        @php($canReplyToClosed = ($canCloseTickets ?? false) && $ticket->closed && $ticket->mergedIntoNumber === null && $ticket->rewoundTo === null)
+        @php($canCloseTicket = ! $locked && ($canCloseTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
+        @php($canReplyToClosed = ! $locked && ($canCloseTickets ?? false) && $ticket->closed && $ticket->mergedIntoNumber === null && $ticket->rewoundTo === null)
         @php($assignee = app(\App\Staff\StaffDirectory::class)->nameForZammadUserId($ticket->ownerId))
-        @php($canAssignTicket = ($canAssignTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
-        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-reply="$canReplyToClosed" :can-assign="$canAssignTicket" :assignee="$assignee" :can-delete="$testModeAvailable && (($analysis['history'] ?? []) !== [])">
+        @php($canAssignTicket = ! $locked && ($canAssignTickets ?? false) && ! $ticket->closed && $ticket->rewoundTo === null)
+        <x-ticket.header :ticket="$ticket" :advanced="$advancedModeActive ?? false" :can-close="$canCloseTicket" :can-reply="$canReplyToClosed" :can-assign="$canAssignTicket" :assignee="$assignee" :can-delete="! $locked && $testModeAvailable && (($analysis['history'] ?? []) !== [])">
             <x-slot:orders>
+                <div @if ($locked) inert @endif>
                 <x-ticket.orders :ticket="$ticket" :number="$number" :selected="$selected ?? []" :suggestions="$suggestions ?? []" :claim-references="$claimReferences ?? []"
                                  :more-suggestions="$moreSuggestions ?? false" :lookups="$lookups ?? []" :problem="$orderProblem ?? null" :delivery-problem="$deliveryProblem ?? null" :without-orders-channel="$withoutOrdersChannel ?? null" />
+                </div>
             </x-slot:orders>
         </x-ticket.header>
 
+        {{-- Read-only while someone else works on the ticket (PROJ-96): readable, but nothing reacts. --}}
+        <div @if ($locked) inert @endif class="space-y-6">
         @if ($labelState ?? null)
             <x-labeling.ticket-bar :number="$number" :state="$labelState" />
         @endif
@@ -72,9 +95,12 @@
                 @endif
             @endif
 
+            @unless ($locked)
             <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :can-close="$canCloseTicket" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []" :complaint="$complaintForm ?? []"
                              :unloaded-orders="collect($suggestions ?? [])->reject(fn ($order) => $order->isEocsId() || in_array($order->value, $selected ?? [], true))->pluck('value')->values()->all()" />
+            @endunless
         @endisset
+        </div>
 
         @if ($canCloseTicket)
             <x-ticket.close-dialog :number="$number" :amazon-case-link="\App\Zammad\AmazonCaseLink::in($ticket->focusArticle())" />
@@ -85,11 +111,13 @@
         @endif
 
         <x-ticket.thread :ticket-number="$number" :articles="$ticket->articles" :translations="$translations ?? []" :untranslated="$untranslated ?? 0" :can-retranslate="$testModeAvailable"
-                         :translate="['action' => route('tickets.translation.store', ['number' => $number]), 'fields' => array_filter(['bestellungen' => $selected ?? [], 'stand' => $ticket->rewoundTo])]"
+                         :translate="$locked ? null : ['action' => route('tickets.translation.store', ['number' => $number]), 'fields' => array_filter(['bestellungen' => $selected ?? [], 'stand' => $ticket->rewoundTo])]"
                          :later="$later ?? []" :rewound="$ticket->rewoundTo !== null" :rewind-url="($testMode ?? false) ? fn (int $id): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selected ?? [], 'stand' => $id]).'#analyse' : null">
             @isset($analysis)
                 <x-slot:summary>
-                    <x-analysis.summary :number="$number" :analysis="$analysis" :selected="$selected ?? []" />
+                    <div @if ($locked) inert @endif>
+                        <x-analysis.summary :number="$number" :analysis="$analysis" :selected="$selected ?? []" />
+                    </div>
                 </x-slot:summary>
             @endisset
         </x-ticket.thread>

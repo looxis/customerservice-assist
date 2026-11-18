@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureStaffSelected;
+use App\Http\Middleware\EnsureTicketNotLocked;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SecurityHeaders::class);
-        $middleware->alias(['staff.selected' => EnsureStaffSelected::class]);
+        $middleware->alias(['staff.selected' => EnsureStaffSelected::class, 'ticket.unlocked' => EnsureTicketNotLocked::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

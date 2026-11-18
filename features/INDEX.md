@@ -51,6 +51,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-93 | Geführtes Formular „Neuversand“ | Manuell wählbares Formular ohne Kategorie: kostenpflichtig ja/nein, bei ja bereits bezahlt oder Rechnung im Paket, Auftragsnummer des Neuversands, aktualisierte Adresse (aus EOCS übernommen, geht nur als Platzhalter an die KI), zusätzliche Informationen, ToDo „Sendungsnummer mitteilen“ vorab angehakt; Produktbereich ausgeblendet; die automatische Nachreichung findet die Sendung am Neuversand-Auftrag | PROJ-90, PROJ-86, PROJ-77, PROJ-64 | In Review | [Spec](PROJ-93-formular-neuversand.md) | 2026-11-18 |
 | PROJ-94 | WeCreateYour-Fälle ohne Produktbezug | Folge aus PROJ-89 (2026-11-18): Ist der Kanal „WeCreateYour“ gewählt (digitale Dienstleistungen, nur Geschäftskunden), arbeitet CSA ohne Produktbezug über EOCS oder ProductForge; Wissen ohne Einschränkung bleibt gültig | PROJ-89, PROJ-42, PROJ-38, PROJ-7 | In Review | [Spec](PROJ-94-wecreateyour-ohne-produktbezug.md) | 2026-11-18 |
 | PROJ-95 | ToDo-Antworten in der Sprache des Kunden | Vorbereitete ToDo-Antworten (Sendungsnummer, Erstattung) werden samt Signatur in die Sprache der letzten Kundennachricht übersetzt, automatisch beim Versand der Sendungsnummer (jetzt für alle Sprachen einschaltbar, mit Prüfungen) und beim Öffnen der manuellen Antwort; Texte bleiben auf Deutsch gepflegt | PROJ-70, PROJ-77, PROJ-28, PROJ-82 | In Review | [Spec](PROJ-95-todo-antworten-in-kundensprache.md) | 2026-11-18 |
+| PROJ-96 | Ticket-Sperre bei gleichzeitiger Bearbeitung | Wer ein Ticket öffnet und daran aktiv ist (Tab sichtbar, Eingaben), sperrt es für andere: auf der Startseite ausgegraut mit „in Bearbeitung: Name“, geöffnet hellrot und schreibgeschützt; frei nach 5 Minuten ohne Aktivität oder sofort beim Schließen des Tabs; kein Übernehmen, die rote Seite meldet die Freigabe | PROJ-5, PROJ-6, PROJ-67 | In Progress | [Spec](PROJ-96-ticket-sperre.md) | 2026-11-18 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -70,4 +71,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-96
+## Next Available ID: PROJ-97

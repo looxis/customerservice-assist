@@ -1,4 +1,4 @@
-@props(['title', 'width' => '3xl'])
+@props(['title', 'width' => '3xl', 'locked' => false])
 
 @php
     $maxWidth = match ($width) {
@@ -125,7 +125,8 @@
             </div>
         @endif
 
-        <main class="flex-1 overflow-y-auto px-4 py-8 md:px-8">
+        {{-- A ticket someone else is working on is shown light red (PROJ-96). --}}
+        <main @class(['flex-1 overflow-y-auto px-4 py-8 md:px-8', 'bg-danger-500/10' => $locked])>
             <div class="mx-auto {{ $maxWidth }} space-y-6">
                 @if (session('success'))
                     <x-alert type="success">{{ session('success') }}</x-alert>

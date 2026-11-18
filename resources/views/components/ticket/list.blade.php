@@ -1,5 +1,5 @@
 {{-- The list of tracked tickets on the start page (PROJ-67). --}}
-@props(['filter', 'rows', 'options', 'sync', 'lacksStaffUser' => false, 'todoTickets' => [], 'categoryStatus' => []])
+@props(['filter', 'rows', 'options', 'sync', 'lacksStaffUser' => false, 'todoTickets' => [], 'categoryStatus' => [], 'lockedTickets' => []])
 
 @php
     $views = \App\Analysis\TicketList::VIEWS;
@@ -127,14 +127,18 @@
                         <tbody class="divide-y divide-slate-100">
                             @foreach ($rows as $row)
                                 @php($waiting = \App\Analysis\TicketList::waiting($row))
+                                {{-- Someone else works on the ticket right now (PROJ-96): pale and colourless, still clickable; wins over the waiting colours. --}}
+                                @php($lockedBy = $lockedTickets[$row->number] ?? null)
                                 <tr @class([
-                                    'bg-danger-500/10 hover:bg-danger-500/15' => $waiting === 'overdue',
-                                    'bg-notice-50 hover:bg-notice-200/50' => $waiting === 'waiting',
-                                    'hover:bg-slate-50' => $waiting === null,
+                                    'bg-slate-50 opacity-50 grayscale hover:opacity-75' => $lockedBy !== null,
+                                    'bg-danger-500/10 hover:bg-danger-500/15' => $lockedBy === null && $waiting === 'overdue',
+                                    'bg-notice-50 hover:bg-notice-200/50' => $lockedBy === null && $waiting === 'waiting',
+                                    'hover:bg-slate-50' => $lockedBy === null && $waiting === null,
                                 ])>
                                     <td class="px-4 py-3 align-top whitespace-nowrap"><a href="{{ route('tickets.show', $row->number) }}" class="font-mono text-brand hover:text-brand-hover">{{ $row->number }}</a></td>
                                     <td class="px-4 py-3 align-top text-slate-900 wrap-anywhere">
                                         <a href="{{ route('tickets.show', $row->number) }}" class="hover:text-brand">{{ $row->title }}</a>
+                                        @if ($lockedBy !== null)<x-badge compact class="ml-1" title="Wird gerade bearbeitet, nur Ansicht">in Bearbeitung: {{ $lockedBy }}</x-badge>@endif
                                         @if (in_array($row->zammad_id, $todoTickets, true))<x-badge compact tone="warning" class="ml-1" title="Zu diesem Ticket gibt es offene ToDos">ToDo</x-badge>@endif
                                         @if ($row->sync_status === \App\Zammad\SyncStatus::SyncFailed)
                                             <x-badge compact tone="warning" class="ml-1">Stand evtl. veraltet</x-badge>

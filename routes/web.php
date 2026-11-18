@@ -30,6 +30,7 @@ use App\Http\Controllers\TicketAttachmentController;
 use App\Http\Controllers\TicketCloseController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketLabelController;
+use App\Http\Controllers\TicketLockController;
 use App\Http\Controllers\TicketOverviewController;
 use App\Http\Controllers\TicketTodoController;
 use App\Http\Controllers\TranslationController;
@@ -148,9 +149,11 @@ Route::get('/tickets/{number}/anhang/{article}/{attachment}', [TicketAttachmentC
     ->name('tickets.attachments.show');
 Route::get('/tickets/{number}/bestellungen', [TicketController::class, 'addOrder'])
     ->where('number', '[0-9]{1,20}')
+    ->middleware('ticket.unlocked')
     ->name('tickets.orders.add');
 
-Route::middleware('staff.selected')->whereNumber('number')->group(function (): void {
+// A ticket someone else is working on cannot be changed (PROJ-96).
+Route::middleware(['staff.selected', 'ticket.unlocked'])->whereNumber('number')->group(function (): void {
     Route::post('/tickets/{number}/analyse', [AnalysisController::class, 'analyze'])->middleware('throttle:language-model')->name('tickets.analysis.run');
     Route::post('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'createSummary'])->middleware('throttle:language-model')->name('tickets.summary.create');
     Route::put('/tickets/{number}/zusammenfassung', [AnalysisController::class, 'updateSummary'])->name('tickets.summary.update');
@@ -164,6 +167,12 @@ Route::middleware('staff.selected')->whereNumber('number')->group(function (): v
     Route::post('/tickets/{number}/klassifikation', TicketLabelController::class)->where('number', '[0-9]{1,20}')->middleware('throttle:60,1')->name('tickets.label');
 });
 
+// The lock of a ticket while someone works on it (PROJ-96).
+Route::whereNumber('number')->group(function (): void {
+    Route::post('/tickets/{number}/sperre', [TicketLockController::class, 'heartbeat'])->middleware('throttle:120,1')->name('tickets.lock.heartbeat');
+    Route::post('/tickets/{number}/sperre/freigeben', [TicketLockController::class, 'release'])->middleware('throttle:120,1')->name('tickets.lock.release');
+});
+
 Route::get('/todos', [TicketTodoController::class, 'index'])->name('todos.index');
 Route::middleware('staff.selected')->whereNumber('todo')->group(function (): void {
     Route::patch('/todos/{todo}', [TicketTodoController::class, 'update'])->name('todos.update');
@@ -172,7 +181,7 @@ Route::middleware('staff.selected')->whereNumber('todo')->group(function (): voi
 });
 
 // Routes that work with a ticket number and with the number of a question (PROJ-40).
-Route::middleware('staff.selected')->where(['number' => QuestionNumber::TICKET_OR_QUESTION])->group(function (): void {
+Route::middleware(['staff.selected', 'ticket.unlocked'])->where(['number' => QuestionNumber::TICKET_OR_QUESTION])->group(function (): void {
     Route::post('/tickets/{number}/analyse/{analysis}/gegenlesen', [TranslationController::class, 'backTranslate'])->middleware('throttle:language-model')->whereUuid('analysis')->name('tickets.analysis.back-translation');
     Route::put('/tickets/{number}/analyse/{analysis}/feedback', FeedbackController::class)->whereUuid('analysis')->name('tickets.analysis.feedback');
     Route::post('/tickets/{number}/analyse/{analysis}/wissensluecken', [KnowledgeGapController::class, 'store'])->whereUuid('analysis')->name('tickets.analysis.gaps.store');

@@ -215,6 +215,8 @@ describe('re-translating', function () {
 
         translateTicket(['nachricht' => 1])->assertForbidden();
         ticketPage('Nele')->assertDontSeeText('Neu übersetzen');
+        // Nele leaves the ticket, so it is not locked for Etienne (PROJ-96).
+        \App\Models\TicketLock::query()->delete();
         ticketPage('Etienne')->assertSeeText('Neu übersetzen');
 
         translateTicket(['nachricht' => 1], 'Etienne')->assertRedirect();

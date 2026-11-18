@@ -8,7 +8,7 @@
     </x-collapsible>
     </div>
 
-    <x-ticket.list :todo-tickets="$todoTickets" :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" :category-status="$categoryStatus" />
+    <x-ticket.list :todo-tickets="$todoTickets" :filter="$ticketFilter" :rows="$ticketRows" :options="$ticketOptions" :sync="$ticketSync" :lacks-staff-user="$lacksStaffUser" :category-status="$categoryStatus" :locked-tickets="$lockedTickets ?? []" />
 
     <x-changelog.notice :days="$recentChanges" />
 </x-layouts.app>
