@@ -8,6 +8,7 @@ sales_channels:
 products:
 - 2d-glass-photo
 - 3d-glass-photo
+- whisky-glass-base-engraving
 categories:
 - complaint
 topics:
@@ -19,13 +20,14 @@ related_knowledge:
 - GLOSSARY-004
 - PRODUCT-003
 - PRODUCT-004
+- PRODUCT-016
 - POLICY-007
 - POLICY-008
 - PROCESS-005
 - PROCESS-007
 - TONE-002
 - TONE-005
-summary: "Dunkles oder schwarzes Motiv im Glasfoto kaum sichtbar. Gilt für 2D- und 3D-Glasfotos."
+summary: "Der Kunde beanstandet, dass ein dunkles oder schwarzes Motiv (Fell, Anzug, Logo) im Glas kaum zu sehen ist. Gilt für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur; regelt Prüfung per Kundenfoto, technisch erwartbares Ergebnis und Kulanz-Aufhellung."
 retrieval: triggered
 triggers:
 - kaum sichtbar
@@ -43,7 +45,7 @@ when:
 actions:
 ---
 
-Gilt für gelaserte 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.
+Gilt für gelaserte 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur bei allen Kundenarten und Vertriebskanälen.
 
 # Typisches Fallmuster
 
@@ -65,6 +67,8 @@ Der Kunde beanstandet beispielsweise:
 
 Die Produktionsdatei muss für diese Erstprüfung nicht geöffnet werden.
 
+Beim Whiskyglas Bodengravur gibt es keinen schwarzen Geschenkkarton. Der Kunde fotografiert das leere Glas vor einem beliebigen schwarzen oder dunklen Hintergrund, etwa auf einer dunklen Unterlage.
+
 # Warum der schwarze Hintergrund wichtig ist
 
 Die Laserpunkte erscheinen durch Lichtbrechung hell beziehungsweise weiß.
@@ -72,6 +76,12 @@ Die Laserpunkte erscheinen durch Lichtbrechung hell beziehungsweise weiß.
 Vor weißem oder sehr hellem Hintergrund können diese hellen Punkte optisch weitgehend verschwinden. Eine schlechte Sichtbarkeit vor weißem Hintergrund ist deshalb allein kein Nachweis für einen Produktionsfehler.
 
 Das Foto vor schwarzem Hintergrund hilft sowohl bei der fachlichen Beurteilung als auch dabei, dem Kunden die Funktionsweise des Produktes sichtbar zu machen.
+
+# Whiskyglas Bodengravur im Gebrauch
+
+Das Whiskyglas Bodengravur ist zur Benutzung gedacht, nicht als Dekoration. Der Kunde sieht das Motiv im Boden, wenn er das Glas zum Trinken an die Lippen führt. Zu dunkle oder zu viel Flüssigkeit kann das Motiv dabei verdecken. Das ist kein Produktionsfehler.
+
+Für die Beurteilung zählt das Foto des leeren Glases vor dunklem Hintergrund, nicht die Sichtbarkeit im gefüllten Zustand.
 
 # Technisch erwartbares Ergebnis
 

@@ -8,6 +8,7 @@ sales_channels:
 products:
 - 2d-glass-photo
 - 3d-glass-photo
+- whisky-glass-base-engraving
 categories:
 - complaint
 - product-question
@@ -18,10 +19,11 @@ topics:
 related_knowledge:
 - PRODUCT-003
 - PRODUCT-004
+- PRODUCT-016
 - PLAYBOOK-002
 - PLAYBOOK-010
 - TONE-002
-summary: "Interpretation von Hauptmotiv und Hintergrund verständlich erklären. Gilt für 2D- und 3D-Glasfotos."
+summary: "Formulierungshilfen, um dem Kunden zu erklären, warum ein Bildbereich als Hintergrund entfernt oder als Motiv beibehalten wurde und wie er das künftig steuern kann. Gilt für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur."
 retrieval: triggered
 triggers:
 - Hintergrund
@@ -37,7 +39,7 @@ when:
 actions:
 ---
 
-Gilt für 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen, wenn Hauptmotiv und Hintergrund nicht eindeutig voneinander abzugrenzen sind.
+Gilt für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur bei allen Kundenarten und Vertriebskanälen, wenn Hauptmotiv und Hintergrund nicht eindeutig voneinander abzugrenzen sind.
 
 # Ziel
 
@@ -71,7 +73,7 @@ Diese Erklärung nur verwenden, wenn tatsächlich getrennte Interpretationsvorg�
 
 # Grüne Markierung erklären
 
-Gilt für das 2D-Glasfoto und für 3D-Glasfotos im bisherigen Konfigurator. Im neuen 3D-Konfigurator gibt es keine Markierung (siehe unten).
+Gilt für das 2D-Glasfoto und für 3D-Glasfotos im bisherigen Konfigurator. Im neuen 3D-Konfigurator und beim Whiskyglas Bodengravur gibt es keine Markierung (siehe unten).
 
 Die Markierung als Hilfe für eine eindeutige Umsetzung beschreiben.
 
@@ -101,7 +103,27 @@ Für die Neufertigung, ob kostenpflichtig oder kostenfrei:
 
 „Wir stellen den Auftrag gerne neu ein und berücksichtigen Ihre gewünschten Änderungen. Teilen Sie uns dazu bitte mit, welche Bereiche erhalten bleiben oder entfallen sollen, oder senden Sie uns Ihr Foto bereits freigestellt als PNG.“
 
+# Whiskyglas Bodengravur ohne Markierung
+
+Beim Whiskyglas Bodengravur gibt es weder im Online-Shop noch auf Amazon eine grüne Markierung. Die grüne Markierung nicht erwähnen.
+
+Aufbau der Antwort: Zuerst auf die Frage des Kunden eingehen, dann kurz erklären, dass der Hintergrund standardmäßig nach bestem Wissen entfernt wird, ganz am Ende in ein bis zwei Sätzen der Hinweis zur eigenen Freistellung.
+
+Formulierungshilfe:
+
+„Beim Whiskyglas mit Bodengravur entfernen wir den Hintergrund Ihres Motivs standardmäßig nach bestem Wissen, damit nur das Hauptmotiv in den Glasboden gelasert wird.“
+
+Hinweis zur eigenen Freistellung (am Ende der Antwort, kurz halten):
+
+„Wenn Sie selbst festlegen möchten, was im Glas erscheint, können Sie den Hintergrund vorab entfernen und das Motiv am besten als PNG mit transparentem Hintergrund hochladen. Alternativ gestalten Sie den Hintergrund vollständig schwarz, denn schwarze Bereiche werden nicht gelasert.“
+
+Für die Neufertigung, ob kostenpflichtig oder kostenfrei:
+
+„Wir stellen den Auftrag gerne neu ein und berücksichtigen Ihre gewünschten Änderungen. Teilen Sie uns dazu bitte mit, welche Bereiche erhalten bleiben oder entfallen sollen, oder senden Sie uns Ihr Motiv bereits freigestellt als PNG mit transparentem oder vollständig schwarzem Hintergrund.“
+
 # Kostenpflichtige Kulanz bei unmarkiertem Grenzbereich
+
+Gilt für das 2D-Glasfoto und für 3D-Glasfotos im bisherigen Konfigurator.
 
 Wenn PLAYBOOK-010 einen normalen Interpretationsspielraum bestätigt und eine kostenpflichtige Kulanz-Neuanfertigung angeboten wird:
 
@@ -129,4 +151,4 @@ Bei einer missachteten klaren Markierung nicht von „Geschmackssache“ oder �
 
 Den Kunden bei unmarkierten Grenzbereichen nicht vorwurfsvoll fragen, warum er die Markierungsfunktion nicht benutzt habe. Die Funktion als Möglichkeit zur eindeutigen Steuerung erklären.
 
-Im neuen 3D-Konfigurator nicht andeuten, der Kunde habe die Markierung versäumt, und nicht erklären, warum sie entfallen ist. Die eigene Freistellung nicht ausführlich erläutern: kein Vier-Schritte-Ablauf, keine lange Erklärung zu Transparenz, höchstens zwei Sätze am Ende.
+Im neuen 3D-Konfigurator und beim Whiskyglas Bodengravur nicht andeuten, der Kunde habe die Markierung versäumt, und nicht erklären, warum sie entfallen ist. Die eigene Freistellung nicht ausführlich erläutern: kein Vier-Schritte-Ablauf, keine lange Erklärung zu Transparenz, höchstens zwei Sätze am Ende.

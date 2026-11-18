@@ -8,6 +8,7 @@ sales_channels:
 products:
 - 2d-glass-photo
 - 3d-glass-photo
+- whisky-glass-base-engraving
 categories:
 - complaint
 topics:
@@ -18,6 +19,7 @@ topics:
 related_knowledge:
 - PRODUCT-003
 - PRODUCT-004
+- PRODUCT-016
 - GLOSSARY-002
 - PLAYBOOK-002
 - PERMISSION-002
@@ -26,7 +28,7 @@ related_knowledge:
 - POLICY-074
 - TONE-002
 - TONE-006
-summary: "Hintergrund oder Bildbereich unerwartet entfernt oder beibehalten. Gilt für 2D- und 3D-Glasfotos."
+summary: "Der Kunde beanstandet, dass beim Motiv im Glas ein Teil des Hintergrunds entfernt oder stehen gelassen wurde (zum Beispiel Fell, Decke, Gegenstand). Gilt für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur; regelt Prüfung, Interpretationsspielraum und Neufertigung."
 retrieval: triggered
 triggers:
 - Hintergrund
@@ -42,7 +44,7 @@ when:
 actions:
 ---
 
-Gilt für 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen, wenn die Beanstandung die Zuordnung von Hauptmotiv und Hintergrund betrifft.
+Gilt für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur bei allen Kundenarten und Vertriebskanälen, wenn die Beanstandung die Zuordnung von Hauptmotiv und Hintergrund betrifft.
 
 # Typisches Fallmuster
 
@@ -65,15 +67,18 @@ Beim 2D-Glasfoto ohne gewählte Hintergrundentfernung ist eine fehlende Gravur t
 
 Beim 3D-Glasfoto wird nach und nach, Glasgröße für Glasgröße, ein neuer visueller Konfigurator zum Einpassen des Fotos eingeführt. Er hat keine grüne Markierung mehr. Ob und ab wann eine Variante umgestellt ist, steht im Produktwissen („Neuer Konfigurator seit [Datum] – keine grüne Markierung mehr“). Ohne diesen Eintrag gilt der bisherige Konfigurator mit grüner Markierung. Beim 2D-Glasfoto gilt die grüne Markierung unverändert.
 
+Beim Whiskyglas Bodengravur gibt es weder im Online-Shop noch auf Amazon eine grüne Markierung. Der Hintergrund wird standardmäßig nach bestem Wissen entfernt. Es gilt der Abschnitt „Whiskyglas Bodengravur“.
+
 # Prüfung
 
 1. Das Originalbild und die Bestellkonfiguration in EOCS prüfen.
 2. Feststellen, ob beim 2D-Glasfoto „Hintergrund entfernen“ gewählt wurde.
-3. Beim 3D-Glasfoto das Bestelldatum mit dem Umstellungsdatum im Produktwissen vergleichen. Bei einer Bestellung ab diesem Datum gab es keine Markierung: Abschnitt „Bestellung im neuen Konfigurator“ anwenden.
-4. Sonst (2D-Glasfoto oder 3D-Glasfoto vor der Umstellung beziehungsweise ohne Eintrag) prüfen, ob der beanstandete Bildbereich mit dem grünen Pinsel markiert wurde.
-5. Prüfen, ob die Markierung eindeutig den jetzt beanstandeten Bereich umfasst.
-6. Falls der Kunde sich auf eine frühere Bestellung beruft, feststellen, ob es sich um denselben Produktionsvorgang beziehungsweise dieselbe Konfigurations-ID oder um einen neuen, unabhängigen Interpretationsvorgang handelt.
-7. Bleibt die Zuordnung oder Markierung unklar, PROCESS-005 anwenden.
+3. Beim Whiskyglas Bodengravur gab es keine Markierung: Abschnitt „Whiskyglas Bodengravur“ anwenden.
+4. Beim 3D-Glasfoto das Bestelldatum mit dem Umstellungsdatum im Produktwissen vergleichen. Bei einer Bestellung ab diesem Datum gab es keine Markierung: Abschnitt „Bestellung im neuen Konfigurator“ anwenden.
+5. Sonst (2D-Glasfoto oder 3D-Glasfoto vor der Umstellung beziehungsweise ohne Eintrag) prüfen, ob der beanstandete Bildbereich mit dem grünen Pinsel markiert wurde.
+6. Prüfen, ob die Markierung eindeutig den jetzt beanstandeten Bereich umfasst.
+7. Falls der Kunde sich auf eine frühere Bestellung beruft, feststellen, ob es sich um denselben Produktionsvorgang beziehungsweise dieselbe Konfigurations-ID oder um einen neuen, unabhängigen Interpretationsvorgang handelt.
+8. Bleibt die Zuordnung oder Markierung unklar, PROCESS-005 anwenden.
 
 # Fall A: Kein klar markierter Bereich
 
@@ -117,6 +122,14 @@ Lösung: Der Auftrag kann neu eingestellt werden, gewünschte Änderungen am Hin
 
 Ob die neue Fertigung kostenpflichtig oder kostenfrei ist, entscheidet der Mitarbeiter im Reklamationsformular; ohne Formular gilt Fall A (kostenpflichtige Kulanz-Neuanfertigung).
 
+# Whiskyglas Bodengravur
+
+Es gab keine Markierung, Fall B scheidet aus. Der Hintergrund wird nach bestem Wissen entfernt; ein beanstandeter Grenzbereich ist Interpretationsspielraum wie in Fall A.
+
+Lösung: Der Auftrag kann neu eingestellt werden, gewünschte Änderungen am Hintergrund fließen in die neue Fertigung ein. Dafür nennt der Kunde, welche Bereiche erhalten bleiben oder entfallen sollen. Alternativ entfernt er den Hintergrund selbst und liefert das Motiv bevorzugt als PNG mit transparentem Hintergrund oder mit vollständig schwarzem Hintergrund. Der grüne Pinsel wird nicht erwähnt.
+
+Ob die neue Fertigung kostenpflichtig oder kostenfrei ist, entscheidet der Mitarbeiter im Reklamationsformular; ohne Formular gilt Fall A (kostenpflichtige Kulanz-Neuanfertigung).
+
 # Frühere Bestellung als Vergleich
 
 Eine frühere Interpretation ist nur dann als identische Produktionsgrundlage zu behandeln, wenn tatsächlich dieselbe Interpretation beziehungsweise dieselbe Konfigurations-ID wiederverwendet wird.
@@ -131,4 +144,4 @@ Nicht hierunter fallen:
 
 - Schattenwurf oder verdeckte Motivbereiche innerhalb der 3D-Darstellung; dafür PLAYBOOK-008 verwenden.
 - Zu dunkle oder schwach sichtbare Bildbereiche; dafür PLAYBOOK-009 verwenden.
-- Transparente oder vollständig schwarze Bereiche eines 2D-Layouts, die aufgrund der Laserlogik nicht gelasert werden.
+- Transparente oder vollständig schwarze Bereiche eines 2D-Layouts oder eines Motivs für das Whiskyglas Bodengravur, die aufgrund der Laserlogik nicht gelasert werden.

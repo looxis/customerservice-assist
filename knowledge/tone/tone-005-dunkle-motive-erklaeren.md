@@ -8,6 +8,7 @@ sales_channels:
 products:
 - 2d-glass-photo
 - 3d-glass-photo
+- whisky-glass-base-engraving
 categories:
 - complaint
 - product-question
@@ -18,8 +19,9 @@ topics:
 related_knowledge:
 - GLOSSARY-004
 - PLAYBOOK-009
+- PRODUCT-016
 - TONE-002
-summary: "Dunkle Motive und geringe Punktdichte verständlich erklären. Gilt für 2D- und 3D-Glasfotos."
+summary: "Formulierungshilfen, um dem Kunden zu erklären, warum ein dunkles Motiv im Glas schwächer erscheint (Punktdichte, Hintergrund, Licht). Gilt für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur."
 retrieval: triggered
 triggers:
 - kaum sichtbar
@@ -37,7 +39,7 @@ when:
 actions:
 ---
 
-Gilt für gelaserte 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.
+Gilt für gelaserte 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur bei allen Kundenarten und Vertriebskanälen.
 
 # Ziel
 
@@ -83,6 +85,8 @@ Formulierungshilfe:
 
 # Dunkler Hintergrund und direkte Beleuchtung immer erwähnen
 
+Gilt für 2D- und 3D-Glasfotos. Für das Whiskyglas Bodengravur gilt stattdessen der Abschnitt „Whiskyglas Bodengravur“.
+
 Bei einer Reklamation wegen eines zu dunklen oder schwach sichtbaren Motivs immer darauf hinweisen, dass LOOXIS für eine optimale Wirkung der Glasinnengravur einen dunklen Hintergrund und direkte Beleuchtung empfiehlt.
 
 Dieser Hinweis gehört in die Kundenantwort unabhängig davon, wie die Reklamation entschieden wird. Er wird also auch dann genannt, wenn:
@@ -103,6 +107,22 @@ Wenn der Kunde das Glas bisher vor einem hellen Hintergrund betrachtet hat, kann
 
 „Vor einem hellen oder weißen Hintergrund ist der Kontrast deutlich geringer, weil die Laserpunkte selbst hell erscheinen. Ein schwarzer Hintergrund und eine direkte Beleuchtung verbessern die Sichtbarkeit deshalb erheblich.“
 
+# Whiskyglas Bodengravur
+
+Das Whiskyglas ist zur Benutzung gedacht, nicht als Dekoration. Den Hinweis auf dunklen Hintergrund, direkte Beleuchtung und Leuchtsockel deshalb nicht als Empfehlung für den Gebrauch geben.
+
+Zum Fotografieren für die Prüfung um ein Foto des leeren Glases vor einem schwarzen oder dunklen Hintergrund bitten. Keinen Geschenkkarton erwähnen.
+
+Formulierungshilfe:
+
+„Bitte schicken Sie uns ein Foto des leeren Glases vor einem dunklen Hintergrund, zum Beispiel auf einer dunklen Unterlage. So können wir die Gravur im Boden zuverlässig beurteilen.“
+
+Den Gebrauch erklären, wenn der Kunde das Motiv beim Trinken schlecht sieht:
+
+„Das Motiv im Glasboden sehen Sie am besten, wenn Sie das Glas zum Trinken ansetzen. Ist das Getränk sehr dunkel oder das Glas gut gefüllt, kann es das Motiv teilweise verdecken.“
+
+Möchte der Kunde das Glas ausdrücklich zur Dekoration aufstellen, kann ergänzt werden, dass Licht die Gravur besser zur Geltung bringt.
+
 # Kostenpflichtige Kulanz-Aufhellung
 
 Ist eine weitere Aufhellung sinnvoll, kann die geplante Bearbeitung konkret benannt werden.
@@ -113,7 +133,7 @@ Formulierungshilfe:
 
 Den Prozentsatz nur nennen, wenn er für den konkreten Fall tatsächlich vorgesehen ist. Er beschreibt die geplante Bildbearbeitung und ist keine Zusage einer exakt entsprechenden Helligkeitssteigerung im fertigen Glas.
 
-Auch bei einer angebotenen Neuanfertigung zusätzlich den Hinweis aus „Dunkler Hintergrund und direkte Beleuchtung immer erwähnen“ aufnehmen.
+Auch bei einer angebotenen Neuanfertigung zusätzlich den Hinweis aus „Dunkler Hintergrund und direkte Beleuchtung immer erwähnen“ aufnehmen (nicht beim Whiskyglas Bodengravur).
 
 # Fehlende Bildinformation
 
@@ -123,7 +143,7 @@ Formulierungshilfe:
 
 „Wir haben das Ausgangsfoto geprüft. In den sehr dunklen Bereichen sind die benötigten Konturen bereits im Original nicht ausreichend vorhanden. Eine stärkere Aufhellung kann diese fehlenden Bildinformationen nicht zuverlässig wiederherstellen. Für eine deutlich bessere Umsetzung benötigen wir deshalb ein anderes Foto, auf dem diese Bereiche erkennbar sind.“
 
-Auch in diesem Fall zusätzlich auf den empfohlenen dunklen Hintergrund und die direkte Beleuchtung der Glasinnengravur hinweisen.
+Auch in diesem Fall zusätzlich auf den empfohlenen dunklen Hintergrund und die direkte Beleuchtung der Glasinnengravur hinweisen (nicht beim Whiskyglas Bodengravur).
 
 # Vermeiden
 

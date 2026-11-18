@@ -8,6 +8,7 @@ sales_channels:
 products:
 - 2d-glass-photo
 - 3d-glass-photo
+- whisky-glass-base-engraving
 categories:
 topics:
 - product-expectation
@@ -16,6 +17,7 @@ topics:
 related_knowledge:
 - PRODUCT-003
 - PRODUCT-004
+- PRODUCT-016
 summary: "Erklärt Helligkeit, Punktdichte und Sichtbarkeit bei Glasgravuren. Gilt, wenn ein Motiv im Glas dunkel oder kaum sichtbar wirkt."
 retrieval: triggered
 triggers:
@@ -34,7 +36,7 @@ when:
 actions:
 ---
 
-Gilt für gelaserte 2D- und 3D-Glasfotos bei allen Kundenarten und Vertriebskanälen.
+Gilt für gelaserte 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur bei allen Kundenarten und Vertriebskanälen.
 
 # Ausgangsbild und Lasergravur
 
@@ -72,7 +74,7 @@ Bei einer 3D-Modellierung kann es dadurch erforderlich werden, Körperkonturen o
 
 # Bildoptimierung
 
-Für 2D- und 3D-Glasfotos verwendet die Software auf Erfahrungswerten basierende automatisierte Optimierungen.
+Für 2D- und 3D-Glasfotos und das Whiskyglas Bodengravur verwendet die Software auf Erfahrungswerten basierende automatisierte Optimierungen.
 
 Die Bearbeitung von Helligkeit, Kontrast und dunklen Teilmotiven enthält Interpretationsspielraum und ist nicht als exakt reproduzierbare wissenschaftliche Umrechnung zu verstehen.
 
