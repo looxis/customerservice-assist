@@ -18,7 +18,7 @@ final readonly class ComplaintDecision
     /**
      * @param  'ja'|'nein'|'unsicher'|'info'  $justified  "unsicher": replaced without admitting a legal duty; "info": undecided, more information needed.
      * @param  'ja'|'nein'  $goodwill  Only meaningful when the complaint is not justified.
-     * @param  'ja'|'nein'|'erhalten'  $return  Whether the defective product is sent back, or "erhalten": the return has already arrived and was checked; only meaningful when justified.
+     * @param  'ja'|'nein'|'nicht_vorhanden'|'erhalten'  $return  Whether the defective product is sent back; "nicht_vorhanden": the customer cannot return it (never delivered, missing or lost); "erhalten": the return has already arrived and was checked; only meaningful when justified.
      * @param  'heute'|'morgen'|'zeitnah'  $shipping  When the new product is shipped; only meaningful when justified.
      * @param  bool  $awaitReturn  Answer "nein" to "processed before the customer has returned the product": the customer is asked to send the product back first, the replacement follows at the earliest after receipt; claim number, shipping and ToDo are not asked then. Only meaningful when the product is returned.
      */
@@ -51,7 +51,7 @@ final readonly class ComplaintDecision
             justified: $input['reklamation_berechtigt'],
             reason: trim((string) ($input['reklamation_grund'] ?? '')),
             goodwill: ($input['kulanz'] ?? null) === 'ja' ? 'ja' : 'nein',
-            return: in_array($input['retoure'] ?? null, ['ja', 'erhalten'], true) ? $input['retoure'] : 'nein',
+            return: in_array($input['retoure'] ?? null, ['ja', 'nicht_vorhanden', 'erhalten'], true) ? $input['retoure'] : 'nein',
             claimNumber: trim((string) ($input['reklamationsnummer'] ?? '')),
             shipping: in_array($input['versand'] ?? null, ['heute', 'morgen', 'zeitnah'], true) ? $input['versand'] : 'zeitnah',
             trackingTodo: filter_var($input['sendungsnummer_todo'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -153,6 +153,7 @@ final readonly class ComplaintDecision
         $lines[] = match (true) {
             $unsure && $this->return === 'ja' => '- Das beanstandete Produkt soll zur weiteren, detaillierten internen Prüfung zurückgesendet werden; der Kunde erhält dafür ein kostenfreies Retourenlabel. Füge den Zusatz zum Retourenlabel sinngemäß nach POLICY-076 hinzu.',
             $this->return === 'erhalten' => '- Die Rücksendung des defekten Produkts ist bereits bei uns eingegangen und wurde geprüft. Schreibe im Entwurf sinngemäß: „Wir haben Ihre Rücksendung erhalten und geprüft.“ Bitte den Kunden nicht noch einmal um eine Rücksendung und erstelle kein Retourenlabel.',
+            $this->return === 'nicht_vorhanden' => '- Das beanstandete Produkt liegt dem Kunden nicht vor (nicht geliefert, fehlt oder ging verloren), eine Rücksendung ist daher nicht möglich. Erwähne im Entwurf keine Rücksendung und kein Retourenlabel.',
             $this->return === 'ja' => '- Das defekte Produkt soll zurückgesendet werden. Erst nach dem Eingang der Rücksendung wird ersetzt: Nenne keinen Versandtermin für den Ersatz.',
             default => '- Das defekte Produkt muss nicht zurückgesendet werden.',
         };

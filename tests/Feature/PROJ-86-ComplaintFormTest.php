@@ -318,6 +318,16 @@ it('tells the model that the return has already arrived and keeps claim number a
         ->and($decision->storedInput())->toMatchArray(['retoure' => 'erhalten']);
 });
 
+it('tells the model that the product cannot be returned because it is missing or lost', function () {
+    complaintRun(['reklamation_berechtigt' => 'ja', 'retoure' => 'nicht_vorhanden', 'versand' => 'heute'])->assertSessionHasNoErrors();
+
+    $decision = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'ja', 'retoure' => 'nicht_vorhanden', 'versand' => 'morgen']);
+
+    expect($decision->return)->toBe('nicht_vorhanden')->and($decision->wantsReturnLabel())->toBeFalse()->and($decision->awaitReturn)->toBeFalse()
+        ->and($decision->facts())->toContain('liegt dem Kunden nicht vor')->toContain('voraussichtlich morgen')->not->toContain('muss nicht zurückgesendet')
+        ->and($decision->storedInput())->toMatchArray(['retoure' => 'nicht_vorhanden']);
+});
+
 it('passes the additional information of a replaced complaint to the model as priority and stores it', function () {
     $decision = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'unsicher', 'retoure' => 'nein', 'reklamation_zusatz' => 'Bitte Kleber nur dünn auftragen']);
 

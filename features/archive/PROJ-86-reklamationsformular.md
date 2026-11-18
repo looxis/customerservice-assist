@@ -49,7 +49,7 @@ Anlass ist Ticket 2140357 (2026-11-11). Der Mitarbeiter legt die Reklamation in 
 - [ ] Angenommen der Mitarbeiter wechselt von „Ja“ auf „Nein“ und zurück, dann bleiben zuvor eingegebene Werte erhalten, aber nur die Werte des gewählten Zweigs werden gesendet.
 
 ### Retoure
-- [ ] Angenommen „Ja“ bei berechtigt, dann erscheint die Frage „Soll das defekte Produkt retourniert werden?“ mit dem Hinweis „Höherwertige Produkte, die in Teilen noch (weiter-)verwendet werden können, sollten retourniert werden.“ (Standard Nein).
+- [ ] Angenommen „Ja“ bei berechtigt, dann erscheint die Frage „Soll das defekte Produkt retourniert werden?“ mit dem Hinweis „Höherwertige Produkte, die in Teilen noch (weiter-)verwendet werden können, sollten retourniert werden.“ (Standard Nein). Optionen: Ja, Nein, „Nicht möglich – Produkt fehlt oder ging verloren“, „Retoure bereits erhalten“; die Frage lautet inzwischen „Soll das beanstandete Produkt retourniert werden?“.
 - [ ] Angenommen „Retoure: Nein“, dann gibt es keine weitere Aktion und kein Retourenlabel.
 - [ ] Angenommen „Retoure: Ja“, dann erscheint der bestehende Dialog „DHL-Retourenlabel erstellen“ je Bestellung (wie bisher); abgeschickt werden kann der Vorschlag erst, wenn das Label erstellt wurde (wie heute).
 - [ ] Angenommen „Retoure: Ja“ und ein Label ist erstellt, dann nennt der Entwurf wie bisher das Label und die App fügt die Rücksendeschritte fest unter den Entwurf ein.

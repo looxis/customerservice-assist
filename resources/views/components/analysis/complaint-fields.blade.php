@@ -37,7 +37,7 @@
         <legend class="sr-only">Reklamation berechtigt</legend>
 
         <div>
-            <x-analysis.choice name="retoure" legend="Soll das defekte Produkt retourniert werden?" :options="[...$yesNo, 'erhalten' => 'Retoure bereits erhalten']" model="retoure" :value="$pick('retoure', 'nein')" />
+            <x-analysis.choice name="retoure" legend="Soll das beanstandete Produkt retourniert werden?" :options="[...$yesNo, 'nicht_vorhanden' => 'Nicht möglich – Produkt fehlt oder ging verloren', 'erhalten' => 'Retoure bereits erhalten']" model="retoure" :value="$pick('retoure', 'nein')" />
             <x-intro>
                 <p class="mt-1 text-sm text-slate-600">Höherwertige Produkte, die in Teilen noch (weiter-)verwendet werden können, sollten retourniert werden.</p>
             </x-intro>
