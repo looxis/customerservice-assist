@@ -104,7 +104,7 @@ describe('value lists', function () {
             ['b2b-reseller', 'qobos'],
             ['b2b-pro', 'looxis-pro'],
             ['b2b-whitelabel', 'masterpics'],
-            ['b2c', 'wecreateyour'],
+            ['b2b-digital', 'wecreateyour'],
             [null, null],
         ]);
     });

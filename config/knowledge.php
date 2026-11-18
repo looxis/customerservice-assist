@@ -90,7 +90,7 @@ return [
 
     'usable_statuses' => ['active'],
 
-    'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro', 'b2b-whitelabel'],
+    'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro', 'b2b-whitelabel', 'b2b-digital'],
 
     'sales_channels' => ['looxis-de', 'amazon', 'fachhaendler', 'qobos', 'looxis-pro', 'masterpics', 'wecreateyour'],
 
@@ -230,7 +230,7 @@ return [
         'globus' => ['label' => 'Globus', 'customer_type' => 'b2b-reseller', 'sales_channel' => 'qobos'],
         'looxis-pro' => ['label' => 'LOOXIS-Pro', 'customer_type' => 'b2b-pro', 'sales_channel' => 'looxis-pro'],
         'whitelabel-masterpics' => ['label' => 'White-Label-Kunde, masterpics', 'customer_type' => 'b2b-whitelabel', 'sales_channel' => 'masterpics'],
-        'wecreateyour' => ['label' => 'WeCreateYour', 'customer_type' => 'b2c', 'sales_channel' => 'wecreateyour'],
+        'wecreateyour' => ['label' => 'WeCreateYour', 'customer_type' => 'b2b-digital', 'sales_channel' => 'wecreateyour'],
         'unclear' => ['label' => 'Noch unklar', 'customer_type' => null, 'sales_channel' => null],
     ],
 

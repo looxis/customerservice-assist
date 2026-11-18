@@ -18,7 +18,7 @@ class KnowledgeValues
 {
     public const array GROUP_KEYS = ['kn_customer_types', 'kn_sales_channels', 'kn_groups', 'kn_order_channels', 'kn_categories', 'kn_actions'];
 
-    private const array TYPE_LABELS = ['b2c' => 'Privatkunde', 'b2b-reseller' => 'Foto-Fachhändler / Reseller', 'b2b-pro' => 'LOOXIS-Pro', 'b2b-whitelabel' => 'White-Label-Kunde'];
+    private const array TYPE_LABELS = ['b2c' => 'Privatkunde', 'b2b-reseller' => 'Foto-Fachhändler / Reseller', 'b2b-pro' => 'LOOXIS-Pro', 'b2b-whitelabel' => 'White-Label-Kunde', 'b2b-digital' => 'Geschäftskunde digitale Dienstleistungen'];
 
     private const array CHANNEL_LABELS = ['looxis-de' => 'looxis.de', 'amazon' => 'Amazon', 'fachhaendler' => 'fachhaendler.looxis.de', 'qobos' => 'ehemals qobos', 'looxis-pro' => 'LOOXIS Pro', 'masterpics' => 'API (masterpics)', 'wecreateyour' => 'WeCreateYour'];
 

@@ -242,6 +242,7 @@ Gilt ein Dokument nur für eine Kundenart oder einen Vertriebskanal, steht das i
 | `b2b-reseller` | Foto-Fachhändler / Reseller |
 | `b2b-pro` | LOOXIS-Pro: Geschäftskunde, der Rohware in größeren Mengen bezieht |
 | `b2b-whitelabel` | White-Label-Kunde: Geschäftskunde, der unter eigenem Namen an seine Endkunden verkauft und uns die Aufträge samt Lieferadresse übermittelt (z. B. masterpics). Er ist für korrekte Adressdaten verantwortlich. |
+| `b2b-digital` | Geschäftskunde der Serviceplattform WeCreateYour.com (Deutschland, EU, international), dem wir digitale Dienstleistungen erbringen. Keine physischen Produkte; Kundendaten und Rechnungen stehen in EOCS, die Geschäftsvorgänge nicht. Bisher gilt kein eingeschränktes Dokument für diese Kundenart. |
 
 Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 
@@ -255,6 +256,7 @@ Den früheren Wert `b2b` gibt es nicht mehr; die Prüfung meldet ihn als Fehler.
 | `qobos` | früherer Shop „ehemals qobos“ (Kundengruppe Globus; der Kanal entfällt, sobald der Shop ersetzt ist) |
 | `looxis-pro` | Bestellweg für LOOXIS-Pro |
 | `masterpics` | Aufträge des White-Label-Kunden masterpics (im Formular „API (masterpics)“) |
+| `wecreateyour` | Serviceplattform WeCreateYour.com (digitale Dienstleistungen, nur Geschäftskunden); die App erkennt den Kanal am Betreff |
 
 Regeln:
 
@@ -269,6 +271,7 @@ Regeln:
   | Globus | `b2b-reseller` | `qobos` |
   | LOOXIS-Pro | `b2b-pro` | `looxis-pro` |
   | White-Label-Kunde, masterpics | `b2b-whitelabel` | `masterpics` |
+  | WeCreateYour | `b2b-digital` | `wecreateyour` |
   | Noch unklar | – | – |
 
   Ein Dokument gilt für eine Gruppe, wenn beide Felder leer sind oder den Wert der Gruppe enthalten. Beispiele: `customer_types: [b2c]` mit leerem Kanal gilt für Privatkunden auf looxis.de und auf Amazon. `sales_channels: [looxis-de]` mit leerer Kundenart gilt nur für Privatkunden auf looxis.de, nicht für Fachhändler. Soll ein Dokument für alle Kanäle außer Amazon gelten, werden alle diese Kanäle aufgezählt. Ist die Kundengruppe noch unklar, verwendet die App nur Dokumente, bei denen beide Felder leer sind.
