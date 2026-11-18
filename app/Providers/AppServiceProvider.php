@@ -10,6 +10,7 @@ use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\KnowledgeMarkdown;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\KnowledgeSuggester;
+use App\Lettermint\LettermintClient;
 use App\ProductForge\ProductForgeClient;
 use App\Settings\KnowledgeValues;
 use App\Settings\MailRules;
@@ -51,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(DhlClient::class, fn (): DhlClient => new DhlClient(config('services.dhl')));
         $this->app->bind(DhlTrackingClient::class, fn (): DhlTrackingClient => new DhlTrackingClient(config('services.dhl_tracking')));
         $this->app->bind(UpsTrackingClient::class, fn (): UpsTrackingClient => new UpsTrackingClient(config('services.ups')));
+        $this->app->bind(LettermintClient::class, fn (): LettermintClient => new LettermintClient(config('services.lettermint')));
         $this->app->bind(ZammadReplySender::class, fn (): ZammadReplySender => new ZammadReplySender(config('services.zammad')));
         $this->app->bind(StaffDirectory::class, fn (): StaffDirectory => new StaffDirectory(config('staff')));
         $this->app->bind(KnowledgeSuggester::class, fn (Application $app): KnowledgeSuggester => new KnowledgeSuggester($app->make(KnowledgeLibrary::class), $app->make(KnowledgeSelector::class), config('knowledge')));

@@ -1,6 +1,6 @@
 # PROJ-97: Versandbenachrichtigungen aus Lettermint im Antwortvorschlag
 
-## Status: Planned
+## Status: In Progress
 **Created:** 2026-11-18
 **Last Updated:** 2026-11-18
 

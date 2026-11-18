@@ -134,6 +134,8 @@
                 </span>
             </p>
 
+            <x-analysis.delivery-notices :record="$result['delivery_notices'] ?? null" />
+
             @if ($gaps !== [])
                 <x-alert type="warning">
                     <p class="font-semibold">Wissenslücken</p>

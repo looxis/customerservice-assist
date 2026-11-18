@@ -183,4 +183,20 @@ return [
         'timeout' => env('UPS_TIMEOUT', 10),
     ],
 
+    /*
+    | Lettermint Team API (PROJ-97): read-only check whether the n8n notification mails ("Paket kommt heute",
+    | pickup notice) for an order were accepted by the recipient's mail server. Needs a team token with the
+    | permission read:messages; without a token the check is off. The subject keywords decide the kind of mail.
+    */
+    'lettermint' => [
+        'url' => env('LETTERMINT_URL', 'https://api.lettermint.co/v1'),
+        'token' => env('LETTERMINT_TEAM_TOKEN'),
+        'project' => env('LETTERMINT_PROJECT_ID'),
+        'timeout' => env('LETTERMINT_TIMEOUT', 10),
+        'subjects' => [
+            'today' => ['kommt heute', 'heute zugestellt', 'arrives today', 'arriving today'],
+            'pickup' => ['abholen', 'abholbereit', 'zur abholung', 'abholort', 'filiale', 'packstation', 'access point', 'pick up', 'pickup'],
+        ],
+    ],
+
 ];

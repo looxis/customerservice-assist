@@ -20,6 +20,7 @@ use App\Knowledge\Retrieval\Router\KnowledgeRouter;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
 use App\Knowledge\SalesChannels;
 use App\Labeling\LabelCategory;
+use App\Lettermint\DeliveryNotices;
 use App\Models\LabelTicket;
 use App\Orders\OrderFormats;
 use App\ProductForge\ProductPromptBuilder;
@@ -53,6 +54,7 @@ class CaseAnalyzer
         private readonly ProductPromptBuilder $productPrompts,
         private readonly ProductQuestionLog $productQuestions,
         private readonly ShipmentTracker $tracker,
+        private readonly DeliveryNotices $deliveryNotices,
     ) {}
 
     /**
@@ -63,7 +65,7 @@ class CaseAnalyzer
     public function analyze(AnalysisRequest $request): string
     {
         $prompt = Prompt::load('analysis');
-        $this->statusTool = ! $request->isQuestion() && ShipmentStatusTool::applies($request->orders) ? new ShipmentStatusTool($request->orders, $this->tracker, $request->ticket->number) : null;
+        $this->statusTool = ! $request->isQuestion() && ShipmentStatusTool::applies($request->orders) ? new ShipmentStatusTool($request->orders, $this->tracker, $request->ticket->number, $this->deliveryNotices, $request->ticket->customerEmail) : null;
         $context = new CaseContext($request->customerGroup, $request->products);
         $selection = $this->selector->select($context);
         $pseudonymizer = app(Pseudonymizer::class);
@@ -166,6 +168,7 @@ class CaseAnalyzer
             'placeholders' => $pseudonymizer->values(),
             ...($request->related === null || $request->related->isEmpty() ? [] : ['related' => $request->related->toStored()]),
             ...($products === null ? [] : ['product_data' => $request->productPackage->toStored(), 'product_sent' => $products->prompt()->record]),
+            ...($this->statusTool?->noticeRecord() === null ? [] : ['delivery_notices' => $this->statusTool->noticeRecord()]),
             ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
             'meta' => [
                 'staff' => $request->staffName,
