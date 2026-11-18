@@ -317,3 +317,13 @@ it('tells the model that the return has already arrived and keeps claim number a
         ->and($decision->facts())->toContain('Rücksendung erhalten und geprüft')->toContain('voraussichtlich morgen')->not->toContain('Erst nach dem Eingang')
         ->and($decision->storedInput())->toMatchArray(['retoure' => 'erhalten']);
 });
+
+it('passes the additional information of a replaced complaint to the model as priority and stores it', function () {
+    $decision = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'unsicher', 'retoure' => 'nein', 'reklamation_zusatz' => 'Bitte Kleber nur dünn auftragen']);
+
+    expect($decision->facts())->toContain('PRIORITÄRE ZUSÄTZLICHE INFORMATIONEN')->toContain('Kleber nur dünn')
+        ->and($decision->storedInput())->toMatchArray(['reklamation_zusatz' => 'Bitte Kleber nur dünn auftragen']);
+
+    $await = ComplaintDecision::fromInput(['formular' => 'reklamation', 'reklamation_berechtigt' => 'ja', 'retoure' => 'ja', 'retoure_vor_ersatz' => 'nein', 'reklamation_zusatz' => 'Tipp X']);
+    expect($await->facts())->toContain('Tipp X');
+});

@@ -121,6 +121,7 @@ class AnalyzeTicketRequest extends FormRequest
             'kulanz' => ['nullable', Rule::in(['ja', 'nein'])],
             'kulanz_art' => ['nullable', 'string', 'max:500'],
             'retoure' => ['nullable', Rule::in(['ja', 'nein', 'erhalten'])],
+            'reklamation_zusatz' => ['nullable', 'string', 'max:1500'],
             'retoure_vor_ersatz' => ['nullable', Rule::in(['ja', 'nein'])],
             'reklamationsnummer' => ['nullable', 'string', 'max:60', 'regex:/^'.preg_quote(app(OrderFormats::class)->claimPrefix(), '/').'\d+-\S+$/i'],
             'versand' => ['nullable', Rule::in(['heute', 'morgen', 'zeitnah'])],

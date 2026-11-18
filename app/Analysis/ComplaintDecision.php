@@ -33,6 +33,7 @@ final readonly class ComplaintDecision
         public string $missingInfo = '',
         public string $goodwillKind = '',
         public bool $awaitReturn = false,
+        public string $extraInfo = '',
     ) {}
 
     /**
@@ -56,6 +57,7 @@ final readonly class ComplaintDecision
             trackingTodo: filter_var($input['sendungsnummer_todo'] ?? false, FILTER_VALIDATE_BOOLEAN),
             missingInfo: trim((string) ($input['reklamation_info'] ?? '')),
             goodwillKind: trim((string) ($input['kulanz_art'] ?? '')),
+            extraInfo: trim((string) ($input['reklamation_zusatz'] ?? '')),
             awaitReturn: ($input['retoure'] ?? null) === 'ja' && ($input['retoure_vor_ersatz'] ?? null) === 'nein',
         );
     }
@@ -100,10 +102,10 @@ final readonly class ComplaintDecision
         }
 
         if ($this->awaitReturn) {
-            return [...$stored, 'retoure' => $this->return, 'retoure_vor_ersatz' => 'nein'];
+            return [...$stored, 'retoure' => $this->return, 'retoure_vor_ersatz' => 'nein', 'reklamation_zusatz' => $this->extraInfo];
         }
 
-        return [...$stored, 'retoure' => $this->return, 'retoure_vor_ersatz' => 'ja', 'reklamationsnummer' => $this->claimNumber, 'versand' => $this->shipping, 'sendungsnummer_todo' => $this->trackingTodo];
+        return [...$stored, 'retoure' => $this->return, 'retoure_vor_ersatz' => 'ja', 'reklamationsnummer' => $this->claimNumber, 'versand' => $this->shipping, 'sendungsnummer_todo' => $this->trackingTodo, 'reklamation_zusatz' => $this->extraInfo];
     }
 
     /**
@@ -143,6 +145,8 @@ final readonly class ComplaintDecision
             $lines[] = '- Das defekte Produkt soll zurückgesendet werden; der Kunde erhält dafür ein kostenfreies Retourenlabel.'.($unsure ? ' Füge den Zusatz zum Retourenlabel sinngemäß nach POLICY-076 hinzu.' : '');
             $lines[] = '- Der Ersatz wird erst nach dem Eingang der Rücksendung versendet. Bitte den Kunden im Entwurf sinngemäß: „Bitte senden Sie uns [das Produkt] zeitnah, innerhalb der nächsten Tage mit dem Retourenlabel zurück, sodass wir Ihre Reklamation weiter bearbeiten können. Ersatz können wir frühestens nach Erhalt Ihrer Rücksendung versenden.“ Nenne keinen Versandtermin, keine Reklamationsnummer und keine Sendungsnummer für den Ersatz.';
 
+            $this->addExtraInfo($lines);
+
             return implode("\n", $lines);
         }
 
@@ -168,6 +172,20 @@ final readonly class ComplaintDecision
             $lines[] = '- Die Sendungsnummer wird dem Kunden nach dem Versand mitgeteilt: Sage das im Entwurf zu.';
         }
 
+        $this->addExtraInfo($lines);
+
         return implode("\n", $lines);
+    }
+
+    /**
+     * The free-text additions of the employee for a replaced complaint: answers to questions of the customer, tips and the like.
+     *
+     * @param  list<string>  $lines
+     */
+    private function addExtraInfo(array &$lines): void
+    {
+        if ($this->extraInfo !== '') {
+            $lines[] = '- PRIORITÄRE ZUSÄTZLICHE INFORMATIONEN des Mitarbeiters (beantworte damit Fragen des Kunden bzw. gib die Hinweise oder Tipps im Entwurf weiter, verbindlich und vor allgemeinem Wissen): '.$this->extraInfo;
+        }
     }
 }

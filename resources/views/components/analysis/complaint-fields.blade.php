@@ -57,7 +57,11 @@
         <fieldset x-show="! (retoure === 'ja' && vorErsatz === 'nein')" x-bind:disabled="retoure === 'ja' && vorErsatz === 'nein'" class="min-w-0 space-y-5 border-0 p-0">
         <x-input name="reklamationsnummer" label="Reklamationsnummer" :value="$pick('reklamationsnummer', $complaint['claimNumber'] ?? null)" maxlength="60" autocomplete="off"
                  hint="Bitte Reklamation in EOCS erstellen und die Reklamationsnummer hier einfügen. Ohne Nummer steht im Entwurf ein Platzhalter." />
+        </fieldset>
 
+        <x-textarea name="reklamation_zusatz" id="reklamation_zusatz" label="Zusätzliche Informationen" rows="3" maxlength="1500" placeholder="z. B. Antworten auf Fragen des Kunden oder ein Tipp für den Kunden" :value="$pick('reklamation_zusatz', '')" />
+
+        <fieldset x-show="! (retoure === 'ja' && vorErsatz === 'nein')" x-bind:disabled="retoure === 'ja' && vorErsatz === 'nein'" class="min-w-0 space-y-5 border-0 p-0">
         <x-analysis.choice name="versand" legend="Versand voraussichtlich" :options="$shipping" model="versand" :value="$pick('versand', 'zeitnah')" />
 
         <label class="flex items-start gap-2 text-sm font-medium text-slate-900">
