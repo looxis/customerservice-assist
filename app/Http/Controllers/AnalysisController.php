@@ -76,8 +76,10 @@ class AnalysisController extends Controller
         // Order numbers found in the ticket are loaded from EOCS without being
         // asked for, unless the employee opted out. Whatever EOCS does not
         // deliver still reaches the analysis as a known order number.
-        $requested = $this->orderNumbers($request, $detector);
-        $found = array_slice($detector->detect($ticket), 0, OrderNumberDetector::MAX_SUGGESTIONS);
+        // A channel without products (PROJ-94) has no orders in EOCS: nothing is searched or loaded.
+        $withoutOrders = $request->channelWithoutProducts();
+        $requested = $withoutOrders ? [] : $this->orderNumbers($request, $detector);
+        $found = $withoutOrders ? [] : array_slice($detector->detect($ticket), 0, OrderNumberDetector::MAX_SUGGESTIONS);
         // Looking up an EOCS ID takes several seconds, so those are only loaded when chosen by hand.
         $automatic = array_values(array_filter($found, fn (OrderNumber $order): bool => ! $order->isEocsId()));
         $toLoad = collect($request->boolean('ohne_bestelldetails') ? $requested : [...$requested, ...$automatic])

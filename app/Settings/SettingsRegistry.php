@@ -106,7 +106,12 @@ final class SettingsRegistry
         $values = fn (string $key): Closure => fn (): array => app(KnowledgeValues::class)->defaults($key);
         $keyLabel = [['field' => 'key', 'label' => 'Schlüssel', 'type' => 'key'], ['field' => 'label', 'label' => 'Name', 'type' => 'text']];
         $groups[] = new SettingGroup('kn_customer_types', 'values', 'Kundenarten', 'Die Kundenart im Kopf der Wissensdokumente (`customer_types`). Der Schlüssel steht fest, sobald der Eintrag gespeichert ist; der Name ist jederzeit änderbar. Entfernen geht nur, wenn kein Dokument und keine Kundengruppe sie noch nennt.', SettingGroup::RECORDS, $values('kn_customer_types'), columns: $keyLabel);
-        $groups[] = new SettingGroup('kn_sales_channels', 'values', 'Vertriebskanäle', 'Der Vertriebskanal im Kopf der Wissensdokumente (`sales_channels`). Entfernen geht nur, wenn kein Dokument, keine Kundengruppe und keine EOCS-Zuordnung ihn noch nennt.', SettingGroup::RECORDS, $values('kn_sales_channels'), columns: $keyLabel);
+        $groups[] = new SettingGroup('kn_sales_channels', 'values', 'Vertriebskanäle', 'Der Vertriebskanal im Kopf der Wissensdokumente (`sales_channels`). „Ohne Produkte“: kein Produkt, keine Bestellungen aus EOCS, keine Formulare für Ware und Versand, keine automatischen Antworten. „Betreff“: Stichwörter (durch Komma getrennt), an denen die App den Kanal im Ticketbetreff erkennt. Der Hinweis an die KI geht bei diesem Kanal in jeden Vorschlag (leer = keiner). Entfernen geht nur, wenn kein Dokument, keine Kundengruppe und keine EOCS-Zuordnung ihn noch nennt.', SettingGroup::RECORDS, $values('kn_sales_channels'), columns: [
+            ...$keyLabel,
+            ['field' => 'without_products', 'label' => 'Ohne Produkte', 'type' => 'check'],
+            ['field' => 'subject_keywords', 'label' => 'Erkennung im Betreff', 'type' => 'text'],
+            ['field' => 'ai_note', 'label' => 'Hinweis an die KI', 'type' => 'longtext'],
+        ]);
         $groups[] = new SettingGroup('kn_groups', 'values', 'Kundengruppen', 'Die Gruppen, die Mitarbeiter im Formular wählen (Reihenfolge wie hier). Eine neue Gruppe oder eine geänderte Kundenart/ein geänderter Kanal startet „in Vorbereitung“: Erst nach der Prüfung der Dokumente und der Freigabe ist sie wählbar. Gruppen werden deaktiviert, nicht entfernt.', SettingGroup::RECORDS, $values('kn_groups'), columns: [
             ['field' => 'key', 'label' => 'Schlüssel', 'type' => 'key'], ['field' => 'label', 'label' => 'Name', 'type' => 'text'],
             ['field' => 'customer_type', 'label' => 'Kundenart', 'type' => 'select', 'options' => 'types'], ['field' => 'sales_channel', 'label' => 'Vertriebskanal', 'type' => 'select', 'options' => 'channels'],

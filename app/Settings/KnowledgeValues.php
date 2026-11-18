@@ -55,7 +55,7 @@ class KnowledgeValues
      */
     public function baseline(): array
     {
-        return $this->baseline ??= Arr::only((array) config('knowledge'), ['customer_types', 'sales_channels', 'customer_groups', 'order_channels', 'categories', 'category_labels', 'actions', 'action_hints']);
+        return $this->baseline ??= Arr::only((array) config('knowledge'), ['customer_types', 'sales_channels', 'channel_profiles', 'customer_groups', 'order_channels', 'categories', 'category_labels', 'actions', 'action_hints']);
     }
 
     /**
@@ -69,7 +69,7 @@ class KnowledgeValues
 
         return match ($key) {
             'kn_customer_types' => array_map(fn (string $type): array => ['key' => $type, 'label' => self::TYPE_LABELS[$type] ?? $type], array_values($base['customer_types'])),
-            'kn_sales_channels' => array_map(fn (string $channel): array => ['key' => $channel, 'label' => self::CHANNEL_LABELS[$channel] ?? $channel], array_values($base['sales_channels'])),
+            'kn_sales_channels' => array_map(fn (string $channel): array => ['key' => $channel, 'label' => self::CHANNEL_LABELS[$channel] ?? $channel, ...self::profile($base['channel_profiles'][$channel] ?? [])], array_values($base['sales_channels'])),
             'kn_groups' => array_values(array_map(fn (string $groupKey, array $group): array => [
                 'key' => $groupKey, 'label' => $group['label'], 'customer_type' => $group['customer_type'] ?? null, 'sales_channel' => $group['sales_channel'] ?? null,
                 'status' => $group['status'] ?? CustomerGroup::ACTIVE, 'released_by' => null, 'released_at' => null, 'confirmed_binding' => [],
@@ -88,7 +88,10 @@ class KnowledgeValues
     {
         match ($key) {
             'kn_customer_types' => config(['knowledge.customer_types' => array_column($value, 'key')]),
-            'kn_sales_channels' => config(['knowledge.sales_channels' => array_column($value, 'key')]),
+            'kn_sales_channels' => config([
+                'knowledge.sales_channels' => array_column($value, 'key'),
+                'knowledge.channel_profiles' => collect($value)->mapWithKeys(fn (array $row): array => [$row['key'] => self::profile($row)])->all(),
+            ]),
             'kn_groups' => config(['knowledge.customer_groups' => collect($value)->mapWithKeys(fn (array $group): array => [$group['key'] => [
                 'label' => $group['label'], 'customer_type' => $group['customer_type'] ?: null, 'sales_channel' => $group['sales_channel'] ?: null, 'status' => $group['status'] ?? CustomerGroup::ACTIVE,
             ]])->all()]),
@@ -166,6 +169,21 @@ class KnowledgeValues
         $lines[] = 'Leere Listen bei customer_types und sales_channels bedeuten: gilt für alle.';
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * The extra fields of a sales channel (PROJ-94) in the form the settings keep them.
+     *
+     * @param  array<string, mixed>  $row
+     * @return array{without_products: bool, subject_keywords: string, ai_note: string}
+     */
+    public static function profile(array $row): array
+    {
+        return [
+            'without_products' => filter_var($row['without_products'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'subject_keywords' => trim((string) ($row['subject_keywords'] ?? '')),
+            'ai_note' => trim((string) ($row['ai_note'] ?? '')),
+        ];
     }
 
     private function store(): SettingsStore

@@ -1,6 +1,6 @@
 # PROJ-94: WeCreateYour-Fälle ohne Produktbezug
 
-## Status: Architected
+## Status: In Review
 **Created:** 2026-11-18
 **Last Updated:** 2026-11-18
 
@@ -62,7 +62,7 @@ Kein bisheriges Wissensdokument ist auf WeCreateYour eingeschränkt. Dokumente, 
 - [ ] Angenommen ein Admin leert den Hinweis-Text und speichert, wenn ein Vorschlag erstellt wird, dann geht kein Kontext-Hinweis an die KI (bewusstes Abschalten ist möglich).
 
 ### Automatische Antworten
-- [ ] Angenommen ein neues Ticket wird am Betreff als WeCreateYour erkannt, wenn die automatische Nachreichung der Sendungsnummer (PROJ-82) oder die Vorab-Antwort bei Reklamation (PROJ-85) das Ticket prüft, dann sendet sie nichts und vermerkt im Protokoll „übersprungen: WeCreateYour“.
+- [ ] Angenommen ein neues Ticket wird am Betreff als WeCreateYour erkannt, wenn die WISMO-Automatik (PROJ-82) oder die Vorab-Antwort bei Reklamation (PROJ-85) das Ticket prüft, dann sendet sie nichts und vermerkt im Protokoll „übersprungen: WeCreateYour“.
 - [ ] Angenommen ein WeCreateYour-Ticket, wenn die Ticket-Klassifikation (PROJ-80) läuft, dann ordnet sie das Ticket wie bisher ein.
 
 ### Anzeige
@@ -135,7 +135,7 @@ Ticketseite
 Frage stellen → Produktbereich wie am Ticket
 
 Hintergrund (neue Tickets)
-+-- Sendungsnummer nachreichen (PROJ-82) → überspringt mit Grund
++-- WISMO-Automatik (PROJ-82) → überspringt mit Grund
 +-- Vorab-Antwort Reklamation (PROJ-85) → überspringt mit Grund
 ```
 
@@ -170,6 +170,15 @@ Keine neuen Pakete.
 - PROJ-82 und PROJ-85 überspringen mit Grund; Klassifikation unverändert.
 - Einstellungsseite: neue Felder speichern, Längen prüfen, Voreinstellung ohne Speichern.
 - Bestehende Tests der anderen Kanäle bleiben grün.
+
+## Implementation Notes (Frontend + Backend, 2026-11-18)
+- Kanal-Profil in den Einstellungen (Werte → Vertriebskanäle): Spalten „Ohne Produkte“ (Haken), „Erkennung im Betreff“ (Stichwörter, je mindestens 3 Zeichen, zusammen höchstens 200 Zeichen), „Hinweis an die KI“ (höchstens 2.000 Zeichen). Voreinstellung in `config/knowledge.php` → `channel_profiles` (ersetzt `subject_channels`). Gespeicherte Zeilen ohne Profilfelder bekommen beim Lesen das Standardprofil.
+- `SalesChannels`: `withoutProducts()`, `aiNote()`, `fromSubject()`, `beforeOrders()` (Mitarbeiter-Wahl, sonst Betreff); die Kanal-Optionen tragen `without_products`.
+- Ticketseite: bei Kanal ohne Produkte weder Bestellnummer-Erkennung noch EOCS; der Bereich „Bestellungen“ nennt den Grund. Das Formular reagiert auf den Kanal (Alpine-Ereignis `channel-changed`): Produkt- und Bestellbereich, Reklamation/Neuversand und DHL-Option ausgeblendet und abgeschaltet; Hinweiszeile unter den Kanalfeldern.
+- Absenden (Ticket und Frage): Produkte, Bestellungen und Bestelldaten werden verworfen, der Fall gilt als „Kein Produktbezug“; Reklamation/Neuversand werden mit Fehlermeldung abgewiesen. `AnalysisController` sucht und lädt keine Bestellungen.
+- Prompt: Abschnitt „# Verkaufskanal“ mit dem Hinweis; im Protokoll als `meta.channel_note`.
+- WISMO (PROJ-82) und Vorab-Antwort Reklamation (PROJ-85) überspringen Tickets mit Betreff-Stichwort eines Kanals ohne Produkte („Übersprungen: Verkaufskanal „WeCreateYour“ ohne Produkte und Versand.“).
+- Tests: `tests/Feature/PROJ-94-ChannelWithoutProductsTest.php` (11), je ein Test in PROJ-82/PROJ-85; ein PROJ-89-Test („Bestellung vor Betreff“) entfiel, weil EOCS bei WeCreateYour nicht mehr gefragt wird. Gesamtlauf: 2.826 von 2.830 grün; die 2 Fehlschläge (PROJ-1 Versionsanzeige, PROJ-56 Seitenleiste) bestehen auch ohne diese Änderung.
 
 ## QA Test Results
 _To be added by /qa_

@@ -18,6 +18,7 @@ use App\Knowledge\Retrieval\RetrievalResult;
 use App\Knowledge\Retrieval\RetrievedDocument;
 use App\Knowledge\Retrieval\Router\KnowledgeRouter;
 use App\Knowledge\Retrieval\Router\RouterOutcome;
+use App\Knowledge\SalesChannels;
 use App\Labeling\LabelCategory;
 use App\Models\LabelTicket;
 use App\Orders\OrderFormats;
@@ -187,6 +188,7 @@ class CaseAnalyzer
                 'variant' => $request->variant->value,
                 'customer_group' => $request->customerGroup->key,
                 'sales_channel' => $request->customerGroup->salesChannel,
+                'channel_note' => app(SalesChannels::class)->aiNote($request->customerGroup->salesChannel) ?: null,
                 'products' => $request->products,
                 'unknown_product' => $request->unknownProduct,
                 'product_info_status' => $request->productPackage->status(),
@@ -592,7 +594,8 @@ class CaseAnalyzer
                     .($request->productPackage->affected() === [] && $request->productPackage->affectedEocs() === []
                         ? 'weder Produktkatalog noch Regeln der Wissensdatenbank kennen es; erfinde nichts dazu'
                         : 'es gibt dazu keine Regeldatei in der Wissensbasis, das ist keine Wissenslücke; die Produktfakten stehen im Abschnitt „Produktinformationen“ aus dem Produktkatalog').')')
-                .$this->knownQuestionTopics($request),
+                .$this->knownQuestionTopics($request)
+                .$this->channelNote($request),
             'orders' => "# Bestellungen\n".$this->orders($request, $hasDeliveryAddress, $neutralShipping),
             'products' => '',
             'related' => $request->related?->text ?? '',
@@ -606,6 +609,16 @@ class CaseAnalyzer
                 .'Vorgänge: '.implode(', ', array_map(fn (string $key, string $label): string => "{$key} ({$label})", array_keys(config('knowledge.actions')), config('knowledge.actions')))
                 .$this->actionHints(),
         ];
+    }
+
+    /**
+     * The context that goes with the sales channel (PROJ-94, e.g. WeCreateYour: digital services, no goods).
+     */
+    private function channelNote(AnalysisRequest $request): string
+    {
+        $note = app(SalesChannels::class)->aiNote($request->customerGroup->salesChannel);
+
+        return $note === '' ? '' : "\n\n# Verkaufskanal\n{$note}";
     }
 
     /**

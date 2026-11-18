@@ -36,7 +36,7 @@ class SalesChannels
     /**
      * The channels of the form in the order of the customer groups, "unclear" last.
      *
-     * @return list<array{key: string, label: string, group: string}>
+     * @return list<array{key: string, label: string, group: string, without_products: bool}>
      */
     public function options(): array
     {
@@ -45,9 +45,9 @@ class SalesChannels
 
         foreach ($this->selector->selectableGroups() as $group) {
             if ($group->isUnclear()) {
-                $unclear ??= ['key' => self::UNCLEAR, 'label' => $group->label, 'group' => $group->key];
+                $unclear ??= ['key' => self::UNCLEAR, 'label' => $group->label, 'group' => $group->key, 'without_products' => false];
             } elseif ($group->salesChannel !== null && ! isset($options[$group->salesChannel])) {
-                $options[$group->salesChannel] = ['key' => $group->salesChannel, 'label' => $this->label($group->salesChannel), 'group' => $group->key];
+                $options[$group->salesChannel] = ['key' => $group->salesChannel, 'label' => $this->label($group->salesChannel), 'group' => $group->key, 'without_products' => $this->withoutProducts($group->salesChannel)];
             }
         }
 
@@ -74,6 +74,69 @@ class SalesChannels
         }
 
         return (string) ($names[$channel] ?? $channel);
+    }
+
+    /**
+     * Whether a channel has no products and no orders (PROJ-94): no product answer, no EOCS, no forms for goods.
+     */
+    public function withoutProducts(?string $channel): bool
+    {
+        return $channel !== null && $channel !== '' && (bool) ($this->profile($channel)['without_products'] ?? false);
+    }
+
+    /**
+     * The context for the model that goes with a channel (PROJ-94); empty for none.
+     */
+    public function aiNote(?string $channel): string
+    {
+        return $channel === null || $channel === '' ? '' : trim((string) ($this->profile($channel)['ai_note'] ?? ''));
+    }
+
+    /**
+     * The first channel that can be chosen whose subject keyword occurs in the ticket subject, or null.
+     */
+    public function fromSubject(string $subject): ?string
+    {
+        $keys = $this->keys();
+
+        foreach ((array) config('knowledge.channel_profiles', []) as $channel => $profile) {
+            if (! in_array($channel, $keys, true)) {
+                continue;
+            }
+
+            foreach (explode(',', (string) ($profile['subject_keywords'] ?? '')) as $keyword) {
+                $keyword = trim($keyword);
+
+                if (mb_strlen($keyword) >= 3 && mb_stripos($subject, $keyword) !== false) {
+                    return (string) $channel;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The channel of a ticket as far as it is known before any order is loaded (PROJ-94): the choice of an
+     * employee, else a subject keyword. Decides whether the ticket page asks EOCS at all.
+     */
+    public function beforeOrders(Ticket $ticket): ?string
+    {
+        $stored = $this->stored($ticket->number);
+
+        if ($stored !== null && $stored[1] === self::BY_STAFF) {
+            return $stored[0];
+        }
+
+        return $this->fromSubject($ticket->title);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function profile(string $channel): array
+    {
+        return (array) (config('knowledge.channel_profiles')[$channel] ?? []);
     }
 
     /**
@@ -107,7 +170,7 @@ class SalesChannels
 
     /**
      * The channel the app recognises on its own and where from: the first loaded order with a known channel, else
-     * an Amazon marketplace address of the sender, else a keyword of the ticket subject (`knowledge.subject_channels`).
+     * an Amazon marketplace address of the sender, else a subject keyword of a channel (PROJ-94, `knowledge.channel_profiles`).
      * Only channels that can be chosen.
      *
      * @param  list<EocsOrder>  $orders
@@ -127,10 +190,10 @@ class SalesChannels
             return ['amazon', self::BY_SENDER];
         }
 
-        foreach ((array) config('knowledge.subject_channels', []) as $keyword => $channel) {
-            if (in_array($channel, $keys, true) && mb_stripos($ticket->title, (string) $keyword) !== false) {
-                return [$channel, self::BY_SUBJECT];
-            }
+        $fromSubject = $this->fromSubject($ticket->title);
+
+        if ($fromSubject !== null) {
+            return [$fromSubject, self::BY_SUBJECT];
         }
 
         return null;

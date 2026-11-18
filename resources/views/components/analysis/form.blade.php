@@ -30,7 +30,12 @@
     $forms = \App\Analysis\GuidedForms::options();
     $defaultForm = $complaint['form'] ?? (($complaint['default'] ?? false) ? 'reklamation' : 'frei');
     $chosenForm = $oldInput ? old('formular') : ($inputs['formular'] ?? null);
+    // A channel without products (PROJ-94) offers no forms for goods, no orders and no DHL label; the form follows a change of the channel.
+    $goodsForms = \App\Analysis\GuidedForms::forGoods();
+    $startChannel = (string) old('verkaufskanal', $analysis['suggestedChannel'] ?? '');
+    $digital = (bool) (collect($analysis['channels'] ?? [])->firstWhere('key', $startChannel)['without_products'] ?? false);
     $formMode = ! $complaintToggle ? 'frei' : (is_string($chosenForm) && isset($forms[$chosenForm]) ? $chosenForm : $defaultForm);
+    $formMode = $digital && in_array($formMode, $goodsForms, true) ? 'frei' : $formMode;
     $usedForm = \App\Analysis\GuidedForms::guidedLabel($inputs['formular'] ?? null);
     $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($inputs[$key] ?? $default);
     $labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
@@ -47,7 +52,7 @@
                     <span class="text-sm text-slate-600">
                         Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, ($inputs['formular'] ?? null) === \App\Analysis\ReshipmentDecision::FORM ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
-                        @if ($complaintToggle)
+                        @if ($complaintToggle && ! $digital)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
                         @endif
                     </span>
@@ -74,7 +79,7 @@
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{
                   variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '',
-                  mode: @js($formMode), loesung: @js($pickedAnswer('support_loesung')), kostenpflichtig: @js($pickedAnswer('neuversand_kostenpflichtig')), bezahlt: @js($pickedAnswer('neuversand_bezahlt')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), vorErsatz: @js($pickedAnswer('retoure_vor_ersatz', 'ja')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
+                  mode: @js($formMode), digital: @js($digital), goodsForms: @js($goodsForms), loesung: @js($pickedAnswer('support_loesung')), kostenpflichtig: @js($pickedAnswer('neuversand_kostenpflichtig')), bezahlt: @js($pickedAnswer('neuversand_bezahlt')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), vorErsatz: @js($pickedAnswer('retoure_vor_ersatz', 'ja')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
                   syncLabel() { this.labelOn = this.mode === 'reklamation' && ['ja', 'unsicher'].includes(this.berechtigt) && this.retoure === 'ja' },
                   init() {
                       ['mode', 'berechtigt', 'retoure'].forEach((property) => this.$watch(property, () => this.syncLabel()))
@@ -83,13 +88,14 @@
                   },
               }"
               x-on:return-label-ready="labelNote = ''"
-              x-on:open-analysis-form.window="if ($event.detail?.mode) { mode = $event.detail.mode }"
+              x-on:open-analysis-form.window="if ($event.detail?.mode && ! (digital && goodsForms.includes($event.detail.mode))) { mode = $event.detail.mode }"
+              x-on:channel-changed="digital = $event.detail.withoutProducts; if (digital) { labelOn = false; if (goodsForms.includes(mode)) { mode = 'frei' } }"
               x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]:not(:disabled)')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
             @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
             @foreach ($selected as $value)
-                <input type="hidden" name="bestellungen[]" value="{{ $value }}">
+                <input type="hidden" name="bestellungen[]" value="{{ $value }}" x-bind:disabled="digital">
             @endforeach
 
             @if ($analysis['related']['enabled'] ?? false)
@@ -98,6 +104,8 @@
 
             <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" :hidden-product-for="$complaintToggle ? 'neuversand' : null" />
 
+            <fieldset x-show="! digital" x-bind:disabled="digital" @if ($digital) x-cloak @endif class="min-w-0 space-y-5 border-0 p-0">
+            <legend class="sr-only">Bestellung</legend>
             @unless ($analysis['hasOrders'])
                 <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}</p>
             @endunless
@@ -116,6 +124,7 @@
                     </div>
                 </details>
             @endunless
+            </fieldset>
 
             @if ($advanced && $offers)
                 <fieldset>
@@ -164,7 +173,7 @@
                     <legend class="block text-sm font-medium text-slate-900">Formular</legend>
                     <div class="mt-1 flex flex-wrap gap-x-6 gap-y-1">
                         @foreach ($forms as $formKey => $formLabel)
-                            <label class="flex min-h-9 items-center gap-2 text-sm text-slate-900">
+                            <label class="flex min-h-9 items-center gap-2 text-sm text-slate-900" @if (in_array($formKey, $goodsForms, true)) x-show="! digital" @if ($digital) x-cloak @endif @endif>
                                 <input type="radio" name="formularwahl" value="{{ $formKey }}" x-model="mode" @checked($formMode === $formKey) class="size-4 border-slate-300 text-brand focus:ring-brand">
                                 {{ $formLabel }}
                             </label>
@@ -192,7 +201,7 @@
 
             @if ($labelOrders->isNotEmpty())
                 {{-- DHL return label before the proposal (PROJ-64): the model learns that a label goes with the reply, the app adds the steps. --}}
-                <div id="dhl-option" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                <div id="dhl-option" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4" x-show="! digital" @if ($digital) x-cloak @endif>
                     <label class="flex items-start gap-2 text-sm font-medium text-slate-900">
                         <input type="checkbox" x-model="labelOn" class="mt-0.5 rounded text-brand focus:ring-brand">
                         <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>

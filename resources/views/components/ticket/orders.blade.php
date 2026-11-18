@@ -1,4 +1,12 @@
-@props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null, 'claimReferences' => [], 'deliveryProblem' => null])
+@props(['ticket', 'number', 'selected' => [], 'suggestions' => [], 'moreSuggestions' => false, 'lookups' => [], 'problem' => null, 'claimReferences' => [], 'deliveryProblem' => null, 'withoutOrdersChannel' => null])
+
+@if ($withoutOrdersChannel !== null)
+    {{-- A channel without products (PROJ-94): its business is not in EOCS, so no order is searched or loaded. --}}
+    <section class="mt-6 border-t border-slate-100 pt-4" aria-labelledby="orders-heading">
+        <h3 id="orders-heading" class="text-sm font-semibold text-slate-900">Bestellungen</h3>
+        <p class="mt-3 text-sm text-slate-600">Verkaufskanal „{{ $withoutOrdersChannel }}“: keine Bestellungen in EOCS, die App sucht und lädt hier nichts. Geht es doch um eine LOOXIS-Bestellung, im Formular „Vorschlag erstellen“ einen anderen Verkaufskanal wählen und den Vorschlag erstellen.</p>
+    </section>
+@else
 
 @php
     $url = fn (array $selection): string => route('tickets.show', ['number' => $number, 'bestellungen' => $selection === [] ? [''] : array_values($selection)]);
@@ -100,3 +108,4 @@
 
     </div>
 </section>
+@endif

@@ -66,6 +66,7 @@ class AnalyzeTicketRequest extends FormRequest
 
         if ($parent === null) {
             $this->relaxProductChoice();
+            $this->dropProductsForChannel();
 
             return;
         }
@@ -76,6 +77,7 @@ class AnalyzeTicketRequest extends FormRequest
             fn (mixed $value, string $key): bool => ! $this->has($key) && $value !== null,
             ARRAY_FILTER_USE_BOTH,
         ));
+        $this->dropProductsForChannel();
     }
 
     /**
@@ -160,6 +162,8 @@ class AnalyzeTicketRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
+            $this->checkFormForChannel($validator);
+
             if ($this->input('formular') === ComplaintDecision::FORM) {
                 if (! in_array($this->input('reklamation_berechtigt'), ComplaintDecision::ANSWERS, true)) {
                     $validator->errors()->add('reklamation_berechtigt', 'Bitte angeben, ob die Reklamation berechtigt ist.');

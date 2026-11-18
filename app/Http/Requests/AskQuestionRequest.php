@@ -44,6 +44,14 @@ class AskQuestionRequest extends FormRequest
     }
 
     /**
+     * A channel without products (PROJ-94) asks without a product.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->dropProductsForChannel();
+    }
+
+    /**
      * @return list<callable(Validator): void>
      */
     public function after(): array

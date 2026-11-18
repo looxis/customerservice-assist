@@ -266,17 +266,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Ticket Subject Keywords (PROJ-89)
+    | Channel Profiles (PROJ-94)
     |--------------------------------------------------------------------------
     |
-    | A word in the ticket subject that names the sales channel, for tickets
-    | without a loaded order (e.g. "Contact Form @ WeCreateYour.com").
-    | Compared without regard to case.
+    | Defaults of the extra fields of a sales channel on the settings page:
+    | "without_products" (no products, no orders from EOCS, no forms that need
+    | goods), "subject_keywords" (comma-separated words in the ticket subject
+    | that name the channel, compared without regard to case) and "ai_note"
+    | (context for the model; empty = none). Channels not listed have none.
     |
     */
 
-    'subject_channels' => [
-        'wecreateyour' => 'wecreateyour',
+    'channel_profiles' => [
+        'wecreateyour' => [
+            'without_products' => true,
+            'subject_keywords' => 'wecreateyour',
+            'ai_note' => 'Der Kunde ist ein Geschäftskunde der Serviceplattform WeCreateYour.com (Deutschland, EU oder international). Wir erbringen dort digitale Dienstleistungen; es gibt keine physischen Produkte, keine Produktion von Ware und keinen Versand. Regeln zu Ware, Versand, Rücksendung oder Reklamation einer Ware wendest du nur an, wenn sie sinngemäß auf eine digitale Dienstleistung passen. Frage nicht nach Bestellnummern, Sendungen oder Fotos eines Produkts.',
+        ],
     ],
 
     /*

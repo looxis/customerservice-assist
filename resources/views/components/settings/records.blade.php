@@ -58,8 +58,15 @@
                                 </select>
                             </template>
                         </div>
+                    @elseif ($column['type'] === 'check')
+                        <label class="flex min-h-8 items-center gap-2 text-sm text-slate-900">
+                            <input type="checkbox" value="1" :name="'{{ $name }}[' + index + '][{{ $column['field'] }}]'" x-model="row.{{ $column['field'] }}" @disabled(! $canEdit) class="size-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand">
+                            <span class="md:sr-only">{{ $column['label'] }}</span>
+                        </label>
+                    @elseif ($column['type'] === 'longtext')
+                        <textarea :name="'{{ $name }}[' + index + '][{{ $column['field'] }}]'" x-model="row.{{ $column['field'] }}" rows="3" maxlength="2000" placeholder="{{ $column['label'] }}" @disabled(! $canEdit) aria-label="{{ $column['label'] }}" class="{{ $field }}"></textarea>
                     @else
-                        <input type="text" :name="'{{ $name }}[' + index + '][{{ $column['field'] }}]'" x-model="row.{{ $column['field'] }}" maxlength="{{ $column['field'] === 'hint' ? 300 : 80 }}" autocomplete="off" placeholder="{{ $column['label'] }}" @disabled(! $canEdit) aria-label="{{ $column['label'] }}" class="{{ $field }}">
+                        <input type="text" :name="'{{ $name }}[' + index + '][{{ $column['field'] }}]'" x-model="row.{{ $column['field'] }}" maxlength="{{ match ($column['field']) { 'hint' => 300, 'subject_keywords' => 200, default => 80 } }}" autocomplete="off" placeholder="{{ $column['label'] }}" @disabled(! $canEdit) aria-label="{{ $column['label'] }}" class="{{ $field }}">
                     @endif
                 @endforeach
                 @if ($canEdit)

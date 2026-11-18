@@ -13,12 +13,14 @@ final class GuidedForms
     /**
      * A form without a category (Neuversand, PROJ-93) is never preselected, only chosen by hand.
      *
-     * @var array<string, array{label: string, category: LabelCategory|null}>
+     * "goods": the form assumes goods and shipping, so a channel without products (PROJ-94) does not offer it.
+     *
+     * @var array<string, array{label: string, category: LabelCategory|null, goods: bool}>
      */
     private const array GUIDED = [
-        SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport],
-        ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation],
-        ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null],
+        SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport, 'goods' => false],
+        ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation, 'goods' => true],
+        ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null, 'goods' => true],
     ];
 
     /**
@@ -40,11 +42,26 @@ final class GuidedForms
     }
 
     /**
-     * The form a ticket of this category starts with: its guided form, else the free text.
+     * The forms that assume goods and shipping (PROJ-94).
+     *
+     * @return list<string>
      */
-    public static function defaultFor(?string $category): string
+    public static function forGoods(): array
+    {
+        return array_keys(array_filter(self::GUIDED, fn (array $form): bool => $form['goods']));
+    }
+
+    /**
+     * The form a ticket of this category starts with: its guided form, else the free text. Without products
+     * (PROJ-94) a form for goods is never the start.
+     */
+    public static function defaultFor(?string $category, bool $withoutProducts = false): string
     {
         foreach (self::GUIDED as $key => $form) {
+            if ($withoutProducts && $form['goods']) {
+                continue;
+            }
+
             if ($form['category'] !== null && $form['category']->value === $category) {
                 return $key;
             }

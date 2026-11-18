@@ -39,7 +39,7 @@ function claimPhoto(int $id = 7): array
 /**
  * @param  list<array<string, mixed>>|null  $articles
  */
-function claimSetup(string $shipped = '05.11.2026 11:03', ?array $articles = null, int $putStatus = 200, bool $shipment = true): void
+function claimSetup(string $shipped = '05.11.2026 11:03', ?array $articles = null, int $putStatus = 200, bool $shipment = true, string $title = 'Reklamation'): void
 {
     $order = [
         'id' => 716249, 'external_order_id' => CLAIM_NUMBER, 'order_date' => '2026-11-01T07:17:15.000000Z', 'status' => 5, 'status_name' => 'Vollständig und verschickt',
@@ -50,7 +50,7 @@ function claimSetup(string $shipped = '05.11.2026 11:03', ?array $articles = nul
     $articles ??= [zammadArticle(['id' => 1, 'body' => '<p>Die Tasse ist kaputt. Bestellung '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'message_id' => '<m1@example.org>', 'subject' => 'Reklamation'])];
 
     Http::swap(new Factory(app('events')));
-    fakeZammad($articles, ['title' => 'Reklamation'], [
+    fakeZammad($articles, ['title' => $title], [
         'zammad.test/api/v1/users/me' => Http::response(['id' => 900, 'firstname' => 'customer', 'lastname' => 'serviceassist', 'login' => 'customerserviceassist']),
         'zammad.test/api/v1/tickets/51234' => Http::response(['id' => 51234, 'number' => '2137942'], $putStatus),
         'eocs.test/api/v1/orders*' => function (Request $request) use ($order) {
@@ -212,6 +212,14 @@ describe('when nothing is sent', function () {
         claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Bestellung 304-1111111-2222222</p>', 'created_at' => '2026-11-11T07:30:00.000Z'])]);
         app(ClaimReplyResponder::class)->run(claimLabel());
         expect(claimNotes()[0]['article']['body'])->toContain('nicht gefunden');
+    });
+
+    test('a ticket of a channel without products (WeCreateYour) is left alone (PROJ-94)', function () {
+        claimSetup(title: 'Contact Form @ WeCreateYour.com');
+
+        app(ClaimReplyResponder::class)->run(claimLabel());
+
+        expect(claimPuts())->toBe([])->and(ClaimReplyRun::query()->firstOrFail()->result)->toBe(ClaimReplyRun::SKIPPED)->and(ClaimReplyRun::query()->firstOrFail()->reason)->toContain('WeCreateYour');
     });
 
     test('a ticket that was answered or has a newer message is left alone', function () {

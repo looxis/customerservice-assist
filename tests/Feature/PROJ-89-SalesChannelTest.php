@@ -87,14 +87,14 @@ function channelTicketPage()
 describe('channels and groups', function () {
     test('the channels of the form follow the active customer groups, "unclear" comes last', function () {
         expect(app(SalesChannels::class)->options())->toBe([
-            ['key' => 'looxis-de', 'label' => 'looxis.de', 'group' => 'private-looxis-de'],
-            ['key' => 'amazon', 'label' => 'Amazon', 'group' => 'private-amazon'],
-            ['key' => 'fachhaendler', 'label' => 'fachhaendler.looxis.de', 'group' => 'reseller'],
-            ['key' => 'qobos', 'label' => 'ehemals qobos', 'group' => 'globus'],
-            ['key' => 'looxis-pro', 'label' => 'LOOXIS Pro', 'group' => 'looxis-pro'],
-            ['key' => 'masterpics', 'label' => 'API (masterpics)', 'group' => 'whitelabel-masterpics'],
-            ['key' => 'wecreateyour', 'label' => 'WeCreateYour', 'group' => 'wecreateyour'],
-            ['key' => 'unclear', 'label' => 'Noch unklar', 'group' => 'unclear'],
+            ['key' => 'looxis-de', 'label' => 'looxis.de', 'group' => 'private-looxis-de', 'without_products' => false],
+            ['key' => 'amazon', 'label' => 'Amazon', 'group' => 'private-amazon', 'without_products' => false],
+            ['key' => 'fachhaendler', 'label' => 'fachhaendler.looxis.de', 'group' => 'reseller', 'without_products' => false],
+            ['key' => 'qobos', 'label' => 'ehemals qobos', 'group' => 'globus', 'without_products' => false],
+            ['key' => 'looxis-pro', 'label' => 'LOOXIS Pro', 'group' => 'looxis-pro', 'without_products' => false],
+            ['key' => 'masterpics', 'label' => 'API (masterpics)', 'group' => 'whitelabel-masterpics', 'without_products' => false],
+            ['key' => 'wecreateyour', 'label' => 'WeCreateYour', 'group' => 'wecreateyour', 'without_products' => true],
+            ['key' => 'unclear', 'label' => 'Noch unklar', 'group' => 'unclear', 'without_products' => false],
         ]);
     });
 
@@ -177,12 +177,6 @@ describe('preselection', function () {
         channelTicketPage()->assertOk()
             ->assertSee('<option value="wecreateyour" selected>WeCreateYour</option>', false)
             ->assertSee('Vorbelegt: aus dem Betreff');
-    });
-
-    test('the order counts before the ticket subject', function () {
-        channelTicket('<p>Bestellung 7JQ-18SU-DVA4</p>', ticket: ['title' => 'Contact Form @ WeCreateYour.com']);
-
-        channelTicketPage()->assertOk()->assertSee('<option value="looxis-de" selected>looxis.de</option>', false);
     });
 
     test('the order counts before the sender address', function () {

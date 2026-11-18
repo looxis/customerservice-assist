@@ -12,6 +12,7 @@ use App\Eocs\EocsException;
 use App\Eocs\EocsOrder;
 use App\Eocs\EocsProblem;
 use App\Eocs\EocsShipment;
+use App\Knowledge\SalesChannels;
 use App\Models\LabelTicket;
 use App\Models\WismoRun;
 use App\Orders\OrderNumber;
@@ -203,6 +204,7 @@ class WismoResponder
 
         return match (true) {
             $ticket->mergedIntoNumber !== null => 'Das Ticket wurde zusammengeführt.',
+            $this->channelWithoutProducts($ticket) !== null => 'Übersprungen: Verkaufskanal „'.$this->channelWithoutProducts($ticket).'“ ohne Produkte und Versand.',
             $ticket->closed => 'Das Ticket ist schon geschlossen.',
             collect($ticket->articles)->contains(fn ($article): bool => $article->kind === ArticleKind::Agent && ! $article->automatic) => 'Das Ticket wurde schon beantwortet.',
             $customer === null => 'Keine Nachricht des Kunden im Ticket.',
@@ -460,5 +462,17 @@ class WismoResponder
         $run->update(['result' => WismoRun::RETRY, 'reason' => mb_substr($message, 0, 250)]);
 
         return self::RETRY_SECONDS * $run->attempts;
+    }
+
+    /**
+     * The name of the channel when the ticket subject names a channel without products (PROJ-94, e.g. WeCreateYour);
+     * its texts about orders and shipping do not fit there.
+     */
+    private function channelWithoutProducts(Ticket $ticket): ?string
+    {
+        $channels = app(SalesChannels::class);
+        $channel = $channels->fromSubject($ticket->title);
+
+        return $channel !== null && $channels->withoutProducts($channel) ? $channels->label($channel) : null;
     }
 }

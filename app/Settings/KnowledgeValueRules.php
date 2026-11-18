@@ -88,6 +88,18 @@ final class KnowledgeValueRules
                 $errors[] = "{$label} „{$row['key']}“: Der Hinweis ist länger als 300 Zeichen.";
             }
 
+            if (isset($row['subject_keywords']) && mb_strlen($row['subject_keywords']) > 200) {
+                $errors[] = "{$label} „{$row['key']}“: Die Stichwörter für den Betreff sind länger als 200 Zeichen.";
+            }
+
+            if (isset($row['subject_keywords']) && collect(explode(',', $row['subject_keywords']))->map(fn (string $word): string => trim($word))->filter()->contains(fn (string $word): bool => mb_strlen($word) < 3)) {
+                $errors[] = "{$label} „{$row['key']}“: Jedes Stichwort für den Betreff hat mindestens 3 Zeichen.";
+            }
+
+            if (isset($row['ai_note']) && mb_strlen($row['ai_note']) > 2000) {
+                $errors[] = "{$label} „{$row['key']}“: Der Hinweis an die KI ist länger als 2.000 Zeichen.";
+            }
+
             if ($groupKey === 'kn_groups') {
                 if (! in_array($row['status'], [CustomerGroup::ACTIVE, CustomerGroup::PREPARING, CustomerGroup::INACTIVE], true)) {
                     $errors[] = "{$label} „{$row['key']}“: Ungültiger Status.";
@@ -218,6 +230,13 @@ final class KnowledgeValueRules
 
         if ($groupKey === 'kn_actions') {
             $clean['hint'] = $text('hint');
+        }
+
+        if ($groupKey === 'kn_sales_channels') {
+            // A row saved before PROJ-94 has none of the profile fields: the default profile of the channel applies.
+            $clean += array_intersect_key($row, array_flip(['without_products', 'subject_keywords', 'ai_note'])) === []
+                ? KnowledgeValues::profile((array) (app(KnowledgeValues::class)->baseline()['channel_profiles'][$key] ?? []))
+                : KnowledgeValues::profile(['without_products' => $row['without_products'] ?? false, 'subject_keywords' => $text('subject_keywords'), 'ai_note' => $text('ai_note')]);
         }
 
         if ($groupKey === 'kn_groups') {

@@ -72,25 +72,33 @@ class TicketController extends Controller
         ['ticket' => $ticket, 'later' => $later, 'problem' => $rewindProblem] = $testMode->rewind($ticket, $request, $request->query('stand'));
         $selected = $this->selection($request, $detector);
         $activity->recordVisit($ticket, $staff->current($request));
-        $suggestions = $detector->detect($ticket);
+        // A channel without products (PROJ-94, e.g. WeCreateYour) has no orders in EOCS: no numbers are searched, nothing is loaded.
+        $channels = app(SalesChannels::class);
+        $earlyChannel = $channels->beforeOrders($ticket);
+        $withoutOrders = $channels->withoutProducts($earlyChannel);
+        $suggestions = $withoutOrders ? [] : $detector->detect($ticket);
+
+        if ($withoutOrders) {
+            $selected = [];
+        }
 
         // Order numbers the app recognises by their format are loaded at once, so the product can be
         // proposed from the positions. Six-digit EOCS ids could be anything and take several seconds:
         // those are only loaded when chosen. A selection in the address (even an empty one) wins.
         // Numbers typed in by hand earlier and found in EOCS come back with the ticket (also after the analyses were deleted).
-        if (! $request->has('bestellungen')) {
+        if (! $withoutOrders && ! $request->has('bestellungen')) {
             $selected = $this->normalized([...array_map(fn (OrderNumber $order): string => $order->value, array_filter($suggestions, fn (OrderNumber $order): bool => ! $order->isEocsId())), ...$store->rememberedOrders($number)], $detector);
         }
         $lookups = [];
         $orderProblem = null;
 
         try {
-            $lookups = $eocs->lookup($selected);
+            $lookups = $withoutOrders ? [] : $eocs->lookup($selected);
         } catch (EocsException $exception) {
             $orderProblem = ['message' => $exception->problem->message(), 'retry' => $exception->problem->canRetry()];
         }
 
-        if ($orderProblem === null) {
+        if ($orderProblem === null && ! $withoutOrders) {
             $recognised = array_map(fn (OrderNumber $order): string => $order->value, $suggestions);
             $store->rememberOrders($number, array_values(array_map(fn (OrderLookup $lookup): string => $lookup->number->value, array_filter($lookups, fn (OrderLookup $lookup): bool => $lookup->found() && ! in_array($lookup->number->value, $recognised, true)))), $staff->current($request));
         }
@@ -104,7 +112,6 @@ class TicketController extends Controller
 
         // The channel the app recognises (order, Amazon sender) is kept with the ticket for the overview (PROJ-89).
         if ($ticket->rewoundTo === null) {
-            $channels = app(SalesChannels::class);
             $detected = $channels->detect($ticket, collect($lookups)->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->values()->all());
 
             if ($detected !== null) {
@@ -128,11 +135,12 @@ class TicketController extends Controller
             'lookups' => $lookups,
             'claimReferences' => $this->claimReferences($suggestions),
             'orderProblem' => $orderProblem,
+            'withoutOrdersChannel' => $withoutOrders ? $channels->label((string) $earlyChannel) : null,
             'deliveryProblem' => $this->deliveryProblem($ticket),
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
             'labelState' => $labelState,
-            'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups),
+            'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups, $channels->withoutProducts(is_string($analysis['suggestedChannel'] ?? null) ? $analysis['suggestedChannel'] : null)),
         ]);
     }
 
@@ -144,12 +152,13 @@ class TicketController extends Controller
      * @param  array<string, mixed>|null  $labelState
      * @param  list<string>  $claimReferences
      * @param  list<OrderLookup>  $lookups
+     * @param  bool  $withoutProducts  The preselected channel has no products (PROJ-94): no form for goods to start with.
      * @return array{default: bool, form: string, toggle: bool, claimNumber: ?string}
      */
-    private function complaintForm(?array $labelState, array $claimReferences, array $lookups): array
+    private function complaintForm(?array $labelState, array $claimReferences, array $lookups, bool $withoutProducts = false): array
     {
         $category = $labelState['decision'] ?? $labelState['suggestion'] ?? null;
-        $default = $category === LabelCategory::Reklamation->value;
+        $default = $category === LabelCategory::Reklamation->value && ! $withoutProducts;
 
         $claims = $claimReferences;
 
@@ -161,7 +170,7 @@ class TicketController extends Controller
             }
         }
 
-        return ['default' => $default, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null), 'toggle' => true, 'claimNumber' => $claims[0] ?? null];
+        return ['default' => $default, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null, $withoutProducts), 'toggle' => true, 'claimNumber' => $claims[0] ?? null];
     }
 
     /**

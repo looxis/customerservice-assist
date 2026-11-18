@@ -37,7 +37,7 @@ beforeEach(function () {
  * @param  array<string, mixed>  $order
  * @param  list<array<string, mixed>>|null  $articles
  */
-function wismoSetup(array $order = [], ?array $articles = null, int $dhlStatus = 200, ?array $dhl = null, int $putStatus = 200): void
+function wismoSetup(array $order = [], ?array $articles = null, int $dhlStatus = 200, ?array $dhl = null, int $putStatus = 200, string $title = 'Wo ist mein Paket'): void
 {
     $given = $order;
     $order = array_replace_recursive([
@@ -51,7 +51,7 @@ function wismoSetup(array $order = [], ?array $articles = null, int $dhlStatus =
     $articles ??= [zammadArticle(['id' => 1, 'body' => '<p>Hallo, wo ist mein Paket? Meine Bestellnummer lautet '.WISMO_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'message_id' => '<m1@example.org>', 'subject' => 'Wo ist mein Paket'])];
 
     Http::swap(new Factory(app('events')));
-    fakeZammad($articles, ['title' => 'Wo ist mein Paket'], [
+    fakeZammad($articles, ['title' => $title], [
         'zammad.test/api/v1/users/me' => Http::response(['id' => 900, 'firstname' => 'customer', 'lastname' => 'serviceassist', 'login' => 'customerserviceassist']),
         'zammad.test/api/v1/tickets/51234' => Http::response(['id' => 51234, 'number' => '2137942'], $putStatus),
         'eocs.test/api/v1/orders*' => function (Request $request) use ($order) {
@@ -184,6 +184,15 @@ describe('when the case needs a person', function () {
         app(WismoResponder::class)->run(wismoLabel());
 
         expect(wismoMails())->toBe([])->and(wismoNotes()[0]['article']['body'])->toContain('304-1111111-2222222')->toContain('nicht gefunden');
+    });
+
+    test('a ticket of a channel without products (WeCreateYour) is left alone (PROJ-94)', function () {
+        wismoSetup(title: 'Contact Form @ WeCreateYour.com');
+        WismoAgent::fake([wismoReply()]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect(wismoPuts())->toBe([])->and(WismoRun::query()->firstOrFail()->result)->toBe(WismoRun::SKIPPED)->and(WismoRun::query()->firstOrFail()->reason)->toContain('WeCreateYour');
     });
 
     test('a ticket that was answered already is left alone', function () {

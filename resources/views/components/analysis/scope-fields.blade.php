@@ -20,6 +20,8 @@
     $optional = $optionalProductFor === null ? 'false' : "mode === '".$optionalProductFor."'";
     // A guided form without any product (PROJ-93, Neuversand) hides the product completely; the hidden fields are not sent.
     $hidden = $hiddenProductFor === null ? 'false' : "mode === '".$hiddenProductFor."'";
+    // A channel without products (PROJ-94, e.g. WeCreateYour) hides the product the same way.
+    $hidden = '('.$hidden.') || noProducts';
     $channels = $analysis['channels'] ?? [];
     $chosenChannel = (string) old('verkaufskanal', $analysis['suggestedChannel'] ?? '');
     $config = [
@@ -41,6 +43,7 @@
         'optionalFor' => $optionalProductFor,
         'hiddenFor' => $hiddenProductFor,
         'channelGroups' => array_column($channels, 'group', 'key'),
+        'withoutProducts' => array_values(array_column(array_filter($channels, fn (array $channel): bool => (bool) ($channel['without_products'] ?? false)), 'key')),
         'advanced' => (bool) $advanced,
     ];
 @endphp
@@ -69,6 +72,8 @@
         <p x-show="channelMismatch" x-cloak class="mt-1 text-xs font-medium text-warning-700">Diese Kundengruppe gehört nicht zum gewählten Verkaufskanal. Es gelten das Wissen für den Kanal und die Kundenart der Gruppe.</p>
         <p x-show="groupUnclear" x-cloak class="mt-1 text-xs font-medium text-warning-700">Bei „Noch unklar“ gelten nur Regeln für alle Kundengruppen. Passt die Bestellung oder der Kanal, bitte die Gruppe wählen.</p>
     </div>
+
+    <p x-show="noProducts" x-cloak class="text-sm text-slate-700 md:col-span-2">Dieser Verkaufskanal hat keine Produkte und keine Bestellungen: Der Vorschlag entsteht ohne Produkt, ohne EOCS und ohne Formulare für Ware und Versand.</p>
 
     @if ($forgeEnabled)
         {{-- The concrete product from the catalog (PROJ-38): positions of the order or a search. --}}

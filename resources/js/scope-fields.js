@@ -15,6 +15,8 @@ export default (config) => ({
     // Sales channel (PROJ-89): choosing one sets the customer group that belongs to it.
     channel: config.channel ?? '',
     channelGroups: config.channelGroups ?? {},
+    // Channels without products (PROJ-94): no product answer, no orders, no forms for goods.
+    withoutProducts: config.withoutProducts ?? [],
     optionalFor: config.optionalFor ?? null,
     hiddenFor: config.hiddenFor ?? null,
     advanced: config.advanced ?? false,
@@ -315,6 +317,12 @@ export default (config) => ({
         if (group) {
             this.group = group;
         }
+
+        this.$dispatch('channel-changed', { channel: this.channel, withoutProducts: this.noProducts });
+    },
+
+    get noProducts() {
+        return this.withoutProducts.includes(this.channel);
     },
 
     get channelMismatch() {
@@ -339,6 +347,10 @@ export default (config) => ({
         }
 
         // In a guided form with an optional product (PROJ-90) a case without a product needs no second look.
+        if (this.noProducts) {
+            return parts.length === 0 ? null : `${parts.join('\n\n')}\n\nSicher, dass du so fortfahren willst?`;
+        }
+
         if (this.withoutProduct && !(this.optionalFor !== null && this.mode === this.optionalFor) && !(this.hiddenFor !== null && this.mode === this.hiddenFor)) {
             parts.push(this.mentioned.length > 0
                 ? `„Kein Produktbezug“ ist gewählt, im Ticket wird aber ${this.mentioned.join(', ')} erwähnt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.`
