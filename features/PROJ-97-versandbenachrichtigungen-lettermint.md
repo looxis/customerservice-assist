@@ -1,6 +1,6 @@
 # PROJ-97: Versandbenachrichtigungen aus Lettermint im Antwortvorschlag
 
-## Status: In Progress
+## Status: In Review
 **Created:** 2026-11-18
 **Last Updated:** 2026-11-18
 
@@ -100,8 +100,52 @@ Die Mails haben die WISMO-Anfragen reduziert. Manche Kunden ignorieren sie trotz
 - `ShipmentStatusTool` hängt je Bestellung die Benachrichtigungen an und merkt sie für die Ergebnisansicht.
 - Prompt `analysis` mit der Regel „Benachrichtigungen“, Ergebnisansicht mit dem Block „Versandbenachrichtigungen“.
 
+## Implementation Notes
+- `app/Lettermint/LettermintClient.php` (Bearer-Token, `filter[type]=outbound`, `filter[delivery_mode]=live`, `filter[subject]`, optional `filter[project]`, Cursor bis 3 Seiten, zwei Versuche bei 429/5xx/Verbindungsfehler, Timeout 5 s), `LettermintException`.
+- `app/Lettermint/DeliveryNotices.php`: ganze Bestellnummer im Betreff, höchstens 5 je Bestellung, `evaluate()` mit Rangfolge Fehler nach `delivered` → `delivered` → Status `delivered` ohne Ereignis → `processed` → `queued`/`scheduled`. Zeit in Europe/Berlin mit Sekunden. `DeliveryNotice::facts()` geht ohne Betreff und ohne Adresse an die KI.
+- Mailart über `services.lettermint.subjects` (Abholhinweis zuerst geprüft). Die Stichwörter sind vorläufig und werden beim ersten Live-Abruf an die echten Betreffzeilen angepasst.
+- `ShipmentStatusTool` hängt die Zeilen nur an, wenn mindestens eine Sendung abgefragt wurde und ein Token gesetzt ist. `noticeRecord()` landet als `delivery_notices` im gespeicherten Ergebnis. `<x-analysis.delivery-notices>` steht in „Was ist zu tun?“.
+- Prompt `analysis-2026-11-18.1`, Regel „Benachrichtigungen“. POLICY-045 ist ergänzt (Abholhinweis, Nennung mit Datum nur bei Beleg, Trigger „nie angekommen“, „nie erhalten“).
+- Env (trägt Etienne ein): `LETTERMINT_TEAM_TOKEN`, optional `LETTERMINT_PROJECT_ID`, `LETTERMINT_URL`, `LETTERMINT_TIMEOUT`.
+
 ## QA Test Results
-_To be added by /qa_
+
+**Tested:** 2026-11-18
+**Tester:** QA Engineer (AI). Der Live-Abruf gegen das echte Lettermint-Konto steht noch aus, weil noch kein Token hinterlegt ist.
+
+### Acceptance Criteria Status
+- [x] Abfrage (5/5): nur über den Werkzeugaufruf, Filter outbound/live/Betreff, ganze Bestellnummer (12345 ≠ 123456 und 12345-2), gleiche Betreffe einzeln und die neueste zuerst, Folgeseite mit allen Filtern und Cursor
+- [x] Auswertung (5/5): `delivered` mit Zeit, `opened` danach ändert nichts, nur `processed`, Bounce nach `delivered` sichtbar, nur `queued`, keine Adresse und kein Betreff an die KI
+- [x] Antwortentwurf (3/3): Prompt-Regel vorhanden (Nennung mit Datum, „n8n-Workflow prüfen“, keine Adresse). Die Wirkung im echten Entwurf ist modellabhängig und wird am Live-Ticket geprüft.
+- [x] Anzeige (3/3): Block mit Mailart, Befund und Zeit, gelber Hinweis ohne Beleg, „nicht abrufbar“
+- [x] Betrieb (2/2): ohne Token keine Anfrage und unveränderte Antwort, 401/500 ergibt „nicht abrufbar“ und die Analyse läuft weiter
+
+### Edge Cases Status
+- [x] UTC 23:30 → Berliner Folgetag, Sommerzeit (UTC+2)
+- [x] Soft Bounce mit späterem `delivered` gilt als angenommen
+- [x] Status `delivered` ohne Ereignis: angenommen, Zeitpunkt unbekannt
+- [x] Mehrere Bestellungen: getrennte Abfrage und Anzeige je Bestellung
+- [x] Aufbewahrung abgelaufen: „keine gefunden“, nicht „nicht versendet“
+
+### Security Audit Results
+- [x] Token nur serverseitig (Config/Env), nicht im Log und nicht in der Ansicht
+- [x] XSS: Betreff aus Lettermint nur über `{{ }}` ausgegeben
+- [x] Prompt Injection: Der Betreff geht nicht an die KI, nur Mailart, Befund und Zeit
+- [x] Datensparsamkeit: keine E-Mail-Adresse an die KI, nur „an Ticket-Absender ja/nein“
+- [x] Nur lesende GET-Aufrufe, Token-Berechtigung `read:messages`
+
+### Regression
+- [x] PROJ-88 (Sendungsstatus) grün. Die Prompt-Version ist in den Tests zu PROJ-36, 59 und Anrede nachgezogen.
+- Volle Suite seriell: 2883/2887. Die 2 Fehler (Versionsanzeige der Seitenleiste, Zähler „Wissen zur Überprüfung“) treten auch ohne PROJ-97 auf. Im Parallellauf gibt es wechselnde Wissensbasis-Fehler wie schon zuvor.
+
+### Bugs Found
+- Behoben (Medium): Fiel Lettermint aus, konnte die Analyse bis zu 2 × 10 s warten. Das Timeout ist jetzt 5 s.
+
+### Summary
+- **Acceptance Criteria:** 18/18 passed (automatisiert)
+- **Bugs Found:** 0 offen (Critical/High/Medium)
+- **Security:** Pass
+- **Production Ready:** YES, nach Hinterlegen des Tokens und Prüfung der Betreff-Stichwörter am Live-Abruf
 
 ## Deployment
-_To be added by /deploy_
+_Kein eigener Schritt._

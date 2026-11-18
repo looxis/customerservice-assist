@@ -192,7 +192,7 @@ return [
         'url' => env('LETTERMINT_URL', 'https://api.lettermint.co/v1'),
         'token' => env('LETTERMINT_TEAM_TOKEN'),
         'project' => env('LETTERMINT_PROJECT_ID'),
-        'timeout' => env('LETTERMINT_TIMEOUT', 10),
+        'timeout' => env('LETTERMINT_TIMEOUT', 5),
         'subjects' => [
             'today' => ['kommt heute', 'heute zugestellt', 'arrives today', 'arriving today'],
             'pickup' => ['abholen', 'abholbereit', 'zur abholung', 'abholort', 'filiale', 'packstation', 'access point', 'pick up', 'pickup'],
