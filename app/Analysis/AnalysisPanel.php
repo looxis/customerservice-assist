@@ -221,7 +221,7 @@ class AnalysisPanel
 
     /**
      * The channel to preselect and why (PROJ-89): as in the shown proposal, chosen earlier for this ticket,
-     * from a loaded order, from an Amazon sender address, or none. A channel that can no longer be chosen is
+     * from a loaded order, from an Amazon sender address, from the ticket subject, or none. A channel that can no longer be chosen is
      * not preselected.
      *
      * @param  list<EocsOrder>  $orders
@@ -252,6 +252,7 @@ class AnalysisPanel
         return match ($detected[1] ?? null) {
             SalesChannels::BY_ORDER => [$detected[0], 'aus dem Kanal der Bestellung'],
             SalesChannels::BY_SENDER => [$detected[0], 'aus der Absenderadresse'],
+            SalesChannels::BY_SUBJECT => [$detected[0], 'aus dem Betreff'],
             default => [$stored === null ? '' : $selectable($stored[0]), null],
         };
     }

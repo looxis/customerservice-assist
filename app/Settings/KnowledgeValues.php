@@ -20,7 +20,7 @@ class KnowledgeValues
 
     private const array TYPE_LABELS = ['b2c' => 'Privatkunde', 'b2b-reseller' => 'Foto-Fachhändler / Reseller', 'b2b-pro' => 'LOOXIS-Pro', 'b2b-whitelabel' => 'White-Label-Kunde'];
 
-    private const array CHANNEL_LABELS = ['looxis-de' => 'looxis.de', 'amazon' => 'Amazon', 'fachhaendler' => 'fachhaendler.looxis.de', 'qobos' => 'ehemals qobos', 'looxis-pro' => 'LOOXIS Pro', 'masterpics' => 'API (masterpics)'];
+    private const array CHANNEL_LABELS = ['looxis-de' => 'looxis.de', 'amazon' => 'Amazon', 'fachhaendler' => 'fachhaendler.looxis.de', 'qobos' => 'ehemals qobos', 'looxis-pro' => 'LOOXIS Pro', 'masterpics' => 'API (masterpics)', 'wecreateyour' => 'WeCreateYour'];
 
     /**
      * @var array<string, mixed>|null

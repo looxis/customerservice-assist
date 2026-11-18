@@ -92,7 +92,7 @@ return [
 
     'customer_types' => ['b2c', 'b2b-reseller', 'b2b-pro', 'b2b-whitelabel'],
 
-    'sales_channels' => ['looxis-de', 'amazon', 'fachhaendler', 'qobos', 'looxis-pro', 'masterpics'],
+    'sales_channels' => ['looxis-de', 'amazon', 'fachhaendler', 'qobos', 'looxis-pro', 'masterpics', 'wecreateyour'],
 
     'categories' => ['complaint', 'product-question', 'order-process-question', 'quote-request'],
 
@@ -230,6 +230,7 @@ return [
         'globus' => ['label' => 'Globus', 'customer_type' => 'b2b-reseller', 'sales_channel' => 'qobos'],
         'looxis-pro' => ['label' => 'LOOXIS-Pro', 'customer_type' => 'b2b-pro', 'sales_channel' => 'looxis-pro'],
         'whitelabel-masterpics' => ['label' => 'White-Label-Kunde, masterpics', 'customer_type' => 'b2b-whitelabel', 'sales_channel' => 'masterpics'],
+        'wecreateyour' => ['label' => 'WeCreateYour', 'customer_type' => 'b2c', 'sales_channel' => 'wecreateyour'],
         'unclear' => ['label' => 'Noch unklar', 'customer_type' => null, 'sales_channel' => null],
     ],
 
@@ -259,6 +260,23 @@ return [
         'looxis-pro' => 'looxis-pro',
         'looxis.fr' => 'fachhaendler',
         'masterpics' => 'masterpics',
+        'wecreateyour' => 'wecreateyour',
+        'wecreateyour.com' => 'wecreateyour',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ticket Subject Keywords (PROJ-89)
+    |--------------------------------------------------------------------------
+    |
+    | A word in the ticket subject that names the sales channel, for tickets
+    | without a loaded order (e.g. "Contact Form @ WeCreateYour.com").
+    | Compared without regard to case.
+    |
+    */
+
+    'subject_channels' => [
+        'wecreateyour' => 'wecreateyour',
     ],
 
     /*

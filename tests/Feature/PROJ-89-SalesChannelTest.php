@@ -35,7 +35,7 @@ afterEach(fn () => cleanUpKnowledgeBases());
  * The ticket of the tests: without an order number unless the text names one; the EOCS order is a looxis.de order.
  * Faked once per test (the first fake wins): a test that needs another ticket calls this first.
  */
-function channelTicket(string $body = '<p>Ich kann mich nicht anmelden.</p>', string $email = 'erika@example.org'): void
+function channelTicket(string $body = '<p>Ich kann mich nicht anmelden.</p>', string $email = 'erika@example.org', array $ticket = []): void
 {
     if ($GLOBALS['channelTicketFaked']) {
         return;
@@ -43,7 +43,7 @@ function channelTicket(string $body = '<p>Ich kann mich nicht anmelden.</p>', st
 
     $GLOBALS['channelTicketFaked'] = true;
 
-    fakeZammad([zammadArticle(['id' => 1, 'subject' => 'Login', 'message_id' => '<m1@example.org>', 'body' => $body])], extra: [
+    fakeZammad([zammadArticle(['id' => 1, 'subject' => 'Login', 'message_id' => '<m1@example.org>', 'body' => $body])], $ticket, extra: [
         'zammad.test/api/v1/users/77' => Http::response(['firstname' => 'Erika', 'lastname' => 'Beispiel', 'email' => $email]),
     ]);
     Http::fake([
@@ -93,6 +93,7 @@ describe('channels and groups', function () {
             ['key' => 'qobos', 'label' => 'ehemals qobos', 'group' => 'globus'],
             ['key' => 'looxis-pro', 'label' => 'LOOXIS Pro', 'group' => 'looxis-pro'],
             ['key' => 'masterpics', 'label' => 'API (masterpics)', 'group' => 'whitelabel-masterpics'],
+            ['key' => 'wecreateyour', 'label' => 'WeCreateYour', 'group' => 'wecreateyour'],
             ['key' => 'unclear', 'label' => 'Noch unklar', 'group' => 'unclear'],
         ]);
     });
@@ -168,6 +169,20 @@ describe('preselection', function () {
             ->assertSee('<option value="amazon" selected>Amazon</option>', false)
             ->assertSee('<option value="private-amazon" selected>', false)
             ->assertSee('Vorbelegt: aus der Absenderadresse');
+    });
+
+    test('WeCreateYour in the ticket subject preselects the channel WeCreateYour', function () {
+        channelTicket(ticket: ['title' => 'Contact Form @ WeCreateYour.com']);
+
+        channelTicketPage()->assertOk()
+            ->assertSee('<option value="wecreateyour" selected>WeCreateYour</option>', false)
+            ->assertSee('Vorbelegt: aus dem Betreff');
+    });
+
+    test('the order counts before the ticket subject', function () {
+        channelTicket('<p>Bestellung 7JQ-18SU-DVA4</p>', ticket: ['title' => 'Contact Form @ WeCreateYour.com']);
+
+        channelTicketPage()->assertOk()->assertSee('<option value="looxis-de" selected>looxis.de</option>', false);
     });
 
     test('the order counts before the sender address', function () {

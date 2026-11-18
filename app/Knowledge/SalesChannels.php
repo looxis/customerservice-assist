@@ -26,6 +26,8 @@ class SalesChannels
 
     public const string BY_SENDER = 'sender';
 
+    public const string BY_SUBJECT = 'subject';
+
     public function __construct(
         private readonly KnowledgeSelector $selector,
         private readonly SettingsStore $settings,
@@ -105,7 +107,8 @@ class SalesChannels
 
     /**
      * The channel the app recognises on its own and where from: the first loaded order with a known channel, else
-     * an Amazon marketplace address of the sender. Only channels that can be chosen.
+     * an Amazon marketplace address of the sender, else a keyword of the ticket subject (`knowledge.subject_channels`).
+     * Only channels that can be chosen.
      *
      * @param  list<EocsOrder>  $orders
      * @return array{0: string, 1: string}|null
@@ -122,6 +125,12 @@ class SalesChannels
 
         if (in_array('amazon', $keys, true) && preg_match('/@marketplace\.amazon\.[a-z.]+$/i', trim((string) $ticket->customerEmail)) === 1) {
             return ['amazon', self::BY_SENDER];
+        }
+
+        foreach ((array) config('knowledge.subject_channels', []) as $keyword => $channel) {
+            if (in_array($channel, $keys, true) && mb_stripos($ticket->title, (string) $keyword) !== false) {
+                return [$channel, self::BY_SUBJECT];
+            }
         }
 
         return null;

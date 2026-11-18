@@ -83,7 +83,7 @@ function excludedReasons(KnowledgeSelection $selection): array
 }
 
 describe('value lists', function () {
-    test('the seven customer groups come in the configured order with german labels', function () {
+    test('the eight customer groups come in the configured order with german labels', function () {
         knowledgeBase([]);
 
         $groups = app(KnowledgeSelector::class)->customerGroups();
@@ -95,6 +95,7 @@ describe('value lists', function () {
             'Globus',
             'LOOXIS-Pro',
             'White-Label-Kunde, masterpics',
+            'WeCreateYour',
             'Noch unklar',
         ])->and(array_map(fn ($group) => [$group->customerType, $group->salesChannel], $groups))->toBe([
             ['b2c', 'looxis-de'],
@@ -103,6 +104,7 @@ describe('value lists', function () {
             ['b2b-reseller', 'qobos'],
             ['b2b-pro', 'looxis-pro'],
             ['b2b-whitelabel', 'masterpics'],
+            ['b2c', 'wecreateyour'],
             [null, null],
         ]);
     });
