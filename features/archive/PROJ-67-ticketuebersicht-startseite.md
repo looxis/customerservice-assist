@@ -41,6 +41,7 @@ Unterhalb der manuellen Ticketnummer-Eingabe erscheint eine einfache Liste der e
 - [ ] Angenommen eine von Hand veränderte Adresse (unbekannte Werte, falsche Form, Seite außerhalb), wenn sie aufgerufen wird, dann erscheint die Liste ohne Fehler.
 - [ ] Angenommen eine Spalte aus der festen Liste (letzte Aktivität, Nummer, Status, Erstellt), wenn danach sortiert wird, dann stimmt die Reihenfolge; Standard ist letzte Aktivität, neueste zuerst.
 - [x] Geändert 2026-11-18: Sortierbar sind nur „Letzte Aktivität“ und „Klassifikation“ (Klick auf die Spaltenüberschrift, zweiter Klick kehrt um). Standard ist letzte Aktivität, älteste zuerst. Klassifikation sortiert nach dem angezeigten Namen, nicht klassifizierte Tickets stehen am Ende, innerhalb einer Kategorie die älteste Aktivität zuerst.
+- [x] Ergänzt 2026-11-18: Offene Tickets, deren letzte Aktivität 23 Stunden oder länger her ist, sind hellgelb unterlegt, ab 36 Stunden hellrot; geschlossene nie.
 - [x] Geändert 2026-11-18: Das Eingabefeld steht eingeklappt unter „Ticket aus Zammad manuell abrufen“ und öffnet sich bei einem Eingabefehler von selbst. Die ToDos stehen nicht mehr auf der Startseite, nur noch unter /todos. Die aktuellen Änderungen schweben unten rechts (höchstens ein Drittel der Fensterhöhe und -breite, Inhalt scrollt).
 
 ### Klick und Bestand

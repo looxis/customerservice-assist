@@ -126,7 +126,12 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach ($rows as $row)
-                                <tr class="hover:bg-slate-50">
+                                @php($waiting = \App\Analysis\TicketList::waiting($row))
+                                <tr @class([
+                                    'bg-danger-500/10 hover:bg-danger-500/15' => $waiting === 'overdue',
+                                    'bg-notice-50 hover:bg-notice-200/50' => $waiting === 'waiting',
+                                    'hover:bg-slate-50' => $waiting === null,
+                                ])>
                                     <td class="px-4 py-3 align-top whitespace-nowrap"><a href="{{ route('tickets.show', $row->number) }}" class="font-mono text-brand hover:text-brand-hover">{{ $row->number }}</a></td>
                                     <td class="px-4 py-3 align-top text-slate-900 wrap-anywhere">
                                         <a href="{{ route('tickets.show', $row->number) }}" class="hover:text-brand">{{ $row->title }}</a>
@@ -156,7 +161,7 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 align-top"><x-badge compact :tone="$row->processing_state->tone()">{{ $row->processing_state->label() }}</x-badge></td>
-                                    <td class="px-4 py-3 align-top whitespace-nowrap text-slate-900">{{ $row->last_activity_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }}</td>
+                                    <td class="px-4 py-3 align-top whitespace-nowrap text-slate-900">{{ $row->last_activity_at->setTimezone('Europe/Berlin')->format('d.m.Y, H:i') }}@if ($waiting)<span class="sr-only"> (seit mindestens {{ $waiting === 'overdue' ? \App\Analysis\TicketList::OVERDUE_HOURS : \App\Analysis\TicketList::WAITING_HOURS }} Stunden ohne Aktivität)</span>@endif</td>
                                     <td class="px-4 py-3 align-top whitespace-nowrap text-slate-600">{{ $row->zammad_created_at?->setTimezone('Europe/Berlin')->format('d.m.Y') ?? '–' }}</td>
                                 </tr>
                             @endforeach

@@ -177,8 +177,33 @@ describe('sorting', function () {
 });
 
 describe('a row', function () {
+    test('an open ticket without activity for 23 hours is light yellow, for 36 hours light red', function () {
+        $this->travelTo(now()->startOfMinute());
+        TrackedTicket::factory()->create(['number' => '1', 'last_activity_at' => now()->subHours(22)->subMinutes(59)]);
+        TrackedTicket::factory()->create(['number' => '2', 'last_activity_at' => now()->subHours(23)]);
+        TrackedTicket::factory()->create(['number' => '3', 'last_activity_at' => now()->subHours(35)->subMinutes(59)]);
+        TrackedTicket::factory()->create(['number' => '4', 'last_activity_at' => now()->subHours(36)]);
+
+        $rows = collect(explode('<tr', $this->get('/?ansicht=offen')->getContent()))
+            ->map(fn (string $row): string => explode('</tr>', $row)[0])
+            ->mapWithKeys(fn (string $row): array => preg_match('/>(\d)<\/a>/', $row, $match) ? [$match[1] => $row] : []);
+
+        expect($rows['1'])->not->toContain('bg-notice-50')->not->toContain('bg-danger-500/10')
+            ->and($rows['2'])->toContain('bg-notice-50')->toContain('seit mindestens 23 Stunden')
+            ->and($rows['3'])->toContain('bg-notice-50')
+            ->and($rows['4'])->toContain('bg-danger-500/10')->toContain('seit mindestens 36 Stunden');
+    });
+
+    test('a closed ticket is never marked as waiting', function () {
+        TrackedTicket::factory()->create(['state' => 'closed', 'is_closed' => true, 'last_activity_at' => now()->subDays(5)]);
+
+        $html = $this->get('/?ansicht=geschlossen')->assertOk()->getContent();
+
+        expect($html)->not->toContain('bg-danger-500/10 hover')->not->toContain('seit mindestens');
+    });
+
     test('links to the existing ticket page and shows the columns', function () {
-        TrackedTicket::factory()->ownedBy(99, 'Nele Gorka')->create(['number' => '2140500', 'title' => 'Tasse kaputt', 'state' => 'pending reminder']);
+        TrackedTicket::factory()->ownedBy(99, 'Nele Gorka')->create(['number' => '2140500', 'title' => 'Tasse kaputt', 'state' => 'pending reminder', 'zammad_created_at' => now()->subDays(30)]);
 
         $this->get('/?ansicht=offen')->assertOk()
             ->assertSee(route('tickets.show', '2140500'), false)

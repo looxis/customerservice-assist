@@ -29,6 +29,11 @@ class TicketList
 
     public const string UNREADABLE = 'problem';
 
+    /** Hours without activity after which an open ticket is marked light yellow, then light red. */
+    public const int WAITING_HOURS = 23;
+
+    public const int OVERDUE_HOURS = 36;
+
     /** The value of a filter for "not set yet": no owner, no channel, no category. */
     public const string NONE = 'keine';
 
@@ -76,7 +81,7 @@ class TicketList
     public function page(TicketListFilter $filter, ?int $staffZammadId, int $page = 1): LengthAwarePaginator
     {
         $rows = $this->query($filter, $staffZammadId)
-            ->select(['id', 'zammad_id', 'number', 'title', 'state', 'owner_zammad_id', 'owner_name', 'channel', 'category', 'category_confirmed', 'processing_state', 'sync_status', 'last_activity_at', 'zammad_created_at'])
+            ->select(['id', 'zammad_id', 'number', 'title', 'state', 'is_closed', 'owner_zammad_id', 'owner_name', 'channel', 'category', 'category_confirmed', 'processing_state', 'sync_status', 'last_activity_at', 'zammad_created_at'])
             ->tap(fn (Builder $query) => $this->sort($query, $filter))
             ->paginate(self::PER_PAGE, page: max(1, $page));
 
@@ -102,6 +107,19 @@ class TicketList
         }
 
         $query->orderBy(self::SORTS[$filter->sort], $filter->direction)->orderBy('id', $filter->direction);
+    }
+
+    /**
+     * How long an open ticket has waited: "overdue", "waiting" or null; closed tickets wait for nothing.
+     */
+    public static function waiting(TrackedTicket $row): ?string
+    {
+        return match (true) {
+            $row->is_closed => null,
+            $row->last_activity_at->lte(now()->subHours(self::OVERDUE_HOURS)) => 'overdue',
+            $row->last_activity_at->lte(now()->subHours(self::WAITING_HOURS)) => 'waiting',
+            default => null,
+        };
     }
 
     /**
