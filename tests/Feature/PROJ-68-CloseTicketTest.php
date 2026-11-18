@@ -61,6 +61,32 @@ describe('the buttons', function () {
     });
 });
 
+describe('the Amazon case', function () {
+    test('after an Amazon notice the dialog offers a ticked box that opens "Fall lösen" in a new tab', function () {
+        $link = 'https://sellercentral.amazon.de/nms/redirect/abc?nt=X&sk=Y&n=1&u=aHR0cHM6';
+        closableTicket(articles: [zammadArticle(['body' => '<p>Vielen lieben Dank</p><p><a href="'.e($link).'">Fall lösen</a></p>'])]);
+
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
+            ->assertSeeText('Fall auch bei Amazon lösen')
+            ->getContent();
+
+        expect($html)->toContain('data-amazon-case-link="'.e($link).'"')
+            ->and($html)->toContain('amazon: true')
+            ->and($html)->toContain("window.open(\$el.dataset.amazonCaseLink, '_blank', 'noopener')");
+    });
+
+    test('without a "Fall lösen" link there is no box', function () {
+        closableTicket(articles: [zammadArticle(['body' => '<p>Danke</p><p><a href="https://evil.example/x">Fall lösen</a></p>'])]);
+
+        $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
+            ->assertSeeText('Ticket#2137942 ohne Antwort schließen?')
+            ->assertDontSeeText('Fall auch bei Amazon lösen')
+            ->getContent();
+
+        expect($html)->not->toContain('data-amazon-case-link');
+    });
+});
+
 describe('closing', function () {
     test('closes the ticket in Zammad in the name of the employee, without a note, and goes back to the list', function () {
         closableTicket();
@@ -71,17 +97,11 @@ describe('closing', function () {
             && $request->data() === ['state' => 'closed'] && $request->hasHeader('Authorization', 'Token token=nele-token'));
     });
 
-    test('after an Amazon notice it goes on to the "Fall lösen" page of that message', function () {
+    test('after an Amazon notice it stays in the app and goes back to the list; the dialog opens "Fall lösen" in a new tab', function () {
         $link = 'https://sellercentral.amazon.de/nms/redirect/abc?nt=X&sk=Y&n=1&u=aHR0cHM6';
         closableTicket(articles: [zammadArticle(['body' => '<p>Vielen lieben Dank</p><p><a href="'.e($link).'">Fall lösen</a></p>'])]);
 
-        closeTicket()->assertRedirect($link)->assertSessionHas('success', 'Ticket#2137942 wurde ohne Antwort geschlossen.');
-    });
-
-    test('without a "Fall lösen" link it goes back to the list', function () {
-        closableTicket(articles: [zammadArticle(['body' => '<p>Danke</p><p><a href="https://evil.example/x">Fall lösen</a></p>'])]);
-
-        closeTicket()->assertRedirect(route('tickets.analyze'));
+        closeTicket()->assertRedirect(route('tickets.analyze'))->assertSessionHas('success', 'Ticket#2137942 wurde ohne Antwort geschlossen.');
     });
 
     test('a reason becomes an internal note in the same call', function () {

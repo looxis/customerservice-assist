@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-18
+
+- Amazon-Nachrichten ohne Antwort schließen: In der Rückfrage steht neben dem Knopf die bereits angehakte Checkbox „Fall auch bei Amazon lösen“. Bleibt sie angehakt, öffnet sich die Amazon-Seite „Fall lösen“ in einem neuen Tab; dort „Ja“ klicken und den Tab schließen. CSA geht gleichzeitig zur Ticketliste. War das Ticket nur zur Erinnerung offen, nimm den Haken heraus.
+
 ## 2026-11-16
 
 - Technischer Support geführt beantworten: Tickets der Art „Technischer Support“ (Zahlung, Passwort, Anmeldung, Bestellprobleme im Shop) öffnen jetzt ein eigenes Formular. Du gibst an, ob eine Lösung bekannt ist: Bei „Ja“ kannst du einen kurzen Hinweis ergänzen, bei „Unklar“ bittet die Antwort immer um einen Screenshot sowie Betriebssystem und Browser; was der Kunde sonst noch liefern soll, trägst du ein. Ein Produkt musst du dort nicht angeben.

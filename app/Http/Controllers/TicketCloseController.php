@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CloseTicketRequest;
 use App\Staff\StaffDirectory;
-use App\Zammad\AmazonCaseLink;
 use App\Zammad\ReplyException;
 use App\Zammad\TicketSynchronizer;
 use App\Zammad\ZammadClient;
@@ -16,8 +15,8 @@ use Illuminate\Support\Facades\Log;
 class TicketCloseController extends Controller
 {
     /**
-     * Close a ticket in Zammad without a reply to the customer (PROJ-68) and go back to the ticket list. When the last
-     * customer message is an Amazon notice, go to its "Fall lösen" page instead, where the case is confirmed as solved.
+     * Close a ticket in Zammad without a reply to the customer (PROJ-68) and go back to the ticket list. The Amazon
+     * "Fall lösen" page, if wanted, is opened in a new tab by the dialog itself.
      */
     public function __invoke(string $number, CloseTicketRequest $request, ZammadClient $zammad, ZammadReplySender $sender, StaffDirectory $staff, TicketSynchronizer $synchronizer): RedirectResponse
     {
@@ -45,13 +44,6 @@ class TicketCloseController extends Controller
         // The list shows the new state at once, without waiting for the next sync run.
         rescue(fn () => $synchronizer->sync($ticket->id));
 
-        $message = "Ticket#{$number} wurde ohne Antwort geschlossen.";
-        $caseLink = AmazonCaseLink::in($ticket->focusArticle());
-
-        if ($caseLink !== null) {
-            return redirect()->away($caseLink)->with('success', $message);
-        }
-
-        return redirect()->route('tickets.analyze')->with('success', $message);
+        return redirect()->route('tickets.analyze')->with('success', "Ticket#{$number} wurde ohne Antwort geschlossen.");
     }
 }

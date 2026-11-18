@@ -77,7 +77,7 @@
         @endisset
 
         @if ($canCloseTicket)
-            <x-ticket.close-dialog :number="$number" />
+            <x-ticket.close-dialog :number="$number" :amazon-case-link="\App\Zammad\AmazonCaseLink::in($ticket->focusArticle())" />
         @endif
 
         @if ($canAssignTicket)
