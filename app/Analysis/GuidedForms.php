@@ -11,11 +11,14 @@ use App\Labeling\LabelCategory;
 final class GuidedForms
 {
     /**
-     * @var array<string, array{label: string, category: LabelCategory}>
+     * A form without a category (Neuversand, PROJ-93) is never preselected, only chosen by hand.
+     *
+     * @var array<string, array{label: string, category: LabelCategory|null}>
      */
     private const array GUIDED = [
         SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport],
         ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation],
+        ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null],
     ];
 
     /**
@@ -42,7 +45,7 @@ final class GuidedForms
     public static function defaultFor(?string $category): string
     {
         foreach (self::GUIDED as $key => $form) {
-            if ($form['category']->value === $category) {
+            if ($form['category'] !== null && $form['category']->value === $category) {
                 return $key;
             }
         }

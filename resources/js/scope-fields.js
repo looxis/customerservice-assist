@@ -16,6 +16,7 @@ export default (config) => ({
     channel: config.channel ?? '',
     channelGroups: config.channelGroups ?? {},
     optionalFor: config.optionalFor ?? null,
+    hiddenFor: config.hiddenFor ?? null,
     advanced: config.advanced ?? false,
     query: '',
     open: false,
@@ -338,13 +339,13 @@ export default (config) => ({
         }
 
         // In a guided form with an optional product (PROJ-90) a case without a product needs no second look.
-        if (this.withoutProduct && !(this.optionalFor !== null && this.mode === this.optionalFor)) {
+        if (this.withoutProduct && !(this.optionalFor !== null && this.mode === this.optionalFor) && !(this.hiddenFor !== null && this.mode === this.hiddenFor)) {
             parts.push(this.mentioned.length > 0
                 ? `„Kein Produktbezug“ ist gewählt, im Ticket wird aber ${this.mentioned.join(', ')} erwähnt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.`
                 : '„Kein Produktbezug“ ist gewählt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.');
         }
 
-        if (this.forgeUnchosen) {
+        if (this.forgeUnchosen && !(this.hiddenFor !== null && this.mode === this.hiddenFor)) {
             parts.push('Die Bestellung enthält mehrere Produkte und keines ist als betroffen markiert. Dann gehen keine Produktinformationen aus dem Katalog an die KI.');
         }
 

@@ -1,4 +1,4 @@
-@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen', 'advanced' => false, 'optionalProductFor' => null])
+@props(['analysis', 'chosenProducts' => [], 'noProduct' => false, 'unknownName' => '', 'infoField' => 'Zusätzliche Informationen', 'advanced' => false, 'optionalProductFor' => null, 'hiddenProductFor' => null])
 
 @php
     $products = collect($analysis['products'])->map(fn (array $product): array => [
@@ -18,6 +18,8 @@
     )) ?: array_values((array) $forge['selected']);
     // In a guided form that does not need a product (PROJ-90) the product is optional; the form owns the Alpine property mode.
     $optional = $optionalProductFor === null ? 'false' : "mode === '".$optionalProductFor."'";
+    // A guided form without any product (PROJ-93, Neuversand) hides the product completely; the hidden fields are not sent.
+    $hidden = $hiddenProductFor === null ? 'false' : "mode === '".$hiddenProductFor."'";
     $channels = $analysis['channels'] ?? [];
     $chosenChannel = (string) old('verkaufskanal', $analysis['suggestedChannel'] ?? '');
     $config = [
@@ -37,6 +39,7 @@
         'group' => (string) old('kundengruppe', $analysis['suggestedGroup'] ?? ''),
         'channel' => $chosenChannel,
         'optionalFor' => $optionalProductFor,
+        'hiddenFor' => $hiddenProductFor,
         'channelGroups' => array_column($channels, 'group', 'key'),
         'advanced' => (bool) $advanced,
     ];
@@ -69,7 +72,7 @@
 
     @if ($forgeEnabled)
         {{-- The concrete product from the catalog (PROJ-38): positions of the order or a search. --}}
-        <fieldset class="min-w-0 md:col-span-2" @if (app(\App\Staff\IntroMode::class)->isActive(request())) aria-describedby="katalog-hinweis" @endif>
+        <fieldset class="min-w-0 md:col-span-2" x-show="! ({{ $hidden }})" x-bind:disabled="{{ $hidden }}" @if (app(\App\Staff\IntroMode::class)->isActive(request())) aria-describedby="katalog-hinweis" @endif>
             <legend class="block text-sm font-medium text-slate-900">Produkt<span class="font-normal text-slate-600" x-show="{{ $optional }}" x-cloak> (optional)</span></legend>
             <x-intro>
                 <p id="katalog-hinweis" class="mt-1 text-xs text-slate-600">Um welches Produkt geht es? Daraus holt die App Produktdaten und Servicewissen aus dem Produktkatalog; bei einer allgemeinen Frage genügt ein Master ohne Größe.</p>
@@ -117,7 +120,7 @@
         </fieldset>
     @endif
 
-    <fieldset class="min-w-0 {{ $forgeEnabled ? 'md:col-span-2' : '' }}" aria-describedby="produkt-hinweis">
+    <fieldset class="min-w-0 {{ $forgeEnabled ? 'md:col-span-2' : '' }}" x-show="! ({{ $hidden }})" x-bind:disabled="{{ $hidden }}" aria-describedby="produkt-hinweis">
         @if ($forgeEnabled)
             <legend class="block text-sm font-medium text-slate-900" x-show="areaVisible">Wissensbereich<span class="text-danger-500" aria-hidden="true" x-show="forgeSelected.length === 0 && ! ({{ $optional }})"> *</span><span class="font-normal text-slate-600" x-show="{{ $optional }}" x-cloak> (optional)</span></legend>
             <x-intro>

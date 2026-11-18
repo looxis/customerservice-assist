@@ -3,6 +3,7 @@
 namespace App\Todo;
 
 use App\Analysis\ComplaintDecision;
+use App\Analysis\ReshipmentDecision;
 use App\Eocs\OrderLookup;
 use App\Models\TicketTodo;
 use App\Orders\OrderFormats;
@@ -45,6 +46,14 @@ class TodoCaseContext
         $preselect = $named !== null;
         $name = $name === '' || str_contains($name, '@') || mb_strlen($name) > 80 ? '' : $name;
         $complaint = ComplaintDecision::fromInput($formInput);
+        $reshipment = ReshipmentDecision::fromInput($formInput);
+
+        if ($reshipment !== null) {
+            // The form "Neuversand" (PROJ-93) decides: the shipment runs under the order number of the new shipment.
+            $preselect = $reshipment->trackingTodo && $reshipment->orderNumber !== '';
+
+            return ['name' => $name, 'kind' => 'order', 'number' => $reshipment->orderNumber, 'preselect' => $preselect && ! $this->hasOpenTrackingTodo($ticket, $reshipment->orderNumber)];
+        }
 
         if ($complaint !== null) {
             // The complaint form decides: a justified complaint with the ToDo ticked gets it, whatever the text names. Without

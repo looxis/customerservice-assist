@@ -70,6 +70,23 @@ class Pseudonymizer
         return $this;
     }
 
+    /**
+     * Values the employee typed in a form that only go to the model as their placeholder (PROJ-93), e.g.
+     * [NEUE-LIEFERADRESSE]; the app puts them back into the draft like any other placeholder.
+     *
+     * @param  array<string, string>  $values  Placeholder => value.
+     */
+    public function withValues(array $values): self
+    {
+        foreach ($values as $placeholder => $value) {
+            if (trim($value) !== '') {
+                $this->values[$placeholder] = trim($value);
+            }
+        }
+
+        return $this;
+    }
+
     public function hasDeliveryAddress(): bool
     {
         return isset($this->values[self::DELIVERY_ADDRESS]);

@@ -73,6 +73,8 @@ class CaseAnalyzer
             }
         }
 
+        $pseudonymizer->withValues($request->placeholders);
+
         $model = (string) app(SettingsStore::class)->value('model_analysis');
         $active = (bool) config('knowledge.retrieval.active');
 

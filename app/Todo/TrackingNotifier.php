@@ -2,7 +2,9 @@
 
 namespace App\Todo;
 
+use App\Analysis\AnalysisStore;
 use App\Analysis\ReplyDelivery;
+use App\Analysis\ReshipmentDecision;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\EocsShipment;
@@ -152,7 +154,7 @@ class TrackingNotifier
 
     /**
      * The shipments of the claim named at the ToDo; of the newest claim when only the order is named. Never those of
-     * the original order.
+     * the original order, except for the order of a new shipment from the form "Neuversand" (PROJ-93).
      *
      * @return list<EocsShipment>
      *
@@ -173,6 +175,15 @@ class TrackingNotifier
         $orders = $number === null ? [] : ($this->eocs->lookup([$number])[0]->orders ?? []);
         $claims = array_merge(...array_map(fn ($order): array => $order->claims, $orders ?: []));
 
+        if ($claims === [] && $this->isReshipment($todo)) {
+            // The order of a new shipment (PROJ-93): its own shipments, only from the day the ToDo was created on, so
+            // an earlier parcel never goes out as the awaited one.
+            $since = CarbonImmutable::parse($todo->created_at)->startOfDay();
+            $own = array_merge([], ...array_map(fn ($order): array => $order->shipments, $orders));
+
+            return array_values(array_filter($own, fn (EocsShipment $shipment): bool => $shipment->shippedAt !== null && $shipment->shippedAt->greaterThanOrEqualTo($since)));
+        }
+
         if ($claims === []) {
             return [];
         }
@@ -181,6 +192,18 @@ class TrackingNotifier
         usort($claims, fn ($a, $b): int => $count($b->externalNumber) <=> $count($a->externalNumber));
 
         return $claims[0]->shipments;
+    }
+
+    /**
+     * Whether the ToDo was prepared by a proposal with the form "Neuversand" for exactly this order number.
+     */
+    private function isReshipment(TicketTodo $todo): bool
+    {
+        $id = (string) $todo->source_analysis_uuid;
+        $inputs = $id === '' ? [] : (array) (app(AnalysisStore::class)->result($id)['inputs'] ?? []);
+        $reshipment = ReshipmentDecision::fromInput($inputs);
+
+        return $reshipment !== null && strcasecmp($reshipment->orderNumber, trim((string) $todo->external_ref)) === 0;
     }
 
     /**

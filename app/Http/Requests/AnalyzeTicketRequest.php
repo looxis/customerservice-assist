@@ -7,6 +7,7 @@ use App\Analysis\Clarification;
 use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
 use App\Analysis\GuidedForms;
+use App\Analysis\ReshipmentDecision;
 use App\Analysis\SupportDecision;
 use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Http\Requests\Concerns\ChoosesSalesChannel;
@@ -81,6 +82,11 @@ class AnalyzeTicketRequest extends FormRequest
         if ($this->input('formular') === SupportDecision::FORM) {
             $this->merge(['kein_produktbezug' => $this->hasProductChoice() ? '0' : '1']);
         }
+
+        // The form "Neuversand" (PROJ-93) hides the product: whatever the browser still sends is dropped.
+        if ($this->input('formular') === ReshipmentDecision::FORM) {
+            $this->merge(['produkte' => [], 'produkt_ohne_wissen' => '', 'forge_produkte' => [], 'eocs_produkte' => [], 'forge_sku' => [], 'kein_produktbezug' => '1']);
+        }
     }
 
     /**
@@ -103,6 +109,12 @@ class AnalyzeTicketRequest extends FormRequest
             'support_loesung' => ['nullable', Rule::in(SupportDecision::ANSWERS)],
             'support_hinweis' => ['nullable', 'string', 'max:1000'],
             'support_info' => ['nullable', 'string', 'max:1000'],
+            'neuversand_kostenpflichtig' => ['nullable', Rule::in(ReshipmentDecision::CHARGED_ANSWERS)],
+            'neuversand_bezahlt' => ['nullable', Rule::in(ReshipmentDecision::PAYMENT_ANSWERS)],
+            'neuversand_auftrag' => ['nullable', 'string', 'max:60'],
+            'neuversand_adresse' => ['nullable', 'string', 'max:500'],
+            'neuversand_zusatz' => ['nullable', 'string', 'max:1500'],
+            'neuversand_todo' => ['sometimes', 'boolean'],
             'reklamation_berechtigt' => ['nullable', Rule::in(ComplaintDecision::ANSWERS)],
             'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
@@ -155,6 +167,14 @@ class AnalyzeTicketRequest extends FormRequest
             if ($this->input('formular') === SupportDecision::FORM) {
                 if (! in_array($this->input('support_loesung'), SupportDecision::ANSWERS, true)) {
                     $validator->errors()->add('support_loesung', 'Bitte angeben, ob eine Lösung bereits bekannt ist.');
+                }
+            }
+
+            if ($this->input('formular') === ReshipmentDecision::FORM) {
+                if (! in_array($this->input('neuversand_kostenpflichtig'), ReshipmentDecision::CHARGED_ANSWERS, true)) {
+                    $validator->errors()->add('neuversand_kostenpflichtig', 'Bitte angeben, ob der Neuversand kostenpflichtig ist.');
+                } elseif ($this->input('neuversand_kostenpflichtig') === 'ja' && ! in_array($this->input('neuversand_bezahlt'), ReshipmentDecision::PAYMENT_ANSWERS, true)) {
+                    $validator->errors()->add('neuversand_bezahlt', 'Bitte angeben, ob der Neuversand bereits bezahlt ist.');
                 }
             }
 
@@ -219,7 +239,7 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen', 'neuversand_auftrag' => 'Auftragsnummer des Neuversands', 'neuversand_adresse' => 'Aktualisierte Adresse', 'neuversand_zusatz' => 'Zusätzliche Informationen'];
     }
 
     /**
@@ -249,6 +269,14 @@ class AnalyzeTicketRequest extends FormRequest
     }
 
     /**
+     * The answers of the form "Neuversand" (PROJ-93), or null when another form was used.
+     */
+    public function reshipment(): ?ReshipmentDecision
+    {
+        return ReshipmentDecision::fromInput($this->validated());
+    }
+
+    /**
      * The DHL return label to attach: with the complaint form only when the complaint is justified and the
      * product is sent back, whatever else was sent.
      */
@@ -257,7 +285,7 @@ class AnalyzeTicketRequest extends FormRequest
         $complaint = $this->complaint();
         $id = $this->validated('return_label');
 
-        if ($this->support() !== null) {
+        if ($this->support() !== null || $this->reshipment() !== null) {
             return null;
         }
 

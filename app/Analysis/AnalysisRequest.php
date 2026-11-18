@@ -27,6 +27,7 @@ final readonly class AnalysisRequest
      * @param  ProductPackage  $productPackage  Product information retrieved from ProductForge for this case (PROJ-38).
      * @param  list<array{claim: int, order: string}>  $claimReferences  Claim numbers the ticket names ("R1-302-…"), PROJ-53.
      * @param  RelatedSection|null  $related  Earlier course of the tickets that belong to this case (PROJ-52).
+     * @param  array<string, string>  $placeholders  Values the employee typed that never go to the model, only their placeholder (PROJ-93: the new delivery address).
      */
     public function __construct(
         public Ticket $ticket,
@@ -49,6 +50,7 @@ final readonly class AnalysisRequest
         public ProductPackage $productPackage = new ProductPackage,
         public array $claimReferences = [],
         public ?RelatedSection $related = null,
+        public array $placeholders = [],
     ) {}
 
     public function isQuestion(): bool

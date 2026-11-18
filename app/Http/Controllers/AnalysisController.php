@@ -13,6 +13,7 @@ use App\Analysis\ContextVariant;
 use App\Analysis\RelatedContextBuilder;
 use App\Analysis\RelatedSection;
 use App\Analysis\ReplyDelivery;
+use App\Analysis\ReshipmentDecision;
 use App\Analysis\Summarizer;
 use App\Analysis\Summary;
 use App\Analysis\TicketContext;
@@ -163,7 +164,7 @@ class AnalysisController extends Controller
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
         $complaint = $request->complaint();
-        $guided = $complaint ?? $request->support();
+        $guided = $complaint ?? $request->support() ?? $request->reshipment();
         $returnLabelId = $request->returnLabelId();
         $returnLabel = $returnLabelId === null ? null : ReturnLabel::query()->find($returnLabelId);
 
@@ -198,6 +199,7 @@ class AnalysisController extends Controller
                 unknownProduct: $unknownProduct,
                 productPackage: $package,
                 related: $related,
+                placeholders: $guided instanceof ReshipmentDecision ? $guided->placeholders() : [],
                 claimReferences: array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): array => ['claim' => $claim, 'order' => $number->value], $number->claims), $found) ?: [[]])),
             ));
         } catch (AnalysisException $exception) {

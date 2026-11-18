@@ -45,7 +45,7 @@
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
                     <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
                     <span class="text-sm text-slate-600">
-                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, $usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts), $usedVariant])) }}
+                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, ($inputs['formular'] ?? null) === \App\Analysis\ReshipmentDecision::FORM ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
                         @if ($complaintToggle)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
@@ -74,7 +74,7 @@
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{
                   variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '',
-                  mode: @js($formMode), loesung: @js($pickedAnswer('support_loesung')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), vorErsatz: @js($pickedAnswer('retoure_vor_ersatz', 'ja')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
+                  mode: @js($formMode), loesung: @js($pickedAnswer('support_loesung')), kostenpflichtig: @js($pickedAnswer('neuversand_kostenpflichtig')), bezahlt: @js($pickedAnswer('neuversand_bezahlt')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), vorErsatz: @js($pickedAnswer('retoure_vor_ersatz', 'ja')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
                   syncLabel() { this.labelOn = this.mode === 'reklamation' && ['ja', 'unsicher'].includes(this.berechtigt) && this.retoure === 'ja' },
                   init() {
                       ['mode', 'berechtigt', 'retoure'].forEach((property) => this.$watch(property, () => this.syncLabel()))
@@ -96,7 +96,7 @@
                 <x-analysis.related-tickets :related="$analysis['related']" />
             @endif
 
-            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" />
+            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" :hidden-product-for="$complaintToggle ? 'neuversand' : null" />
 
             @unless ($analysis['hasOrders'])
                 <p class="text-sm text-slate-700" id="bestellung-status">{{ $orderLine }}</p>
@@ -173,6 +173,7 @@
                 </fieldset>
                 <x-analysis.support-fields :inputs="$inputs" />
                 <x-analysis.complaint-fields :inputs="$inputs" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
+                <x-analysis.reshipment-fields :inputs="$inputs" />
             @endif
 
             @if ($testMode)
