@@ -6,7 +6,6 @@
 
 ## 2026-11-18
 
-- Keine doppelte Bearbeitung mehr: Öffnest du ein Ticket, ist es für die Kollegen gesperrt, solange du daran arbeitest. Auf der Startseite ist es für sie ausgegraut mit „in Bearbeitung: Dein Name“, geöffnet hellrot und nur zum Lesen. Frei wird es, sobald du das Ticket verlässt oder 5 Minuten nicht daran arbeitest; ein Tab im Hintergrund zählt nicht als Arbeit.
 - Startseite aufgeräumt: Die Ticketliste zeigt jetzt das Ticket mit der ältesten letzten Aktivität ganz oben. Mit einem Klick auf „Letzte Aktivität“ oder „Klassifikation“ sortierst du um, ein zweiter Klick kehrt die Reihenfolge um.
 - Das Feld für die Ticketnummer ist eingeklappt: Klick auf „Ticket aus Zammad manuell abrufen“ öffnet es.
 - Wartende Tickets fallen auf: Ist die letzte Aktivität eines offenen Tickets 23 Stunden oder länger her, ist die Zeile hellgelb, ab 36 Stunden hellrot.
