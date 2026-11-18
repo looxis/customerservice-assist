@@ -1,6 +1,6 @@
 # PROJ-94: WeCreateYour-Fälle ohne Produktbezug
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-18
 **Last Updated:** 2026-11-18
 
@@ -100,11 +100,76 @@ Kein bisheriges Wissensdokument ist auf WeCreateYour eingeschränkt. Dokumente, 
 ### Technical Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Kanal-Eigenschaften („ohne Produkte“, Betreff-Stichwörter, KI-Hinweis) statt Abfragen auf `wecreateyour` | Eine Stelle entscheidet; ein weiterer Kanal dieser Art ist nur eine Einstellung | 2026-11-18 |
+| Speicherung in der vorhandenen Kanal-Liste der Einstellungen (PROJ-50), keine Migration | Kanäle liegen schon dort; Voreinstellung aus der Konfiguration wie bei allen Werten | 2026-11-18 |
+| KI-Hinweis als Kanal-Text statt als weitere Prompt-Datei | Prompts fallen bei leerem Text auf die Datei zurück; der Hinweis soll leer = aus sein und gehört inhaltlich zum Kanal | 2026-11-18 |
+| `subject_channels` aus PROJ-89 wandert in die Kanal-Eigenschaft „Erkennung im Betreff“ | Eine Quelle für die Erkennung, in den Einstellungen änderbar (beantwortet teilweise die offene Frage nach weiteren Merkmalen) | 2026-11-18 |
+| Fall läuft intern als „Kein Produktbezug“ ohne Bestellungen | Nutzt die vorhandenen Wege von PROJ-42/44/45/57/79 statt neuer Sonderfälle | 2026-11-18 |
+| Ticketseite bestimmt den Kanal vor dem EOCS-Abruf (Mitarbeiter-Wahl, sonst Betreff) | Nur so kann EOCS ganz entfallen; Bestellungen als Quelle scheiden hier naturgemäß aus | 2026-11-18 |
+| Server prüft unabhängig von der Oberfläche | Ausgeblendete Felder dürfen nicht durch alte Formularstände oder Manipulation doch ankommen | 2026-11-18 |
 
 ---
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Grundidee: Eigenschaften des Verkaufskanals statt Sonderfall „WeCreateYour“
+Statt an vielen Stellen „wenn Kanal = wecreateyour“ abzufragen, bekommt jeder Verkaufskanal in den Einstellungen (Werte → Vertriebskanäle) drei zusätzliche Angaben. Für WeCreateYour sind sie vorbelegt, für alle anderen Kanäle leer. Alle betroffenen Stellen fragen nur noch: „Ist der Kanal ohne Produkte und Bestellungen?“ Kommt später ein weiterer solcher Kanal dazu, ist das eine Einstellung, keine Programmierung.
+
+### A) Wo sich etwas ändert (Überblick)
+```
+Einstellungen → Werte → Vertriebskanäle
++-- je Kanal: Schlüssel, Name (wie bisher)
++-- NEU: „Ohne Produkte und Bestellungen“ (Haken)
++-- NEU: „Erkennung im Betreff“ (Stichwörter, z. B. wecreateyour)
++-- NEU: „Hinweis an die KI“ (Text, leer = kein Hinweis)
+
+Ticketseite
++-- Kopf: Bestell-Statuszeile / Bestellnummer-Feld → entfällt bei Kanal ohne Produkte
++-- Formular „Vorschlag erstellen“
+|   +-- Verkaufskanal (wie bisher, vorbelegt aus dem Betreff)
+|   +-- Formularwahl → nur „Technischer Support | Freitext“
+|   +-- Produktbereich → ausgeblendet, nicht gesendet
+|   +-- Bestellbereich → ausgeblendet, nicht gesendet
++-- Ergebnis: kein DHL-Retourenlabel, keine Produkt-Hinweise
+
+Frage stellen → Produktbereich wie am Ticket
+
+Hintergrund (neue Tickets)
++-- Sendungsnummer nachreichen (PROJ-82) → überspringt mit Grund
++-- Vorab-Antwort Reklamation (PROJ-85) → überspringt mit Grund
+```
+
+### B) Daten (in Alltagssprache)
+Keine neue Tabelle, keine Migration. Die Kanäle liegen schon heute als Liste in den gespeicherten Einstellungen (PROJ-50). Jeder Eintrag bekommt drei Felder:
+- **Ohne Produkte und Bestellungen:** ja/nein (Standard nein)
+- **Erkennung im Betreff:** Liste von Stichwörtern, ohne Groß/Klein (ersetzt die Liste `subject_channels` aus PROJ-89, die in die Kanal-Voreinstellungen wandert)
+- **Hinweis an die KI:** Text, höchstens 2.000 Zeichen
+
+Die Voreinstellung für WeCreateYour steht in der App-Konfiguration (ja / `wecreateyour` / Standardtext unten). Solange nichts gespeichert ist, gilt sie; wird die Liste gespeichert, gelten die gespeicherten Werte wie bei allen anderen Werten.
+
+Standardtext „Hinweis an die KI“ für WeCreateYour:
+> Der Kunde ist ein Geschäftskunde der Serviceplattform WeCreateYour.com (Deutschland, EU oder international). Wir erbringen dort digitale Dienstleistungen; es gibt keine physischen Produkte, keine Produktion von Ware und keinen Versand. Regeln zu Ware, Versand, Rücksendung oder Reklamation einer Ware wendest du nur an, wenn sie sinngemäß auf eine digitale Dienstleistung passen. Frage nicht nach Bestellnummern, Sendungen oder Fotos eines Produkts.
+
+### C) Ablauf und Zuständigkeiten
+1. **Kanal beim Laden der Ticketseite:** Die bestehende Kanal-Logik (PROJ-89) bekommt eine Vorab-Bestimmung ohne Bestellungen: zuerst die gespeicherte Wahl eines Mitarbeiters, sonst ein Betreff-Stichwort. Ist dieser Kanal „ohne Produkte“, überspringt die Ticketseite Bestellnummer-Erkennung und EOCS-Abruf ganz. Hat ein Mitarbeiter einen anderen Kanal gespeichert, läuft alles wie bisher.
+2. **Formular (Alpine.js, keine neue Seite):** Jede Kanal-Option trägt das Merkmal „ohne Produkte“. Das Formular blendet danach Produktbereich, Bestellbereich und die Formulare Reklamation/Neuversand sofort aus oder wieder ein; ausgeblendete Felder werden abgeschaltet und daher nicht gesendet. War Reklamation oder Neuversand gewählt, springt die Wahl auf „Freitext“.
+3. **Prüfung beim Absenden (Form Requests):** Ticket- und Frage-Formular verlassen sich nicht auf die Oberfläche: Bei einem Kanal ohne Produkte gilt der Fall als „Kein Produktbezug“, Produkt- und Bestellangaben werden verworfen, und ein Formular, das Ware voraussetzt, wird abgewiesen.
+4. **Formularliste (GuidedForms):** Reklamation und Neuversand werden als „setzt Ware und Versand voraus“ gekennzeichnet; die Liste der Formulare kann so je Kanal gefiltert werden. Die Vorbelegung nach Kategorie fällt auf „Freitext“ zurück.
+5. **Analyse:** Weil der Fall intern als „Kein Produktbezug“ ohne Bestellungen läuft, entfallen ProductForge-Infos, Versandalter-Hinweise (PROJ-79) und die Produkt-Hinweise im Ergebnis (PROJ-44, PROJ-45, PROJ-57) über die vorhandenen Wege. Neu ist nur: Hat der Kanal einen „Hinweis an die KI“, wird er als eigener Abschnitt „Verkaufskanal“ in den Prompt gesetzt. Der Hinweis wird im Protokoll der Analyse mit seiner Fassung festgehalten, damit nachvollziehbar bleibt, was die KI bekommen hat.
+6. **DHL-Retourenlabel:** wird bei einem Kanal ohne Produkte nicht angeboten (ohnehin ohne Bestellung, wird aber ausdrücklich ausgeschlossen).
+7. **Automatische Antworten:** Die Prüfung „warum übersprungen“ von PROJ-82 und PROJ-85 bekommt einen weiteren Grund: Betreff-Stichwort eines Kanals ohne Produkte → „Übersprungen: Kanal WeCreateYour ohne Produkte und Versand“. Neue Tickets haben noch keine Mitarbeiter-Wahl, daher zählt nur der Betreff.
+
+### D) Abhängigkeiten
+Keine neuen Pakete.
+
+### E) Tests
+- Ticketseite: WeCreateYour-Betreff → kein EOCS-Aufruf (gefälschte EOCS-Antwort wird nie angefragt), kein Produktbereich, Formularwahl nur zwei Einträge.
+- Gespeicherte Mitarbeiter-Wahl eines anderen Kanals → EOCS läuft wieder.
+- Absenden mit Kanal WeCreateYour ohne Produkt → kein Fehler; mit mitgeschicktem Produkt/Reklamation → Produkt verworfen bzw. Formular abgewiesen.
+- Prompt enthält den Hinweis; leerer Hinweis → kein Abschnitt; geänderter Hinweis wird verwendet.
+- PROJ-82 und PROJ-85 überspringen mit Grund; Klassifikation unverändert.
+- Einstellungsseite: neue Felder speichern, Längen prüfen, Voreinstellung ohne Speichern.
+- Bestehende Tests der anderen Kanäle bleiben grün.
 
 ## QA Test Results
 _To be added by /qa_
