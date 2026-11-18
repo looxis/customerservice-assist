@@ -49,6 +49,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-91 | Wissen zu technischem Support je Kanal anpassen | Vorgemerkt 2026-11-16, zweiter Schritt nach PROJ-89 und PROJ-90: vorhandenes Wissen auf den Verkaufskanal ausrichten (Fachhändler-Login unter fachhaendler.looxis.de, LOOXIS-Pro-Passwortabfrage nach der Sicherheitslücke, Shop „ehemals qobos“ abgeschaltet mit Bestellung per E-Mail, Wissen für die Gruppe „Globus“); betrifft u. a. PLAYBOOK-031, -032, -049, POLICY-051, -052 | PROJ-89, PROJ-90 | Roadmap | – | 2026-11-16 |
 | PROJ-92 | Kanal ohne Bestellung erkennen (Fachhändler, LOOXIS Pro) | Vorgemerkt 2026-11-16: Verkaufskanal auch ohne Bestellnummer zuordnen, z. B. über eine Abfrage an EOCS anhand des Absenders; Details liefert der Auftraggeber später | PROJ-89, PROJ-7 | Roadmap | – | 2026-11-16 |
 | PROJ-93 | Geführtes Formular „Neuversand“ | Manuell wählbares Formular ohne Kategorie: kostenpflichtig ja/nein, bei ja bereits bezahlt oder Rechnung im Paket, Auftragsnummer des Neuversands, aktualisierte Adresse (aus EOCS übernommen, geht nur als Platzhalter an die KI), zusätzliche Informationen, ToDo „Sendungsnummer mitteilen“ vorab angehakt; Produktbereich ausgeblendet; die automatische Nachreichung findet die Sendung am Neuversand-Auftrag | PROJ-90, PROJ-86, PROJ-77, PROJ-64 | In Review | [Spec](PROJ-93-formular-neuversand.md) | 2026-11-18 |
+| PROJ-94 | WeCreateYour-Fälle ohne Produktbezug | Folge aus PROJ-89 (2026-11-18): Ist der Kanal „WeCreateYour“ gewählt (digitale Dienstleistungen, nur Geschäftskunden), arbeitet CSA ohne Produktbezug über EOCS oder ProductForge; Wissen ohne Einschränkung bleibt gültig | PROJ-89, PROJ-42, PROJ-38, PROJ-7 | Planned | [Spec](PROJ-94-wecreateyour-ohne-produktbezug.md) | 2026-11-18 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -68,4 +69,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-94
+## Next Available ID: PROJ-95
