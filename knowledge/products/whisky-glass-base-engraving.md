@@ -16,6 +16,13 @@ topics:
 - interpretation
 - product-expectation
 order_keywords:
+- Whiskyglas Boden
+- '12044'
+- '12045'
+- '12046'
+- '12047'
+- '12048'
+- '12049'
 customer_terms:
 - Bodengravur
 - Whiskyglas Bodengravur
@@ -38,7 +45,7 @@ Gilt für das Whiskyglas Bodengravur bei allen Kundenarten und Vertriebskanälen
 
 # Überblick
 
-Diese Datei ist der Wissensbereich, dem die Regeln zum Whiskyglas Bodengravur zugeordnet sind. Die Produktfakten (Glasinnengravur im Boden, Hintergrundentfernung, Vorbereitung eigener Motive) stehen im Produktkatalog ProductForge an den beiden Mastern „klein“ und „groß“ und werden dort gepflegt.
+Diese Datei ist der Wissensbereich, dem die Regeln zum Whiskyglas Bodengravur zugeordnet sind. Die Produktfakten (Glasinnengravur im Boden, Hintergrundentfernung, Vorbereitung eigener Motive) stehen im Produktkatalog ProductForge an den Mastern „Whiskyglas Bodengravur klein“ (SKU 1820) und „Whiskyglas Bodengravur groß“ (SKU 1824) und werden dort gepflegt. Varianten je Größe: Eigenes Design, Motiv 1 und Motiv 2.
 
 Das Motiv wird mit derselben Glasinnengravur wie beim 2D-Glasfoto in den Boden des Glases gelasert. Die Regeln zu Hintergrund und Helligkeit gelten deshalb sinngemäß, mit den in den Dokumenten genannten Abweichungen für dieses Produkt.
 
