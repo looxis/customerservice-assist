@@ -42,7 +42,7 @@
     </fieldset>
 
     <x-input name="neuversand_auftrag" label="Auftragsnummer des Neuversands" :value="$pick('neuversand_auftrag')" maxlength="60" autocomplete="off" x-ref="auftrag" x-on:change="loadAddress()"
-             hint="Ohne Nummer steht im Entwurf ein Platzhalter." />
+             hint="Meist die Reklamationsnummer (z. B. R1-…), sonst die Bestellnummer aus EOCS. Ohne Nummer steht im Entwurf ein Platzhalter." />
 
     <div>
         <x-textarea name="neuversand_adresse" id="neuversand_adresse" label="Aktualisierte Adresse" rows="4" maxlength="500" x-ref="adresse" placeholder="Name&#10;Straße Hausnummer&#10;PLZ Ort" :value="$pick('neuversand_adresse', '')"
@@ -60,7 +60,7 @@
         <input type="hidden" name="neuversand_todo" value="0">
         <input type="checkbox" name="neuversand_todo" value="1" @checked($todoOn) class="mt-0.5 size-4 rounded border-slate-300 text-brand focus:ring-brand">
         <span>ToDo „Sendungsnummer mitteilen“ anlegen
-            <x-intro><span class="block text-xs font-normal text-slate-600">Die App reicht die Sendungsnummer nach dem Versand automatisch nach (nur bei deutscher Antwort und mit Auftragsnummer).</span></x-intro>
+            <x-intro><span class="block text-xs font-normal text-slate-600">Die App reicht die Sendungsnummer nach dem Versand automatisch nach (nur bei deutscher Antwort und mit Reklamations- oder Bestellnummer).</span></x-intro>
         </span>
     </label>
 </fieldset>

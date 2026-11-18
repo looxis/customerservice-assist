@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisStore;
 use App\Analysis\ReplyDelivery;
+use App\Analysis\ReshipmentDecision;
 use App\Dhl\DhlClient;
 use App\Dhl\DhlException;
 use App\Dhl\DhlProblem;
@@ -14,6 +15,7 @@ use App\Http\Requests\CreateReturnLabelRequest;
 use App\Http\Requests\DhlReturnSearchRequest;
 use App\Http\Requests\SendReturnLabelRequest;
 use App\Models\ReturnLabel;
+use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Returns\ReturnCountry;
@@ -115,9 +117,11 @@ class DhlReturnController extends Controller
      * The delivery address of one order, fetched when the employee opens the label option on a ticket page: the
      * address is not part of the ticket page itself.
      */
-    public function address(Request $request, EocsClient $eocs, OrderNumberDetector $detector): JsonResponse
+    public function address(Request $request, EocsClient $eocs, OrderNumberDetector $detector, OrderFormats $formats): JsonResponse
     {
-        $number = $detector->normalize((string) $request->query('bestellung'));
+        $typed = trim((string) $request->query('bestellung'));
+        // A claim number (e.g. the new shipment of PROJ-93) is an order of its own in EOCS with its own address.
+        $number = ReshipmentDecision::isClaimNumber($typed) ? new OrderNumber(strtoupper($typed), $formats->amazon()) : $detector->normalize($typed);
 
         if ($number === null) {
             return response()->json(['message' => 'Die Bestellnummer ist ungültig.'], 422);

@@ -29,8 +29,8 @@ Wie bei der Reklamation sollen wenige Klick-Entscheidungen einen kurzen, verläs
 ### Felder
 - [ ] Pflichtfrage „Ist der Neuversand kostenpflichtig?“ (Ja / Nein), nichts vorgewählt; ohne Antwort: „Bitte angeben, ob der Neuversand kostenpflichtig ist.“
 - [ ] Bei „Ja“ Pflichtfrage „Bereits bezahlt?“ (Ja / Nein, Rechnung wird dem Paket beigelegt); ohne Antwort: „Bitte angeben, ob der Neuversand bereits bezahlt ist.“
-- [ ] Freitextfeld „Auftragsnummer des Neuversands“ (höchstens 60 Zeichen); ohne Nummer steht im Entwurf der Platzhalter [AUFTRAGSNUMMER].
-- [ ] Freitextfeld „Aktualisierte Adresse“ (höchstens 500 Zeichen). Nach Eingabe der Auftragsnummer übernimmt die App die Lieferadresse aus EOCS, wenn das Feld leer ist; „Adresse aus EOCS laden“ überschreibt sie auf Wunsch. Findet EOCS keine Adresse, steht ein Hinweis am Feld.
+- [ ] Freitextfeld „Auftragsnummer des Neuversands“ (höchstens 60 Zeichen): meist eine Reklamationsnummer (R1-…, der Neuversand wird bequem als ggf. kostenpflichtige Reklamation in EOCS angelegt), sonst eine Bestellnummer aus EOCS; eine Reklamationsnummer wird in Großbuchstaben gespeichert. Ohne Nummer steht im Entwurf der Platzhalter [AUFTRAGSNUMMER].
+- [ ] Freitextfeld „Aktualisierte Adresse“ (höchstens 500 Zeichen). Nach Eingabe der Auftragsnummer übernimmt die App die Lieferadresse aus EOCS, wenn das Feld leer ist (bei einer Reklamationsnummer die Adresse der Reklamation selbst, nicht die der Originalbestellung); „Adresse aus EOCS laden“ überschreibt sie auf Wunsch. Findet EOCS keine Adresse, steht ein Hinweis am Feld.
 - [ ] Freitextfeld „Zusätzliche Informationen“ (höchstens 1.500 Zeichen).
 - [ ] Haken „ToDo „Sendungsnummer mitteilen“ anlegen“, vorab angehakt.
 
@@ -43,8 +43,8 @@ Wie bei der Reklamation sollen wenige Klick-Entscheidungen einen kurzen, verläs
 - [ ] Die Antworten werden mit dem Vorschlag gespeichert und belegen das Formular beim nächsten Öffnen vor.
 
 ### ToDo
-- [ ] Mit Haken und Auftragsnummer ist unter dem Entwurf das ToDo „Sendungsnummer nachreichen“ mit der Auftragsnummer des Neuversands vorausgewählt; ohne Haken oder ohne Nummer nicht.
-- [ ] Die automatische Prüfung (PROJ-77) findet die Sendung am Neuversand-Auftrag selbst, aber nur Sendungen ab dem Tag, an dem das ToDo angelegt wurde. Für alle anderen ToDos mit Bestellnummer bleibt es dabei: nie die Sendung der Originalbestellung.
+- [ ] Mit Haken und Auftragsnummer ist unter dem Entwurf das ToDo „Sendungsnummer nachreichen“ mit der Nummer des Neuversands vorausgewählt; ohne Haken oder ohne Nummer nicht. Bei einer Reklamationsnummer nennt der vorbereitete Text „Reklamation“, sonst „Bestellung“.
+- [ ] Bei einer Reklamationsnummer findet die automatische Prüfung (PROJ-77) die Sendung der Reklamation wie bei jeder Reklamation. Bei einer Bestellnummer findet sie die Sendung am Neuversand-Auftrag selbst, aber nur Sendungen ab dem Tag, an dem das ToDo angelegt wurde. Für alle anderen ToDos mit Bestellnummer bleibt es dabei: nie die Sendung der Originalbestellung.
 
 ## Edge Cases
 - **Auftragsnummer, die EOCS nicht kennt:** Die Adresse wird nicht übernommen, der Hinweis erscheint; der Vorschlag lässt sich trotzdem erstellen.
@@ -58,4 +58,5 @@ Wie bei der Reklamation sollen wenige Klick-Entscheidungen einen kurzen, verläs
 | Adresse nur als Platzhalter an die KI | Adressen aus EOCS gehen grundsätzlich nicht an die KI (PROJ-64); die App setzt sie wie [LIEFERADRESSE] ein | 2026-11-18 |
 | Adresse über die vorhandene Adressabfrage des DHL-Retourenlabels | Keine neue Schnittstelle nötig | 2026-11-18 |
 | Eigene Sendungen des Auftrags nur für ToDos aus dem Neuversand-Formular, nur ab dem ToDo-Tag | Bisherige ToDos sollen nie die Sendung der Originalbestellung verschicken | 2026-11-18 |
+| Reklamationsnummer als Normalfall der Neuversand-Nummer | Klarstellung des Auftraggebers: Neuversand wird meist als (kostenpflichtige) Reklamation in EOCS angelegt | 2026-11-18 |
 | Keine Datenbankänderung | Antworten liegen wie bei den anderen Formularen in den Formularangaben des Vorschlags | 2026-11-18 |

@@ -57,6 +57,11 @@ class AnalyzeTicketRequest extends FormRequest
             $this->merge(['reklamationsnummer' => strtoupper(trim($this->input('reklamationsnummer')))]);
         }
 
+        if (is_string($this->input('neuversand_auftrag'))) {
+            $number = trim($this->input('neuversand_auftrag'));
+            $this->merge(['neuversand_auftrag' => ReshipmentDecision::isClaimNumber($number) ? strtoupper($number) : $number]);
+        }
+
         $parent = $this->parentAnalysis();
 
         if ($parent === null) {

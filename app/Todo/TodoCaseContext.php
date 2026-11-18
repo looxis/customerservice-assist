@@ -49,10 +49,10 @@ class TodoCaseContext
         $reshipment = ReshipmentDecision::fromInput($formInput);
 
         if ($reshipment !== null) {
-            // The form "Neuversand" (PROJ-93) decides: the shipment runs under the order number of the new shipment.
+            // The form "Neuversand" (PROJ-93) decides: the shipment runs under the number of the new shipment, mostly a claim.
             $preselect = $reshipment->trackingTodo && $reshipment->orderNumber !== '';
 
-            return ['name' => $name, 'kind' => 'order', 'number' => $reshipment->orderNumber, 'preselect' => $preselect && ! $this->hasOpenTrackingTodo($ticket, $reshipment->orderNumber)];
+            return ['name' => $name, 'kind' => ReshipmentDecision::isClaimNumber($reshipment->orderNumber) ? 'claim' : 'order', 'number' => $reshipment->orderNumber, 'preselect' => $preselect && ! $this->hasOpenTrackingTodo($ticket, $reshipment->orderNumber)];
         }
 
         if ($complaint !== null) {

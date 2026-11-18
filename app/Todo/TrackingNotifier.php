@@ -154,7 +154,8 @@ class TrackingNotifier
 
     /**
      * The shipments of the claim named at the ToDo; of the newest claim when only the order is named. Never those of
-     * the original order, except for the order of a new shipment from the form "Neuversand" (PROJ-93).
+     * the original order, except for the order of a new shipment from the form "Neuversand" (PROJ-93) that is not a
+     * claim (a new shipment set up as a claim is found by its claim number like any other).
      *
      * @return list<EocsShipment>
      *

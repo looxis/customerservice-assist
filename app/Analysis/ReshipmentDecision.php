@@ -2,11 +2,14 @@
 
 namespace App\Analysis;
 
+use App\Orders\OrderFormats;
+
 /**
  * The answers of the form "Neuversand" in "Vorschlag erstellen" (PROJ-93): a new shipment the employee has already
  * set up in EOCS, free of charge as goodwill or charged (paid, or with an invoice in the parcel). The form has no
  * ticket category and is only chosen by hand. The app turns the answers into short fixed sentences for the language
  * model; the new delivery address never goes to the model, only the placeholder that the app fills in afterwards.
+ * The number of the new shipment is mostly a claim number ("R1-<order>", a charged claim in EOCS), else an order number.
  */
 final readonly class ReshipmentDecision
 {
@@ -63,6 +66,14 @@ final readonly class ReshipmentDecision
             extraInfo: trim((string) ($input['neuversand_zusatz'] ?? '')),
             trackingTodo: filter_var($input['neuversand_todo'] ?? false, FILTER_VALIDATE_BOOLEAN),
         );
+    }
+
+    /**
+     * Whether a number is a claim number of EOCS ("R1-<order>"), as a new shipment is mostly set up as a claim.
+     */
+    public static function isClaimNumber(string $number): bool
+    {
+        return preg_match('/^'.preg_quote(app(OrderFormats::class)->claimPrefix(), '/').'\d+-\S+$/i', trim($number)) === 1;
     }
 
     public function withInvoice(): bool
