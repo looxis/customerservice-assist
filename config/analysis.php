@@ -42,6 +42,7 @@ return [
         'analysis-related' => resource_path('prompts/analysis-related.md'),
         'summary' => resource_path('prompts/summary.md'),
         'translation' => resource_path('prompts/translation.md'),
+        'reply-translation' => resource_path('prompts/reply-translation.md'),
         'router' => resource_path('prompts/router.md'),
         'labeling' => resource_path('prompts/labeling.md'),
         'wismo' => resource_path('prompts/wismo.md'),

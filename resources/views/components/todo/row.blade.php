@@ -19,7 +19,6 @@
         'notify_hint' => $todo->notify_hint,
         'reference' => $todo->external_ref ?? '',
         'auto_send' => (bool) ($todo->auto_send ?? false),
-        'german' => str_starts_with(mb_strtolower(trim((string) ($todo->customer_language ?? ''))), 'deutsch'),
         'ticket' => $todo->ticket_number,
     ];
 @endphp

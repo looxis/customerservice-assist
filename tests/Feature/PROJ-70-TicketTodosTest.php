@@ -368,11 +368,11 @@ describe('the prepared replies', function () {
 });
 
 describe('the automatic reply switch (PROJ-77)', function () {
-    test('a ToDo created in the dialog is never sent automatically: the language is unknown', function () {
+    test('a ToDo created in the dialog can be sent automatically although the language is unknown (PROJ-95)', function () {
         createTodo(['reference' => 'R1-7KA-0QH8-6AF8', 'auto_send' => '1'])->assertSessionHasNoErrors();
 
         $todo = TicketTodo::query()->latest('id')->first();
-        expect($todo->external_ref)->toBe('R1-7KA-0QH8-6AF8')->and($todo->auto_send)->toBeFalse()->and($todo->auto_state)->toBeNull();
+        expect($todo->external_ref)->toBe('R1-7KA-0QH8-6AF8')->and($todo->customer_language)->toBeNull()->and($todo->auto_send)->toBeTrue()->and($todo->auto_state)->toBe('watching');
     });
 
     test('switching the automatic reply on or off for a German customer starts or stops the check', function () {

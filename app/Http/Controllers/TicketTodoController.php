@@ -90,14 +90,16 @@ class TicketTodoController extends Controller
         }
 
         try {
-            $todos->prepareNotification($todo->refresh(), $name, $zammad, $store);
+            $prepared = $todos->prepareNotification($todo->refresh(), $name, $zammad, $store);
         } catch (ZammadException $exception) {
             $todos->releaseNotification($todo);
 
             return back()->with('error', $exception->problem->message($todo->ticket_number).($resume ? ' Die Antwort wurde nicht vorbereitet.' : ' Das ToDo ist noch offen.'));
         }
 
-        return $this->draft($todo->refresh());
+        $redirect = $this->draft($todo->refresh());
+
+        return $prepared['untranslated'] ? $redirect->with('error', 'Die Antwort konnte nicht in die Sprache des Kunden übersetzt werden; der Entwurf ist auf Deutsch.') : $redirect;
     }
 
     public function reopen(TicketTodo $todo, StaffDirectory $staff, Request $request): RedirectResponse

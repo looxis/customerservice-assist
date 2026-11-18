@@ -4,7 +4,7 @@
 @php
     $names = \App\Todo\TodoRules::assignees();
     $presets = \App\Todo\TodoRules::presets();
-    $blank = ['id' => null, 'preset' => '', 'previous' => '', 'description' => '', 'assignee' => \App\Todo\TodoRules::EVERYONE, 'due_in' => '', 'due_label' => null, 'waiting_for' => '', 'notify_customer' => false, 'notify_hint' => '', 'reference' => '', 'auto_send' => false, 'german' => false, 'ticket' => $ticketNumber];
+    $blank = ['id' => null, 'preset' => '', 'previous' => '', 'description' => '', 'assignee' => \App\Todo\TodoRules::EVERYONE, 'due_in' => '', 'due_label' => null, 'waiting_for' => '', 'notify_customer' => false, 'notify_hint' => '', 'reference' => '', 'auto_send' => false, 'ticket' => $ticketNumber];
     $create = $ticketNumber ? route('tickets.todos.store', ['number' => $ticketNumber]) : null;
 @endphp
 
@@ -94,9 +94,9 @@
                        class="mt-1 block w-full rounded-md border-0 bg-white px-3 py-1.5 font-mono text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand">
             </div>
             <div x-show="todo.reference.trim() !== ''" x-cloak class="space-y-1 text-sm text-slate-900">
-                <input type="hidden" name="auto_send" x-bind:value="todo.auto_send && todo.german ? '1' : '0'">
-                <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.auto_send" x-bind:disabled="! todo.german" class="rounded text-brand focus:ring-brand"> Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden</label>
-                <p x-show="! todo.german" class="text-slate-600">Die Sprache des Kunden ist hier nicht bekannt oder nicht Deutsch: Die App sendet nicht von selbst. Am Antwortvorschlag im Ticket lässt sich das ToDo mit Automatik anlegen.</p>
+                <input type="hidden" name="auto_send" x-bind:value="todo.auto_send ? '1' : '0'">
+                <label class="inline-flex items-center gap-2"><input type="checkbox" x-model="todo.auto_send" class="rounded text-brand focus:ring-brand"> Mail bei Verfügbarkeit der Sendungsnummer automatisiert versenden</label>
+                <x-intro><p class="text-slate-600">Schreibt der Kunde nicht Deutsch, übersetzt die App den Entwurf samt Signatur vor dem Senden in seine Sprache.</p></x-intro>
             </div>
         </div>
 

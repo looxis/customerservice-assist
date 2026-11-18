@@ -2,9 +2,13 @@
 
 namespace App\Todo;
 
+use App\Analysis\AnalysisException;
 use App\Analysis\AnalysisStore;
+use App\Analysis\ReplyDelivery;
+use App\Analysis\ReplyTranslator;
 use App\Models\TicketTodo;
 use App\Zammad\ArticleKind;
+use App\Zammad\Ticket;
 use App\Zammad\ZammadClient;
 use App\Zammad\ZammadException;
 use Carbon\CarbonImmutable;
@@ -16,7 +20,11 @@ use Illuminate\Database\UniqueConstraintViolationException;
  */
 class TodoService
 {
-    public function __construct(private readonly AnalysisStore $store) {}
+    public function __construct(
+        private readonly AnalysisStore $store,
+        private readonly ReplyTranslator $translator,
+        private readonly ReplyDelivery $delivery,
+    ) {}
 
     /**
      * The due date for "in 1, 3 or 7 days"; none for anything else.
@@ -27,15 +35,15 @@ class TodoService
     }
 
     /**
-     * Whether the tracking number is sent by the app (PROJ-77): wanted, a number to look for and a customer who
-     * writes German. The state "watching" starts the checks.
+     * Whether the tracking number is sent by the app (PROJ-77): wanted and a number to look for. Any customer language
+     * is fine, the reply is translated before sending (PROJ-95). The state "watching" starts the checks.
      *
      * @param  array<string, mixed>  $fields
      * @return array{auto_send: bool, auto_state: string|null}
      */
-    private function automation(array $fields, ?string $language, string $reference): array
+    private function automation(array $fields, string $reference): array
     {
-        $on = (bool) ($fields['auto_send'] ?? false) && $reference !== '' && str_starts_with(mb_strtolower(trim((string) $language)), 'deutsch');
+        $on = (bool) ($fields['auto_send'] ?? false) && $reference !== '';
 
         return ['auto_send' => $on, 'auto_state' => $on ? 'watching' : null];
     }
@@ -75,7 +83,7 @@ class TodoService
                 'due_on' => self::dueDate($fields['due_in'] ?? null),
                 'external_ref' => $reference ?: null,
                 'customer_language' => $language,
-                ...$this->automation($fields, $language, $reference),
+                ...$this->automation($fields, $reference),
                 'status' => TodoStatus::Open,
                 'source' => $source,
                 'source_analysis_uuid' => $analysis,
@@ -139,7 +147,7 @@ class TodoService
             return [];
         }
 
-        $automation = $this->automation($fields, $todo->customer_language, $reference);
+        $automation = $this->automation($fields, $reference);
 
         return $automation['auto_send'] === $todo->auto_send ? [] : [...$automation, 'auto_reason' => null, 'auto_errors' => 0];
     }
@@ -181,23 +189,49 @@ class TodoService
     }
 
     /**
-     * Prepare the reply for the customer: an empty draft of the ticket with the hint of the ToDo as its text.
+     * Prepare the reply for the customer: an empty draft of the ticket with the hint of the ToDo as its text, translated
+     * with the signature into the customer's language (PROJ-95). When the translation fails, the draft stays German.
+     *
+     * @return array{id: string, untranslated: bool}
      *
      * @throws ZammadException
      */
-    public function prepareNotification(TicketTodo $todo, string $by, ZammadClient $zammad, AnalysisStore $store): string
+    public function prepareNotification(TicketTodo $todo, string $by, ZammadClient $zammad, AnalysisStore $store): array
     {
         $ticket = $zammad->ticket($todo->ticket_number);
         $newest = collect($ticket->articles)->reject(fn ($article): bool => $article->kind === ArticleKind::Internal)->last()?->id;
         $id = $store->putManualReply($todo->ticket_number, $ticket->summaryKey(), $by, $newest, $ticket->lastCustomerArticleId());
+        $untranslated = false;
 
         if ($todo->notify_hint !== null) {
-            $store->changeResult($id, fn (array $content): array => [...$content, 'reply_edit' => ['text' => $todo->notify_hint, 'staff' => $by, 'at' => CarbonImmutable::now()->toIso8601String()]]);
+            $text = $todo->notify_hint;
+            $extra = [];
+            $language = null;
+
+            try {
+                $translation = $this->translator->translate($todo->ticket_number, $text, trim($this->delivery->signature($by)), Ticket::lastCustomerArticleOf($ticket->articles), $todo->customer_language);
+                $todo->update(['customer_language' => $translation['language']]);
+
+                if (! $translation['german']) {
+                    $text = $translation['reply'];
+                    $extra = ['reply_signature' => $translation['signature']];
+                    $language = $translation['language'];
+                }
+            } catch (AnalysisException) {
+                $untranslated = true;
+            }
+
+            $store->changeResult($id, fn (array $content): array => [
+                ...$content,
+                ...$extra,
+                'result' => $language === null ? $content['result'] : [...$content['result'], 'reply' => [...($content['result']['reply'] ?? []), 'language' => $language]],
+                'reply_edit' => ['text' => $text, 'staff' => $by, 'at' => CarbonImmutable::now()->toIso8601String()],
+            ]);
         }
 
         $todo->update(['notify_analysis_uuid' => $id]);
 
-        return $id;
+        return ['id' => $id, 'untranslated' => $untranslated];
     }
 
     /**

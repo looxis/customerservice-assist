@@ -54,7 +54,7 @@ class ReplyDelivery
             return ['state' => 'blocked', 'reason' => 'Zu diesem Ticket gibt es keine Kundennachricht mit eindeutiger Antwortadresse. Bitte in Zammad antworten.'];
         }
 
-        return ['state' => 'ready', 'to' => $target->to, 'subject' => $target->subject, 'signature' => $this->signature($staffName), 'ticket_url' => $ticket->zammadUrl, 'started_unclear' => $sending['started'] !== null];
+        return ['state' => 'ready', 'to' => $target->to, 'subject' => $target->subject, 'signature' => is_string($result['reply_signature'] ?? null) && trim($result['reply_signature']) !== '' ? $result['reply_signature'] : $this->signature($staffName), 'ticket_url' => $ticket->zammadUrl, 'started_unclear' => $sending['started'] !== null];
     }
 
     /**

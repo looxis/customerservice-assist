@@ -2,8 +2,10 @@
 
 namespace App\Todo;
 
+use App\Analysis\AnalysisException;
 use App\Analysis\AnalysisStore;
 use App\Analysis\ReplyDelivery;
+use App\Analysis\ReplyTranslator;
 use App\Analysis\ReshipmentDecision;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
@@ -15,6 +17,7 @@ use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Settings\TodoReplyTexts;
 use App\Staff\StaffDirectory;
+use App\Wismo\ReplyGuard;
 use App\Zammad\OutgoingReply;
 use App\Zammad\ReplyException;
 use App\Zammad\ReplyTarget;
@@ -28,7 +31,7 @@ use Illuminate\Support\Facades\Crypt;
 /**
  * The automatic reply with the tracking number (PROJ-77). Called at the fixed check times: looks in EOCS whether the
  * claim of a ToDo was shipped and, if so and nothing speaks against it, sends the prepared reply in the name of the
- * employee who created the ToDo, adds an internal note, closes the ticket and finishes the ToDo. Where something
+ * employee who created the ToDo (translated with its signature into the customer's language, PROJ-95), adds an internal note, closes the ticket and finishes the ToDo. Where something
  * speaks against it, the ToDo says "Bitte prüfen" and keeps the reply prepared. Everything is written to the check log.
  */
 class TrackingNotifier
@@ -47,6 +50,7 @@ class TrackingNotifier
         private readonly ReplyDelivery $delivery,
         private readonly OrderFormats $formats,
         private readonly OrderNumberDetector $detector,
+        private readonly ReplyTranslator $translator,
     ) {}
 
     /**
@@ -113,7 +117,19 @@ class TrackingNotifier
                 return false;
             }
 
-            return $this->send($todo, $now, $ticket, $numbers, $text);
+            $translation = $this->translator->translate($todo->ticket_number, $text, trim($this->delivery->signature((string) $todo->created_by)), Ticket::lastCustomerArticleOf($ticket->articles), $todo->customer_language);
+            $todo->update(['customer_language' => $translation['language']]);
+            $reason = $translation['german'] ? null : $this->translationObjection($translation['reply'], $translation['signature'], $numbers);
+
+            if ($reason !== null) {
+                $this->review($todo, $now, $reason, $translation['reply']);
+
+                return false;
+            }
+
+            return $this->send($todo, $now, $ticket, $numbers, $translation);
+        } catch (AnalysisException $exception) {
+            $this->failed($todo, $now, 'Übersetzung: '.$exception->problem->message());
         } catch (EocsException $exception) {
             $this->failed($todo, $now, 'EOCS: '.$exception->problem->message());
         } catch (ZammadException $exception) {
@@ -253,10 +269,7 @@ class TrackingNotifier
      */
     private function objection(TicketTodo $todo, array $shipments, Ticket $ticket, string $text): ?string
     {
-        $german = str_starts_with(mb_strtolower(trim((string) $todo->customer_language)), 'deutsch');
-
         return match (true) {
-            ! $german => 'Der Kunde schreibt nicht auf Deutsch oder die Sprache ist unbekannt.',
             collect($shipments)->contains(fn (EocsShipment $shipment): bool => trim((string) $shipment->trackingNumber) !== '' && trim((string) $shipment->carrier) === '') => 'Sendungsnummer ohne Versanddienstleister.',
             $this->staff->zammadToken($todo->created_by) === null => 'Kein Zugang des Mitarbeiters '.($todo->created_by ?? '–').' zu Zammad.',
             trim((string) $todo->notify_hint) === '' => 'Kein Text für die Antwort vorbereitet.',
@@ -267,14 +280,39 @@ class TrackingNotifier
     }
 
     /**
+     * What speaks against sending a translated reply, or null: the model must keep every tracking number and may add
+     * nothing the app does not allow (PROJ-95).
+     *
      * @param  list<string>  $numbers
      */
-    private function send(TicketTodo $todo, CarbonImmutable $now, Ticket $ticket, array $numbers, string $text): bool
+    private function translationObjection(string $reply, string $signature, array $numbers): ?string
+    {
+        foreach ($numbers as $number) {
+            if (! str_contains($reply, $number)) {
+                return 'Die übersetzte Antwort enthält die Sendungsnummer '.$number.' nicht unverändert.';
+            }
+        }
+
+        if (preg_match('/\[[^\[\]]+\]/u', $reply.$signature, $open) === 1) {
+            return 'Platzhalter in der übersetzten Antwort: '.$open[0].'.';
+        }
+
+        $violation = ReplyGuard::violation($reply, []);
+
+        return $violation === null ? null : 'Übersetzung: '.$violation;
+    }
+
+    /**
+     * @param  list<string>  $numbers
+     * @param  array{language: string, german: bool, reply: string, signature: string}  $translation
+     */
+    private function send(TicketTodo $todo, CarbonImmutable $now, Ticket $ticket, array $numbers, array $translation): bool
     {
         $name = (string) $todo->created_by;
         $token = (string) $this->staff->zammadToken($name);
         $target = ReplyTarget::for($ticket);
-        $signature = trim($this->delivery->signature($name));
+        $text = $translation['reply'];
+        $signature = trim($translation['signature']);
         $body = $signature === '' ? $text : $text."\n\n".$signature;
 
         $claimed = TicketTodo::query()->whereKey($todo->id)->where('status', TodoStatus::Open->value)->where('auto_state', 'watching')->update([
@@ -301,7 +339,7 @@ class TrackingNotifier
         $this->log($todo, $now, 'sent', 'Sendungsnummer '.implode(', ', $numbers));
 
         try {
-            $this->sender->addNote($token, $ticket->id, 'Automatisch gesendet', 'Automatisch gesendet am '.$now->setTimezone(TrackingSchedule::ZONE)->format('d.m.Y \u\m H:i').' Uhr: Sendungsnummer '.implode(', ', $numbers).' laut EOCS ('.$todo->external_ref."). ToDo #{$todo->id}.");
+            $this->sender->addNote($token, $ticket->id, 'Automatisch gesendet', 'Automatisch gesendet am '.$now->setTimezone(TrackingSchedule::ZONE)->format('d.m.Y \u\m H:i').' Uhr: Sendungsnummer '.implode(', ', $numbers).' laut EOCS ('.$todo->external_ref.')'.($translation['german'] ? '' : ', übersetzt ins '.$translation['language'])."). ToDo #{$todo->id}.");
         } catch (ReplyException) {
             $this->log($todo, $now, 'note_failed', 'Die interne Notiz konnte nicht angelegt werden.');
         }

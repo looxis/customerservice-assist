@@ -40,7 +40,7 @@ function trackingTodo(array $overrides = []): TicketTodo
 /**
  * @param  list<array<string, mixed>>  $orders
  */
-function fakeTrackingServices(array $orders, int $eocsStatus = 200): void
+function fakeTrackingServices(array $orders, int $eocsStatus = 200, string $customerBody = '<p>Das Motiv erscheint nicht.</p>'): void
 {
     config([
         'services.zammad.url' => 'https://zammad.test', 'services.zammad.token' => 'z-token',
@@ -48,7 +48,7 @@ function fakeTrackingServices(array $orders, int $eocsStatus = 200): void
         'staff.zammad_tokens' => ['Nele' => 'nele-secret-token'],
     ]);
 
-    $articles = [zammadArticle(['id' => 1, 'message_id' => '<m1@example.org>', 'subject' => 'Tasse kaputt', 'created_at' => '2026-11-10T09:00:00.000Z'])];
+    $articles = [zammadArticle(['id' => 1, 'message_id' => '<m1@example.org>', 'subject' => 'Tasse kaputt', 'body' => $customerBody, 'created_at' => '2026-11-10T09:00:00.000Z'])];
 
     fakeZammad($articles, extra: [
         'zammad.test/api/v1/users/me' => Http::response(['id' => 501, 'firstname' => 'Nele', 'lastname' => 'Gorka', 'login' => 'nele']),
@@ -192,16 +192,7 @@ describe('the automatic reply', function () {
         expect($todo->refresh()->auto_tracking)->toBe('CLAIM1')->and($todo->auto_text)->toContain('Nummer: CLAIM1 (UPS)')->not->toContain('ORIGINAL1');
     });
 
-    test('asks for a look instead of sending when the customer does not write German or the language is unknown', function (?string $language) {
-        fakeTrackingServices([trackingOrder()]);
-        $todo = trackingTodo(['customer_language' => $language]);
-
-        runTracking();
-
-        expect(trackingPuts())->toBe([]);
-        expect($todo->refresh()->auto_state)->toBe('review')->and($todo->auto_reason)->toContain('nicht auf Deutsch')->and($todo->status)->toBe(TodoStatus::Open)
-            ->and($todo->notify_hint)->toContain('00340434161094042557');
-    })->with(['English', null]);
+    // Customers in other languages: see PROJ-95-TodoReplyLanguageTest.php.
 
     test('asks for a look when a tracking number has no carrier or the text has an open placeholder or the employee has no token', function (array $order, array $todoFields, string $reason) {
         fakeTrackingServices([trackingOrder($order)]);
