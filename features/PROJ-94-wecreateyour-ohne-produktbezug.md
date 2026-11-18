@@ -180,8 +180,50 @@ Keine neuen Pakete.
 - WISMO (PROJ-82) und Vorab-Antwort Reklamation (PROJ-85) überspringen Tickets mit Betreff-Stichwort eines Kanals ohne Produkte („Übersprungen: Verkaufskanal „WeCreateYour“ ohne Produkte und Versand.“).
 - Tests: `tests/Feature/PROJ-94-ChannelWithoutProductsTest.php` (11), je ein Test in PROJ-82/PROJ-85; ein PROJ-89-Test („Bestellung vor Betreff“) entfiel, weil EOCS bei WeCreateYour nicht mehr gefragt wird. Gesamtlauf: 2.826 von 2.830 grün; die 2 Fehlschläge (PROJ-1 Versionsanzeige, PROJ-56 Seitenleiste) bestehen auch ohne diese Änderung.
 
-## QA Test Results
-_To be added by /qa_
+## QA Test Results (2026-11-18)
+
+**Getestet:** Akzeptanzkriterien per Feature-Tests und HTTP-Abruf der echten Ticketseite 2140510 (Kanal vorbelegt „aus dem Betreff“, kein EOCS-Abruf, Hinweis im Bereich „Bestellungen“). Ein Browser stand für die Prüfung nicht zur Verfügung: das Umschalten im Formular (Alpine) und die Darstellung auf 375/768/1440 px sind nur am Code geprüft, nicht im Browser.
+
+### Akzeptanzkriterien
+| Bereich | Kriterium | Ergebnis |
+|---|---|---|
+| Produkt | Produktbereich ausgeblendet, Fall ohne Produktbezug | ✅ |
+| Produkt | Keine Produktantwort nötig | ✅ (Test) |
+| Produkt | Kein Produktvorschlag aus Kundenbegriffen | ✅ (ausgeblendet und abgeschaltet, Server verwirft) |
+| Produkt | Keine ProductForge-Infos, keine Produkt-Hinweise im Ergebnis | ❌ BUG-1 |
+| Produkt | Kanalwechsel blendet Produktbereich ein/aus | ✅ (Code, nicht im Browser) |
+| Produkt | „Frage stellen“ wie am Ticket | ✅ (Test) |
+| EOCS | Keine Bestellnummer-Suche, kein EOCS, kein Bestellbereich | ✅ (Test, echtes Ticket) |
+| EOCS | Keine Bestell-/Versandangaben an die KI | ✅ (Test) |
+| EOCS | Kanal erst im Formular gewählt: Bestellungen nicht gesendet | ✅ (Server verwirft, Test) |
+| EOCS | Anderer Kanal gespeichert → EOCS wieder aktiv | ✅ (Test) |
+| Formulare | Nur Technischer Support und Freitext | ✅ (Test + Code) |
+| Formulare | Kategorie Reklamation → Freitext vorgewählt | ✅ (Code) |
+| Formulare | Kein DHL-Retourenlabel | ✅ (ohne Bestellung kein Label; Option ausgeblendet) |
+| Formulare | Wechsel auf WeCreateYour → Freitext, alte Felder nicht gesendet | ✅ (Code; Server weist Reklamation/Neuversand ab, Test) |
+| KI | Kontext-Hinweis im Prompt | ✅ (Test) |
+| KI | Hinweis in den Einstellungen änderbar | ✅ (Test) |
+| KI | Leerer Hinweis → kein Abschnitt | ✅ (Test) |
+| Automatik | WISMO und Vorab-Antwort überspringen mit Grund | ✅ (Tests) |
+| Automatik | Klassifikation unverändert | ✅ (nicht berührt, PROJ-80-Tests grün) |
+| Anzeige | „Erstellt mit“ nennt Kanal, kein Produkt | ✅ |
+
+**Ergebnis:** 19 von 20 bestanden.
+
+### Bugs
+- **BUG-1 (Medium) – Ergebnis meldet „❗ Kein Produktwissen berücksichtigt“ mit Knopf „Produkt wählen“.** Bei WeCreateYour gelten produktgebundene Dokumente als „kein Produkt gewählt“ (PROJ-44, Ursache `product-missing`), daher erscheint die Warnung bei jedem Vorschlag und fordert zu einer Produktwahl auf, die das Formular gar nicht anbietet. Gilt auch für „Frage stellen“. Schritte: Ticket mit Betreff „Contact Form @ WeCreateYour.com“ öffnen, Vorschlag erstellen → Warnung über dem Ergebnis. Erwartet: keine Produkt-Hinweise (Akzeptanzkriterium „keine Hinweise zu fehlenden … Produkten (PROJ-44)“).
+- **BUG-2 (Medium) – Deaktivierte Gruppe „WeCreateYour“ mit gespeicherter Mitarbeiter-Wahl schaltet EOCS weiter ab.** Hat ein Mitarbeiter am Ticket „WeCreateYour“ gewählt und ein Admin deaktiviert danach die Gruppe, überspringt die Ticketseite weiter Bestellnummern und EOCS und zeigt „keine Bestellungen in EOCS“, obwohl der Kanal nicht mehr wählbar ist. Erwartet laut Randfall: Die App arbeitet wie bei jedem anderen Ticket. Umgehung: anderen Kanal wählen und einen Vorschlag erstellen.
+
+### Sicherheit
+- Einstellungen (Profilfelder, KI-Hinweis) speichern nur Admins (bestehende Prüfung im `SettingsController`); Name, Stichwörter und Hinweis werden escaped bzw. per `x-model` ausgegeben, kein XSS.
+- Formulare mit `@csrf` unverändert; der Server setzt „ohne Produkte“ selbst durch (Produkte, Bestellungen, Bestelldaten verworfen, Reklamation/Neuversand abgewiesen), ein manipuliertes Formular kann EOCS oder Ware-Formulare nicht erzwingen.
+- Der KI-Hinweis geht ungefiltert in den Prompt; nur Admins können ihn ändern, Risiko akzeptabel.
+
+### Regression
+Gesamtlauf sequenziell: 2.826 von 2.830 grün; die 2 Fehlschläge (PROJ-1 Versionsanzeige, PROJ-56 Seitenleiste) bestehen auch ohne PROJ-94.
+
+### Entscheidung
+**Produktionsreif: JA** (keine Critical/High-Bugs). BUG-1 sollte vor dem Einsatz behoben werden, weil er bei jedem WeCreateYour-Vorschlag erscheint.
 
 ## Deployment
 _To be added by /deploy_
