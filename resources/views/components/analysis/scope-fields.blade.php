@@ -19,7 +19,9 @@
     // In a guided form that does not need a product (PROJ-90) the product is optional; the form owns the Alpine property mode.
     $optional = $optionalProductFor === null ? 'false' : "mode === '".$optionalProductFor."'";
     // A guided form without any product (PROJ-93, Neuversand) hides the product completely; the hidden fields are not sent.
-    $hidden = $hiddenProductFor === null ? 'false' : "mode === '".$hiddenProductFor."'";
+    // Diskussion beenden (PROJ-98) as well: one form or a list of forms.
+    $hiddenProductFor = $hiddenProductFor === null ? null : array_values((array) $hiddenProductFor);
+    $hidden = $hiddenProductFor === null ? 'false' : '['.implode(', ', array_map(fn (string $form): string => "'".$form."'", $hiddenProductFor)).'].includes(mode)';
     // A channel without products (PROJ-94, e.g. WeCreateYour) hides the product the same way.
     $hidden = '('.$hidden.') || noProducts';
     $channels = $analysis['channels'] ?? [];

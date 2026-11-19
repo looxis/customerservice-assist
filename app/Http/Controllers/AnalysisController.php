@@ -8,6 +8,7 @@ use App\Analysis\AnalysisProblem;
 use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
 use App\Analysis\CaseAnalyzer;
+use App\Analysis\ClosingDecision;
 use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
 use App\Analysis\RelatedContextBuilder;
@@ -29,6 +30,7 @@ use App\Http\Requests\UpdateReplyRequest;
 use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\SalesChannels;
+use App\Labeling\TicketLabelState;
 use App\Models\ReturnLabel;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
@@ -166,7 +168,12 @@ class AnalysisController extends Controller
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
         $complaint = $request->complaint();
-        $guided = $complaint ?? $request->support() ?? $request->reshipment();
+        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing();
+
+        // "Diskussion beenden" (PROJ-98) only for some categories and after several customer replies, as the form offers it.
+        if ($guided instanceof ClosingDecision && ! ClosingDecision::available(TicketLabelState::categoryOf($ticket), $ticket)) {
+            return $back('Das Formular „Diskussion beenden“ gibt es nur für WISMO, Reklamation, Adressänderung und Storno / Änderung der Bestellung und erst ab der '.ClosingDecision::MIN_CUSTOMER_REPLIES.'. Kundenantwort. Bitte ein anderes Formular wählen.');
+        }
         $returnLabelId = $request->returnLabelId();
         $returnLabel = $returnLabelId === null ? null : ReturnLabel::query()->find($returnLabelId);
 

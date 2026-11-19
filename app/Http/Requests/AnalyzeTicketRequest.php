@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Analysis\AnalysisStore;
 use App\Analysis\Clarification;
+use App\Analysis\ClosingDecision;
 use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
 use App\Analysis\GuidedForms;
@@ -90,8 +91,8 @@ class AnalyzeTicketRequest extends FormRequest
             $this->merge(['kein_produktbezug' => $this->hasProductChoice() ? '0' : '1']);
         }
 
-        // The form "Neuversand" (PROJ-93) hides the product: whatever the browser still sends is dropped.
-        if ($this->input('formular') === ReshipmentDecision::FORM) {
+        // The forms "Neuversand" (PROJ-93) and "Diskussion beenden" (PROJ-98) hide the product: whatever the browser still sends is dropped.
+        if (in_array($this->input('formular'), [ReshipmentDecision::FORM, ClosingDecision::FORM], true)) {
             $this->merge(['produkte' => [], 'produkt_ohne_wissen' => '', 'forge_produkte' => [], 'eocs_produkte' => [], 'forge_sku' => [], 'kein_produktbezug' => '1']);
         }
     }
@@ -122,6 +123,8 @@ class AnalyzeTicketRequest extends FormRequest
             'neuversand_adresse' => ['nullable', 'string', 'max:500'],
             'neuversand_zusatz' => ['nullable', 'string', 'max:1500'],
             'neuversand_todo' => ['sometimes', 'boolean'],
+            'abschluss_angebot' => ['nullable', Rule::in(ClosingDecision::OFFER_ANSWERS)],
+            'abschluss_kernaussage' => ['nullable', 'string', 'max:300'],
             'reklamation_berechtigt' => ['nullable', Rule::in(ComplaintDecision::ANSWERS)],
             'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
@@ -188,6 +191,10 @@ class AnalyzeTicketRequest extends FormRequest
                 }
             }
 
+            if ($this->input('formular') === ClosingDecision::FORM && ! in_array($this->input('abschluss_angebot'), ClosingDecision::OFFER_ANSWERS, true)) {
+                $validator->errors()->add('abschluss_angebot', 'Bitte angeben, ob das bisherige Angebot bestehen bleibt.');
+            }
+
             if (count($this->relatedNumbers()) > (int) config('analysis.related_tickets.max')) {
                 $validator->errors()->add('related', 'Höchstens '.config('analysis.related_tickets.max').' zusammengehörige Tickets.');
             }
@@ -249,7 +256,7 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen', 'neuversand_auftrag' => 'Auftragsnummer des Neuversands', 'neuversand_adresse' => 'Aktualisierte Adresse', 'neuversand_zusatz' => 'Zusätzliche Informationen'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen', 'neuversand_auftrag' => 'Auftragsnummer des Neuversands', 'neuversand_adresse' => 'Aktualisierte Adresse', 'neuversand_zusatz' => 'Zusätzliche Informationen', 'abschluss_kernaussage' => 'Kernaussage'];
     }
 
     /**
@@ -287,6 +294,14 @@ class AnalyzeTicketRequest extends FormRequest
     }
 
     /**
+     * The answers of the form "Diskussion beenden" (PROJ-98), or null when another form was used.
+     */
+    public function closing(): ?ClosingDecision
+    {
+        return ClosingDecision::fromInput($this->validated());
+    }
+
+    /**
      * The DHL return label to attach: with the complaint form only when the complaint is justified and the
      * product is sent back, whatever else was sent.
      */
@@ -295,7 +310,7 @@ class AnalyzeTicketRequest extends FormRequest
         $complaint = $this->complaint();
         $id = $this->validated('return_label');
 
-        if ($this->support() !== null || $this->reshipment() !== null) {
+        if ($this->support() !== null || $this->reshipment() !== null || $this->closing() !== null) {
             return null;
         }
 

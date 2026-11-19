@@ -28,6 +28,11 @@
     // Guided forms (PROJ-86, PROJ-90): the form of the ticket's category is preselected, every form can be chosen.
     $complaintToggle = (bool) ($complaint['toggle'] ?? false);
     $forms = \App\Analysis\GuidedForms::options();
+    // "Diskussion beenden" (PROJ-98) only for some categories and after several customer replies.
+    $closingForm = \App\Analysis\ClosingDecision::FORM;
+    if (! ($complaint['closing'] ?? false)) {
+        unset($forms[$closingForm]);
+    }
     $defaultForm = $complaint['form'] ?? (($complaint['default'] ?? false) ? 'reklamation' : 'frei');
     $chosenForm = $oldInput ? old('formular') : ($inputs['formular'] ?? null);
     // A channel without products (PROJ-94) offers no forms for goods, no orders and no DHL label; the form follows a change of the channel.
@@ -50,7 +55,7 @@
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
                     <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
                     <span class="text-sm text-slate-600">
-                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, ($inputs['formular'] ?? null) === \App\Analysis\ReshipmentDecision::FORM ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
+                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, in_array($inputs['formular'] ?? null, [\App\Analysis\ReshipmentDecision::FORM, $closingForm], true) ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
                         @if ($complaintToggle && ! $digital)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
@@ -79,7 +84,7 @@
         <form id="analyse-formular" method="POST" action="{{ route('tickets.analysis.run', ['number' => $number]) }}" class="mt-4 space-y-5"
               x-data="{
                   variant: @js($variant), busy: false, length: @js(mb_strlen((string) $old('kontext', $inputs['kontext'] ?? ''))), labelOn: false, labelNote: '',
-                  mode: @js($formMode), digital: @js($digital), goodsForms: @js($goodsForms), loesung: @js($pickedAnswer('support_loesung')), kostenpflichtig: @js($pickedAnswer('neuversand_kostenpflichtig')), bezahlt: @js($pickedAnswer('neuversand_bezahlt')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), vorErsatz: @js($pickedAnswer('retoure_vor_ersatz', 'ja')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')),
+                  mode: @js($formMode), digital: @js($digital), goodsForms: @js($goodsForms), loesung: @js($pickedAnswer('support_loesung')), kostenpflichtig: @js($pickedAnswer('neuversand_kostenpflichtig')), bezahlt: @js($pickedAnswer('neuversand_bezahlt')), berechtigt: @js($pickedAnswer('reklamation_berechtigt')), retoure: @js($pickedAnswer('retoure', 'nein')), vorErsatz: @js($pickedAnswer('retoure_vor_ersatz', 'ja')), kulanz: @js($pickedAnswer('kulanz', 'ja')), versand: @js($pickedAnswer('versand', 'zeitnah')), angebot: @js($pickedAnswer('abschluss_angebot')),
                   syncLabel() { this.labelOn = this.mode === 'reklamation' && ['ja', 'unsicher'].includes(this.berechtigt) && this.retoure === 'ja' },
                   init() {
                       ['mode', 'berechtigt', 'retoure'].forEach((property) => this.$watch(property, () => this.syncLabel()))
@@ -102,7 +107,7 @@
                 <x-analysis.related-tickets :related="$analysis['related']" />
             @endif
 
-            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" :hidden-product-for="$complaintToggle ? 'neuversand' : null" />
+            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" :hidden-product-for="$complaintToggle ? ['neuversand', $closingForm] : null" />
 
             <fieldset x-show="! digital" x-bind:disabled="digital" @if ($digital) x-cloak @endif class="min-w-0 space-y-5 border-0 p-0">
             <legend class="sr-only">Bestellung</legend>
@@ -183,6 +188,9 @@
                 <x-analysis.support-fields :inputs="$inputs" />
                 <x-analysis.complaint-fields :inputs="$inputs" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
                 <x-analysis.reshipment-fields :inputs="$inputs" />
+                @if (isset($forms[$closingForm]))
+                    <x-analysis.closing-fields :inputs="$inputs" />
+                @endif
             @endif
 
             @if ($testMode)

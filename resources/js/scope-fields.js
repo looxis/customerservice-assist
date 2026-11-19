@@ -339,6 +339,11 @@ export default (config) => ({
         return this.none && this.selected.length === 0 && this.unknown === '' && this.forgeSelected.length === 0;
     },
 
+    // A guided form without any product (PROJ-93, PROJ-98): one form or a list of forms.
+    productHidden() {
+        return this.hiddenFor !== null && [].concat(this.hiddenFor).includes(this.mode);
+    },
+
     confirmation() {
         const parts = [];
 
@@ -351,13 +356,13 @@ export default (config) => ({
             return parts.length === 0 ? null : `${parts.join('\n\n')}\n\nSicher, dass du so fortfahren willst?`;
         }
 
-        if (this.withoutProduct && !(this.optionalFor !== null && this.mode === this.optionalFor) && !(this.hiddenFor !== null && this.mode === this.hiddenFor)) {
+        if (this.withoutProduct && !(this.optionalFor !== null && this.mode === this.optionalFor) && !this.productHidden()) {
             parts.push(this.mentioned.length > 0
                 ? `„Kein Produktbezug“ ist gewählt, im Ticket wird aber ${this.mentioned.join(', ')} erwähnt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.`
                 : '„Kein Produktbezug“ ist gewählt. Dann werden weder Produktangaben aus dem Produktkatalog noch produktbezogene Regeln berücksichtigt.');
         }
 
-        if (this.forgeUnchosen && !(this.hiddenFor !== null && this.mode === this.hiddenFor)) {
+        if (this.forgeUnchosen && !this.productHidden()) {
             parts.push('Die Bestellung enthält mehrere Produkte und keines ist als betroffen markiert. Dann gehen keine Produktinformationen aus dem Katalog an die KI.');
         }
 

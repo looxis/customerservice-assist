@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Analysis\AnalysisPanel;
 use App\Analysis\AnalysisStore;
+use App\Analysis\ClosingDecision;
 use App\Analysis\GuidedForms;
 use App\Analysis\ReplyDelivery;
 use App\Analysis\TicketActivityLog;
@@ -16,7 +17,6 @@ use App\Http\Requests\TicketLookupRequest;
 use App\Knowledge\SalesChannels;
 use App\Labeling\LabelCategory;
 use App\Labeling\TicketLabelState;
-use App\Models\LabelTicket;
 use App\Models\WismoRun;
 use App\Orders\OrderFormats;
 use App\Orders\OrderNumber;
@@ -110,6 +110,10 @@ class TicketController extends Controller
 
         if (is_array($analysis['result'] ?? null)) {
             $analysis['result']['send'] = $delivery->offer($analysis['result'], $ticket, $staff->current($request));
+            // "Diskussion beenden" (PROJ-98): the app suggests the fixed internal note for Zammad, the employee can change it.
+            if (($analysis['inputs']['formular'] ?? null) === ClosingDecision::FORM) {
+                $analysis['result']['send']['note'] = ClosingDecision::NOTE;
+            }
             $analysis['result']['todo_context'] = app(TodoCaseContext::class)->build($ticket, $selected, $lookups, $this->claimReferences($suggestions), (string) ($analysis['result']['reply_text'] ?? ''), (array) ($analysis['inputs'] ?? []));
         }
 
@@ -144,7 +148,7 @@ class TicketController extends Controller
             'analysis' => $analysis,
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
             'labelState' => $labelState,
-            'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups, $channels->withoutProducts(is_string($analysis['suggestedChannel'] ?? null) ? $analysis['suggestedChannel'] : null)),
+            'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups, $channels->withoutProducts(is_string($analysis['suggestedChannel'] ?? null) ? $analysis['suggestedChannel'] : null), $ticket),
         ]);
     }
 
@@ -167,9 +171,10 @@ class TicketController extends Controller
      * @param  list<string>  $claimReferences
      * @param  list<OrderLookup>  $lookups
      * @param  bool  $withoutProducts  The preselected channel has no products (PROJ-94): no form for goods to start with.
-     * @return array{default: bool, form: string, toggle: bool, claimNumber: ?string}
+     * @param  Ticket|null  $ticket  For the form "Diskussion beenden" (PROJ-98), offered only after several customer replies.
+     * @return array{default: bool, form: string, toggle: bool, claimNumber: ?string, closing: bool}
      */
-    private function complaintForm(?array $labelState, array $claimReferences, array $lookups, bool $withoutProducts = false): array
+    private function complaintForm(?array $labelState, array $claimReferences, array $lookups, bool $withoutProducts = false, ?Ticket $ticket = null): array
     {
         $category = $labelState['decision'] ?? $labelState['suggestion'] ?? null;
         $default = $category === LabelCategory::Reklamation->value && ! $withoutProducts;
@@ -184,7 +189,7 @@ class TicketController extends Controller
             }
         }
 
-        return ['default' => $default, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null, $withoutProducts), 'toggle' => true, 'claimNumber' => $claims[0] ?? null];
+        return ['default' => $default, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null, $withoutProducts), 'toggle' => true, 'claimNumber' => $claims[0] ?? null, 'closing' => $ticket !== null && ClosingDecision::available(is_string($category) ? $category : null, $ticket)];
     }
 
     /**
@@ -207,13 +212,7 @@ class TicketController extends Controller
      */
     private function labelState(Ticket $ticket): ?array
     {
-        $labelTicket = LabelTicket::query()->where('zammad_id', $ticket->id)->with(['latestPrediction', 'reviews'])->first();
-
-        if ($labelTicket === null || $labelTicket->state !== 'classified' || blank($labelTicket->text)) {
-            return null;
-        }
-
-        return TicketLabelState::of($labelTicket);
+        return TicketLabelState::forTicket($ticket);
     }
 
     /**

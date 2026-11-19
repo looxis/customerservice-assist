@@ -50,7 +50,7 @@
             ticketUrl: @js($send['ticket_url'] ?? null),
             files: [],
             fileError: '',
-            note: '',
+            note: @js($send['note'] ?? ''),
             todos: [],
             warning: '',
         },

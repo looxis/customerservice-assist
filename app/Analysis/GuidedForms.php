@@ -11,7 +11,8 @@ use App\Labeling\LabelCategory;
 final class GuidedForms
 {
     /**
-     * A form without a category (Neuversand, PROJ-93) is never preselected, only chosen by hand.
+     * A form without a category (Neuversand, PROJ-93; Diskussion beenden, PROJ-98) is never preselected, only chosen
+     * by hand. "Diskussion beenden" is only offered when ClosingDecision::available() says so.
      *
      * "goods": the form assumes goods and shipping, so a channel without products (PROJ-94) does not offer it.
      *
@@ -21,6 +22,7 @@ final class GuidedForms
         SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport, 'goods' => false],
         ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation, 'goods' => true],
         ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null, 'goods' => true],
+        ClosingDecision::FORM => ['label' => 'Diskussion beenden', 'category' => null, 'goods' => false],
     ];
 
     /**
