@@ -1,6 +1,6 @@
 # PROJ-98: Geführtes Formular „Diskussion beenden“ in „Vorschlag erstellen“
 
-## Status: In Review
+## Status: Approved
 **Created:** 2026-11-19
 **Last Updated:** 2026-11-19
 
