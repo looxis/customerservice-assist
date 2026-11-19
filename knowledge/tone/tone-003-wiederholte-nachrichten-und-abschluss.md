@@ -58,6 +58,14 @@ Den geprüften Grund an der Stelle der Auslassung einsetzen. Die Antwort bleibt 
 
 Nach einer abschließenden Antwort bei unverändertem Sachverhalt keine weitere inhaltlich identische Argumentationsschleife beginnen. Für den Amazon-Abschluss ohne erneute Textantwort gilt PROCESS-003.
 
+# Diskussion beenden
+
+Bringt der Kunde nach ausführlicher Erklärung und gegebenenfalls angebotenen Optionen weiterhin dieselben Fragen und Argumente, beendet der Mitarbeiter die Diskussion mit einem kurzen, bestimmten Abschluss (in der App: Formular „Diskussion beenden“). Inhalt: Wir haben den Sachverhalt intensiv geprüft, im Verlauf mehrerer Nachrichten ausführlich erklärt und sind auf alle Fragen und Argumente eingegangen. Wir haben dem nichts hinzuzufügen und beenden die Diskussion an dieser Stelle. Ein noch gültiges Angebot wird in einem Satz erwähnt, nicht erneut erklärt.
+
+Dieser Abschluss bleibt sachlich und höflich, enthält aber keine Verständnis- oder Bedauernsfloskeln, keine erneute Erklärung und geht nicht auf einzelne Argumente ein; solche Formulierungen laden zum Weiterdiskutieren ein.
+
+Danach werden weitere Nachrichten zum unveränderten Sachverhalt ohne neue substantielle Hinweise, die nicht schon zuvor hätten eingebracht werden können, nicht mehr kommentiert, sondern nur noch geschlossen. Das wird als interne Notiz im Ticket festgehalten.
+
 # Vermeiden
 
 Keine starre Regel wie „ab der fünften Nachricht nicht mehr antworten“. Keine neuen Tatsachen allein wegen eines bereits abgeschlossenen Falls ignorieren. Eine ungeklärte Frage nicht als abschließend geprüft darstellen.
