@@ -52,6 +52,7 @@ Only features that are not yet Approved are listed here, each with its spec in `
 | PROJ-94 | WeCreateYour-Fälle ohne Produktbezug | Folge aus PROJ-89 (2026-11-18): Ist der Kanal „WeCreateYour“ gewählt (digitale Dienstleistungen, nur Geschäftskunden), arbeitet CSA ohne Produktbezug über EOCS oder ProductForge; Wissen ohne Einschränkung bleibt gültig | PROJ-89, PROJ-42, PROJ-38, PROJ-7 | In Review | [Spec](PROJ-94-wecreateyour-ohne-produktbezug.md) | 2026-11-18 |
 | PROJ-95 | ToDo-Antworten in der Sprache des Kunden | Vorbereitete ToDo-Antworten (Sendungsnummer, Erstattung) werden samt Signatur in die Sprache der letzten Kundennachricht übersetzt, automatisch beim Versand der Sendungsnummer (jetzt für alle Sprachen einschaltbar, mit Prüfungen) und beim Öffnen der manuellen Antwort; Texte bleiben auf Deutsch gepflegt | PROJ-70, PROJ-77, PROJ-28, PROJ-82 | In Review | [Spec](PROJ-95-todo-antworten-in-kundensprache.md) | 2026-11-18 |
 | PROJ-97 | Versandbenachrichtigungen aus Lettermint im Antwortvorschlag | Bei Liefer- und Verbleibsanfragen fragt CSA zusammen mit dem Sendungsstatus (PROJ-88) bei Lettermint ab, ob und wann die n8n-Mails „Paket kommt heute“ und „Abholhinweis“ zur Bestellnummer vom Empfänger-Mailserver angenommen wurden; der Entwurf nennt belegte Benachrichtigungen mit Datum und wirbt für die Mitwirkung bei der Zustellung, ohne Beleg gelber Hinweis „n8n prüfen“; Ergebnisansicht zeigt die Belege | PROJ-88, PROJ-7, PROJ-9 | In Review | [Spec](PROJ-97-versandbenachrichtigungen-lettermint.md) | 2026-11-18 |
+| PROJ-98 | Geführtes Formular „Diskussion beenden“ | Manuell wählbares Formular nur bei WISMO, Reklamation, Adressänderung, Storno und ab der 3. Kundenantwort: kurzer, bestimmter Abschluss ohne erneute Erklärung und ohne Verständnisfloskeln, bisheriges Angebot bleibt bestehen ja/nein, optionale Kernaussage; feste Vorgaben gehen Wissen und Tonregeln vor; beim Senden vorbefüllte interne Notiz, dass weitere unveränderte Nachrichten nur noch geschlossen werden | PROJ-90, PROJ-93, PROJ-80, PROJ-70 | In Review | [Spec](PROJ-98-formular-diskussion-beenden.md) | 2026-11-19 |
 <!-- Add features above this line -->
 
 ## Archive: completed features
@@ -71,4 +72,4 @@ Approved features are part of the app. Their detailed specs (user stories, decis
 
 Build order: the ID order. Exceptions that were built out of order: PROJ-24 right after PROJ-3; PROJ-25 and PROJ-26 are independent; PROJ-28 right after PROJ-11; PROJ-30 after PROJ-10; PROJ-32 right after PROJ-9; PROJ-33 after PROJ-11.
 
-## Next Available ID: PROJ-98
+## Next Available ID: PROJ-99
