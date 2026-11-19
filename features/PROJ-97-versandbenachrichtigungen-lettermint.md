@@ -70,7 +70,7 @@ Die Mails haben die WISMO-Anfragen reduziert. Manche Kunden ignorieren sie trotz
 - Ein UTC-Zeitpunkt kurz vor Mitternacht ergibt in Berlin den Folgetag. Angezeigt wird der Berliner Tag.
 
 ## Open Questions
-- [ ] Wie lauten die genauen Betreffzeilen beider n8n-Mails, auch in anderen Sprachen? Sie bestimmen die Erkennung der Mailart und werden beim ersten Live-Abruf geprüft.
+- [x] Betreffzeilen (Live-Abruf 2026-11-19): „[WICHTIG] Ihre Bestellung kommt heute – Bestellung …“, „Your order arrives today – Order …“, „[Wichtig] Ihr Paket wartet auf Abholung – Bestellung …“, „Your parcel is waiting for pickup – order …“. Antworten im Ticket („RE: … [Ticket#…]“) zählen als sonstige Mail.
 - [ ] POLICY-047 nennt für den Neuversand bei looxis.de nur `[VERSANDKOSTEN]` und eine Kulanz ab 100 € Bestellwert. Etienne berechnet heute 5 €. Soll der Betrag ins Wissen? Das entscheidet Etienne, bis dahin bleibt die Policy unverändert.
 - [ ] Ist ein Lettermint-Projekt einzugrenzen (`LETTERMINT_PROJECT_ID`), oder laufen alle Kundenmails über ein Projekt?
 
@@ -103,7 +103,7 @@ Die Mails haben die WISMO-Anfragen reduziert. Manche Kunden ignorieren sie trotz
 ## Implementation Notes
 - `app/Lettermint/LettermintClient.php` (Bearer-Token, `filter[type]=outbound`, `filter[delivery_mode]=live`, `filter[subject]`, optional `filter[project]`, Cursor bis 3 Seiten, zwei Versuche bei 429/5xx/Verbindungsfehler, Timeout 5 s), `LettermintException`.
 - `app/Lettermint/DeliveryNotices.php`: ganze Bestellnummer im Betreff, höchstens 5 je Bestellung, `evaluate()` mit Rangfolge Fehler nach `delivered` → `delivered` → Status `delivered` ohne Ereignis → `processed` → `queued`/`scheduled`. Zeit in Europe/Berlin mit Sekunden. `DeliveryNotice::facts()` geht ohne Betreff und ohne Adresse an die KI.
-- Mailart über `services.lettermint.subjects` (Abholhinweis zuerst geprüft). Die Stichwörter sind vorläufig und werden beim ersten Live-Abruf an die echten Betreffzeilen angepasst.
+- Mailart über `services.lettermint.subjects` (Abholhinweis zuerst geprüft): „kommt heute“, „arrives today“, „wartet auf Abholung“, „waiting for pickup“; Ticket-Antworten (RE:/AW:, „[Ticket#“) sind „sonstige“. Am 2026-11-19 live geprüft: Team-Token mit Leserecht „messages“, Nachrichtenfelder und Ereignisse wie erwartet, Bestellung 305-… ergab beide Mails mit `delivered`.
 - `ShipmentStatusTool` hängt die Zeilen nur an, wenn mindestens eine Sendung abgefragt wurde und ein Token gesetzt ist. `noticeRecord()` landet als `delivery_notices` im gespeicherten Ergebnis. `<x-analysis.delivery-notices>` steht in „Was ist zu tun?“.
 - Prompt `analysis-2026-11-18.1`, Regel „Benachrichtigungen“. POLICY-045 ist ergänzt (Abholhinweis, Nennung mit Datum nur bei Beleg, Trigger „nie angekommen“, „nie erhalten“).
 - Env (trägt Etienne ein): `LETTERMINT_TEAM_TOKEN`, optional `LETTERMINT_PROJECT_ID`, `LETTERMINT_URL`, `LETTERMINT_TIMEOUT`.
@@ -111,7 +111,7 @@ Die Mails haben die WISMO-Anfragen reduziert. Manche Kunden ignorieren sie trotz
 ## QA Test Results
 
 **Tested:** 2026-11-18
-**Tester:** QA Engineer (AI). Der Live-Abruf gegen das echte Lettermint-Konto steht noch aus, weil noch kein Token hinterlegt ist.
+**Tester:** QA Engineer (AI). Live-Abruf gegen das Lettermint-Konto am 2026-11-19 erfolgreich (Token, Filter, Ereignisse, Erkennung der Mailart).
 
 ### Acceptance Criteria Status
 - [x] Abfrage (5/5): nur über den Werkzeugaufruf, Filter outbound/live/Betreff, ganze Bestellnummer (12345 ≠ 123456 und 12345-2), gleiche Betreffe einzeln und die neueste zuerst, Folgeseite mit allen Filtern und Cursor

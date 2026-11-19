@@ -78,7 +78,7 @@ it('reads the next page with all filters and the cursor', function () {
     Http::fake([
         'lettermint.test/v1/messages?*' => function (HttpRequest $request) {
             return str_contains(urldecode($request->url()), 'page[cursor]=p2')
-                ? Http::response(['data' => [lmMessage('x', 'Ihr Paket liegt zur Abholung bereit – 4711')], 'next_cursor' => null])
+                ? Http::response(['data' => [lmMessage('x', '[Wichtig] Ihr Paket wartet auf Abholung – Bestellung 4711')], 'next_cursor' => null])
                 : Http::response(['data' => [lmMessage('y', 'Rechnung 999')], 'next_cursor' => 'p2']);
         },
         'lettermint.test/v1/messages/x/events*' => Http::response(['data' => [lmEvent('delivered', '2026-11-17T08:00:05Z')]]),
@@ -171,7 +171,7 @@ it('leaves the answer unchanged without a token', function () {
 });
 
 it('shows the notices in the result view and warns without evidence', function () {
-    $proven = Blade::render('<x-analysis.delivery-notices :record="$record" />', ['record' => [['order' => '4711', 'status' => 'ok', 'notices' => [['kind' => 'pickup', 'subject' => 'Abholbereit 4711', 'outcome' => 'accepted', 'at' => '17.11.2026, 09:00:05 Uhr', 'failure' => null, 'to_ticket_sender' => true]]]]]);
+    $proven = Blade::render('<x-analysis.delivery-notices :record="$record" />', ['record' => [['order' => '4711', 'status' => 'ok', 'notices' => [['kind' => 'pickup', 'subject' => '[Wichtig] Ihr Paket wartet auf Abholung – Bestellung 4711', 'outcome' => 'accepted', 'at' => '17.11.2026, 09:00:05 Uhr', 'failure' => null, 'to_ticket_sender' => true]]]]]);
     $none = Blade::render('<x-analysis.delivery-notices :record="$record" />', ['record' => [['order' => '4711', 'status' => 'ok', 'notices' => []]]]);
     $down = Blade::render('<x-analysis.delivery-notices :record="$record" />', ['record' => [['order' => '4711', 'status' => 'unavailable', 'notices' => []]]]);
 
@@ -184,3 +184,15 @@ it('shows the notices in the result view and warns without evidence', function (
 it('has the notification rule in the analysis prompt', function () {
     expect(file_get_contents(resource_path('prompts/analysis.md')))->toContain('- Benachrichtigungen:')->toContain('n8n-Workflow prüfen');
 });
+
+it('recognises the live subjects and does not take ticket replies for notifications', function (string $subject, string $kind) {
+    expect(DeliveryNotices::kind($subject))->toBe($kind);
+})->with([
+    ['[WICHTIG] Ihre Bestellung kommt heute – Bestellung 305-4677736-2506747', 'today'],
+    ['Your order arrives today – Order 7KP-105I-IUB8', 'today'],
+    ['[Wichtig] Ihr Paket wartet auf Abholung – Bestellung R1-123456', 'pickup'],
+    ['Your parcel is waiting for pickup – order 7KP-105I-IUB8', 'pickup'],
+    ['RE: [IMPORTANT] Your order arrives today Order 7KP-105I-IUB8 [Ticket#2140500]', 'other'],
+    ['[Wichtig] Ihr Paket wartet auf Abholung Bestellung 4711 [Ticket#2140501]', 'other'],
+    ['Looxis - Rechnung LX26-59977 zur Bestellung #7KR-0NDY-LWZ4', 'other'],
+]);

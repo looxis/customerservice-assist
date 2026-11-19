@@ -60,8 +60,16 @@ class DeliveryNotices
         return $orderNumber !== '' && preg_match('/(?<![0-9A-Za-z-])'.preg_quote($orderNumber, '/').'(?![0-9A-Za-z])(?!-[0-9A-Za-z])/u', $subject) === 1;
     }
 
+    /**
+     * Replies in a Zammad ticket ("RE: [IMPORTANT] Your order arrives today … [Ticket#…]") repeat the subject of the
+     * notification but are not one; they count as other mails.
+     */
     public static function kind(string $subject): string
     {
+        if (preg_match('/^\s*(re|aw|wg|fw|fwd)\s*:/iu', $subject) === 1 || str_contains($subject, '[Ticket#')) {
+            return 'other';
+        }
+
         $subject = mb_strtolower($subject);
 
         foreach (['pickup', 'today'] as $kind) {
