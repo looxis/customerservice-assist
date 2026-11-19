@@ -71,7 +71,7 @@ Die Mails haben die WISMO-Anfragen reduziert. Manche Kunden ignorieren sie trotz
 
 ## Open Questions
 - [x] Betreffzeilen (Live-Abruf 2026-11-19): „[WICHTIG] Ihre Bestellung kommt heute – Bestellung …“, „Your order arrives today – Order …“, „[Wichtig] Ihr Paket wartet auf Abholung – Bestellung …“, „Your parcel is waiting for pickup – order …“. Antworten im Ticket („RE: … [Ticket#…]“) zählen als sonstige Mail.
-- [ ] POLICY-047 nennt für den Neuversand bei looxis.de nur `[VERSANDKOSTEN]` und eine Kulanz ab 100 € Bestellwert. Etienne berechnet heute 5 €. Soll der Betrag ins Wissen? Das entscheidet Etienne, bis dahin bleibt die Policy unverändert.
+- [x] POLICY-047 (2026-11-19, Entscheidung Etienne): Neuversand für looxis.de-Endkunden pauschal 5 €, auch ins Ausland; B2B (POLICY-046) bleibt offen; ist eine Benachrichtigung belegt, gilt die Nichtzustellung nicht als unverschuldet, kein kostenfreier Neuversand außer bei besonderem Grund; Kulanz ab 100 € sonst unverändert.
 - [ ] Ist ein Lettermint-Projekt einzugrenzen (`LETTERMINT_PROJECT_ID`), oder laufen alle Kundenmails über ein Projekt?
 
 ## Decision Log
