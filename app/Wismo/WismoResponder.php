@@ -329,6 +329,10 @@ class WismoResponder
         $attempted = collect($statuses)->contains(fn (TrackingStatus $status): bool => collect($status->history?->milestones ?? [])->contains(fn (array $milestone): bool => array_intersect(DeliveryText::kinds($milestone['text']), ['attempt', 'absent', 'pickup', 'not_collected']) !== []));
         $rules = [];
 
+        if (collect($statuses)->contains(fn (TrackingStatus $status): bool => $status->link !== null)) {
+            $rules[] = 'Nenne für jede Sendung den `tracking_link` unverändert als reinen Text in einer eigenen Zeile, zusammen mit der Sendungsnummer und dem Hinweis auf die Webseite des Paketdienstes; ohne Link wird die Antwort nicht gesendet.';
+        }
+
         if ($returned || in_array(ShipmentHistory::PICKUP_READY, $cases, true) || $attempted) {
             $rules[] = $notifications === []
                 ? 'Sage ausdrücklich, dass der Kunde über die Zustellung benachrichtigt wurde und der Paketdienst in der Regel zusätzlich eine Benachrichtigungskarte im Briefkasten hinterlässt.'
@@ -346,6 +350,12 @@ class WismoResponder
 
         $address = array_intersect($cases, [ShipmentHistory::RETURNED_ADDRESS, ShipmentHistory::ADDRESS_HOLD]) !== [];
         $receive = array_intersect($cases, [ShipmentHistory::RETURNED_NOT_COLLECTED, ShipmentHistory::RETURNED_REFUSED]) !== [];
+
+        if ($returned) {
+            $rules[] = 'Weise vor der Bitte am Ende freundlich darauf hin, dass ein erneuter Versand Kosten verursacht, die wir leider nicht übernehmen können, '
+                .'und dass auch nach dem Eingang des Pakets bei uns keine Erstattung möglich ist, weil das Produkt nach dem Wunsch des Kunden personalisiert wurde und nicht anderweitig verwendet werden kann. '
+                .'Nenne keinen Betrag und verwende nicht die Wörter „kostenlos“ oder „gratis“.';
+        }
 
         if ($address || $receive) {
             $rules[] = 'Der letzte Absatz ist die Bitte an den Kunden: die Details in der Sendungsverfolgung prüfen, '

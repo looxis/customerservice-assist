@@ -303,7 +303,7 @@ describe('the case from the whole tracking history (PROJ-99)', function () {
             ->and(wismoNotes()[0]['article']['body'])->toContain('Ticket automatisch geschlossen')->toContain('Rücksendung: nicht angetroffen/abgeholt')->not->toContain('bitte prüfen');
         WismoAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('"case": "returned_not_collected"') && $prompt->contains('"returned_to_us": true') && $prompt->contains('"storage_days": 7')
             && $prompt->contains('Weiterleitung an Filiale') && ! $prompt->contains('Briefzentrum')
-            && $prompt->contains('Nenne die Lagerfrist von 7 Tagen') && $prompt->contains('benachrichtigt wurde') && $prompt->contains('Erwähne keine Zustelloptionen') && $prompt->contains('entgegennehmen kann') && ! $prompt->contains('Etienne Lager') && ! $prompt->contains('"delivered": true'));
+            && $prompt->contains('Nenne die Lagerfrist von 7 Tagen') && $prompt->contains('benachrichtigt wurde') && $prompt->contains('Erwähne keine Zustelloptionen') && $prompt->contains('entgegennehmen kann') && $prompt->contains('Kosten verursacht') && $prompt->contains('keine Erstattung möglich') && ! $prompt->contains('Etienne Lager') && ! $prompt->contains('"delivered": true'));
     });
 
     test('an order that is not shipped yet is answered and closed', function () {
