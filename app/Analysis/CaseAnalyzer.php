@@ -535,19 +535,27 @@ class CaseAnalyzer
 
     /**
      * The documents that were not even checked because customer group or product put them out of scope
-     * (PROJ-44), with the cause: no product chosen, another product, or another customer group.
+     * (PROJ-44), with the cause: no product chosen, another product, another customer group, or a channel
+     * without products (PROJ-94), where a missing product is no gap.
      *
      * @return list<array{id: string|null, title: string|null, cause: string, reason: string, products: list<string>}>
      */
     private function outOfScope(AnalysisRequest $request, CaseContext $context): array
     {
-        return array_values(array_map(function (KnowledgeSelectionEntry $entry) use ($request): array {
+        $withoutProducts = app(SalesChannels::class)->withoutProducts($request->customerGroup->salesChannel);
+
+        return array_values(array_map(function (KnowledgeSelectionEntry $entry) use ($request, $withoutProducts): array {
             $document = $entry->document;
 
             return [
                 'id' => $document->id,
                 'title' => $document->title,
-                'cause' => $request->customerGroup->exclusionReason($document) !== null ? 'group' : ($request->products === [] ? 'product-missing' : 'product'),
+                'cause' => match (true) {
+                    $request->customerGroup->exclusionReason($document) !== null => 'group',
+                    $withoutProducts => 'channel',
+                    $request->products === [] => 'product-missing',
+                    default => 'product',
+                },
                 'reason' => $entry->reason,
                 'products' => $document->boundProducts(),
             ];

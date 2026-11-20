@@ -92,6 +92,7 @@
             $scopeGroups = [
                 'product-missing' => ['Gelten nur für bestimmte Produkte – es war keins gewählt', 'Diese Dokumente wurden gar nicht geprüft. Gehört der Fall zu einem Produkt, wähle es und erstelle den Vorschlag neu.'],
                 'product' => ['Gelten für andere Produkte als die gewählten', null],
+                'channel' => ['Gelten nur für bestimmte Produkte – der Verkaufskanal hat keine Produkte', null],
                 'group' => ['Gelten nur für andere Kundengruppen', null],
             ];
         @endphp

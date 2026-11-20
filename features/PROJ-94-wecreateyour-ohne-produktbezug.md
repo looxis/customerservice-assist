@@ -190,7 +190,7 @@ Keine neuen Pakete.
 | Produkt | Produktbereich ausgeblendet, Fall ohne Produktbezug | ✅ |
 | Produkt | Keine Produktantwort nötig | ✅ (Test) |
 | Produkt | Kein Produktvorschlag aus Kundenbegriffen | ✅ (ausgeblendet und abgeschaltet, Server verwirft) |
-| Produkt | Keine ProductForge-Infos, keine Produkt-Hinweise im Ergebnis | ❌ BUG-1 |
+| Produkt | Keine ProductForge-Infos, keine Produkt-Hinweise im Ergebnis | ✅ (nach Fix BUG-1) |
 | Produkt | Kanalwechsel blendet Produktbereich ein/aus | ✅ (Code, nicht im Browser) |
 | Produkt | „Frage stellen“ wie am Ticket | ✅ (Test) |
 | EOCS | Keine Bestellnummer-Suche, kein EOCS, kein Bestellbereich | ✅ (Test, echtes Ticket) |
@@ -214,6 +214,11 @@ Keine neuen Pakete.
 - **BUG-1 (Medium) – Ergebnis meldet „❗ Kein Produktwissen berücksichtigt“ mit Knopf „Produkt wählen“.** Bei WeCreateYour gelten produktgebundene Dokumente als „kein Produkt gewählt“ (PROJ-44, Ursache `product-missing`), daher erscheint die Warnung bei jedem Vorschlag und fordert zu einer Produktwahl auf, die das Formular gar nicht anbietet. Gilt auch für „Frage stellen“. Schritte: Ticket mit Betreff „Contact Form @ WeCreateYour.com“ öffnen, Vorschlag erstellen → Warnung über dem Ergebnis. Erwartet: keine Produkt-Hinweise (Akzeptanzkriterium „keine Hinweise zu fehlenden … Produkten (PROJ-44)“).
 - **BUG-2 (Medium) – Deaktivierte Gruppe „WeCreateYour“ mit gespeicherter Mitarbeiter-Wahl schaltet EOCS weiter ab.** Hat ein Mitarbeiter am Ticket „WeCreateYour“ gewählt und ein Admin deaktiviert danach die Gruppe, überspringt die Ticketseite weiter Bestellnummern und EOCS und zeigt „keine Bestellungen in EOCS“, obwohl der Kanal nicht mehr wählbar ist. Erwartet laut Randfall: Die App arbeitet wie bei jedem anderen Ticket. Umgehung: anderen Kanal wählen und einen Vorschlag erstellen.
 
+**Behoben (2026-11-20):**
+- BUG-1: Produktgebundene Dokumente erhalten bei einem Kanal ohne Produkte die Ursache `channel` statt `product-missing`. Die Warnung „Kein Produktwissen berücksichtigt“ entfällt damit, der Wissensabruf führt sie als „Gelten nur für bestimmte Produkte – der Verkaufskanal hat keine Produkte“.
+- BUG-2: `SalesChannels::withoutProducts()` gilt nur für einen noch wählbaren Kanal; bei deaktivierter Gruppe arbeitet die App wie bei jedem anderen Ticket.
+- Je ein Regressionstest in `PROJ-94-ChannelWithoutProductsTest.php`; volle Testreihe ohne neue Fehlschläge.
+
 ### Sicherheit
 - Einstellungen (Profilfelder, KI-Hinweis) speichern nur Admins (bestehende Prüfung im `SettingsController`); Name, Stichwörter und Hinweis werden escaped bzw. per `x-model` ausgegeben, kein XSS.
 - Formulare mit `@csrf` unverändert; der Server setzt „ohne Produkte“ selbst durch (Produkte, Bestellungen, Bestelldaten verworfen, Reklamation/Neuversand abgewiesen), ein manipuliertes Formular kann EOCS oder Ware-Formulare nicht erzwingen.
@@ -223,7 +228,7 @@ Keine neuen Pakete.
 Gesamtlauf sequenziell: 2.826 von 2.830 grün; die 2 Fehlschläge (PROJ-1 Versionsanzeige, PROJ-56 Seitenleiste) bestehen auch ohne PROJ-94.
 
 ### Entscheidung
-**Produktionsreif: JA** (keine Critical/High-Bugs). BUG-1 sollte vor dem Einsatz behoben werden, weil er bei jedem WeCreateYour-Vorschlag erscheint.
+**Produktionsreif: JA** (keine Critical/High-Bugs). BUG-1 und BUG-2 sind behoben.
 
 ## Deployment
 _To be added by /deploy_

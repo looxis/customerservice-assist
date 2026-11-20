@@ -47,7 +47,7 @@ class SalesChannels
             if ($group->isUnclear()) {
                 $unclear ??= ['key' => self::UNCLEAR, 'label' => $group->label, 'group' => $group->key, 'without_products' => false];
             } elseif ($group->salesChannel !== null && ! isset($options[$group->salesChannel])) {
-                $options[$group->salesChannel] = ['key' => $group->salesChannel, 'label' => $this->label($group->salesChannel), 'group' => $group->key, 'without_products' => $this->withoutProducts($group->salesChannel)];
+                $options[$group->salesChannel] = ['key' => $group->salesChannel, 'label' => $this->label($group->salesChannel), 'group' => $group->key, 'without_products' => (bool) ($this->profile($group->salesChannel)['without_products'] ?? false)];
             }
         }
 
@@ -78,10 +78,12 @@ class SalesChannels
 
     /**
      * Whether a channel has no products and no orders (PROJ-94): no product answer, no EOCS, no forms for goods.
+     * Only a channel that can still be chosen counts; a deactivated group leaves the ticket as an ordinary one.
      */
     public function withoutProducts(?string $channel): bool
     {
-        return $channel !== null && $channel !== '' && (bool) ($this->profile($channel)['without_products'] ?? false);
+        return $channel !== null && $channel !== '' && (bool) ($this->profile($channel)['without_products'] ?? false)
+            && in_array($channel, $this->keys(), true);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Analysis\Agents\CaseAgent;
+use App\Analysis\AnalysisStore;
 use App\Knowledge\SalesChannels;
 use App\Models\Analysis;
 use App\Models\TrackedTicket;
@@ -138,6 +139,21 @@ describe('the ticket page', function () {
         expect(wcyEocsCalls())->toBeGreaterThan(0);
     });
 
+    test('a deactivated WeCreateYour group makes the ticket an ordinary one again, even with a stored choice', function () {
+        TrackedTicket::factory()->create(['number' => '2137942', 'channel' => 'wecreateyour', 'channel_source' => 'staff']);
+        $groups = array_map(fn (array $group): array => $group['key'] === 'wecreateyour' ? [...$group, 'status' => 'inactive'] : $group, app(SettingsStore::class)->value('kn_groups'));
+        app(SettingsStore::class)->save('kn_groups', $groups, 'Etienne');
+        app(KnowledgeValues::class)->apply();
+        wcyTicket();
+
+        expect(app(SalesChannels::class)->withoutProducts('wecreateyour'))->toBeFalse();
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
+            ->assertDontSeeText('keine Bestellungen in EOCS')
+            ->assertSee('digital: false', false);
+
+        expect(wcyEocsCalls())->toBeGreaterThan(0);
+    });
+
     test('an ordinary ticket is unchanged', function () {
         wcyTicket('Login geht nicht');
 
@@ -191,6 +207,24 @@ describe('the proposal', function () {
         wcyTicket();
 
         wcyRun(['kundengruppe' => 'private-looxis-de', 'verkaufskanal' => 'looxis-de'])->assertSessionHasErrors('produkte');
+    });
+
+    test('documents bound to a product count as out of the channel, not as a missing product', function () {
+        config(['knowledge.retrieval.active' => true, 'knowledge.router.active' => false, 'cache.default' => 'array']);
+        knowledgeBase([
+            'policies/policy-001-a.md' => knowledgeDoc(['title' => 'Allgemeine Regel']),
+            'products/magic-mug.md' => knowledgeDoc(['id' => 'PRODUCT-002', 'type' => 'product', 'title' => 'Zaubertasse', 'products' => ['magic-mug']]),
+        ]);
+        wcyTicket();
+        CaseAgent::fake([wcyAnswer()]);
+
+        $location = (string) wcyRun()->assertSessionHasNoErrors()->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+        $scope = collect(app(AnalysisStore::class)->result($query['analyse'])['retrieval']['out_of_scope'])->keyBy('id');
+
+        expect($scope['PRODUCT-002']['cause'])->toBe('channel');
+        $this->withCookie('staff_name', 'Nele')->get($location)->assertOk()
+            ->assertDontSeeText('Kein Produktwissen berücksichtigt');
     });
 
     test('a question with the channel WeCreateYour needs no product', function () {
