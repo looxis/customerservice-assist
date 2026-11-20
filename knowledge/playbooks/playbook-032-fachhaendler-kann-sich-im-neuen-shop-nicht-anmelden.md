@@ -65,9 +65,8 @@ Ein Fachhändler kommt nicht in den Fachhändler-Shop: Anmeldung oder Passwort w
 
 # Typische Ursache
 
-- In fast allen Fällen falscher Shop: Anmeldung auf www.looxis.de oder im abgeschalteten alten Shop reseller.looxis.de statt auf fachhaendler.looxis.de. Davon zunächst immer ausgehen.
-- Meldung „Forbidden“ oder „You don't have permission to access / on this server.“: Der Händler ruft eine nicht (mehr) gültige Adresse auf, meist ein altes Lesezeichen oder einen Link zum abgeschalteten Shop reseller.looxis.de. Das ist kein Hinweis auf ein gesperrtes Konto.
-- Über eine Suchmaschine nach „looxis“ gesucht und auf www.looxis.de gelandet: Dort ist das Fachhändler-Konto nicht bekannt, Anmeldung und „Passwort vergessen“ schlagen fehl.
+- In fast allen Fällen falscher Shop: Anmeldung auf www.looxis.de (oft nach einer Suchmaschinensuche) oder im abgeschalteten alten Shop reseller.looxis.de statt auf fachhaendler.looxis.de. Davon zunächst immer ausgehen.
+- Meldung „Forbidden“ oder „You don't have permission to access / on this server.“: Der Händler ruft eine nicht (mehr) gültige Adresse auf, meist ein altes Lesezeichen oder einen Link zum abgeschalteten Shop reseller.looxis.de. Kein Hinweis auf ein gesperrtes Konto.
 - Passwort vergessen oder falsche E-Mail-Adresse.
 - Groß- und Kleinschreibung der E-Mail-Adresse weicht ab: Im Online-Shop (Vanilo, gilt für looxis.de und fachhaendler.looxis.de) muss die E-Mail-Adresse bei der Anmeldung und bei „Passwort vergessen“ genau so geschrieben sein wie im Kundenkonto hinterlegt, auch in Groß- und Kleinschreibung. In E-Mail-Programmen und auf Mailservern spielt die Schreibweise dagegen grundsätzlich keine Rolle, deshalb fällt der Unterschied Kunden oft nicht auf.
 - Konto deaktiviert (durch einen Mitarbeiter des Kundenservice oder bei der Umstellung am 2. November 2026 für nicht aktivierte Konten): Weder Anmeldung noch Bestellung noch „Passwort vergessen“ sind möglich. Auf „Passwort vergessen“ kann dann „E-Mail nicht bekannt“ erscheinen.
