@@ -54,7 +54,7 @@ Gilt für Foto-Fachhändler und Reseller im Vertriebskanal fachhaendler.
 
 # Regel
 
-Der Fachhändler-Shop läuft auf derselben Software-Plattform wie der Endverbraucher-Shop, mit diesem Unterschied: Fachhändler melden sich unter **fachhaendler.looxis.de** an, nicht unter www.looxis.de. Das ist ein häufiger Fehler, zum Beispiel wenn über eine Suchmaschine nach „looxis“ gesucht wurde. Besser die Adresse direkt in die Adresszeile eingeben und als Lesezeichen speichern.
+Der Fachhändler-Shop läuft auf derselben Software-Plattform wie der Endverbraucher-Shop, mit diesem Unterschied: Fachhändler melden sich unter **fachhaendler.looxis.de** an, nicht unter www.looxis.de. Das ist ein häufiger Fehler, zum Beispiel wenn über eine Suchmaschine nach „looxis“ gesucht wurde. Besser die Adresse direkt in die Adresszeile eingeben und als Lesezeichen speichern. Sieht ein Händler „Forbidden“ oder „You don't have permission to access / on this server.“, ruft er eine nicht (mehr) gültige Adresse auf, meist ein altes Lesezeichen oder einen Link zu reseller.looxis.de; das sagt nichts über sein Konto aus (Antwort: PLAYBOOK-032).
 
 # Zeitlicher Ablauf
 
