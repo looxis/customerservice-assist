@@ -321,7 +321,7 @@ class ClaimReplyResponder
             return 'Im Antworttext ist ein Platzhalter nicht gefüllt.';
         }
 
-        $guard = ClaimReplyGuard::violation($text);
+        $guard = ClaimReplyGuard::violation($text) ?? ClaimReplyGuard::violation($de);
 
         if ($guard !== null) {
             return $guard;

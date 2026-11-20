@@ -2,7 +2,7 @@
 
 ## Status: In Progress
 **Created:** 2026-11-11
-**Last Updated:** 2026-11-12
+**Last Updated:** 2026-11-20
 
 ## Dependencies
 - Requires: PROJ-80 (Klassifikation neuer Tickets, Kategorie `reklamation`)
@@ -13,7 +13,7 @@
 - Berührt: PROJ-86 (Reklamationsformular), PROJ-19 (Versand nach Zammad)
 
 ## Hintergrund
-Bei Reklamationen ohne Foto fragt der Kundenservice heute immer dasselbe nach: ein oder zwei aussagekräftige Fotos in niedriger Auflösung und eine kurze Beschreibung. Das kostet Zeit und verzögert die Bearbeitung um einen Tag. Weil die Vorklassifikation (PROJ-80) neue Tickets sofort als Reklamation erkennt, kann die App direkt antworten. Bei vollständigen Angaben bekommt der Kunde eine Eingangsbestätigung mit der Zusage, dass sich ein Mitarbeiter in den nächsten Stunden darum kümmert. Das Ticket bleibt in jedem Fall offen und wird weiter von einem Mitarbeiter bearbeitet.
+Bei Reklamationen ohne Foto fragt der Kundenservice heute immer dasselbe nach: ein oder zwei aussagekräftige Fotos in niedriger Auflösung und eine kurze Beschreibung. Das kostet Zeit und verzögert die Bearbeitung um einen Tag. Weil die Vorklassifikation (PROJ-80) neue Tickets sofort als Reklamation erkennt, kann die App direkt antworten. Bei vollständigen Angaben bekommt der Kunde eine neutrale Eingangsbestätigung mit der Zusage, dass ein Mitarbeiter das schnellstmöglich prüft und sich wieder meldet. Das Ticket bleibt in jedem Fall offen und wird weiter von einem Mitarbeiter bearbeitet.
 
 Dies ist nach PROJ-77 und PROJ-82 die dritte Ausnahme vom Ziel „Versand nur nach Klick“.
 
@@ -55,11 +55,12 @@ Dies ist nach PROJ-77 und PROJ-82 die dritte Ausnahme vom Ziel „Versand nur na
 
 ### Szenario mit Foto und Beschreibung
 - [ ] Angenommen ein oder zwei betrachtbare Fotos und eine kurze Beschreibung, wenn die Antwort entsteht, dann sagt sie, dass der automatisierte Vorab-Check eine Reklamation erkannt hat, und gibt das Problem in einem Satz mit anderen Worten wieder.
-- [ ] Angenommen Szenario mit Foto, dann entschuldigt sich die Antwort vorab und sichert zu, dass sich ein Mitarbeiter in den nächsten Stunden darum kümmert.
+- [ ] Angenommen Szenario mit Foto, dann gibt die Antwort das Problem als Schilderung des Kunden wieder („Sie reklamieren, dass …“), entschuldigt sich nicht, bedauert nichts und schließt mit „Ein Mitarbeiter prüft das schnellstmöglich und meldet sich wieder bei Ihnen.“ (geändert 2026-11-20, Anlass Ticket 2140574).
 - [ ] Angenommen mehr als zwei Fotos sind angehängt und eine Beschreibung ist vorhanden, dann gilt das gleiche Szenario (mehr Fotos sind kein Grund zum Nachfragen).
 
 ### Inhalt und Sicherheit der Antwort
 - [ ] Angenommen eine Antwort wird erzeugt, dann enthält sie keine Zusage von Ersatz, Erstattung, Gutschrift, Rabatt oder Kosten und keine Beträge, Links oder E-Mail-Adressen (Prüfung durch den ReplyGuard wie bei PROJ-82).
+- [ ] Angenommen eine Antwort oder ihre deutsche Fassung enthält eine Entschuldigung oder ein Bedauern („tut uns leid“, „bedauern“, „entschuldigen“, „sorry“ u. a.), dann wird nicht gesendet; am Ticket steht eine interne Notiz (2026-11-20).
 - [ ] Angenommen der Kunde schreibt in einer anderen Sprache als Deutsch, dann ist die Antwort in seiner Sprache, und die interne Notiz enthält zusätzlich die deutsche Fassung.
 - [ ] Angenommen die Antwort enthält unausgefüllte Platzhalter oder besteht den ReplyGuard nicht, dann wird nicht gesendet; am Ticket steht eine interne Notiz, der Lauf endet als Fehler oder Notiz.
 - [ ] Angenommen die Antwort entsteht, dann hängt die App wie bei WISMO die konfigurierte Signatur an.
@@ -114,6 +115,7 @@ _Alle bisherigen Fragen sind beantwortet (siehe Product Decisions)._
 | Foto ohne Beschreibung: Rückfrage „Beschreiben Sie den Fehler kurz in ein oder zwei Sätzen, möglichst verständlich“ | Ohne Beschreibung kann der Mitarbeiter das Foto oft nicht einordnen | 2026-11-11 |
 | Einstellungen unter `/einstellungen` im neuen Bereich „Reklamations-Automatik“ (Schalter, Signatur, Modell, Prompt) | Entscheidung des Auftraggebers; WISMO behält seine eigene Seite | 2026-11-11 |
 | „In den nächsten Stunden“ gilt immer, auch nachts und am Wochenende | Entscheidung des Auftraggebers, auch wenn es einmal 20 Stunden dauert; keine Servicezeiten-Logik | 2026-11-11 |
+| Antwort bei Foto mit Beschreibung neutral: keine Entschuldigung, kein Bedauern, Problem als „Sie reklamieren, dass …“, Abschluss „Ein Mitarbeiter prüft das schnellstmöglich und meldet sich wieder bei Ihnen.“ statt „in den nächsten Stunden“; App sperrt Entschuldigungen auch technisch | „Es tut uns leid, dass der Artikel mit dem falschen Datum bedruckt wurde“ klang wie eine Anerkennung der Reklamation (Ticket 2140574) | 2026-11-20 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->
@@ -148,7 +150,7 @@ Neues Ticket wird klassifiziert (PROJ-80)
 +-- Szenario wird bestimmt
 |   +-- 0 betrachtbare Fotos -> "Fotos bitte" (Fotohinweis ohne Zahlen, kurze Beschreibung prüfen, Zusage "in den nächsten Stunden")
 |   +-- Fotos, aber keine Beschreibung (Urteil KI) -> "Beschreibung bitte" (fragt nicht erneut nach Fotos)
-|   +-- Fotos und Beschreibung -> "Eingangsbestätigung" (Problem in einem Satz, Entschuldigung, Zusage)
+|   +-- Fotos und Beschreibung -> "Eingangsbestätigung" ("Sie reklamieren, dass ...", neutral, "prüft schnellstmöglich und meldet sich")
 +-- KI schreibt Antwort in Kundensprache + deutsche Fassung (Kundentext vorher pseudonymisiert)
 +-- Kontrollen: ReplyGuard, keine Platzhalter, Szenario passt zur Fotozahl
 +-- Schalter "Trockenlauf" -> interne Notiz mit Entwurf, Ende "Trockenlauf"

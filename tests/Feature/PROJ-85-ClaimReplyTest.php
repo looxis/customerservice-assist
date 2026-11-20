@@ -113,13 +113,25 @@ describe('the reply', function () {
 
     test('with a photo and a description it confirms receipt', function () {
         claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Das Motiv ist verschoben, siehe Foto. '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'attachments' => [claimPhoto()]])]);
-        ClaimReplyAgent::fake([claimReply('photo_with_description', 'Guten Tag, wir entschuldigen uns. Ein Mitarbeiter kümmert sich in den nächsten Stunden darum.')]);
+        ClaimReplyAgent::fake([claimReply('photo_with_description', 'Guten Tag, Sie reklamieren, dass das Motiv verschoben ist. Ein Mitarbeiter prüft das schnellstmöglich und meldet sich wieder bei Ihnen.')]);
 
         app(ClaimReplyResponder::class)->run(claimLabel());
 
         $run = ClaimReplyRun::query()->firstOrFail();
         expect($run->result)->toBe(ClaimReplyRun::SENT)->and($run->photo_count)->toBe(1)->and($run->scenario)->toBe('photo_with_description')->and(claimMails())->toHaveCount(1);
     });
+
+    test('a reply with an apology or regret is not sent, in the customer language or the German version', function (string $reply, string $de) {
+        claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Falsches Datum aufgedruckt, siehe Foto. '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'attachments' => [claimPhoto()]])]);
+        ClaimReplyAgent::fake([['language' => 'Deutsch', 'scenario' => 'photo_with_description', 'reply' => $reply, 'reply_de' => $de]]);
+
+        app(ClaimReplyResponder::class)->run(claimLabel());
+
+        expect(claimMails())->toBe([])->and(claimNotes()[0]['article']['body'])->toContain('nicht neutral')->and(ClaimReplyRun::query()->firstOrFail()->result)->toBe(ClaimReplyRun::NOTE);
+    })->with([
+        'German' => ['Guten Tag, es tut uns leid, dass der Artikel mit dem falschen Datum bedruckt wurde.', 'Es tut uns leid, dass der Artikel mit dem falschen Datum bedruckt wurde.'],
+        'English, German version' => ['Hello, we are sorry the item was printed with the wrong date.', 'Wir bedauern, dass der Artikel falsch bedruckt wurde.'],
+    ]);
 
     test('a pdf or video is no photo', function () {
         claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Defekt. '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'attachments' => [['id' => 8, 'filename' => 'a.pdf', 'size' => 5000, 'preferences' => ['Content-Type' => 'application/pdf']]]])]);
