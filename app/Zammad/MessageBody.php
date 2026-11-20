@@ -181,8 +181,17 @@ class MessageBody
             }
 
             if (mb_strlen($text) <= 60 && preg_match($closing, $text) === 1) {
-                $cut = $lines[$index + $this->signatureLines + 1][1] ?? null;
                 $closingAt = $offset;
+                $cut = $lines[$index + $this->signatureLines + 1][1] ?? null;
+
+                // The lines kept visible are meant for name and company: contact details start the signature at once.
+                for ($shown = $index + 1; $shown <= $index + $this->signatureLines && isset($lines[$shown]); $shown++) {
+                    if ($this->isContactLine($lines[$shown][0])) {
+                        $cut = $lines[$shown][1];
+
+                        break;
+                    }
+                }
 
                 break;
             }
@@ -196,6 +205,19 @@ class MessageBody
         $signature = $this->tidyBlankLines($this->sanitizer()->sanitize(substr($html, $cut)));
 
         return trim(strip_tags($signature)) === '' ? [$html, null, $closingAt] : [$main, $signature, $closingAt];
+    }
+
+    /**
+     * A signature line with contact details rather than a name or company: an e-mail address, a link, a phone
+     * number, or a long line (address, contact details all in one).
+     */
+    private function isContactLine(string $text): bool
+    {
+        return mb_strlen($text) > 60
+            || str_contains($text, '@')
+            || str_contains($text, self::LINK_REMOVED)
+            || preg_match(self::BARE_LINK, $text) === 1
+            || preg_match('/\+?\d(?:[\s\/().-]*\d){6,}/u', $text) === 1;
     }
 
     public function sanitize(string $html): string

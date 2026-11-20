@@ -443,6 +443,25 @@ describe('customer signature', function () {
         expect(strip_tags((string) $parsed['signature']))->toContain('Straße 1')->toContain('12345 Ort');
     })->with(['Viele Grüße, Anna', 'Best regards', 'Kind regards,', 'Met vriendelijke groet', 'Cordiali saluti', 'Cordialement', 'Freundliche Grüsse', 'Saludos']);
 
+    test('contact details right after the closing phrase are collapsed, not shown as name and company (ticket 2140554)', function () {
+        $parsed = app(MessageBody::class)->parse(
+            '<div>Le contraste est trop faible.</div><div><span>Cordialement <br></span></div><div>&nbsp;</div><div><table><tbody><tr><td>'
+            .'LOOXIS France | 21 rue des Vosges | 70200 Malbouhans <a href="mailto:france@looxis.com">france@looxis.com</a> | <a href="http://www.looxis.fr/">www.looxis.fr T </a>: +33 3 84 20 51 96'
+            .'<br><a href="http://www.looxis.fr/"></a><br></td></tr></tbody></table></div>',
+            'text/html',
+        );
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Cordialement')->not->toContain('Malbouhans')
+            ->and(strip_tags((string) $parsed['signature']))->toContain('Malbouhans')->toContain('33 3 84 20 51 96');
+    });
+
+    test('name and company stay visible, a phone line after them is collapsed', function () {
+        $parsed = app(MessageBody::class)->parse("Text\nViele Grüße\nAnna Beispiel\nTel. 0171 2345678", 'text/plain');
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Anna Beispiel')->not->toContain('0171')
+            ->and(strip_tags((string) $parsed['signature']))->toContain('0171 2345678');
+    });
+
     test('a "--" line starts the signature directly', function () {
         $parsed = app(MessageBody::class)->parse("Text\nMax Beispiel\n-- \nFirma\nStraße 1", 'text/plain');
 
