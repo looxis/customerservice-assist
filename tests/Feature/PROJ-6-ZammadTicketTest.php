@@ -455,6 +455,19 @@ describe('customer signature', function () {
             ->and(strip_tags((string) $parsed['signature']))->toContain('Malbouhans')->toContain('33 3 84 20 51 96');
     });
 
+    test('a greeting at the start followed by running text is no closing, the real closing further down is (ticket 2140573)', function () {
+        $parsed = app(MessageBody::class)->parse(
+            '<div>Hallo Frau Beispiel,<br> <br> herzliche Grüße von FOTO-BEISPIEL aus Flein. <br> <br> Ich möchte 3D-Laserfotos bestellen. <br> '
+            .'Mein Endkunde wünscht, dass die Gestaltung ungefähr wie mein Entwurf (siehe Anhang 2 Motive) erfolgt. <br> <br> Gibt es da Probleme bei Ihnen? <br> <br>'
+            .'Mit freundlichen Grüßen <br> Max Beispiel<br><br></div><div> <div>FOTO-BEISPIEL<br> Heilbronner Straße 5 <br> 74223 Flein <br> <br> Telefon: 07131 1234567 <br> '
+            .'E-Mail: <a href="mailto:info@example.com">info@example.com</a> <br></div></div>',
+            'text/html',
+        );
+
+        expect(strip_tags((string) $parsed['body']))->toContain('Mein Endkunde wünscht')->toContain('Gibt es da Probleme')->toContain('Max Beispiel')->not->toContain('Heilbronner')
+            ->and(strip_tags((string) $parsed['signature']))->toContain('Heilbronner Straße 5')->toContain('07131 1234567');
+    });
+
     test('name and company stay visible, a phone line after them is collapsed', function () {
         $parsed = app(MessageBody::class)->parse("Text\nViele Grüße\nAnna Beispiel\nTel. 0171 2345678", 'text/plain');
 

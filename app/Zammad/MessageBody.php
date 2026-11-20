@@ -180,21 +180,31 @@ class MessageBody
                 break;
             }
 
-            if (mb_strlen($text) <= 60 && preg_match($closing, $text) === 1) {
-                $closingAt = $offset;
-                $cut = $lines[$index + $this->signatureLines + 1][1] ?? null;
+            if (mb_strlen($text) > 60 || preg_match($closing, $text) !== 1) {
+                continue;
+            }
 
-                // The lines kept visible are meant for name and company: contact details start the signature at once.
-                for ($shown = $index + 1; $shown <= $index + $this->signatureLines && isset($lines[$shown]); $shown++) {
-                    if ($this->isContactLine($lines[$shown][0])) {
-                        $cut = $lines[$shown][1];
+            $end = $lines[$index + $this->signatureLines + 1][1] ?? null;
 
-                        break;
-                    }
+            // The lines kept visible are meant for name and company: contact details start the signature at once,
+            // running text shows the phrase was a greeting at the start ("herzliche Grüße aus Flein") and the
+            // message goes on.
+            for ($shown = $index + 1; $shown <= $index + $this->signatureLines && isset($lines[$shown]); $shown++) {
+                if ($this->isContactLine($lines[$shown][0])) {
+                    $end = $lines[$shown][1];
+
+                    break;
                 }
 
-                break;
+                if (mb_strlen($lines[$shown][0]) > 60) {
+                    continue 2;
+                }
             }
+
+            $cut = $end;
+            $closingAt = $offset;
+
+            break;
         }
 
         if ($cut === null) {
@@ -209,12 +219,12 @@ class MessageBody
 
     /**
      * A signature line with contact details rather than a name or company: an e-mail address, a link, a phone
-     * number, or a long line (address, contact details all in one).
+     * number, or details separated by "|".
      */
     private function isContactLine(string $text): bool
     {
-        return mb_strlen($text) > 60
-            || str_contains($text, '@')
+        return str_contains($text, '@')
+            || str_contains($text, '|')
             || str_contains($text, self::LINK_REMOVED)
             || preg_match(self::BARE_LINK, $text) === 1
             || preg_match('/\+?\d(?:[\s\/().-]*\d){6,}/u', $text) === 1;
