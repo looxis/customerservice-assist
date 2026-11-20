@@ -94,9 +94,9 @@ class DeliveryNotices
         $id = (string) ($message['id'] ?? '');
         $events = $id === '' ? [] : $this->safeEvents($id);
 
-        [$outcome, $at, $failure] = self::evaluate($events, (string) ($message['status'] ?? ''));
+        [$outcome, $at, $failure, $sentAt] = self::evaluate($events, (string) ($message['status'] ?? ''));
 
-        return new DeliveryNotice(self::kind($subject), $subject, $outcome, $at, $failure, self::toSender($message, $ticketEmail));
+        return new DeliveryNotice(self::kind($subject), $subject, $outcome, $at, $failure, self::toSender($message, $ticketEmail), $sentAt);
     }
 
     /**
@@ -121,9 +121,39 @@ class DeliveryNotices
 
     /**
      * @param  list<array<string, mixed>>  $events
-     * @return array{0: string, 1: ?string, 2: ?string} Outcome, time in German time, failure description.
+     * @return array{0: string, 1: ?string, 2: ?string, 3: ?string} Outcome, time in German time, failure description,
+     *                                                              time LOOXIS sent the mail (PROJ-99).
      */
     public static function evaluate(array $events, string $status = ''): array
+    {
+        return [...self::outcome($events, $status), self::sentAt($events)];
+    }
+
+    /**
+     * When Lettermint sent the mail on (PROJ-99): the `processed` event, else the first event that needs a sent mail
+     * (`delivered` or a bounce). What happens at the recipient afterwards (server down, rejected, spam folder) does
+     * not matter; a mail that was only queued or suppressed was not sent.
+     *
+     * @param  list<array<string, mixed>>  $events
+     */
+    public static function sentAt(array $events): ?string
+    {
+        $timed = collect($events)
+            ->map(fn (array $event): array => ['event' => strtolower((string) ($event['event'] ?? '')), 'at' => self::parse($event['timestamp'] ?? null)])
+            ->filter(fn (array $event): bool => $event['at'] !== null)
+            ->sortBy(fn (array $event): int => $event['at']->getTimestamp());
+
+        $sent = $timed->first(fn (array $event): bool => $event['event'] === 'processed')
+            ?? $timed->first(fn (array $event): bool => in_array($event['event'], ['delivered', 'soft_bounced', 'hard_bounced'], true));
+
+        return $sent === null ? null : $sent['at']->setTimezone('Europe/Berlin')->format('d.m.Y, H:i').' Uhr';
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $events
+     * @return array{0: string, 1: ?string, 2: ?string}
+     */
+    private static function outcome(array $events, string $status): array
     {
         $timed = collect($events)
             ->map(fn (array $event): array => ['event' => strtolower((string) ($event['event'] ?? '')), 'at' => self::parse($event['timestamp'] ?? null)])

@@ -140,6 +140,36 @@ describe('UPS', function () {
         expect($status->problem)->not->toBeNull()->and($status->pickupLocation)->toBeNull()->and($status->facts())->not->toHaveKey('pickup_location');
     });
 
+    test('a parcel back at LOOXIS never names our own staff as receiver (PROJ-99, ticket 2140397)', function () {
+        fakeUps(upsPackage([
+            'currentStatus' => ['description' => 'An Absender zurückgesendet', 'code' => '034'],
+            'deliveryInformation' => ['receivedBy' => 'KOCH'],
+            'activity' => [
+                ['location' => ['address' => ['city' => 'MINDEN']], 'status' => ['type' => 'D', 'description' => 'Paket wurde an Absender zurückgesandt '], 'date' => '20261117', 'time' => '115650'],
+                ['status' => ['type' => 'X', 'description' => 'Das Paket wurde bis zum Ablaufdatum nicht beim UPS Access Point™ Standort abgeholt und wird an den Absender zurückgesendet.'], 'date' => '20261113', 'time' => '195255'],
+                ['status' => ['type' => 'D', 'description' => 'An UPS Access Point™ zugestellt '], 'date' => '20261105', 'time' => '152339'],
+            ],
+        ]));
+
+        $status = app(UpsTrackingClient::class)->track('1Z0000000000000001', null);
+        $facts = $status->facts();
+
+        expect($status->case())->toBe('returned_not_collected')
+            ->and($facts)->not->toHaveKey('received_by')->and($facts['delivered'])->toBeFalse()
+            ->and($facts['returned_to_us'])->toBeTrue()->and($facts['returned_on'])->toBe('17.11.2026')
+            ->and($facts['status'])->toContain('wieder beim Absender')
+            ->and(json_encode($facts, JSON_UNESCAPED_UNICODE))->not->toContain('KOCH')->not->toContain('MINDEN');
+    });
+
+    test('a return that only the current status tells of is a return too', function () {
+        fakeUps(upsPackage([
+            'currentStatus' => ['description' => 'Wird an Absender zurückgesendet', 'simplifiedTextDescription' => 'Das Paket wurde bis zum Ablaufdatum nicht beim UPS Access Point™ Standort abgeholt und wird an den Absender zurückgesendet.'],
+            'activity' => [['status' => ['type' => 'D', 'description' => 'Beim UPS Access Point™ '], 'date' => '20261106', 'time' => '144939']],
+        ]));
+
+        expect(app(UpsTrackingClient::class)->track('1Z0000000000000001', null)->case())->toBe('returned_not_collected');
+    });
+
     test('the token is fetched once and cached', function () {
         fakeUps(upsPackage());
 
@@ -191,6 +221,25 @@ describe('DHL', function () {
         freshHttp();
         Http::fake(['dhl.test/*' => Http::response($events('Die Sendung wird an den Absender zurück gesendet'))]);
         expect(app(DhlTrackingClient::class)->track('1', null)->facts())->not->toHaveKey('pickup_location');
+    });
+
+    test('a parcel back at LOOXIS after an address error hides the delivery and the receiver (PROJ-99)', function () {
+        Http::fake(['dhl.test/*' => Http::response(['shipments' => [[
+            'status' => ['statusCode' => 'delivered', 'description' => 'Die Sendung wurde zugestellt.'],
+            'details' => ['receiver' => ['name' => 'Etienne Lager']],
+            'events' => [
+                ['statusCode' => 'delivered', 'description' => 'Die Sendung wurde zugestellt.', 'timestamp' => '2026-11-16T11:18:00+01:00'],
+                ['statusCode' => 'failure', 'description' => 'Der Empfänger konnte unter der Adresse auf der Sendung nicht gefunden werden.', 'timestamp' => '2026-11-13T12:16:00+01:00'],
+                ['statusCode' => 'failure', 'description' => 'Leider war eine Zustellung der Sendung nicht möglich. Die Sendung geht zurück zum Absender.', 'timestamp' => '2026-11-13T12:16:00+01:00'],
+            ],
+        ]]])]);
+
+        $status = app(DhlTrackingClient::class)->track('00340434171079304662', '46049');
+        $facts = $status->facts();
+
+        expect($status->case())->toBe('returned_address')->and($status->problem)->toContain('Adresse')
+            ->and($facts)->not->toHaveKey('received_by')->and($facts['delivered'])->toBeFalse()->and($facts['returned_to_us'])->toBeTrue()
+            ->and($facts['history'])->toHaveCount(3);
     });
 
     test('a 404 is an unknown shipment and a refused key a permanent problem', function () {

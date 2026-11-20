@@ -26,6 +26,30 @@ test('an admin sees the runs and can filter by result', function () {
         ->assertSee('Ticket#2140002')->assertDontSee('Ticket#2140001');
 });
 
+test('the overview shows the case of the shipment and the automatic closing, and filters by both (PROJ-99)', function () {
+    WismoRun::factory()->create(['ticket_number' => '2140101', 'shipment_case' => 'delivered', 'auto_closed' => true]);
+    WismoRun::factory()->create(['ticket_number' => '2140102', 'shipment_case' => 'returned_address', 'auto_closed' => true, 'delivery_problem' => true]);
+    WismoRun::factory()->create(['ticket_number' => '2140103', 'shipment_case' => 'special', 'auto_closed' => false, 'delivery_problem' => true]);
+    WismoRun::factory()->create(['ticket_number' => '2140104']);
+
+    $this->withCookie('staff_name', 'Etienne')->get(route('wismo-runs.index'))->assertOk()
+        ->assertSee('automatisiert geschlossen')->assertSee('Automatisiert geschlossen (2)')
+        ->assertSee('Zugestellt (1)')->assertSee('Rücksendung: Adresse (1)')->assertSee('Sonderfall (1)')->assertSee('Alle Fälle');
+
+    $this->withCookie('staff_name', 'Etienne')->get(route('wismo-runs.index', ['fall' => 'returned_address']))->assertOk()
+        ->assertSee('Ticket#2140102')->assertDontSee('Ticket#2140101')->assertDontSee('Ticket#2140103');
+
+    $this->withCookie('staff_name', 'Etienne')->get(route('wismo-runs.index', ['geschlossen' => '1']))->assertOk()
+        ->assertSee('Ticket#2140101')->assertSee('Ticket#2140102')->assertDontSee('Ticket#2140103')->assertDontSee('Ticket#2140104');
+});
+
+test('a run shows the milestones of the shipment', function () {
+    $run = WismoRun::factory()->create(['shipment_case' => 'returned_not_collected', 'auto_closed' => true, 'shipment_history' => [['tracking_number' => '00340434171079292013', 'case' => 'returned_not_collected', 'milestones' => [['date' => '13.11.2026', 'text' => 'Lagerfrist nicht abgeholt.']]]]]);
+
+    $this->withCookie('staff_name', 'Etienne')->get(route('wismo-runs.show', $run))->assertOk()
+        ->assertSee('Rücksendung: nicht angetroffen/abgeholt')->assertSee('automatisiert geschlossen')->assertSee('13.11.2026')->assertSee('Lagerfrist nicht abgeholt.');
+});
+
 test('an empty overview explains how runs come about', function () {
     $this->withCookie('staff_name', 'Etienne')->get(route('wismo-runs.index'))->assertOk()->assertSee('Noch keine WISMO-Antwort bearbeitet');
 });

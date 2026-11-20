@@ -13,11 +13,15 @@ use App\Eocs\EocsOrder;
 use App\Eocs\EocsProblem;
 use App\Eocs\EocsShipment;
 use App\Knowledge\SalesChannels;
+use App\Lettermint\DeliveryNotice;
+use App\Lettermint\DeliveryNotices;
 use App\Models\LabelTicket;
 use App\Models\WismoRun;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
 use App\Settings\SettingsStore;
+use App\Tracking\DeliveryText;
+use App\Tracking\ShipmentHistory;
 use App\Tracking\ShipmentTracker;
 use App\Tracking\TrackingException;
 use App\Tracking\TrackingStatus;
@@ -38,6 +42,9 @@ use Illuminate\Support\Facades\Log;
  * The automatic reply to "Where is my order?" (PROJ-82): finds the order of the ticket, asks the carrier for the state of
  * the shipment, lets the language model write the reply from those facts and sends it as the technical Zammad user, or
  * writes an internal note when the case needs a person. Every ticket is handled once and logged in a WismoRun.
+ *
+ * Since PROJ-99 the case of each shipment comes from its whole tracking history, and the reply closes the ticket
+ * unless a person has to look at it (a special delivery problem, an order stuck without shipment).
  */
 class WismoResponder
 {
@@ -61,6 +68,7 @@ class WismoResponder
         private readonly LanguageModel $model,
         private readonly ZammadReplySender $sender,
         private readonly SettingsStore $settings,
+        private readonly DeliveryNotices $notices,
     ) {}
 
     /**
@@ -232,7 +240,12 @@ class WismoResponder
 
         $problem = collect($statuses)->first(fn (TrackingStatus $status): bool => $status->problem !== null);
         $stuck = $shipments->isEmpty() ? $order->stuckWorkdays($now) : null;
+        $cases = array_map(fn (TrackingStatus $status): string => $status->case(), $statuses);
+        $case = $statuses === [] ? ($stuck !== null ? WismoRun::STUCK : WismoRun::NOT_SHIPPED) : ShipmentHistory::worst($cases);
+        $close = $stuck === null && collect($cases)->every(fn (string $one): bool => ShipmentHistory::closable($one));
         $run->update([
+            'shipment_case' => $case,
+            'shipment_history' => $statuses === [] ? null : array_map(fn (TrackingStatus $status): array => ['tracking_number' => $status->trackingNumber, 'case' => $status->case(), 'milestones' => $status->history === null ? [] : $status->history->milestones], $statuses),
             'carrier' => collect($statuses)->pluck('carrier')->unique()->implode(', ') ?: null,
             'tracking_number' => collect($statuses)->pluck('trackingNumber')->implode(', ') ?: null,
             'delivery_problem' => $problem !== null,
@@ -241,11 +254,12 @@ class WismoResponder
             'stuck_workdays' => $stuck,
         ]);
 
-        $facts = $this->facts($order, $statuses, $stuck, $problem !== null);
+        $facts = $this->facts($order, $statuses, $stuck, $problem !== null, $this->notifications($order, $cases, $target->to, $ticket->number));
         $reply = $this->write($run, $ticket, $facts, $statuses);
+        $warnings = $this->warnings($problem, $stuck, $case);
 
         if (is_string($reply)) {
-            $this->note($run, $ticket, $token, 'WISMO: nicht automatisch beantwortet', "⚠️ WISMO erkannt, aber die Antwort wurde nicht gesendet: {$reply}\nBitte manuell bearbeiten (Bestellung {$order->externalNumber}).".$this->warnings($problem, $stuck), $reply);
+            $this->note($run, $ticket, $token, 'WISMO: nicht automatisch beantwortet', "⚠️ WISMO erkannt, aber die Antwort wurde nicht gesendet: {$reply}\nBitte manuell bearbeiten (Bestellung {$order->externalNumber}).".$warnings, $reply);
 
             return;
         }
@@ -255,23 +269,21 @@ class WismoResponder
         $summary = collect($statuses)->map(fn (TrackingStatus $status): string => "{$status->carrier} {$status->trackingNumber}: {$status->status}")->implode("\n");
 
         if ($mode === 'dry') {
-            $warnings = $this->warnings($problem, $stuck);
-            $this->noteQuietly($ticket, 'WISMO Trockenlauf', "🧪 Trockenlauf: so würde die App antworten (nicht gesendet).{$warnings}\n\nBestellung {$order->externalNumber}\n{$summary}\n\n--- Antwort ---\n{$body}\n\n--- Deutsche Fassung ---\n{$reply['de']}", $token);
+            $closing = $close ? 'Das Ticket würde automatisch geschlossen.' : 'Das Ticket bliebe offen.';
+            $this->noteQuietly($ticket, 'WISMO Trockenlauf', "🧪 Trockenlauf: so würde die App antworten (nicht gesendet). {$closing}{$warnings}\n\nBestellung {$order->externalNumber}\n{$summary}\n\n--- Antwort ---\n{$body}\n\n--- Deutsche Fassung ---\n{$reply['de']}", $token);
             $this->finish($run, WismoRun::DRY_RUN, null);
 
             return;
         }
 
-        $warnings = $this->warnings($problem, $stuck);
-
-        if (! $this->send($run, $ticket, $target, $body, $token)) {
+        if (! $this->send($run, $ticket, $target, $body, $token, $close ? 'closed' : 'open')) {
             $this->noteQuietly($ticket, 'WISMO: Versand unklar', "⚠️ WISMO: Der Versand der Antwort an Zammad blieb unklar. Bitte im Ticket prüfen, ob die Antwort angekommen ist; die App sendet nicht erneut.{$warnings}", $token);
 
             return;
         }
 
         $when = $now->setTimezone('Europe/Berlin')->format('d.m.Y \u\m H:i');
-        $note = "🤖 Automatisch beantwortet (WISMO) am {$when} Uhr.{$warnings}";
+        $note = "🤖 Automatisch beantwortet (WISMO) am {$when} Uhr.".($close ? ' Ticket automatisch geschlossen.' : '').$warnings;
 
         if (! $reply['german']) {
             $note .= "\n\nBestellung {$order->externalNumber}\n{$summary}\n\n--- Deutsche Fassung der Antwort ---\n{$reply['de']}";
@@ -282,9 +294,10 @@ class WismoResponder
 
     /**
      * @param  list<TrackingStatus>  $statuses
+     * @param  list<array{mail: string, sent_at: ?string}>  $notifications
      * @return array<string, mixed>
      */
-    private function facts(EocsOrder $order, array $statuses, ?int $stuck, bool $problem): array
+    private function facts(EocsOrder $order, array $statuses, ?int $stuck, bool $problem, array $notifications = []): array
     {
         $shipped = collect($order->shipments)->pluck('shippedAt')->filter()->sort()->first();
 
@@ -296,7 +309,51 @@ class WismoResponder
             'shipments' => array_map(fn (TrackingStatus $status): array => $status->facts(), $statuses),
             'delivery_problem' => $problem,
             'no_shipment_for_workdays' => $stuck,
+            'notifications' => $notifications,
+            'reply_rules' => self::replyRules($statuses, $notifications),
         ], fn (mixed $value): bool => $value !== null && $value !== [] && $value !== false);
+    }
+
+    /**
+     * The few rules of the case that the model must not miss (PROJ-99); the long prompt alone was not enough for the
+     * smaller models. Decided in code from the cases of the shipments.
+     *
+     * @param  list<TrackingStatus>  $statuses
+     * @param  list<array{mail: string, sent_at: ?string}>  $notifications
+     * @return list<string>
+     */
+    public static function replyRules(array $statuses, array $notifications): array
+    {
+        $cases = array_map(fn (TrackingStatus $status): string => $status->case(), $statuses);
+        $returned = array_intersect($cases, [ShipmentHistory::RETURNED_NOT_COLLECTED, ShipmentHistory::RETURNED_ADDRESS, ShipmentHistory::RETURNED_REFUSED]) !== [];
+        $attempted = collect($statuses)->contains(fn (TrackingStatus $status): bool => collect($status->history?->milestones ?? [])->contains(fn (array $milestone): bool => array_intersect(DeliveryText::kinds($milestone['text']), ['attempt', 'absent', 'pickup', 'not_collected']) !== []));
+        $rules = [];
+
+        if ($returned || in_array(ShipmentHistory::PICKUP_READY, $cases, true) || $attempted) {
+            $rules[] = $notifications === []
+                ? 'Sage ausdrücklich, dass der Kunde über die Zustellung benachrichtigt wurde und der Paketdienst in der Regel zusätzlich eine Benachrichtigungskarte im Briefkasten hinterlässt.'
+                : 'Sage ausdrücklich, dass wir den Kunden per E-Mail benachrichtigt haben, mit Art und Zeitpunkt aus `notifications` (Datum und Uhrzeit aus `sent_at`).';
+        }
+
+        if (in_array(ShipmentHistory::RETURNED_NOT_COLLECTED, $cases, true)) {
+            $days = collect($statuses)->map(fn (TrackingStatus $status): ?int => $status->history?->storageDays)->filter()->first();
+            $rules[] = $days !== null ? "Nenne die Lagerfrist von {$days} Tagen." : 'Nenne die Lagerfrist mit „mindestens 5 Tage“.';
+        }
+
+        if (array_diff($cases, [ShipmentHistory::IN_TRANSIT, ShipmentHistory::PICKUP_READY]) !== []) {
+            $rules[] = 'Erwähne keine Zustelloptionen, die sich beim Paketdienst ändern lassen.';
+        }
+
+        $address = array_intersect($cases, [ShipmentHistory::RETURNED_ADDRESS, ShipmentHistory::ADDRESS_HOLD]) !== [];
+        $receive = array_intersect($cases, [ShipmentHistory::RETURNED_NOT_COLLECTED, ShipmentHistory::RETURNED_REFUSED]) !== [];
+
+        if ($address || $receive) {
+            $rules[] = 'Der letzte Absatz ist die Bitte an den Kunden: die Details in der Sendungsverfolgung prüfen, '
+                .($address ? 'seine Lieferadresse sowie den Namen an Klingel und Briefkasten prüfen, sich zur Klärung bei uns melden und uns seine korrekte Lieferadresse bestätigen' : 'sich zur Klärung bei uns melden und uns bestätigen, dass er das Paket auch entgegennehmen kann (zum Beispiel bei Abwesenheit oder Urlaub)')
+                .'. Versprich keinen erneuten Versand.';
+        }
+
+        return $rules;
     }
 
     /**
@@ -376,12 +433,12 @@ class WismoResponder
      *
      * @throws ReplyException
      */
-    private function send(WismoRun $run, Ticket $ticket, ReplyTarget $target, string $body, string $token): bool
+    private function send(WismoRun $run, Ticket $ticket, ReplyTarget $target, string $body, string $token, string $state): bool
     {
         $run->update(['result' => WismoRun::SENDING, 'sending_at' => now()]);
 
         try {
-            $this->sender->send($token, new OutgoingReply($ticket->id, $target->to, $target->subject, $body, $target->inReplyTo, 'open', null));
+            $this->sender->send($token, new OutgoingReply($ticket->id, $target->to, $target->subject, $body, $target->inReplyTo, $state, null));
         } catch (ReplyException $exception) {
             if ($exception->problem->notSent()) {
                 $run->update(['result' => WismoRun::WORKING, 'sending_at' => null]);
@@ -394,6 +451,7 @@ class WismoResponder
             return false;
         }
 
+        $run->update(['auto_closed' => $state === 'closed']);
         $this->finish($run, WismoRun::SENT, null);
 
         return true;
@@ -425,10 +483,51 @@ class WismoResponder
         }
     }
 
-    private function warnings(?TrackingStatus $problem, ?int $stuck): string
+    /**
+     * The lines of the internal note about the case: a special delivery problem needs a person, a return or an address
+     * problem is with the customer now.
+     */
+    private function warnings(?TrackingStatus $problem, ?int $stuck, ?string $case): string
     {
-        return ($problem === null ? '' : "\n⚠️ Zustellproblem, bitte prüfen: ".$problem->problem)
-            .($stuck === null ? '' : "\n⚠️ Die Bestellung ist seit {$stuck} Werktagen ohne Versand und möglicherweise hängen geblieben.");
+        $line = match (true) {
+            $problem === null => '',
+            $case === ShipmentHistory::SPECIAL => "\n⚠️ Zustellproblem, bitte prüfen: ".$problem->problem,
+            default => "\nℹ️ ".(WismoRun::cases()[$case] ?? 'Zustellproblem').': '.$problem->problem.' Der Kunde wurde gebeten, sich bei uns zu melden.',
+        };
+
+        return $line.($stuck === null ? '' : "\n⚠️ Die Bestellung ist seit {$stuck} Werktagen ohne Versand und möglicherweise hängen geblieben.");
+    }
+
+    /**
+     * The notification mails LOOXIS sent for the order (PROJ-99, from Lettermint as in PROJ-97): "Paket kommt heute" and
+     * the pickup notice, with the time they were sent. Asked only when the parcel was not simply delivered; a problem at
+     * Lettermint never stops the reply.
+     *
+     * @param  list<string>  $cases
+     * @return list<array{mail: string, sent_at: ?string}>
+     */
+    private function notifications(EocsOrder $order, array $cases, string $email, string $ticketNumber): array
+    {
+        $worth = array_diff($cases, [ShipmentHistory::DELIVERED, ShipmentHistory::UNKNOWN]) !== [];
+
+        if (! $worth || ! $this->notices->enabled()) {
+            return [];
+        }
+
+        try {
+            $found = $this->notices->forOrder($order->externalNumber, $email, $ticketNumber);
+        } catch (\Throwable $exception) {
+            Log::warning('WISMO notifications not read', ['ticket' => $ticketNumber, 'problem' => $exception->getMessage()]);
+
+            return [];
+        }
+
+        return collect($found['notices'])
+            ->filter(fn (DeliveryNotice $notice): bool => $notice->kind !== 'other' && $notice->sent())
+            ->map(fn (DeliveryNotice $notice): array => ['mail' => DeliveryNotice::KIND_LABELS[$notice->kind], 'sent_at' => $notice->sentAt])
+            ->reverse()
+            ->values()
+            ->all();
     }
 
     private function finish(WismoRun $run, string $result, ?string $reason): void

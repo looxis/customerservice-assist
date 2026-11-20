@@ -57,4 +57,68 @@ final class DeliveryText
     {
         return self::isPickupReminder($text) || preg_match('/abholung|abholstation|abholbereit|paketshop|packstation|filiale|retail.?outlet|ready for pickup|available for pickup|hold for pickup|ready for collection/i', (string) $text) === 1;
     }
+
+    /**
+     * The kinds of a tracking text that matter for the course of a shipment (PROJ-99); scans, sorting and loading say
+     * nothing and get none. One text can have several kinds ("Adressfehler … wird an den Absender zurückgesandt").
+     *
+     * @return list<string> Of: return, not_collected, address, refused, absent, attempt, special, pickup, notified, reminder.
+     */
+    public static function kinds(?string $text): array
+    {
+        $t = mb_strtolower(self::strip($text));
+
+        if ($t === '') {
+            return [];
+        }
+
+        if (self::isPickupReminder($t)) {
+            return ['reminder', 'pickup'];
+        }
+
+        $kinds = [];
+        $checks = [
+            'return' => '/zurück\w*.{0,30}absender|absender.{0,40}zurück|zurück(gesendet|gesandt|geschickt)\b|return(ed)? to (the )?sender|erhält das paket zurück/u',
+            'not_collected' => '/(lagerfrist|abholfrist|aufbewahrungs\w*).{0,60}(abgelaufen|überschritten|nicht)|nicht.{0,40}abgeholt|ablaufdatum nicht|not (been )?(collected|picked up)/u',
+            'address' => '/adressfehler|adresse.{0,40}(nicht|fehlerhaft|unvollständig|falsch)|(empfänger|adressat).{0,60}nicht (gefunden|ermittelt|ermittelbar)|adressat.{0,20}unbekannt|beschriftung der klingel|verzogen|(incorrect|incomplete|wrong) address|address (is )?(incorrect|incomplete|unknown)|receiver moved/u',
+            'refused' => '/verweiger|refused/u',
+            'absent' => '/nicht anwesend|nicht angetroffen|niemand angetroffen|geschäft war.{0,30}geschlossen|not (at )?home|receiver (was )?not (available|present)/u',
+            'attempt' => '/zustellung.{0,40}nicht (möglich|erfolgreich)|zustellung nicht mögl|nicht zustellen|zustellversuch|delivery attempt|unable to deliver/u',
+            'special' => '/nachentgelt|versandbedingungen|beschädig|verlust|verloren|übersteigt den maximalen|zollanmeldung fehlt|\bdamaged\b|\blost\b/u',
+            'pickup' => '/abholung|abholstation|abholbereit|paketshop|packstation|filiale|access point|abholinfos|retail.?outlet|ready for pickup|available for pickup/u',
+            'notified' => '/benachrichtig|abholinfos|notice left|notified/u',
+        ];
+
+        foreach ($checks as $kind => $pattern) {
+            if (preg_match($pattern, $t) === 1) {
+                $kinds[] = $kind;
+            }
+        }
+
+        // A delay on DHL's side ("wegen unerwarteter Umstände … nicht zugestellt") is no attempt at the customer's door.
+        if (str_contains($t, 'unerwartete')) {
+            $kinds = array_values(array_diff($kinds, ['attempt']));
+        }
+
+        return $kinds;
+    }
+
+    /**
+     * The days of the storage period named in a text ("innerhalb der siebentägigen Lagerfrist", "nach 7 Tagen"), or null.
+     */
+    public static function storageDays(?string $text): ?int
+    {
+        $t = mb_strtolower((string) $text);
+        $words = ['drei' => 3, 'vier' => 4, 'fünf' => 5, 'sechs' => 6, 'sieben' => 7, 'acht' => 8, 'neun' => 9, 'zehn' => 10, 'vierzehn' => 14];
+
+        if (preg_match('/(drei|vier|fünf|sechs|sieben|acht|neun|zehn|vierzehn)tägig/u', $t, $match) === 1) {
+            return $words[$match[1]];
+        }
+
+        if (preg_match('/(\d{1,2})[\s-]*(tägig|tage|werktag|days)/u', $t, $match) === 1 && preg_match('/lager|aufbewahr|abhol|storage|hold/u', $t) === 1) {
+            return (int) $match[1];
+        }
+
+        return null;
+    }
 }

@@ -27,11 +27,20 @@ final readonly class DeliveryNotice
         public ?string $at,
         public ?string $failure = null,
         public ?bool $toTicketSender = null,
+        public ?string $sentAt = null,
     ) {}
 
     public function proven(): bool
     {
         return $this->outcome === 'accepted';
+    }
+
+    /**
+     * Whether LOOXIS sent the mail (PROJ-99), whatever became of it at the recipient's mail server.
+     */
+    public function sent(): bool
+    {
+        return $this->sentAt !== null || $this->outcome === 'accepted';
     }
 
     /**
@@ -56,6 +65,6 @@ final readonly class DeliveryNotice
      */
     public function toStored(): array
     {
-        return ['kind' => $this->kind, 'subject' => $this->subject, 'outcome' => $this->outcome, 'at' => $this->at, 'failure' => $this->failure, 'to_ticket_sender' => $this->toTicketSender];
+        return ['kind' => $this->kind, 'subject' => $this->subject, 'outcome' => $this->outcome, 'at' => $this->at, 'failure' => $this->failure, 'to_ticket_sender' => $this->toTicketSender, 'sent_at' => $this->sentAt];
     }
 }

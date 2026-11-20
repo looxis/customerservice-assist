@@ -57,24 +57,15 @@ class DhlTrackingClient implements TrackingClient
     {
         $events = array_values(array_filter((array) ($shipment['events'] ?? []), 'is_array'));
         $latest = $events[0] ?? [];
-        $problem = null;
-
-        foreach ($events as $event) {
-            $text = DeliveryText::strip($event['description'] ?? '');
-            $remark = DeliveryText::strip($event['remark'] ?? '');
-
-            if (($event['statusCode'] ?? null) === 'failure' || DeliveryText::isProblem($text.' '.$remark)) {
-                $problem = $text !== '' ? $text : ($remark !== '' ? $remark : 'Zustellproblem laut DHL');
-
-                break;
-            }
-        }
+        $history = ShipmentHistory::from(array_map(fn (array $event): TrackingEvent => self::event($event), $events));
 
         $code = (string) ($shipment['status']['statusCode'] ?? $latest['statusCode'] ?? '');
         $description = DeliveryText::strip($latest['description'] ?? $shipment['status']['description'] ?? '');
         $remark = DeliveryText::strip($latest['remark'] ?? $shipment['status']['remark'] ?? '');
         $delivered = $code === 'delivered';
         $pickup = ! $delivered && DeliveryText::isPickupReady($description.' '.$remark);
+        $case = $history->case(true, $delivered, $pickup);
+        $problem = in_array($case, ShipmentHistory::PROBLEMS, true);
 
         return new TrackingStatus(
             carrier: 'DHL',
@@ -86,11 +77,36 @@ class DhlTrackingClient implements TrackingClient
             delivered: $delivered,
             deliveryDetails: $delivered ? trim($description.($remark !== '' && $remark !== $description ? ' – '.$remark : '')) : null,
             receivedBy: $delivered ? (trim((string) ($shipment['details']['receiver']['name'] ?? '')) ?: null) : null,
-            pickupLocation: $pickup ? ($remark !== '' ? $remark : $description) : null,
+            pickupLocation: $pickup && ! $problem ? ($remark !== '' ? $remark : $description) : null,
             pickupReady: $pickup,
             estimate: self::time($shipment['estimatedTimeOfDelivery'] ?? null),
-            problem: $problem,
+            problem: $problem ? ($history->problem ?? 'Zustellproblem laut DHL') : null,
             link: $link,
+            shipmentCase: $case,
+            history: $history,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $event
+     */
+    private static function event(array $event): TrackingEvent
+    {
+        $text = DeliveryText::strip($event['description'] ?? '');
+        $remark = DeliveryText::strip($event['remark'] ?? '');
+
+        try {
+            $at = is_string($event['timestamp'] ?? null) && trim($event['timestamp']) !== '' ? CarbonImmutable::parse($event['timestamp'], 'Europe/Berlin') : null;
+        } catch (\Throwable) {
+            $at = null;
+        }
+
+        return new TrackingEvent(
+            at: $at,
+            // The remark often holds the address of a pickup point; it decides nothing and stays out of the history.
+            text: $text !== '' ? $text : $remark,
+            delivered: ($event['statusCode'] ?? null) === 'delivered',
+            failure: ($event['statusCode'] ?? null) === 'failure',
         );
     }
 

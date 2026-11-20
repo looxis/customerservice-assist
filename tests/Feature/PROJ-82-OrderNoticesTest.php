@@ -29,6 +29,13 @@ test('the delivery-problem notice shows the reason and the time', function () {
     expect($html)->toContain('Zustellproblem, bitte prüfen')->toContain('Rücksendung an den Absender eingeleitet.')->toContain('11.11.2026, 09:30 Uhr');
 });
 
+test('a return the customer was told about is a calm hint, not a call for a person (PROJ-99)', function () {
+    $html = Blade::render('<x-ticket.delivery-problem-notice :problem="$problem" />', ['problem' => ['reason' => 'Der Empfänger konnte nicht gefunden werden.', 'at' => '2026-11-11T08:30:00+00:00', 'case' => 'returned_address', 'label' => 'Rücksendung: Adresse', 'closed' => true]]);
+
+    expect($html)->toContain('Rücksendung: Adresse.')->toContain('gebeten, sich bei uns zu melden')->toContain('Das Ticket wurde dabei geschlossen.')
+        ->not->toContain('bitte prüfen')->not->toContain('vorsichtige Zwischenantwort');
+});
+
 test('the delivery-problem notice stays away without a problem', function () {
     expect(trim(Blade::render('<x-ticket.delivery-problem-notice :problem="null" />')))->toBe('');
 });

@@ -3,6 +3,7 @@
 use App\Analysis\Tools\ShipmentStatusTool;
 use App\Eocs\EocsOrder;
 use App\Eocs\EocsShipment;
+use App\Lettermint\DeliveryNotice;
 use App\Lettermint\DeliveryNotices;
 use App\Lettermint\LettermintClient;
 use App\Tracking\ShipmentTracker;
@@ -105,6 +106,21 @@ it('evaluates the event history', function (array $events, string $status, strin
     'summer time' => [[lmEvent('delivered', '2026-07-01T22:15:00Z')], 'delivered', 'accepted', '02.07.2026, 00:15:00 Uhr'],
 ]);
 
+it('knows when LOOXIS sent the mail, whatever the recipient did with it (PROJ-99)', function (array $events, string $status, ?string $sentAt, bool $sent) {
+    [$outcome, $at, $failure, $time] = DeliveryNotices::evaluate($events, $status);
+    $notice = new DeliveryNotice('today', 'Paket kommt heute 4711', $outcome, $at, $failure, null, $time);
+
+    expect($time)->toBe($sentAt)->and($notice->sent())->toBe($sent);
+})->with([
+    'processed and delivered' => [[lmEvent('processed', '2026-11-17T08:00:01Z'), lmEvent('delivered', '2026-11-17T08:00:05Z')], 'delivered', '17.11.2026, 09:00 Uhr', true],
+    'processed only' => [[lmEvent('queued', '2026-11-17T07:59:00Z'), lmEvent('processed', '2026-11-17T08:00:01Z')], 'processed', '17.11.2026, 09:00 Uhr', true],
+    'rejected by the recipient server' => [[lmEvent('processed', '2026-11-17T08:00:01Z'), lmEvent('hard_bounced', '2026-11-17T08:05:00Z')], 'hard_bounced', '17.11.2026, 09:00 Uhr', true],
+    'bounce without processed' => [[lmEvent('soft_bounced', '2026-11-17T08:10:00Z')], 'soft_bounced', '17.11.2026, 09:10 Uhr', true],
+    'status delivered without event' => [[], 'delivered', null, true],
+    'only queued' => [[lmEvent('queued', '2026-11-17T08:00:00Z')], 'queued', null, false],
+    'suppressed' => [[lmEvent('suppressed', '2026-11-17T08:00:00Z')], 'suppressed', null, false],
+]);
+
 it('tells whether the mail went to the ticket sender', function () {
     Http::fake([
         'lettermint.test/v1/messages?*' => Http::response(['data' => [lmMessage('a', 'Paket kommt heute 4711', to: ['andere@example.test'])]]),
@@ -146,7 +162,7 @@ it('adds the notices to the shipment status answer and keeps them for the result
     $answer = (string) $tool->handle(new Request);
 
     expect($answer)->toContain('Benachrichtigungen von LOOXIS per E-Mail')->toContain('"mail":"Paket kommt heute"')->toContain('"proven":true')->toContain('17.11.2026, 09:00:05 Uhr')
-        ->and($tool->noticeRecord())->toBe([['order' => '4711', 'status' => 'ok', 'notices' => [['kind' => 'today', 'subject' => 'Dein Paket kommt heute – Bestellung 4711', 'outcome' => 'accepted', 'at' => '17.11.2026, 09:00:05 Uhr', 'failure' => null, 'to_ticket_sender' => true]]]]);
+        ->and($tool->noticeRecord())->toBe([['order' => '4711', 'status' => 'ok', 'notices' => [['kind' => 'today', 'subject' => 'Dein Paket kommt heute – Bestellung 4711', 'outcome' => 'accepted', 'at' => '17.11.2026, 09:00:05 Uhr', 'failure' => null, 'to_ticket_sender' => true, 'sent_at' => '17.11.2026, 09:00 Uhr']]]]);
 });
 
 it('keeps the analysis going when Lettermint fails', function () {

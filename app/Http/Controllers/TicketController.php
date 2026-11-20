@@ -195,13 +195,15 @@ class TicketController extends Controller
     /**
      * The delivery problem the automatic WISMO reply found (PROJ-82), from the stored run; no carrier is asked here.
      *
-     * @return array{reason: ?string, at: ?string}|null
+     * Since PROJ-99 it carries the case: only a special problem still waits for a person.
+     *
+     * @return array{reason: ?string, at: ?string, case: ?string, label: ?string, closed: bool}|null
      */
     private function deliveryProblem(Ticket $ticket): ?array
     {
         $run = WismoRun::query()->where('zammad_id', $ticket->id)->where('delivery_problem', true)->first();
 
-        return $run === null ? null : ['reason' => $run->delivery_problem_reason, 'at' => $run->processed_at?->toIso8601String()];
+        return $run === null ? null : ['reason' => $run->delivery_problem_reason, 'at' => $run->processed_at?->toIso8601String(), 'case' => $run->shipment_case, 'label' => $run->caseLabel(), 'closed' => $run->auto_closed];
     }
 
     /**

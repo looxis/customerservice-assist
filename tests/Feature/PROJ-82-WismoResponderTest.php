@@ -93,7 +93,7 @@ function wismoNotes(): array
 }
 
 describe('the reply', function () {
-    test('it answers a new ticket with the state of the shipment, as the technical user, and sets the ticket to open', function () {
+    test('it answers a new ticket with the state of the shipment, as the technical user, and closes the ticket (PROJ-99)', function () {
         wismoSetup();
         WismoAgent::fake([wismoReply()]);
 
@@ -101,13 +101,14 @@ describe('the reply', function () {
 
         $mails = wismoMails();
         expect($mails)->toHaveCount(1)
-            ->and($mails[0]['state'])->toBe('open')
+            ->and($mails[0]['state'])->toBe('closed')
             ->and($mails[0]['article']['to'])->toBe('erika@example.org')
             ->and($mails[0]['article']['body'])->toContain(WISMO_TRACKING)->toContain(WISMO_LINK)->toContain('LOOXIS Kundenservice')->toContain('automatisch verfasst')
             ->and(wismoNotes())->toHaveCount(1)
-            ->and(wismoNotes()[0]['article']['body'])->toContain('Automatisch beantwortet (WISMO)')->not->toContain('Deutsche Fassung');
+            ->and(wismoNotes()[0]['article']['body'])->toContain('Automatisch beantwortet (WISMO)')->toContain('Ticket automatisch geschlossen')->not->toContain('Deutsche Fassung');
 
         $run = WismoRun::query()->firstOrFail();
+        expect($run->auto_closed)->toBeTrue()->and($run->shipment_case)->toBe('in_transit');
         expect($run->result)->toBe(WismoRun::SENT)->and($run->order_number)->toBe(WISMO_NUMBER)->and($run->carrier)->toBe('DHL')->and($run->tracking_number)->toBe(WISMO_TRACKING)->and($run->delivery_problem)->toBeFalse()->and($run->reply_text)->toContain(WISMO_TRACKING)->and($run->model)->not->toBeNull();
 
         Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'dhl.test') && $request['recipientPostalCode'] === '46049' && $request->hasHeader('DHL-API-Key', 'dhl-key'));
@@ -240,7 +241,7 @@ describe('when the case needs a person', function () {
 });
 
 describe('shipment states', function () {
-    test('a delivery problem is flagged, the reply is careful and the pickup point stays unnamed', function () {
+    test('a return without a known reason is a special case: flagged, careful reply, pickup point unnamed, ticket stays open', function () {
         wismoSetup(dhl: ['shipments' => [['status' => ['statusCode' => 'failure'], 'events' => [['statusCode' => 'failure', 'description' => 'Die Sendung wird an den Absender zurück gesendet', 'remark' => 'Packstation 1, Weg 2', 'timestamp' => '2026-11-10T09:00:00+01:00']]]]]);
         WismoAgent::fake([wismoReply()]);
 
@@ -248,8 +249,9 @@ describe('shipment states', function () {
 
         $run = WismoRun::query()->firstOrFail();
         expect($run->delivery_problem)->toBeTrue()->and($run->delivery_problem_reason)->toContain('Absender')
-            ->and(wismoNotes()[0]['article']['body'])->toContain('Zustellproblem, bitte prüfen')
-            ->and(wismoMails())->toHaveCount(1);
+            ->and($run->shipment_case)->toBe('special')->and($run->auto_closed)->toBeFalse()
+            ->and(wismoNotes()[0]['article']['body'])->toContain('Zustellproblem, bitte prüfen')->not->toContain('geschlossen')
+            ->and(wismoMails())->toHaveCount(1)->and(wismoMails()[0]['state'])->toBe('open');
         WismoAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('"delivery_problem": true') && ! $prompt->contains('Packstation 1'));
     });
 
@@ -260,7 +262,8 @@ describe('shipment states', function () {
         app(WismoResponder::class)->run(wismoLabel());
 
         $run = WismoRun::query()->firstOrFail();
-        expect([$run->result, $run->reason])->toBe([WismoRun::SENT, null])->and($run->stuck_workdays)->toBe(5)->and(wismoNotes()[0]['article']['body'])->toContain('5 Werktagen ohne Versand');
+        expect([$run->result, $run->reason])->toBe([WismoRun::SENT, null])->and($run->stuck_workdays)->toBe(5)->and(wismoNotes()[0]['article']['body'])->toContain('5 Werktagen ohne Versand')
+            ->and($run->shipment_case)->toBe(WismoRun::STUCK)->and($run->auto_closed)->toBeFalse()->and(wismoMails()[0]['state'])->toBe('open');
         WismoAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('no_shipment_for_workdays') && $prompt->contains('"shipments"') === false);
     });
 
@@ -272,6 +275,63 @@ describe('shipment states', function () {
 
         expect(wismoMails())->toHaveCount(1);
         Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'dhl.test'));
+    });
+});
+
+describe('the case from the whole tracking history (PROJ-99)', function () {
+    test('a parcel that was not collected and is back at LOOXIS: the course goes to the model, never the receiver, and the ticket is closed', function () {
+        wismoSetup(dhl: ['shipments' => [[
+            'status' => ['statusCode' => 'delivered', 'description' => 'Die Sendung wurde zugestellt.'],
+            'details' => ['receiver' => ['name' => 'Etienne Lager']],
+            'events' => [
+                ['statusCode' => 'delivered', 'description' => 'Die Sendung wurde zugestellt.', 'timestamp' => '2026-11-16T11:18:00+01:00'],
+                ['statusCode' => 'transit', 'description' => 'Die Sendung wurde in das Zustellfahrzeug geladen.', 'timestamp' => '2026-11-16T09:30:00+01:00'],
+                ['statusCode' => 'failure', 'description' => 'Der Empfänger hat die Sendung innerhalb der siebentägigen Lagerfrist nicht in der Filiale abgeholt.', 'timestamp' => '2026-11-13T10:03:00+01:00'],
+                ['statusCode' => 'transit', 'description' => 'Sendung liegt in der Filiale zur Abholung bereit', 'timestamp' => '2026-11-02T16:01:00+01:00'],
+                ['statusCode' => 'transit', 'description' => 'Zustellung nicht möglich. Weiterleitung an Filiale', 'timestamp' => '2026-10-31T10:22:00+01:00'],
+                ['statusCode' => 'transit', 'description' => 'Die Sendung wurde im Briefzentrum bearbeitet.', 'timestamp' => '2026-10-30T05:00:00+01:00'],
+            ],
+        ]]]);
+        WismoAgent::fake([wismoReply()]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        $run = WismoRun::query()->firstOrFail();
+        expect($run->shipment_case)->toBe('returned_not_collected')->and($run->auto_closed)->toBeTrue()->and($run->delivery_problem)->toBeTrue()
+            ->and($run->shipment_history[0]['milestones'])->toHaveCount(4)
+            ->and(wismoMails()[0]['state'])->toBe('closed')
+            ->and(wismoNotes()[0]['article']['body'])->toContain('Ticket automatisch geschlossen')->toContain('Rücksendung: nicht angetroffen/abgeholt')->not->toContain('bitte prüfen');
+        WismoAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('"case": "returned_not_collected"') && $prompt->contains('"returned_to_us": true') && $prompt->contains('"storage_days": 7')
+            && $prompt->contains('Weiterleitung an Filiale') && ! $prompt->contains('Briefzentrum')
+            && $prompt->contains('Nenne die Lagerfrist von 7 Tagen') && $prompt->contains('benachrichtigt wurde') && $prompt->contains('Erwähne keine Zustelloptionen') && $prompt->contains('entgegennehmen kann') && ! $prompt->contains('Etienne Lager') && ! $prompt->contains('"delivered": true'));
+    });
+
+    test('an order that is not shipped yet is answered and closed', function () {
+        wismoSetup(order: ['shipments' => ['data' => []], 'order_date' => '2026-11-10T07:17:15.000000Z']);
+        WismoAgent::fake([wismoReply('Guten Tag, Ihre Bestellung wird bearbeitet. Wir melden uns mit der Sendungsnummer.')]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        $run = WismoRun::query()->firstOrFail();
+        expect($run->shipment_case)->toBe(WismoRun::NOT_SHIPPED)->and($run->auto_closed)->toBeTrue()->and(wismoMails()[0]['state'])->toBe('closed');
+    });
+
+    test('the notification mails LOOXIS sent reach the model with the time they were sent, even when the recipient server rejected them', function () {
+        config(['services.lettermint' => [...config('services.lettermint'), 'url' => 'https://lettermint.test/v1', 'token' => 'team-token', 'project' => null, 'timeout' => 5]]);
+        wismoSetup(dhl: ['shipments' => [['status' => ['statusCode' => 'transit', 'description' => 'Sendung liegt in der Filiale zur Abholung bereit'], 'events' => [
+            ['statusCode' => 'transit', 'description' => 'Sendung liegt in der Filiale zur Abholung bereit', 'timestamp' => '2026-11-10T16:00:00+01:00'],
+            ['statusCode' => 'transit', 'description' => 'Zustellung nicht möglich. Abholinfos folgen per Brief', 'timestamp' => '2026-11-09T15:00:00+01:00'],
+        ]]]]);
+        Http::fake([
+            'lettermint.test/v1/messages?*' => Http::response(['data' => [['id' => 'a', 'subject' => 'Dein Paket kommt heute – Bestellung '.WISMO_NUMBER, 'status' => 'hard_bounced', 'created_at' => '2026-11-09T06:00:00Z', 'to' => [['email' => 'erika@example.org']]]]]),
+            'lettermint.test/v1/messages/a/events*' => Http::response(['data' => [['event' => 'processed', 'timestamp' => '2026-11-09T06:00:02Z'], ['event' => 'hard_bounced', 'timestamp' => '2026-11-09T06:01:00Z']]]),
+        ]);
+        WismoAgent::fake([wismoReply()]);
+
+        app(WismoResponder::class)->run(wismoLabel());
+
+        expect(WismoRun::query()->firstOrFail()->shipment_case)->toBe('pickup_ready')->and(wismoMails()[0]['state'])->toBe('closed');
+        WismoAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('"mail": "Paket kommt heute"') && $prompt->contains('"sent_at": "09.11.2026, 07:00 Uhr"'));
     });
 });
 

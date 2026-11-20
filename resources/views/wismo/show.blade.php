@@ -5,6 +5,8 @@
         <div class="flex flex-wrap items-center gap-2">
             <h2 class="text-base font-semibold text-slate-900">Ticket#{{ $run->ticket_number }}</h2>
             <x-badge :tone="match ($run->result) { 'sent' => 'success', 'dry_run' => 'info', 'error', 'sending' => 'danger', 'note', 'retry', 'working' => 'warning', default => 'neutral' }">{{ $run->label() }}</x-badge>
+            @if ($run->auto_closed)<x-badge tone="success">automatisiert geschlossen</x-badge>@endif
+            @if ($run->shipment_case)<x-badge :tone="$run->caseTone()">{{ $run->caseLabel() }}</x-badge>@endif
             <a href="{{ route('tickets.show', ['number' => $run->ticket_number]) }}" class="text-sm font-semibold text-brand hover:text-brand-hover">Ticket öffnen</a>
         </div>
         @if ($run->reason)<p class="mt-2 text-sm text-slate-700">{{ $run->reason }}</p>@endif
@@ -21,6 +23,26 @@
             <div><dt class="text-slate-600">Tokens und Dauer</dt><dd class="text-slate-900">{{ $run->input_tokens !== null ? number_format($run->input_tokens, 0, ',', '.').' ein, '.number_format((int) $run->output_tokens, 0, ',', '.').' aus, '.number_format((int) $run->duration_ms / 1000, 1, ',', '.').' s' : '–' }}</dd></div>
         </dl>
     </x-card>
+
+    @if (! empty($run->shipment_history))
+        <x-card>
+            <h2 class="text-base font-semibold text-slate-900">Sendungsverlauf (wichtige Stationen)</h2>
+            @foreach ($run->shipment_history as $shipment)
+                <div class="mt-3">
+                    <p class="text-sm font-medium text-slate-900"><span class="font-mono">{{ $shipment['tracking_number'] ?? '' }}</span> · {{ \App\Models\WismoRun::cases()[$shipment['case'] ?? ''] ?? ($shipment['case'] ?? '–') }}</p>
+                    @if (empty($shipment['milestones']))
+                        <p class="mt-1 text-sm text-slate-600">Keine besonderen Stationen.</p>
+                    @else
+                        <ol class="mt-1 space-y-1 text-sm text-slate-700">
+                            @foreach ($shipment['milestones'] as $milestone)
+                                <li><span class="tabular-nums text-slate-600">{{ $milestone['date'] ?? '–' }}</span> {{ $milestone['text'] ?? '' }}</li>
+                            @endforeach
+                        </ol>
+                    @endif
+                </div>
+            @endforeach
+        </x-card>
+    @endif
 
     @if ($run->reply_text)
         <x-card>

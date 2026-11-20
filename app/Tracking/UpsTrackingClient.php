@@ -105,20 +105,20 @@ class UpsTrackingClient implements TrackingClient
         $latestText = DeliveryText::strip($latest['status']['description'] ?? '');
         $currentText = DeliveryText::strip($current['description'] ?? '');
         $simple = DeliveryText::strip($current['simplifiedTextDescription'] ?? '');
-        $problem = null;
-
-        foreach ([$currentText, ...array_map(fn (array $activity): string => DeliveryText::strip($activity['status']['description'] ?? ''), $activities)] as $text) {
-            if (DeliveryText::isProblem($text)) {
-                $problem = $text;
-
-                break;
-            }
-        }
+        $history = ShipmentHistory::from(array_map(fn (array $activity): TrackingEvent => self::event($activity), $activities));
 
         $dates = collect((array) ($package['deliveryDate'] ?? []))->filter(fn (mixed $entry): bool => is_array($entry));
         $ready = DeliveryText::isPickupReady($currentText.' '.$simple.' '.$latestText);
         $delivered = ! $ready && (($latest['status']['type'] ?? null) === 'D' || $dates->contains(fn (array $entry): bool => ($entry['type'] ?? null) === 'DEL'));
         $estimate = $dates->first(fn (array $entry): bool => ($entry['type'] ?? null) !== 'DEL' && ! empty($entry['date']));
+
+        // The current status may tell of a return that no activity shows yet ("Wird an Absender zurückgesendet").
+        if (! $history->returned() && array_intersect(DeliveryText::kinds($currentText.' '.$simple), ['return', 'not_collected', 'refused']) !== []) {
+            $history = ShipmentHistory::from([...array_map(fn (array $activity): TrackingEvent => self::event($activity), $activities), new TrackingEvent(CarbonImmutable::now(), trim($currentText.' '.$simple))]);
+        }
+
+        $case = $history->case(true, $delivered, $ready);
+        $problem = in_array($case, ShipmentHistory::PROBLEMS, true) ? ($history->problem ?? ($currentText !== '' ? $currentText : 'Zustellproblem laut UPS')) : null;
 
         return new TrackingStatus(
             carrier: 'UPS',
@@ -136,7 +136,30 @@ class UpsTrackingClient implements TrackingClient
             estimate: is_array($estimate) ? self::date($estimate['date']) : null,
             problem: $problem,
             link: $link,
+            shipmentCase: $case,
+            history: $history,
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $activity
+     */
+    private static function event(array $activity): TrackingEvent
+    {
+        $text = DeliveryText::strip($activity['status']['description'] ?? '');
+        $date = (string) ($activity['date'] ?? '');
+        $time = (string) ($activity['time'] ?? '');
+
+        try {
+            $at = preg_match('/^\d{8}$/', $date) === 1 ? CarbonImmutable::createFromFormat('Ymd His', $date.' '.(preg_match('/^\d{6}$/', $time) === 1 ? $time : '000000'), 'Europe/Berlin') : null;
+        } catch (\Throwable) {
+            $at = null;
+        }
+
+        // Type D also marks the drop-off at an access point ("An UPS Access Point™ zugestellt"), which is no delivery.
+        $delivered = ($activity['status']['type'] ?? null) === 'D' && ! str_contains(mb_strtolower($text), 'access point');
+
+        return new TrackingEvent(at: $at ?: null, text: $text, delivered: $delivered);
     }
 
     /**
