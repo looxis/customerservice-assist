@@ -130,7 +130,7 @@
         addFiles(list) {
             this.send.fileError = '';
             for (const file of list) {
-                if (! ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'].includes(file.type)) { this.send.fileError = `„${file.name}“ hat kein erlaubtes Format. Erlaubt sind PDF, PNG, JPG, JPEG und WebP.`; continue }
+                if (! ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)) { this.send.fileError = `„${file.name}“ hat kein erlaubtes Format. Erlaubt sind PDF, PNG, JPG, JPEG, WebP und SVG.`; continue }
                 if (this.send.files.length >= 5) { this.send.fileError = 'Es sind höchstens 5 Anhänge möglich.'; break }
                 if (this.filesSize + file.size > 5242880) { this.send.fileError = `„${file.name}“ passt nicht mehr dazu: Die Anhänge dürfen zusammen höchstens 5 MB groß sein.`; continue }
                 this.send.files.push(file);
@@ -369,7 +369,7 @@
                         <textarea id="send-signature" x-model="send.signature" rows="4" maxlength="600" class="mt-1 field-sizing-content block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand"></textarea>
                     </div>
                     <div>
-                        <p class="block text-sm font-medium text-slate-900">Anhänge <x-intro><span class="font-normal text-slate-600">(PDF, PNG, JPG, WebP · bis zu 5 Dateien, zusammen höchstens 5 MB)</span></x-intro></p>
+                        <p class="block text-sm font-medium text-slate-900">Anhänge <x-intro><span class="font-normal text-slate-600">(PDF, PNG, JPG, WebP, SVG · bis zu 5 Dateien, zusammen höchstens 5 MB)</span></x-intro></p>
                         <ul x-show="send.files.length > 0" x-cloak class="mt-1 space-y-1 text-sm" aria-label="Anhänge der Antwort">
                             <template x-for="(file, index) in send.files" :key="file.name + index">
                                 <li class="flex flex-wrap items-center gap-x-3 text-slate-900">
@@ -380,7 +380,7 @@
                             </template>
                         </ul>
                         <div class="mt-2 flex flex-wrap items-center gap-3">
-                            <input type="file" x-ref="files" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" class="sr-only" tabindex="-1" aria-hidden="true" x-on:change="addFiles($event.target.files); $event.target.value = ''">
+                            <input type="file" x-ref="files" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,application/pdf,image/png,image/jpeg,image/webp,image/svg+xml" class="sr-only" tabindex="-1" aria-hidden="true" x-on:change="addFiles($event.target.files); $event.target.value = ''">
                             <x-button variant="secondary" x-on:click="$refs.files.click()"><x-icon name="upload" size="16" /> Datei anhängen</x-button>
                             <x-intro><span class="text-xs text-slate-600">Einen Screenshot aus der Zwischenablage fügst du mit Strg+V ein oder mit der rechten Maustaste → Einfügen. Der Cursor muss dazu im Antworttext, im Betreff oder in der Signatur stehen.</span></x-intro>
                         </div>

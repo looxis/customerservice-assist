@@ -577,6 +577,18 @@ describe('attachments (PROJ-61)', function () {
         expect(putRequests())->toBe([]);
     });
 
+    test('an SVG file is accepted by its content and sent with its type', function () {
+        $id = sendAnalysis();
+
+        $svg = '<?xml version="1.0"?>'."\n".'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
+        $path = tempnam(sys_get_temp_dir(), 'proj61');
+        file_put_contents($path, $svg);
+
+        sendWithFiles($id, [new UploadedFile($path, 'logo.svg', null, null, true)])->assertOk()->assertJsonPath('sent', true);
+
+        expect(putRequests()[0]['article']['attachments'][0])->toMatchArray(['filename' => 'logo.svg', 'mime-type' => 'image/svg+xml', 'data' => base64_encode($svg)]);
+    });
+
     test('a failed send keeps nothing: the reply can be sent again with the files', function () {
         $id = sendAnalysis();
         $this->putStatus = 422;

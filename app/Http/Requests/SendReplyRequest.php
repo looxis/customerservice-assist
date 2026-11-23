@@ -36,12 +36,12 @@ class SendReplyRequest extends FormRequest
             ...TodoRules::fields('todos.*.'),
             'confirm_newer' => ['sometimes', 'boolean'],
             'files' => ['sometimes', 'array', 'max:'.self::MAX_FILES],
-            'files.*' => ['file', 'mimes:pdf,png,jpg,jpeg,webp', 'mimetypes:application/pdf,image/png,image/jpeg,image/webp', 'max:'.(self::MAX_BYTES / 1024)],
+            'files.*' => ['file', 'mimes:pdf,png,jpg,jpeg,webp,svg', 'mimetypes:application/pdf,image/png,image/jpeg,image/webp,image/svg+xml', 'max:'.(self::MAX_BYTES / 1024)],
         ];
     }
 
     /**
-     * Files that go with the reply (PROJ-61): PDF and images, up to five, together at most 5 MB.
+     * Files that go with the reply (PROJ-61): PDF and images (incl. SVG), up to five, together at most 5 MB.
      */
     public const int MAX_FILES = 5;
 
@@ -72,8 +72,8 @@ class SendReplyRequest extends FormRequest
             'days.required_if' => 'Bitte 1, 3 oder 7 Tage wählen.',
             ...TodoRules::messages('todos.*.'),
             'files.max' => 'Es sind höchstens 5 Anhänge möglich.',
-            'files.*.mimes' => 'Ein Anhang hat kein erlaubtes Format. Erlaubt sind PDF, PNG, JPG, JPEG und WebP.',
-            'files.*.mimetypes' => 'Der Anhang entspricht nicht dem erlaubten Format (PDF, PNG, JPG, JPEG, WebP).',
+            'files.*.mimes' => 'Ein Anhang hat kein erlaubtes Format. Erlaubt sind PDF, PNG, JPG, JPEG, WebP und SVG.',
+            'files.*.mimetypes' => 'Der Anhang entspricht nicht dem erlaubten Format (PDF, PNG, JPG, JPEG, WebP, SVG).',
             'files.*.max' => 'Ein einzelner Anhang darf höchstens 5 MB groß sein.',
             'files.*.file' => 'Ein Anhang konnte nicht hochgeladen werden.',
         ];

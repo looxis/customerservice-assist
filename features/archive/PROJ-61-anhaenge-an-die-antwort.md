@@ -27,7 +27,7 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 
 **Format:** Angenommen [Vorbedingung] / Wenn [Aktion] / Dann [Ergebnis]
 
-- [ ] Angenommen der Versandbereich der Antwort ist sichtbar, wenn der Mitarbeiter auf „Datei anhängen“ klickt und eine PDF-, PNG-, JPG-, JPEG- oder WebP-Datei wählt, dann erscheint sie in der Liste der Anhänge mit Name und Größe.
+- [ ] Angenommen der Versandbereich der Antwort ist sichtbar, wenn der Mitarbeiter auf „Datei anhängen“ klickt und eine PDF-, PNG-, JPG-, JPEG-, WebP- oder SVG-Datei wählt, dann erscheint sie in der Liste der Anhänge mit Name und Größe.
 - [ ] Angenommen der Mitarbeiter hat einen Screenshot in der Zwischenablage, wenn er im Antworttext oder im Versandbereich Strg+V drückt, dann wird das Bild als Anhang mit dem Namen „Screenshot-JJJJ-MM-TT-HHMM.png“ hinzugefügt und der Text bleibt unverändert.
 - [ ] Angenommen die Zwischenablage enthält nur Text, wenn der Mitarbeiter Strg+V drückt, dann wird der Text wie bisher eingefügt.
 - [ ] Angenommen ein Anhang ist in der Liste, wenn der Mitarbeiter auf „Entfernen“ klickt, dann verschwindet er und wird nicht gesendet.
@@ -62,6 +62,7 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 | PDF, PNG, JPG, JPEG, WebP, höchstens 5 MB, bis zu 5 Dateien | Reicht für Screenshots und Unterlagen; große Mails werden von Empfängern abgewiesen und belasten die Zammad-Schnittstelle | 2026-10-25 |
 | Strg+V fügt Screenshots ein | Der Screenshot liegt bereits in der Zwischenablage; spart Speichern und Auswählen | 2026-10-25 |
 | Anhänge werden nicht in der App gespeichert | Sie gehen direkt an Zammad, so entsteht keine zweite Kopie von Kundendaten | 2026-10-25 |
+| SVG zusätzlich erlaubt | Wird im Kundenservice benötigt (z. B. Logos, Grafiken); die Datei geht nur an Zammad und wird in der App nicht angezeigt | 2026-11-23 |
 
 ### Technical Decisions
 <!-- Added by /architecture -->
@@ -72,7 +73,7 @@ Eine Antwort, die aus der App an Zammad übergeben wird, kann keinen Anhang trag
 
 ## Tech Design (Solution Architect)
 - **Eingabe:** Der Editor schickt die Antwort jetzt als Formular mit Dateien (`multipart/form-data`) statt als reines JSON. Die Dateien liegen nur im Browser, bis der Mitarbeiter auf „Antwort versenden“ klickt.
-- **Prüfung auf dem Server** (`SendReplyRequest`): höchstens 5 Dateien, zusammen höchstens 5 MB, Typ nach Dateiinhalt (PDF, PNG, JPG, JPEG, WebP). Namen werden bereinigt und bei Doppelungen nummeriert.
+- **Prüfung auf dem Server** (`SendReplyRequest`): höchstens 5 Dateien, zusammen höchstens 5 MB, Typ nach Dateiinhalt (PDF, PNG, JPG, JPEG, WebP, SVG). Namen werden bereinigt und bei Doppelungen nummeriert.
 - **Versand:** Die Dateien gehen als Base64 im bestehenden Aufruf an Zammad (`article.attachments`), in einem Zug mit Antwort und Status. Das Zeitlimit für diesen Aufruf ist bei Anhängen länger (30 statt 10 Sekunden). Der Schutz vor Doppelversand bleibt unverändert.
 - **Protokoll:** Namen und Größen stehen in der neuen Spalte `reply_sent_attachments` der Analyse; die Dateien selbst werden nicht gespeichert.
 - **Oberfläche:** Anhangsliste mit „Entfernen“, Knopf „Datei anhängen“, Strg+V im Antwortbereich (nur Bilder, wenn kein Text in der Zwischenablage ist), Hinweis in der Vorschau.
