@@ -275,6 +275,16 @@ describe('sending', function () {
         test()->withCookie('staff_name', 'Etienne')->get('/tickets/2137942?analyse='.$id)->assertSeeText('Gesendet von Nele am');
     });
 
+    test('after sending, the draft is no longer shown as an editable text', function () {
+        $id = sendAnalysis();
+        sendReply($id)->assertOk();
+
+        test()->withCookie('staff_name', 'Etienne')->get('/tickets/2137942?analyse='.$id)
+            ->assertSeeText('Gesendet von Nele am')
+            ->assertDontSee('aria-label="Antwortentwurf"', false)
+            ->assertDontSee('data-send-overlay', false);
+    });
+
     test('while a send is running another one is told to wait', function () {
         $id = sendAnalysis();
         Analysis::query()->where('uuid', $id)->update(['reply_send_started_at' => now()]);

@@ -54,6 +54,33 @@
             todos: [],
             warning: '',
         },
+        {{-- After a click on "Antwort versenden": overlay with a countdown to the start page; the request runs meanwhile. --}}
+        overlay: { open: false, seconds: 5, timer: null, back: false },
+        startOverlay() {
+            this.overlay.open = true;
+            this.overlay.seconds = 5;
+            this.overlay.back = false;
+            clearInterval(this.overlay.timer);
+            this.overlay.timer = setInterval(() => {
+                if (this.overlay.seconds > 0) { this.overlay.seconds-- }
+                if (this.overlay.seconds === 0) { clearInterval(this.overlay.timer); this.leave() }
+            }, 1000);
+        },
+        leave() {
+            if (! this.overlay.open || this.send.busy || ! this.send.sent || this.send.warning !== '') { return }
+            if (this.overlay.back) {
+                history.replaceState(null, '', location.pathname + location.search + '#neueste-nachricht');
+                location.reload();
+            } else {
+                location.href = @js(route('tickets.analyze'));
+            }
+        },
+        backToTicket() {
+            clearInterval(this.overlay.timer);
+            this.overlay.back = true;
+            this.send.warning = '';
+            this.leave();
+        },
         todoContext: @js($result['todo_context'] ?? []),
         todoPresets: @js(\App\Todo\TodoRules::presets($result['todo_context'] ?? [])),
         todoText(todo) { return [todo.preset, todo.description.trim()].filter((part) => part !== '').join(' – ') },
@@ -127,6 +154,7 @@
             this.send.busy = true;
             this.send.error = '';
             if (! confirmNewer) { this.send.newer = '' }
+            this.startOverlay();
             try {
                 const form = new FormData();
                 form.append('to', this.send.to);
@@ -177,6 +205,14 @@
                 this.send.error = 'Keine Verbindung zur App. Die Antwort wurde nicht gesendet; bitte erneut versuchen.';
             }
             this.send.busy = false;
+            if (! this.send.sent) {
+                clearInterval(this.overlay.timer);
+                this.overlay.open = false;
+            } else if (this.send.warning !== '') {
+                clearInterval(this.overlay.timer);
+            } else if (this.overlay.back || this.overlay.seconds === 0) {
+                this.leave();
+            }
         },
         get open() { return (this.text.match(/\[[A-ZÄÖÜ][A-ZÄÖÜ\-]*(?:_\d+)?\]/gu) || []).length },
         changed() {
@@ -237,6 +273,9 @@
     x-on:paste="paste($event)"
     x-on:return-label-ready.window="if ($event.detail.target === 'draft') { linkLabel($event.detail.label); attachLabel($event.detail.label) }"
 >
+    {{-- Once sent, the draft is no longer shown; the reply stands in the thread below. --}}
+    @unless ($send['state'] === 'sent')
+    <div x-show="! send.sent">
     <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h3 class="text-sm font-semibold text-slate-900">Antwortentwurf @if ($language)<span class="font-normal text-slate-600">({{ $language }})</span>@endif</h3>
         <p class="text-xs text-slate-600" aria-live="polite">
@@ -299,6 +338,8 @@
             <p class="mt-2 whitespace-pre-line text-slate-900" x-text="back">{{ $result['reply_backtranslation']['text'] ?? '' }}</p>
         </div>
     @endif
+    </div>
+    @endunless
 
     @if ($send['state'] === 'no_token')
         <p class="mt-3 rounded-md bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200 ring-inset">Bitte Token hinterlegen, dann ist ein Direktversand möglich. Bis dahin: „Kopieren“ und in Zammad senden.</p>
@@ -404,5 +445,32 @@
                 </div>
             @endif
         </section>
+
+        @if ($send['state'] === 'ready')
+        <template x-teleport="body">
+            <div
+                data-send-overlay
+                x-show="overlay.open"
+                x-cloak
+                x-effect="[...document.body.children].forEach((element) => { if (! element.hasAttribute('data-send-overlay')) { element.inert = overlay.open } }); if (overlay.open) { $nextTick(() => $el.querySelector('[role=alertdialog]').focus()) }"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4"
+            >
+                <div tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="send-overlay-title" class="outline-none flex w-full max-w-md flex-col items-center gap-3 rounded-lg bg-white p-8 text-center shadow-3">
+                    <x-icon name="refresh" size="28" class="animate-spin text-brand" x-show="send.busy" />
+                    <p id="send-overlay-title" class="text-base font-semibold text-slate-900" x-text="send.sent ? 'Das Ticket wurde verschickt.' : 'Das Ticket wird verschickt.'">Das Ticket wird verschickt.</p>
+                    <p x-show="send.warning !== ''" role="alert" class="text-sm font-medium text-warning-700" x-text="send.warning"></p>
+                    <p x-show="send.warning === '' && ! overlay.back" class="text-sm text-slate-600" aria-live="polite">
+                        <span x-show="overlay.seconds > 0">Du wirst in <span class="font-semibold tabular-nums" x-text="overlay.seconds">5</span> <span x-text="overlay.seconds === 1 ? 'Sekunde' : 'Sekunden'">Sekunden</span> zur Startseite weitergeleitet.</span>
+                        <span x-show="overlay.seconds === 0">Du wirst gleich zur Startseite weitergeleitet …</span>
+                    </p>
+                    <p x-show="overlay.back && send.busy" class="text-sm text-slate-600">Sobald die Antwort verschickt ist, öffnet sich das Ticket.</p>
+                    <div class="mt-2 flex flex-wrap justify-center gap-3">
+                        <x-button variant="secondary" x-show="send.warning !== ''" x-on:click="location.href = @js(route('tickets.analyze'))">Zur Startseite</x-button>
+                        <x-button variant="secondary" x-on:click="backToTicket()" x-bind:disabled="overlay.back">Abbrechen, zurück zum Ticket</x-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+        @endif
     @endif
 </div>
