@@ -316,7 +316,9 @@ class ClaimReplyResponder
             return 'Das Sprachmodell hat keinen gültigen Fall genannt.';
         }
 
-        if (($photos === 0) !== ($scenario === ClaimReplyRun::NO_PHOTO)) {
+        $missing = in_array($scenario, [ClaimReplyRun::MISSING_DAMAGED_PARCEL, ClaimReplyRun::MISSING_NOT_PACKED], true);
+
+        if (! $missing && ($photos === 0) !== ($scenario === ClaimReplyRun::NO_PHOTO)) {
             $run->update(['scenario' => $scenario]);
 
             return "Der Fall der Antwort ({$scenario}) passt nicht zur Zahl der Fotos ({$photos}).";

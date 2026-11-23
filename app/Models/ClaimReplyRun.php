@@ -39,6 +39,12 @@ class ClaimReplyRun extends Model
 
     public const string CONFIRMATION = 'photo_with_description';
 
+    /** An item is missing and the parcel arrived damaged: lost in transport, a case for the carrier (2026-11-23). */
+    public const string MISSING_DAMAGED_PARCEL = 'missing_damaged_parcel';
+
+    /** An item of several is missing, the parcel was intact: probably not packed by us; no photo needed (2026-11-23). */
+    public const string MISSING_NOT_PACKED = 'missing_not_packed';
+
     /** How long the texts stay readable. */
     public const int TEXT_DAYS = 90;
 
@@ -68,6 +74,8 @@ class ClaimReplyRun extends Model
             self::NO_PHOTO => 'Fotos bitte',
             self::NO_DESCRIPTION => 'Beschreibung bitte',
             self::CONFIRMATION => 'Eingangsbestätigung',
+            self::MISSING_DAMAGED_PARCEL => 'Fehlt, Paket beschädigt',
+            self::MISSING_NOT_PACKED => 'Fehlt, nicht eingepackt',
         ];
     }
 

@@ -158,6 +158,22 @@ describe('the reply', function () {
             ->and(ClaimReplyRun::query()->firstOrFail()->result)->toBe(ClaimReplyRun::NOTE);
     })->with(['model names German' => 'Deutsch', 'model names English' => 'Englisch']);
 
+    test('a missing item is answered without a photo, whatever the number of photos', function (string $scenario, array $attachments, string $label) {
+        claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Die Lichtbasis fehlt in meinem Paket. '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'attachments' => $attachments])]);
+        ClaimReplyAgent::fake([claimReply($scenario, 'Guten Tag, Sie schreiben, dass die Lichtbasis in Ihrer Lieferung fehlt. Ein Mitarbeiter prüft das schnellstmöglich und meldet sich wieder bei Ihnen.')]);
+
+        app(ClaimReplyResponder::class)->run(claimLabel());
+
+        $run = ClaimReplyRun::query()->firstOrFail();
+        expect($run->result)->toBe(ClaimReplyRun::SENT)->and($run->scenario)->toBe($scenario)->and($run->scenarioLabel())->toBe($label)
+            ->and(claimMails())->toHaveCount(1)->and(claimNotes()[0]['article']['body'])->toContain($label);
+    })->with([
+        'not packed, no photo' => [ClaimReplyRun::MISSING_NOT_PACKED, [], 'Fehlt, nicht eingepackt'],
+        'not packed, with photo' => [ClaimReplyRun::MISSING_NOT_PACKED, [claimPhoto()], 'Fehlt, nicht eingepackt'],
+        'damaged parcel, no photo' => [ClaimReplyRun::MISSING_DAMAGED_PARCEL, [], 'Fehlt, Paket beschädigt'],
+        'damaged parcel, with photo' => [ClaimReplyRun::MISSING_DAMAGED_PARCEL, [claimPhoto()], 'Fehlt, Paket beschädigt'],
+    ]);
+
     test('a pdf or video is no photo', function () {
         claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Defekt. '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'attachments' => [['id' => 8, 'filename' => 'a.pdf', 'size' => 5000, 'preferences' => ['Content-Type' => 'application/pdf']]]])]);
         ClaimReplyAgent::fake([claimReply()]);
