@@ -133,6 +133,31 @@ describe('the reply', function () {
         'English, German version' => ['Hello, we are sorry the item was printed with the wrong date.', 'Wir bedauern, dass der Artikel falsch bedruckt wurde.'],
     ]);
 
+    test('an English message gets an English reply with the translated signature, even with a German sender signature', function () {
+        claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Hi, this customer received all orders except for the silver light base. Please send the missing light base. '.CLAIM_NUMBER.'<br>Erika<br>Kundenservice</p>', 'created_at' => '2026-11-11T07:30:00.000Z'])]);
+        ClaimReplyAgent::fake([['language' => 'Englisch', 'scenario' => 'no_photo', 'reply' => "Hello,\n\nan automated pre-check has recognised your message as a complaint. Please send us one or two photos showing the problem. A member of our team will take care of it within the next few hours after receiving the photos.", 'reply_de' => 'Hallo, ein automatisierter Vorab-Check hat Ihre Nachricht als Reklamation erkannt. Bitte senden Sie uns Fotos.', 'signature' => "Kind regards\nLOOXIS Kundenservice"]]);
+
+        app(ClaimReplyResponder::class)->run(claimLabel());
+
+        $mails = claimMails();
+        expect($mails)->toHaveCount(1)
+            ->and($mails[0]['article']['body'])->toContain('Kind regards')->not->toContain('Mit freundlichen Grüßen')
+            ->and(claimNotes()[0]['article']['body'])->toContain('Hallo, ein automatisierter Vorab-Check');
+        ClaimReplyAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Signatur (deutsch)'));
+    });
+
+    test('a German reply to a message in another language is not sent', function (string $language) {
+        claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Hi, this customer received all orders except for the silver light base. Please send the missing light base. '.CLAIM_NUMBER.'<br>Erika<br>Kundenservice</p>', 'created_at' => '2026-11-11T07:30:00.000Z'])]);
+        $german = "Hallo,\n\nein automatisierter Vorab-Check hat Ihre Nachricht als Reklamation erkannt. Bitte senden Sie uns ein bis maximal zwei Fotos. Ein Mitarbeiter kümmert sich nach Eingang der Fotos in den nächsten Stunden darum.";
+        ClaimReplyAgent::fake([['language' => $language, 'scenario' => 'no_photo', 'reply' => $german, 'reply_de' => $german, 'signature' => "Mit freundlichen Grüßen\nLOOXIS Kundenservice"]]);
+
+        app(ClaimReplyResponder::class)->run(claimLabel());
+
+        expect(claimMails())->toBe([])
+            ->and(claimNotes()[0]['article']['body'])->toMatch('/nicht in der Sprache des Kunden|Nachricht des Kunden aber nicht/')
+            ->and(ClaimReplyRun::query()->firstOrFail()->result)->toBe(ClaimReplyRun::NOTE);
+    })->with(['model names German' => 'Deutsch', 'model names English' => 'Englisch']);
+
     test('a pdf or video is no photo', function () {
         claimSetup(articles: [zammadArticle(['id' => 1, 'body' => '<p>Defekt. '.CLAIM_NUMBER.'</p>', 'created_at' => '2026-11-11T07:30:00.000Z', 'attachments' => [['id' => 8, 'filename' => 'a.pdf', 'size' => 5000, 'preferences' => ['Content-Type' => 'application/pdf']]]])]);
         ClaimReplyAgent::fake([claimReply()]);

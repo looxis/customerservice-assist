@@ -7,6 +7,7 @@ use App\Analysis\AnalysisProblem;
 use App\Analysis\LanguageModel;
 use App\Analysis\Prompt;
 use App\Analysis\Pseudonymizer;
+use App\Analysis\ReplyLanguage;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\EocsOrder;
@@ -419,22 +420,33 @@ class WismoResponder
 
         $language = mb_strtolower(trim((string) ($answer['data']['language'] ?? '')));
         $german = $language !== '' ? preg_match('/^(de\b|deutsch|german)/u', $language) === 1 : ($de === '' || $de === $text);
+        $closing = $german || $closing === '' ? $signature : $closing;
+        $footer = $german || $footer === '' ? $notice : $footer;
+        $mismatch = ReplyLanguage::problem($this->customerBody($ticket), $text."\n".$closing."\n".$footer, $de, $language);
+
+        if ($mismatch !== null) {
+            return $mismatch;
+        }
 
         return [
             'text' => $text,
             'de' => $de !== '' ? $de : $text,
             'german' => $german,
-            'signature' => $german || $closing === '' ? $signature : $closing,
-            'notice' => $german || $footer === '' ? $notice : $footer,
+            'signature' => $closing,
+            'notice' => $footer,
         ];
     }
 
     private function customerText(Ticket $ticket): string
     {
-        $last = collect($ticket->articles)->filter(fn ($article): bool => $article->kind === ArticleKind::Customer && ! $article->automatic)->last();
-        $text = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", $last?->body->toHtml() ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        return trim('Betreff: '.$ticket->title."\n\n".$this->customerBody($ticket));
+    }
 
-        return trim('Betreff: '.$ticket->title."\n\n".mb_substr($text, 0, 4000));
+    private function customerBody(Ticket $ticket): string
+    {
+        $last = collect($ticket->articles)->filter(fn ($article): bool => $article->kind === ArticleKind::Customer && ! $article->automatic)->last();
+
+        return mb_substr(trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", $last?->body->toHtml() ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')), 0, 4000);
     }
 
     /**

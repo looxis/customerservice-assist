@@ -7,6 +7,7 @@ use App\Analysis\AnalysisProblem;
 use App\Analysis\LanguageModel;
 use App\Analysis\Prompt;
 use App\Analysis\Pseudonymizer;
+use App\Analysis\ReplyLanguage;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\EocsProblem;
@@ -259,7 +260,7 @@ class ClaimReplyResponder
             return;
         }
 
-        $body = $reply['text']."\n\n".trim((string) $this->settings->value('claim_reply_signature'));
+        $body = $reply['text']."\n\n".$reply['signature'];
         $run->update(['reply_text' => $body, 'reply_text_de' => $reply['de'], 'scenario' => $reply['scenario']]);
         $scenario = ClaimReplyRun::scenarios()[$reply['scenario']];
         $facts = "Bestellung {$orderNumber}, Versand vor {$days} Tagen, {$photos} ".($photos === 1 ? 'Foto' : 'Fotos');
@@ -284,7 +285,7 @@ class ClaimReplyResponder
     /**
      * The reply as text and German version, or the reason why none could be made.
      *
-     * @return array{text: string, de: string, scenario: string}|string
+     * @return array{text: string, de: string, scenario: string, signature: string}|string
      *
      * @throws AnalysisException
      */
@@ -294,14 +295,18 @@ class ClaimReplyResponder
         $model = (string) $this->settings->value('model_claim_reply');
         $pseudonymizer = app(Pseudonymizer::class);
         $facts = ['photo_count' => $photos, 'order_number_known' => true];
+        $signature = trim((string) $this->settings->value('claim_reply_signature'));
 
-        $input = "Nachricht des Kunden:\n".$pseudonymizer->apply($this->customerText($ticket))."\n\nAngaben (JSON):\n".json_encode($facts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $input = "Nachricht des Kunden:\n".$pseudonymizer->apply($this->customerText($ticket))."\n\nSignatur (deutsch):\n{$signature}\n\nAngaben (JSON):\n".json_encode($facts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $answer = $this->model->ask(new ClaimReplyAgent($prompt->text), $input, $model, 'claim-reply', $ticket->number, self::MODEL_TIMEOUT);
         $run->update(['prompt_version' => $prompt->version, 'model' => $model, 'input_tokens' => $answer['input_tokens'], 'output_tokens' => $answer['output_tokens'], 'duration_ms' => $answer['duration_ms']]);
 
         $text = trim($pseudonymizer->restorePlain((string) ($answer['data']['reply'] ?? '')));
         $de = trim($pseudonymizer->restorePlain((string) ($answer['data']['reply_de'] ?? '')));
+        $closing = trim($pseudonymizer->restorePlain((string) ($answer['data']['signature'] ?? '')));
         $scenario = (string) ($answer['data']['scenario'] ?? '');
+        $language = (string) ($answer['data']['language'] ?? '');
+        $german = preg_match('/^(de\b|deutsch|german)/u', mb_strtolower(trim($language))) === 1;
 
         if ($text === '') {
             return 'Das Sprachmodell hat keinen Antworttext geliefert.';
@@ -321,21 +326,32 @@ class ClaimReplyResponder
             return 'Im Antworttext ist ein Platzhalter nicht gefüllt.';
         }
 
-        $guard = ClaimReplyGuard::violation($text) ?? ClaimReplyGuard::violation($de);
+        $closing = $german || $closing === '' ? $signature : $closing;
+        $guard = ClaimReplyGuard::violation($text."\n".$closing) ?? ClaimReplyGuard::violation($de);
 
         if ($guard !== null) {
             return $guard;
         }
 
-        return ['text' => $text, 'de' => $de !== '' ? $de : $text, 'scenario' => $scenario];
+        $mismatch = ReplyLanguage::problem($this->customerBody($ticket), $text."\n".$closing, $de, $language);
+
+        if ($mismatch !== null) {
+            return $mismatch;
+        }
+
+        return ['text' => $text, 'de' => $de !== '' ? $de : $text, 'scenario' => $scenario, 'signature' => $closing];
     }
 
     private function customerText(Ticket $ticket): string
     {
-        $last = $this->lastCustomerArticle($ticket);
-        $text = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", $last?->body->toHtml() ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        return trim('Betreff: '.$ticket->title."\n\n".$this->customerBody($ticket));
+    }
 
-        return trim('Betreff: '.$ticket->title."\n\n".mb_substr($text, 0, 4000));
+    private function customerBody(Ticket $ticket): string
+    {
+        $last = $this->lastCustomerArticle($ticket);
+
+        return mb_substr(trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", $last?->body->toHtml() ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')), 0, 4000);
     }
 
     /**

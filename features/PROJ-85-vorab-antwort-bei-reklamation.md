@@ -62,8 +62,9 @@ Dies ist nach PROJ-77 und PROJ-82 die dritte Ausnahme vom Ziel „Versand nur na
 - [ ] Angenommen eine Antwort wird erzeugt, dann enthält sie keine Zusage von Ersatz, Erstattung, Gutschrift, Rabatt oder Kosten und keine Beträge, Links oder E-Mail-Adressen (Prüfung durch den ReplyGuard wie bei PROJ-82).
 - [ ] Angenommen eine Antwort oder ihre deutsche Fassung enthält eine Entschuldigung oder ein Bedauern („tut uns leid“, „bedauern“, „entschuldigen“, „sorry“ u. a.), dann wird nicht gesendet; am Ticket steht eine interne Notiz (2026-11-20).
 - [ ] Angenommen der Kunde schreibt in einer anderen Sprache als Deutsch, dann ist die Antwort in seiner Sprache, und die interne Notiz enthält zusätzlich die deutsche Fassung.
+- [ ] Angenommen die Kundennachricht ist erkennbar fremdsprachig (z. B. englisch mit deutscher Absender-Signatur „Kundenservice“), die Antwort aber deutsch, dann wird nicht gesendet; am Ticket steht eine interne Notiz (2026-11-23, Anlass Ticket 2140598).
 - [ ] Angenommen die Antwort enthält unausgefüllte Platzhalter oder besteht den ReplyGuard nicht, dann wird nicht gesendet; am Ticket steht eine interne Notiz, der Lauf endet als Fehler oder Notiz.
-- [ ] Angenommen die Antwort entsteht, dann hängt die App wie bei WISMO die konfigurierte Signatur an.
+- [ ] Angenommen die Antwort entsteht, dann hängt die App wie bei WISMO die konfigurierte Signatur an, bei fremdsprachigen Kunden in deren Sprache übersetzt (2026-11-23).
 
 ### Ticketstatus und Versand
 - [ ] Angenommen die Antwort wird gesendet, dann bleibt das Ticket offen, es wird weder geschlossen noch zugewiesen.
@@ -214,6 +215,7 @@ Pest-Tests mit simuliertem Zammad, EOCS und Sprachmodell, nach Vorbild der WISMO
 - Einstellungen: Seite `/einstellungen/reklamations-automatik` (Schalter `claim_reply_mode`, Signatur `claim_reply_signature`), Modell `model_claim_reply` und Prompt `claim-reply` (`resources/prompts/claim-reply.md`) unter „Prompts und Modell“ (jetzt zehn Prompts, sechs Modelle). Umgebungsvariable `CLAIM_REPLY_MODEL` optional.
 - Protokoll-Seite `/reklamations-vorab-antworten` (nur Admins), Eintrag „Vorab-Antworten Reklamation“ in der Seitenleiste.
 - Abweichung/Auslassung: Keine Hinweiszeile unter der Signatur (der Antworttext nennt den automatisierten Vorab-Check selbst). Interne Notiz bei „nicht gesendet“ erscheint nur bei Bestellnummer-/Bestell-/Versandproblemen, Antwortadresse, Prüffehlern und Fehlern, nicht bei „übersprungen“ (wie in der Spec).
+- Sprache (2026-11-23, Ticket 2140598): Der Prompt bestimmt die Sprache nur am Fließtext (Absender-Signatur, Betreff, Namen zählen nicht) und verlangt alle Mustersätze übersetzt; die KI liefert die Signatur übersetzt wie bei WISMO. `App\Analysis\ReplyLanguage` zählt deutsche und fremdsprachige Funktionswörter: deutsche Antwort auf erkennbar fremdsprachige Nachricht oder Antwort gleich deutscher Fassung bei nichtdeutscher Sprache → keine Mail, Notiz. Dieselbe Prüfung gilt für WISMO (PROJ-82).
 - Tests: `tests/Feature/PROJ-85-ClaimReplyTest.php` (30 Tests); `PROJ-31-PromptSettingsTest` angepasst (zehn Prompts, sechs Modelle).
 
 ## QA Test Results

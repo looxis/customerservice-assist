@@ -29,6 +29,7 @@ class ClaimReplyAgent implements Agent, HasStructuredOutput
             'scenario' => $schema->string()->enum(['no_photo', 'photo_no_description', 'photo_with_description'])->description('Welcher Fall vorliegt')->required(),
             'reply' => $schema->string()->description('Antworttext an den Kunden in dessen Sprache, ohne Grußformel und Signatur')->required(),
             'reply_de' => $schema->string()->description('Dieselbe Antwort auf Deutsch für interne Mitarbeiter')->required(),
+            'signature' => $schema->string()->description('Grußformel und Signatur, in die Sprache der Kundennachricht übersetzt')->required(),
         ];
     }
 }
