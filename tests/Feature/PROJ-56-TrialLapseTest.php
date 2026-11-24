@@ -1,9 +1,7 @@
 <?php
 
-use App\Analysis\AppStats;
 use App\Knowledge\KnowledgeLibrary;
 use App\Knowledge\TrialChanger;
-use App\Models\KnowledgeReviewFlag;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\File;
 
@@ -88,31 +86,6 @@ describe('overdue and lapsed', function () {
         onDay('2027-03-05');
         test()->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->assertOk()->assertSeeText('Testphase abgelaufen und nicht entschieden')->assertSeeText('wird seit 3 Tagen nicht mehr verwendet');
         test()->get('/knowledge')->assertOk()->assertSeeText('wird nicht mehr verwendet');
-    });
-});
-
-describe('the sidebar', function () {
-    test('counts documents with a trial that is over or with open reports, each once', function () {
-        knowledgeBase([
-            'policies/policy-001-a.md' => knowledgeDoc(['status' => 'active', 'trial_until' => '2027-01-31', 'trial_goal' => 'x']),
-            'policies/policy-002-b.md' => knowledgeDoc(['id' => 'POLICY-002', 'title' => 'B', 'status' => 'active']),
-            'policies/policy-003-c.md' => knowledgeDoc(['id' => 'POLICY-003', 'title' => 'C', 'status' => 'active']),
-        ]);
-        KnowledgeReviewFlag::query()->create(['document_id' => 'POLICY-002', 'staff_name' => 'Nele', 'reason' => 'other', 'status' => 'open']);
-        KnowledgeReviewFlag::query()->create(['document_id' => 'POLICY-002', 'staff_name' => 'Cara', 'reason' => 'other', 'status' => 'open']);
-        KnowledgeReviewFlag::query()->create(['document_id' => 'POLICY-003', 'staff_name' => 'Nele', 'reason' => 'other', 'status' => 'checked']);
-
-        expect(app(AppStats::class)->review())->toBe(1);
-
-        onDay('2027-02-05');
-        expect(app(AppStats::class)->review())->toBe(2);
-        test()->get('/knowledge')->assertOk()->assertSeeText('Wissen zur Überprüfung');
-    });
-
-    test('nothing is shown when nothing is to look at', function () {
-        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'active'])]);
-
-        test()->get('/knowledge')->assertOk()->assertDontSeeText('Wissen zur Überprüfung');
     });
 });
 

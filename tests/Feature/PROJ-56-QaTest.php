@@ -1,7 +1,5 @@
 <?php
 
-use App\Analysis\AppStats;
-use App\Knowledge\KnowledgeLibrary;
 use App\Models\KnowledgeReviewFlag;
 use Carbon\CarbonImmutable;
 
@@ -53,12 +51,6 @@ describe('QA: red team', function () {
 });
 
 describe('QA: after the end of a trial', function () {
-    test('a document that was ended no longer counts as to be reviewed', function () {
-        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'deprecated', 'trial_until' => '2027-01-31', 'trial_goal' => 'x'])]);
-
-        expect(app(AppStats::class)->review())->toBe(0);
-    });
-
     test('the check does not warn about a trial of a document that is deprecated', function () {
         $library = knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'deprecated', 'trial_until' => '2027-01-31', 'trial_goal' => 'x'])]);
 
@@ -69,32 +61,5 @@ describe('QA: after the end of a trial', function () {
         knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'deprecated', 'trial_until' => '2027-01-31', 'trial_goal' => 'x'])]);
 
         test()->withCookie('staff_name', 'Etienne')->get(route('knowledge.show', ['path' => 'policies/policy-001-a.md']))->assertOk()->assertDontSeeText('Entscheidung zur Testphase');
-    });
-});
-
-describe('QA: the figure in the sidebar is kept for a minute', function () {
-    test('a page does not read all files again, a report or a decision updates the figure at once', function () {
-        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'active', 'trial_until' => '2027-03-31', 'trial_goal' => 'x'])]);
-
-        expect(app(AppStats::class)->all()['review'])->toBe(0);
-
-        KnowledgeReviewFlag::query()->create(['document_id' => 'POLICY-001', 'staff_name' => 'Nele', 'reason' => 'other', 'status' => 'open']);
-        expect(app(AppStats::class)->all()['review'])->toBe(0);
-
-        test()->withCookie('staff_name', 'Cara')->post(route('knowledge.review.store'), ['document_id' => 'POLICY-001', 'reason' => 'other']);
-        expect(app(AppStats::class)->all()['review'])->toBe(1);
-
-        test()->withCookie('staff_name', 'Etienne')->post(route('knowledge.review.resolve', ['documentId' => 'POLICY-001']));
-        expect(app(AppStats::class)->all()['review'])->toBe(0);
-    });
-
-    test('ending a trial takes the document out of the figure at once', function () {
-        knowledgeBase(['policies/policy-001-a.md' => knowledgeDoc(['status' => 'active', 'trial_until' => '2027-01-31', 'trial_goal' => 'x'])]);
-        expect(app(AppStats::class)->all()['review'])->toBe(1);
-
-        $fingerprint = app(KnowledgeLibrary::class)->find('POLICY-001')->fingerprint;
-        test()->withCookie('staff_name', 'Etienne')->post(route('knowledge.trial', ['path' => 'policies/policy-001-a.md']), ['decision' => 'end', 'fingerprint' => $fingerprint])->assertSessionHas('trial_changed', 'end');
-
-        expect(app(AppStats::class)->all()['review'])->toBe(0)->and(messagesOf(app(KnowledgeLibrary::class), 'warning'))->not->toContain('Testphase');
     });
 });

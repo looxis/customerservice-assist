@@ -2,7 +2,6 @@
 
 namespace App\Knowledge;
 
-use App\Analysis\AppStats;
 use Carbon\CarbonImmutable;
 
 /**
@@ -72,7 +71,6 @@ class TrialChanger
         }
 
         $this->write($file, $changed);
-        AppStats::forgetReviewCount();
         $this->library->refresh();
 
         return $this->library->all()->first(fn (KnowledgeDocument $candidate): bool => $candidate->path === $path) ?? $document;

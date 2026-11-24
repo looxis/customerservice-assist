@@ -3,7 +3,6 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Analysis\AnalysisOverview;
 use App\Analysis\AnalysisStore;
-use App\Analysis\AppStats;
 use App\Analysis\QuestionNumber;
 use App\Models\Analysis;
 use App\Models\KnowledgeGap;
@@ -283,8 +282,6 @@ describe('lists and figures', function () {
     test('questions do not count as processed tickets and are marked and filterable in the overview', function () {
         Analysis::factory()->create(['ticket_number' => '2100001']);
         Analysis::factory()->create(['ticket_number' => 'F12345678', 'staff_name' => 'Nele']);
-
-        expect(app(AppStats::class)->processedTickets())->toBe(1);
 
         $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index'))->assertSeeText('Frage')->assertSee('href="'.route('questions.show', ['number' => 'F12345678']), false)->assertSee('Ticket#2100001', false);
         $this->withCookie('staff_name', 'Etienne')->get(route('analysis-overview.index', ['quelle' => 'questions']))->assertSee('F12345678')->assertDontSee('Ticket#2100001', false);
