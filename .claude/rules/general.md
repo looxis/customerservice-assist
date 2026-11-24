@@ -28,6 +28,13 @@ Before starting ANY work, check if the project has been initialized:
 - Check existing components before building: `git ls-files resources/views/components/`
 - Check existing controllers/routes before building: `git ls-files app/Http/Controllers/ routes/`
 
+## Changelog (`docs/CHANGELOG.md`)
+The changelog is read by the customer service agents (start page and page „Änderungen“), not by developers.
+- **Only add an entry for something the agent has to actively use:** a new form, button, field, option or a changed way of working.
+- **No entry** for changes under the hood (prompts, automation internals, performance, refactoring, tests, knowledge files) or for obvious design/layout improvements, unless the user explicitly asks for one.
+- **As short as possible, precise:** usually one sentence naming the feature and where/when it is used. No technical details, no background, no reasoning.
+- Format: German, newest on top, one heading `## YYYY-MM-DD` per day with bullet points; commit separately as `docs(PROJ-X): …`.
+
 ## Human-in-the-Loop
 - Always ask for user approval before finalizing deliverables
 - Present options using clear choices rather than open-ended questions

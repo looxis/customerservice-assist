@@ -2,6 +2,10 @@
 Änderungen der App für die Mitarbeiter. Neue Einträge oben einfügen: je Tag eine Überschrift
 „## JJJJ-MM-TT“, darunter Stichpunkte. Die Startseite zeigt die letzten 7 Tage, die Seite
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
+Nur eintragen, was die Mitarbeiter aktiv nutzen müssen (neues Formular, Knopf, Feld, geänderter
+Ablauf). Kein Eintrag für Änderungen unter der Haube oder offensichtliche Design-/Layout-
+Verbesserungen, außer ausdrücklich gewünscht. Einträge so kurz wie möglich und präzise, meist ein Satz.
+Ausführliche Regeln: .claude/rules/general.md, Abschnitt „Changelog“.
 -->
 
 ## 2026-11-24
