@@ -38,6 +38,7 @@ when:
 actions:
 related_knowledge:
 - POLICY-002
+- POLICY-078
 ---
 
 Gilt für das Glasfoto in Farbe bei allen Kundenarten und Vertriebskanälen. Nicht für lasergravierte 2D- und 3D-Glasfotos.
