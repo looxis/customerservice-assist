@@ -190,6 +190,18 @@ final readonly class KnowledgeDocument
     }
 
     /**
+     * Customer terms this product deliberately shares with other products
+     * (e.g. "Lunchbox" for two lunchbox families): no duplicate warning when
+     * every product carrying the term marks it as shared.
+     *
+     * @return list<string>
+     */
+    public function sharedCustomerTerms(): array
+    {
+        return $this->list('shared_customer_terms');
+    }
+
+    /**
      * The product a product file describes: its file name, or the subfolder
      * name when the product is split into several files. Null for other types.
      */

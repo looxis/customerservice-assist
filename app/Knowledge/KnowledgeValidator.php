@@ -8,7 +8,7 @@ class KnowledgeValidator
 {
     private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    private const array LIST_FIELDS = ['products', 'exclude_products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'actions', 'action', 'triggers', 'exclude_triggers'];
+    private const array LIST_FIELDS = ['products', 'exclude_products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge', 'order_keywords', 'customer_terms', 'shared_customer_terms', 'actions', 'action', 'triggers', 'exclude_triggers'];
 
     private const array KNOWN_FIELDS = [
         'id', 'title', 'type', 'status',
@@ -19,7 +19,7 @@ class KnowledgeValidator
 
     private const array PERMISSION_FIELDS = ['action', 'agent_allowed', 'max_value_eur', 'approval_role'];
 
-    private const array PRODUCT_FIELDS = ['order_keywords', 'customer_terms'];
+    private const array PRODUCT_FIELDS = ['order_keywords', 'customer_terms', 'shared_customer_terms'];
 
     private const array PROCEDURE_FIELDS = ['actions'];
 
@@ -320,6 +320,10 @@ class KnowledgeValidator
             ...array_values(array_map(
                 fn (string $term): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Der Kundenbegriff `{$term}` in `customer_terms` ist kürzer als {$termMinimum} Zeichen und passt vermutlich auf viele Texte."),
                 array_filter($document->customerTerms(), fn (string $term): bool => mb_strlen($term) < $termMinimum),
+            )),
+            ...array_values(array_map(
+                fn (string $term): KnowledgeIssue => KnowledgeIssue::warning($document->path, "Der Begriff `{$term}` in `shared_customer_terms` fehlt in `customer_terms` und wird deshalb nicht gesucht."),
+                array_udiff($document->sharedCustomerTerms(), $document->customerTerms(), 'strcasecmp'),
             )),
         ];
     }
@@ -815,7 +819,9 @@ class KnowledgeValidator
                 $others = array_diff($products, [$document->productSlug()]);
                 $keywordOwners = array_diff(array_unique($keywords[$term] ?? []), [$document->productSlug()]);
 
-                if ($others !== []) {
+                $unshared = array_filter($files, fn (KnowledgeDocument $file): bool => ! in_array($term, array_map('mb_strtolower', $file->sharedCustomerTerms()), true));
+
+                if ($others !== [] && $unshared !== []) {
                     $issues[] = KnowledgeIssue::warning($document->path, "Der Kundenbegriff `{$term}` in `customer_terms` steht auch beim Produkt ".implode(', ', $others).'. Der Produktvorschlag ist dann nicht eindeutig.');
                 }
 

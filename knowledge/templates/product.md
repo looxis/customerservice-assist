@@ -12,6 +12,7 @@ sales_channels:
 products:
 order_keywords:
 customer_terms:
+shared_customer_terms:
 categories:
 topics:
 

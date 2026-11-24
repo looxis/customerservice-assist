@@ -62,6 +62,29 @@ describe('knowledge check', function () {
             ->toContain('products/3d-glass-photo.md: Der Kundenbegriff `holo` in `customer_terms` steht beim Produkt glass-block in `order_keywords`.');
     });
 
+    test('a term marked as shared in every product carrying it is not warned about', function () {
+        $library = knowledgeBase([
+            'products/lunchbox-wood-lid.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Lunchbox Holzdeckel', 'customer_terms' => ['Lunchbox', 'Brotdose'], 'shared_customer_terms' => ['Lunchbox', 'Brotdose']]),
+            'products/lunchbox-steel.md' => knowledgeDoc(['id' => 'PRODUCT-002', 'type' => 'product', 'title' => 'Lunchbox Edelstahl', 'customer_terms' => ['lunchbox', 'Brotdose'], 'shared_customer_terms' => ['Lunchbox']]),
+        ]);
+        $warnings = messagesOf($library, 'warning');
+
+        expect($warnings)->not->toContain('`lunchbox` in `customer_terms` steht auch')
+            ->toContain('products/lunchbox-wood-lid.md: Der Kundenbegriff `brotdose` in `customer_terms` steht auch beim Produkt lunchbox-steel.')
+            ->toContain('products/lunchbox-steel.md: Der Kundenbegriff `brotdose` in `customer_terms` steht auch beim Produkt lunchbox-wood-lid.');
+    });
+
+    test('a shared term missing from customer_terms is warned about', function () {
+        $library = knowledgeBase([
+            'products/lunchbox-steel.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Lunchbox Edelstahl', 'customer_terms' => ['Brotdose'], 'shared_customer_terms' => ['Lunchbox', 'brotdose']]),
+        ]);
+        $warnings = messagesOf($library, 'warning');
+
+        expect($warnings)->toContain('products/lunchbox-steel.md: Der Begriff `Lunchbox` in `shared_customer_terms` fehlt in `customer_terms`')
+            ->not->toContain('`brotdose` in `shared_customer_terms`')
+            ->not->toContain('Unbekanntes Feld `shared_customer_terms`');
+    });
+
     test('the overview lists customer terms per product', function () {
         expect(app(KnowledgeLibrary::class)->overview())->toContain("Vergebene customer_terms je Produkt:\n3d-glass-photo: Glasstein, Hologramm, Viamant");
     });
