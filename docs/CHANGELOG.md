@@ -7,6 +7,7 @@
 ## 2026-11-24
 
 - Geführte Bearbeitung von Tickets rund um Bezahlung eingefügt.
+- Neues Formular „Aktualisierte WISMO-Infos“: Bei WISMO-Tickets ist es vorgewählt, bei jedem anderen Ticket wählbar. Die App fragt beim Erstellen den aktuellen Sendungsverlauf und die Versandbenachrichtigungen ab, wie die automatische WISMO-Antwort. Der Entwurf behandelt nur den Verbleib der Sendung. Unter „Zusätzliche Informationen“ kannst du ergänzen, was die Antwort noch berücksichtigen soll.
 
 ## 2026-11-18
 
