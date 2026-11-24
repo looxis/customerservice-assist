@@ -168,7 +168,7 @@ class AnalysisController extends Controller
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
         $complaint = $request->complaint();
-        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing();
+        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing() ?? $request->payment();
 
         // "Diskussion beenden" (PROJ-98) only for some categories and after several customer replies, as the form offers it.
         if ($guided instanceof ClosingDecision && ! ClosingDecision::available(TicketLabelState::categoryOf($ticket), $ticket)) {

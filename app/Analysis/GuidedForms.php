@@ -21,6 +21,7 @@ final class GuidedForms
     private const array GUIDED = [
         SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport, 'goods' => false],
         ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation, 'goods' => true],
+        PaymentDecision::FORM => ['label' => 'Zahlung / Rechnung', 'category' => LabelCategory::Zahlung, 'goods' => false],
         ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null, 'goods' => true],
         ClosingDecision::FORM => ['label' => 'Diskussion beenden', 'category' => null, 'goods' => false],
     ];
