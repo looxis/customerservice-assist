@@ -4,6 +4,10 @@
 „Änderungen“ alle Einträge. Dieser Kommentar wird nicht angezeigt.
 -->
 
+## 2026-11-24
+
+- Geführte Bearbeitung von Tickets rund um Bezahlung eingefügt.
+
 ## 2026-11-18
 
 - Startseite aufgeräumt: Die Ticketliste zeigt jetzt das Ticket mit der ältesten letzten Aktivität ganz oben. Mit einem Klick auf „Letzte Aktivität“ oder „Klassifikation“ sortierst du um, ein zweiter Klick kehrt die Reihenfolge um.
