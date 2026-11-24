@@ -419,7 +419,8 @@ return [
         // Provisional: the router sees at most this many catalogue lines / characters.
         'pool' => [
             'max_lines' => 60,
-            'max_characters' => 15000,
+            // Raised from 15,000 on 2026-11-24: the grown knowledge base left PLAYBOOK-019 out of the Eisberg case.
+            'max_characters' => 20000,
             // Share of the places reserved for documents with a specific scope (product or customer group).
             'reserved_share' => 0.34,
         ],

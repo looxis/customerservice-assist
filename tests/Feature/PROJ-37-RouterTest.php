@@ -740,7 +740,7 @@ describe('configuration (QA)', function () {
         $router = config('knowledge.router');
 
         expect($router['max_additions'])->toBeInt()->toBeGreaterThan(0)
-            ->and($router['pool']['max_lines'])->toBe(60)->and($router['pool']['max_characters'])->toBe(15000)
+            ->and($router['pool']['max_lines'])->toBe(60)->and($router['pool']['max_characters'])->toBe(20000)
             ->and($router['text_characters'])->toBe(12000)->and($router['timeout'])->toBeGreaterThan(0)->toBeLessThanOrEqual(30)
             ->and($router['courtesy_words'])->not->toBeEmpty();
     });
