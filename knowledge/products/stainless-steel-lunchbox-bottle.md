@@ -23,6 +23,8 @@ order_keywords:
 - '11304'
 - '11305'
 customer_terms:
+- Lunchbox
+- Brotdose
 - Edelstahl-Lunchbox
 - Brotdose aus Edelstahl
 - Edelstahlbrotdose
@@ -48,6 +50,8 @@ Diese Datei ist der Wissensbereich, dem die Regeln zu den Edelstahl-Lunchboxen u
 # Abgrenzung zur Lunchbox mit Holzdeckel
 
 Die Lunchbox mit Buchenholzdeckel (Master „Edelstahl Lunchbox, Holzdeckel“) ist ein anderes Produkt mit eigenem Wissensbereich (PRODUCT-005). Ihr Deckel wird bedruckt, nicht graviert.
+
+Schreibt ein Kunde nur „Lunchbox“ oder „Brotdose“, kommen beide Wissensbereiche in Frage. Die Edelstahl-Lunchboxen werden häufiger verkauft als die Lunchbox mit Holzdeckel. Welcher Artikel gemeint ist, ergibt sich aus der Bestellposition (SKU oder Bestellnummer) oder aus der Schilderung des Kunden (zum Beispiel Holzdeckel, Doppeldecker, Gravur).
 
 # Abgrenzung der Regeln
 

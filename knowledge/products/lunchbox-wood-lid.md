@@ -43,7 +43,7 @@ Gilt für die Lunchbox mit Buchenholzdeckel bei allen Kundenarten und Vertriebsk
 
 Diese Datei ist der Wissensbereich, dem die Regeln zur Lunchbox mit Holzdeckel zugeordnet sind. Die Produktfakten (Aufbau, UV-Druck, Verschluss, Maße, Pflege, interne Tests) stehen im Produktkatalog ProductForge und werden dort gepflegt.
 
-Der Produktname im Katalog enthält immer „Edelstahl Lunchbox“ und „Holzdeckel“. Lunchboxen und Trinkflaschen vollständig aus Edelstahl, ohne Holzdeckel, sind ein anderes Produkt.
+Der Produktname im Katalog enthält immer „Edelstahl Lunchbox“ und „Holzdeckel“. Lunchboxen und Trinkflaschen vollständig aus Edelstahl, ohne Holzdeckel, sind ein anderes Produkt (PRODUCT-017). Schreibt ein Kunde nur „Lunchbox“ oder „Brotdose“, kann auch dieses Produkt gemeint sein.
 
 Die Regeln dazu: PLAYBOOK-011 (Deckel klemmt oder Verschluss schwer zu öffnen, einschließlich Größenprüfung und Review), PLAYBOOK-012 (Holzdeckel nach der Spülmaschine verzogen), PLAYBOOK-013 (Schnappverschluss gebrochen).
 
