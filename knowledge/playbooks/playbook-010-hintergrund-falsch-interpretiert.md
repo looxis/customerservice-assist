@@ -65,7 +65,7 @@ Beim 2D-Glasfoto wird der Hintergrund nur dann gezielt freigestellt, wenn der Ku
 
 Beim 2D-Glasfoto ohne gewählte Hintergrundentfernung ist eine fehlende Gravur transparenter oder vollständig schwarzer Bildbereiche keine Hintergrund-Freistellung und muss von diesem Fallmuster getrennt werden.
 
-Beim 3D-Glasfoto wird nach und nach, Glasgröße für Glasgröße, ein neuer visueller Konfigurator zum Einpassen des Fotos eingeführt. Er hat keine grüne Markierung mehr. Ob und ab wann eine Variante umgestellt ist, steht im Produktwissen („Neuer Konfigurator seit [Datum] – keine grüne Markierung mehr“). Ohne diesen Eintrag gilt der bisherige Konfigurator mit grüner Markierung. Beim 2D-Glasfoto gilt die grüne Markierung unverändert.
+Beim 3D-Glasfoto wird nach und nach, Glasgröße für Glasgröße, ein neuer visueller Konfigurator zum Einpassen des Fotos eingeführt. Er hat keine grüne Markierung mehr. Im neuen Konfigurator wird nur das Hauptmotiv verarbeitet; alles, was hinter oder neben dem Hauptmotiv liegt, wird als Hintergrund entfernt. Der Kunde hat darauf keinen Einfluss. Ob und ab wann eine Variante umgestellt ist, steht im Produktwissen („Neuer Konfigurator seit [Datum] – keine grüne Markierung mehr“). Ohne diesen Eintrag gilt der bisherige Konfigurator mit grüner Markierung. Beim 2D-Glasfoto gilt die grüne Markierung unverändert.
 
 Beim Whiskyglas Bodengravur gibt es weder im Online-Shop noch auf Amazon eine grüne Markierung. Der Hintergrund wird standardmäßig nach bestem Wissen entfernt. Es gilt der Abschnitt „Whiskyglas Bodengravur“.
 
@@ -116,11 +116,11 @@ Bei einem 3D-Glasfoto wird für die korrigierte Neuproduktion eine neue Interpre
 
 Gilt, wenn das Produktwissen ein Umstellungsdatum nennt und die Bestellung an oder nach diesem Datum aufgegeben wurde.
 
-Es gab keine Markierung, Fall B scheidet aus. Der Hintergrund wird nach bestem Wissen entfernt; ein beanstandeter Grenzbereich ist Interpretationsspielraum wie in Fall A.
+Es gab keine Markierung, Fall B scheidet aus. Es wird nur das Hauptmotiv verarbeitet; Bildbereiche hinter oder neben dem Hauptmotiv (zum Beispiel Fell, Decke, Bank, Gebäude) werden als Hintergrund entfernt. Das ist kein Produktionsfehler.
 
-Lösung: Der Auftrag kann neu eingestellt werden, gewünschte Änderungen am Hintergrund fließen in die neue Fertigung ein. Dafür nennt der Kunde, welche Bereiche erhalten bleiben oder entfallen sollen. Alternativ stellt er sein Foto selbst frei und lädt es als PNG mit Transparenz hoch (POLICY-074). Der grüne Pinsel wird nicht erwähnt. Bei einer neuen Interpretation vor der Produktion PROCESS-007 anwenden.
+Der Kunde hat keinen Einfluss darauf, solche Bereiche in das Glasfoto zu übernehmen, weder über Angaben bei einer Neufertigung noch über ein selbst freigestelltes Foto. Eine Neufertigung, bei der zusätzliche Bereiche aus dem Hintergrund übernommen werden, wird nicht angeboten. Der grüne Pinsel wird nicht erwähnt.
 
-Ob die neue Fertigung kostenpflichtig oder kostenfrei ist, entscheidet der Mitarbeiter im Reklamationsformular; ohne Formular gilt Fall A (kostenpflichtige Kulanz-Neuanfertigung).
+Bleibt unklar, ob der beanstandete Bereich zum Hauptmotiv gehört, PROCESS-005 anwenden.
 
 # Whiskyglas Bodengravur
 

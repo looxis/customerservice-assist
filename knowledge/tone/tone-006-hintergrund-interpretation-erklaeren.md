@@ -87,21 +87,17 @@ Bei einem 2D-Glasfoto gilt diese Markierungsoption, wenn „Hintergrund entferne
 
 Gilt für Bestellungen im neuen Konfigurator, laut Produktwissen „Neuer Konfigurator seit [Datum]“ (PLAYBOOK-010).
 
-Aufbau der Antwort: Zuerst auf die Frage des Kunden eingehen, dann den Konfigurator erklären, ganz am Ende in ein bis zwei Sätzen den Hinweis zur eigenen Freistellung. Keine Schritt-für-Schritt-Anleitung und keine Aufzählung dazu.
+Aufbau der Antwort: Zuerst auf die Frage des Kunden eingehen, dann kurz erklären, dass nur das Hauptmotiv verarbeitet wird. Keinen Hinweis auf eine eigene Freistellung und kein Angebot, Hintergrundbereiche bei einer Neufertigung zu übernehmen.
 
 Konfigurator erklären (Formulierungshilfe):
 
-„Wir stellen die Konfiguration der 3D-Glasfotos derzeit Schritt für Schritt, Glasgröße für Glasgröße, auf einen neuen Konfigurator um. Bei den bereits umgestellten Größen passen Sie Ihr Foto visuell ein; die grüne Markierung gibt es dort nicht mehr. Den Hintergrund entfernen wir bei der Aufbereitung nach bestem Wissen.“
+„Wir stellen die Konfiguration der 3D-Glasfotos derzeit Schritt für Schritt, Glasgröße für Glasgröße, auf einen neuen Konfigurator um. Bei den bereits umgestellten Größen passen Sie Ihr Foto visuell ein. In das Glasfoto übernehmen wir dabei ausschließlich das Hauptmotiv; alles, was dahinter oder daneben liegt, wird als Hintergrund entfernt.“
 
 Gilt die Umstellung laut Produktwissen für die Größe des Kunden nicht, nur den Stand nennen („wird schrittweise umgestellt“), keine Termine zusagen.
 
-Hinweis zur eigenen Freistellung (Formulierungshilfe, am Ende der Antwort, kurz halten):
+Fragt der Kunde, warum es die grüne Markierung nicht mehr gibt (Formulierungshilfe, nur auf Nachfrage):
 
-„Wenn Sie auf den Hintergrund Einfluss nehmen möchten, können Sie ihn vorab selbst entfernen, zum Beispiel mit einem kostenlosen Foto-Editor oder KI-Werkzeug, und das Foto als PNG hochladen, da nur PNG Transparenz unterstützt.“
-
-Für die Neufertigung, ob kostenpflichtig oder kostenfrei:
-
-„Wir stellen den Auftrag gerne neu ein und berücksichtigen Ihre gewünschten Änderungen. Teilen Sie uns dazu bitte mit, welche Bereiche erhalten bleiben oder entfallen sollen, oder senden Sie uns Ihr Foto bereits freigestellt als PNG.“
+„Die grüne Markierung hat in der Praxis leider häufig zu Missverständnissen geführt. Deshalb konzentrieren wir uns im neuen Konfigurator auf das Hauptmotiv und entfernen den Hintergrund grundsätzlich.“
 
 # Whiskyglas Bodengravur ohne Markierung
 
@@ -151,4 +147,4 @@ Bei einer missachteten klaren Markierung nicht von „Geschmackssache“ oder �
 
 Den Kunden bei unmarkierten Grenzbereichen nicht vorwurfsvoll fragen, warum er die Markierungsfunktion nicht benutzt habe. Die Funktion als Möglichkeit zur eindeutigen Steuerung erklären.
 
-Im neuen 3D-Konfigurator und beim Whiskyglas Bodengravur nicht andeuten, der Kunde habe die Markierung versäumt, und nicht erklären, warum sie entfallen ist. Die eigene Freistellung nicht ausführlich erläutern: kein Vier-Schritte-Ablauf, keine lange Erklärung zu Transparenz, höchstens zwei Sätze am Ende.
+Im neuen 3D-Konfigurator und beim Whiskyglas Bodengravur nicht andeuten, der Kunde habe die Markierung versäumt. Warum die Markierung im neuen 3D-Konfigurator entfallen ist, nur auf Nachfrage erklären (siehe oben). Im neuen 3D-Konfigurator nicht in Aussicht stellen, dass der Kunde den Hintergrund selbst entfernen oder Hintergrundbereiche bei einer Neufertigung übernehmen lassen kann. Beim Whiskyglas Bodengravur die eigene Freistellung nicht ausführlich erläutern: kein Vier-Schritte-Ablauf, keine lange Erklärung zu Transparenz, höchstens zwei Sätze am Ende.
