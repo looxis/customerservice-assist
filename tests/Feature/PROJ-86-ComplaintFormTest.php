@@ -186,7 +186,7 @@ describe('the form on the ticket page', function () {
     });
 
     test('a ticket classified as another category starts with the free-text form and offers the complaint form', function () {
-        classifiedAs('wismo');
+        classifiedAs('sonstiges');
 
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()->assertSee('name="formularwahl" value="reklamation"', false)->assertSee("mode: 'frei',", false);
     });

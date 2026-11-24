@@ -71,7 +71,7 @@ function closingPage()
 describe('when the form is offered', function () {
     test('never preselected by a category', function () {
         expect(GuidedForms::defaultFor('reklamation'))->toBe('reklamation')
-            ->and(GuidedForms::defaultFor('wismo'))->toBe('frei')
+            ->and(GuidedForms::defaultFor('sonstiges'))->toBe('frei')
             ->and(GuidedForms::guidedLabel('abschluss'))->toBe('Diskussion beenden');
     });
 

@@ -72,8 +72,8 @@ function reshipmentPage()
 
 describe('choosing the form', function () {
     test('Neuversand is offered on every ticket but never preselected by a category', function () {
-        expect(GuidedForms::options())->toBe(['support' => 'Technischer Support', 'reklamation' => 'Reklamation', 'zahlung' => 'Zahlung / Rechnung', 'neuversand' => 'Neuversand', 'abschluss' => 'Diskussion beenden', 'frei' => 'Freitext'])
-            ->and(GuidedForms::defaultFor('wismo'))->toBe('frei')
+        expect(GuidedForms::options())->toBe(['support' => 'Technischer Support', 'reklamation' => 'Reklamation', 'zahlung' => 'Zahlung / Rechnung', 'wismo_info' => 'Aktualisierte WISMO-Infos', 'neuversand' => 'Neuversand', 'abschluss' => 'Diskussion beenden', 'frei' => 'Freitext'])
+            ->and(GuidedForms::defaultFor('sonstiges'))->toBe('frei')
             ->and(GuidedForms::defaultFor(null))->toBe('frei')
             ->and(GuidedForms::guidedLabel('neuversand'))->toBe('Neuversand');
 

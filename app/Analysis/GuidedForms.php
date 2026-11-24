@@ -22,6 +22,7 @@ final class GuidedForms
         SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport, 'goods' => false],
         ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation, 'goods' => true],
         PaymentDecision::FORM => ['label' => 'Zahlung / Rechnung', 'category' => LabelCategory::Zahlung, 'goods' => false],
+        WismoUpdateDecision::FORM => ['label' => 'Aktualisierte WISMO-Infos', 'category' => LabelCategory::Wismo, 'goods' => true],
         ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null, 'goods' => true],
         ClosingDecision::FORM => ['label' => 'Diskussion beenden', 'category' => null, 'goods' => false],
     ];

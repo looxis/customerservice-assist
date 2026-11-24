@@ -55,7 +55,7 @@
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
                     <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
                     <span class="text-sm text-slate-600">
-                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, in_array($inputs['formular'] ?? null, [\App\Analysis\ReshipmentDecision::FORM, $closingForm, \App\Analysis\PaymentDecision::FORM], true) ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
+                        Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, in_array($inputs['formular'] ?? null, [\App\Analysis\ReshipmentDecision::FORM, $closingForm, \App\Analysis\PaymentDecision::FORM, \App\Analysis\WismoUpdateDecision::FORM], true) ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
                         – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
                         @if ($complaintToggle && ! $digital)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
@@ -107,7 +107,7 @@
                 <x-analysis.related-tickets :related="$analysis['related']" />
             @endif
 
-            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" :hidden-product-for="$complaintToggle ? ['neuversand', $closingForm, \App\Analysis\PaymentDecision::FORM] : null" />
+            <x-analysis.scope-fields :analysis="$analysis" :chosen-products="$chosenProducts" :no-product="$noProduct" :unknown-name="$unknownName" :advanced="$advanced" :optional-product-for="$complaintToggle ? 'support' : null" :hidden-product-for="$complaintToggle ? ['neuversand', $closingForm, \App\Analysis\PaymentDecision::FORM, \App\Analysis\WismoUpdateDecision::FORM] : null" />
 
             <fieldset x-show="! digital" x-bind:disabled="digital" @if ($digital) x-cloak @endif class="min-w-0 space-y-5 border-0 p-0">
             <legend class="sr-only">Bestellung</legend>
@@ -188,6 +188,7 @@
                 <x-analysis.support-fields :inputs="$inputs" />
                 <x-analysis.complaint-fields :inputs="$inputs" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
                 <x-analysis.payment-fields :inputs="$inputs" :orders="$labelOrders" />
+                <x-analysis.wismo-update-fields :inputs="$inputs" :orders="$labelOrders" />
                 <x-analysis.reshipment-fields :inputs="$inputs" />
                 @if (isset($forms[$closingForm]))
                     <x-analysis.closing-fields :inputs="$inputs" />

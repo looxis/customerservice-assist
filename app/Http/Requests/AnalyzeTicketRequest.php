@@ -11,6 +11,7 @@ use App\Analysis\GuidedForms;
 use App\Analysis\PaymentDecision;
 use App\Analysis\ReshipmentDecision;
 use App\Analysis\SupportDecision;
+use App\Analysis\WismoUpdateDecision;
 use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Http\Requests\Concerns\ChoosesSalesChannel;
 use App\Knowledge\CustomerGroup;
@@ -92,8 +93,8 @@ class AnalyzeTicketRequest extends FormRequest
             $this->merge(['kein_produktbezug' => $this->hasProductChoice() ? '0' : '1']);
         }
 
-        // The forms "Neuversand" (PROJ-93), "Diskussion beenden" (PROJ-98) and "Zahlung / Rechnung" (PROJ-100) hide the product: whatever the browser still sends is dropped.
-        if (in_array($this->input('formular'), [ReshipmentDecision::FORM, ClosingDecision::FORM, PaymentDecision::FORM], true)) {
+        // The forms "Neuversand" (PROJ-93), "Diskussion beenden" (PROJ-98), "Zahlung / Rechnung" (PROJ-100) and "Aktualisierte WISMO-Infos" (PROJ-101) hide the product: whatever the browser still sends is dropped.
+        if (in_array($this->input('formular'), [ReshipmentDecision::FORM, ClosingDecision::FORM, PaymentDecision::FORM, WismoUpdateDecision::FORM], true)) {
             $this->merge(['produkte' => [], 'produkt_ohne_wissen' => '', 'forge_produkte' => [], 'eocs_produkte' => [], 'forge_sku' => [], 'kein_produktbezug' => '1']);
         }
     }
@@ -132,6 +133,7 @@ class AnalyzeTicketRequest extends FormRequest
             'zahlung_rechnung_anhang' => ['nullable', Rule::in(PaymentDecision::YES_NO)],
             'zahlung_erstattung' => ['nullable', Rule::in(PaymentDecision::YES_NO)],
             'zahlung_zusatz' => ['nullable', 'string', 'max:1500'],
+            'wismo_zusatz' => ['nullable', 'string', 'max:1500'],
             'reklamation_berechtigt' => ['nullable', Rule::in(ComplaintDecision::ANSWERS)],
             'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
@@ -321,6 +323,14 @@ class AnalyzeTicketRequest extends FormRequest
     }
 
     /**
+     * The answers of the form "Aktualisierte WISMO-Infos" (PROJ-101), without the shipment state, or null when another form was used.
+     */
+    public function wismoUpdate(): ?WismoUpdateDecision
+    {
+        return WismoUpdateDecision::fromInput($this->validated());
+    }
+
+    /**
      * The DHL return label to attach: with the complaint form only when the complaint is justified and the
      * product is sent back, whatever else was sent.
      */
@@ -329,7 +339,7 @@ class AnalyzeTicketRequest extends FormRequest
         $complaint = $this->complaint();
         $id = $this->validated('return_label');
 
-        if ($this->support() !== null || $this->reshipment() !== null || $this->closing() !== null || $this->payment() !== null) {
+        if ($this->support() !== null || $this->reshipment() !== null || $this->closing() !== null || $this->payment() !== null || $this->wismoUpdate() !== null) {
             return null;
         }
 

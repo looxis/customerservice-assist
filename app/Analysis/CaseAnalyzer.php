@@ -65,7 +65,7 @@ class CaseAnalyzer
     public function analyze(AnalysisRequest $request): string
     {
         $prompt = Prompt::load('analysis');
-        $this->statusTool = ! $request->isQuestion() && ShipmentStatusTool::applies($request->orders) ? new ShipmentStatusTool($request->orders, $this->tracker, $request->ticket->number, $this->deliveryNotices, $request->ticket->customerEmail) : null;
+        $this->statusTool = ! $request->isQuestion() && ! $request->shipmentChecked && ShipmentStatusTool::applies($request->orders) ? new ShipmentStatusTool($request->orders, $this->tracker, $request->ticket->number, $this->deliveryNotices, $request->ticket->customerEmail) : null;
         $context = new CaseContext($request->customerGroup, $request->products);
         $selection = $this->selector->select($context);
         $pseudonymizer = app(Pseudonymizer::class);
@@ -168,7 +168,7 @@ class CaseAnalyzer
             'placeholders' => $pseudonymizer->values(),
             ...($request->related === null || $request->related->isEmpty() ? [] : ['related' => $request->related->toStored()]),
             ...($products === null ? [] : ['product_data' => $request->productPackage->toStored(), 'product_sent' => $products->prompt()->record]),
-            ...($this->statusTool?->noticeRecord() === null ? [] : ['delivery_notices' => $this->statusTool->noticeRecord()]),
+            ...(($request->noticeRecord ?? $this->statusTool?->noticeRecord()) === null ? [] : ['delivery_notices' => $request->noticeRecord ?? $this->statusTool->noticeRecord()]),
             ...($retrieval === null ? [] : ['retrieval' => $this->record($retrieval, $selection, $hints, $safeguard, $request->extraKnowledge, $ruleCheck, $router, $outOfScope)]),
             'meta' => [
                 'staff' => $request->staffName,

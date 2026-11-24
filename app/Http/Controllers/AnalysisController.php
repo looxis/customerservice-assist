@@ -18,6 +18,7 @@ use App\Analysis\ReshipmentDecision;
 use App\Analysis\Summarizer;
 use App\Analysis\Summary;
 use App\Analysis\TicketContext;
+use App\Analysis\WismoUpdateDecision;
 use App\Eocs\EocsClient;
 use App\Eocs\EocsException;
 use App\Eocs\EocsOrder;
@@ -31,6 +32,7 @@ use App\Http\Requests\UpdateSummaryRequest;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\SalesChannels;
 use App\Labeling\TicketLabelState;
+use App\Lettermint\DeliveryNotices;
 use App\Models\ReturnLabel;
 use App\Orders\OrderNumber;
 use App\Orders\OrderNumberDetector;
@@ -39,6 +41,8 @@ use App\Returns\ReturnInstructions;
 use App\Staff\StaffDirectory;
 use App\Staff\TestMode;
 use App\Todo\TodoService;
+use App\Tracking\ShipmentTracker;
+use App\Wismo\ShipmentSnapshot;
 use App\Zammad\OrderMentionItem;
 use App\Zammad\OutgoingAttachment;
 use App\Zammad\OutgoingReply;
@@ -168,7 +172,16 @@ class AnalysisController extends Controller
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
         $complaint = $request->complaint();
-        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing() ?? $request->payment();
+        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing() ?? $request->payment() ?? $request->wismoUpdate();
+
+        // "Aktualisierte WISMO-Infos" (PROJ-101): carrier and Lettermint are asked here in code, not by the model.
+        if ($guided instanceof WismoUpdateDecision) {
+            if (! ShipmentSnapshot::trackable($orders)) {
+                return $back(WismoUpdateDecision::NO_SHIPMENT);
+            }
+
+            $guided = $guided->withSnapshot(ShipmentSnapshot::take($orders, app(ShipmentTracker::class), app(DeliveryNotices::class), $ticket->customerEmail, $ticket->number));
+        }
 
         // "Diskussion beenden" (PROJ-98) only for some categories and after several customer replies, as the form offers it.
         if ($guided instanceof ClosingDecision && ! ClosingDecision::available(TicketLabelState::categoryOf($ticket), $ticket)) {
@@ -209,6 +222,8 @@ class AnalysisController extends Controller
                 productPackage: $package,
                 related: $related,
                 placeholders: $guided instanceof ReshipmentDecision ? $guided->placeholders() : [],
+                shipmentChecked: $guided instanceof WismoUpdateDecision,
+                noticeRecord: $guided instanceof WismoUpdateDecision ? $guided->snapshot?->noticeRecord : null,
                 claimReferences: array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): array => ['claim' => $claim, 'order' => $number->value], $number->claims), $found) ?: [[]])),
             ));
         } catch (AnalysisException $exception) {

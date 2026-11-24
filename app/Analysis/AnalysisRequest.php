@@ -28,6 +28,8 @@ final readonly class AnalysisRequest
      * @param  list<array{claim: int, order: string}>  $claimReferences  Claim numbers the ticket names ("R1-302-…"), PROJ-53.
      * @param  RelatedSection|null  $related  Earlier course of the tickets that belong to this case (PROJ-52).
      * @param  array<string, string>  $placeholders  Values the employee typed that never go to the model, only their placeholder (PROJ-93: the new delivery address).
+     * @param  bool  $shipmentChecked  The shipment state was already asked in code (PROJ-101); the model gets no carrier tool.
+     * @param  list<array{order: string, status: string, notices: list<array<string, mixed>>}>|null  $noticeRecord  Notification mails found in code, for the result view (PROJ-97, PROJ-101).
      */
     public function __construct(
         public Ticket $ticket,
@@ -51,6 +53,8 @@ final readonly class AnalysisRequest
         public array $claimReferences = [],
         public ?RelatedSection $related = null,
         public array $placeholders = [],
+        public bool $shipmentChecked = false,
+        public ?array $noticeRecord = null,
     ) {}
 
     public function isQuestion(): bool
