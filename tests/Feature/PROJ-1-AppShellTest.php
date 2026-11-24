@@ -39,12 +39,6 @@ describe('layout shell', function () {
             ->toContain('<svg');
     });
 
-    test('the sidebar footer shows the configured version', function () {
-        config(['app.version' => '97af4ee · 02.10.2026']);
-
-        $this->get('/')->assertSeeText('Version 97af4ee · 02.10.2026');
-    });
-
     test('a version is configured', function () {
         expect(config('app.version'))->toBeString()->not->toBeEmpty();
     });

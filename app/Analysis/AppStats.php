@@ -23,12 +23,11 @@ class AppStats
     public function __construct(private readonly KnowledgeLibrary $library) {}
 
     /**
-     * @return array{version: string, state: string, documents: int, bytes: int, tickets: int, gaps: int, openGaps: int, review: int}
+     * @return array{state: string, documents: int, bytes: int, tickets: int, gaps: int, openGaps: int, review: int}
      */
     public function all(): array
     {
         return [
-            'version' => (string) config('app.version'),
             ...$this->knowledge(),
             'tickets' => $this->processedTickets(),
             ...$this->gaps(),
