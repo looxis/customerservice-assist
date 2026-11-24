@@ -33,6 +33,7 @@ triggers:
 related_knowledge:
   - POLICY-041
   - POLICY-043
+  - PLAYBOOK-060
 ---
 
 Gilt für die Vertriebskanäle looxis-de, fachhaendler und looxis-pro.
@@ -44,6 +45,8 @@ Wie ein Kunde zahlt, ist je Zahlungsart eindeutig festgelegt:
 - **Rechnung:** Alle Angaben stehen auf der Rechnung, auch das Zahlungsziel und die beiden Geschäftskonten von LOOXIS bei der Commerzbank und der HypoVereinsbank. Den Kunden auf die Rechnung verweisen.
 - **Lastschrift:** Das voraussichtliche Einzugsdatum steht auf der Rechnung. Alle weiteren Einzelheiten ergeben sich aus dem vom Kunden unterschriebenen Lastschriftmandat. Ohne erteiltes, ausgefülltes, unterschriebenes und damit gültiges Lastschriftmandat gibt es keine Zahlung per Lastschrift.
 - **Mollie:** Mollie hält alle Zahlungsdetails und Informationen unmissverständlich und detailliert bereit. Kontodaten, Betrag und Zahlungsreferenz stammen aus der Mollie-Zahlungsanweisung der Bestellung, nicht vom Kundenservice; siehe POLICY-043.
+
+**Zahlungsnachweis bei Zahlung auf Rechnung:** Schickt ein Kunde einen Überweisungsbeleg zu einer Rechnung, ordnet LOOXIS die Zahlung auf dem Geschäftskonto zu. Den Beleg dankend annehmen; zusagen, dass die Zahlung zugeordnet wird, aber keine schnellere Freigabe oder Bearbeitung versprechen. Bei einer Mollie-Bestellung gilt stattdessen PLAYBOOK-060.
 
 # Kommunikation
 

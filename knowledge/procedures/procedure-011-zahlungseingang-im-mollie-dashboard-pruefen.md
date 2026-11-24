@@ -1,6 +1,6 @@
 ---
 id: PROCEDURE-011
-title: Zahlungseingang einer Mollie-Bestellung im Mollie-Dashboard prüfen
+title: Zahlungseingang einer Mollie-Bestellung in EOCS und im Mollie-Dashboard prüfen
 type: procedure
 status: active
 actions:
@@ -15,7 +15,7 @@ categories:
   - order-process-question
 topics:
   - payment-processing
-summary: "Interne Anleitung, wie im Mollie-Dashboard geprüft wird, ob Mollie den Zahlungseingang zu einer Bestellung registriert hat und ob die vom Kunden genannte Referenznummer zur Bestellung passt: einloggen, unter „Umsatz“ die Bestellnummer suchen, Bestellung anklicken, Details ansehen. Gebraucht, wenn ein Kunde sagt, er habe schon überwiesen oder bezahlt, und kein Zahlungseingang sichtbar ist. Gilt nicht für Rechnung, Lastschrift und Amazon."
+summary: "Interne Anleitung, wie geprüft wird, ob Mollie den Zahlungseingang zu einer Bestellung registriert hat: zuerst in EOCS auf der Rechnungsseite der Bestellung (Adresse der Bestellung plus „/invoice/“, Zahlungsstand unten auf der Seite); für die Prüfung einer vom Kunden genannten Referenznummer im Mollie-Dashboard unter „Umsatz“ die Bestellnummer suchen. Gebraucht, wenn ein Kunde sagt, er habe schon überwiesen oder bezahlt, oder einen Zahlungsnachweis schickt. Gilt nicht für Rechnung, Lastschrift und Amazon."
 retrieval: triggered
 triggers:
   - Zahlungseingang
@@ -23,6 +23,9 @@ triggers:
   - Überweisung veranlasst
   - Zahlung nicht angekommen
   - Referenznummer
+  - Zahlungsnachweis
+  - Überweisungsbeleg
+  - Zahlungsbestätigung
 related_knowledge:
   - POLICY-043
   - POLICY-057
@@ -41,11 +44,13 @@ Klären, ob Mollie die Zahlung zu einer Bestellung registriert hat und ob die vo
 
 # Arbeitsschritte
 
-1. Mollie: [Mollie-Dashboard öffnen](link:mollie-dashboard) und einloggen.
-2. Mollie: Oben links unter „Umsatz“ die Bestellnummer in die Suche eingeben.
-3. Mollie: Die gefundene Bestellung anklicken. Die Details werden angezeigt.
-4. Mollie: Prüfen, ob der Zahlungseingang registriert ist und ob die vom Kunden genannte Referenznummer zur Bestellung passt.
-5. Das Ergebnis in der Antwort an den Kunden verwenden (POLICY-043) und im Ticket als interne Notiz festhalten.
+1. EOCS: Die Bestellung öffnen und an ihre Adresse „/invoice/“ anhängen (z. B. `https://eocs.loox.is/orders/768261/invoice/`). Unten auf der Seite steht der Zahlungsstand. Im Formular „Zahlung / Rechnung“ öffnet der Knopf „Zahlungsstand in EOCS prüfen“ diese Seite direkt.
+2. Reicht der Zahlungsstand aus EOCS (keine Referenznummer zu prüfen), weiter mit Schritt 6.
+3. Mollie: [Mollie-Dashboard öffnen](link:mollie-dashboard) und einloggen.
+4. Mollie: Oben links unter „Umsatz“ die Bestellnummer in die Suche eingeben.
+5. Mollie: Die gefundene Bestellung anklicken. Die Details werden angezeigt.
+6. Prüfen, ob der Zahlungseingang registriert ist und (im Mollie-Dashboard) ob die vom Kunden genannte Referenznummer zur Bestellung passt.
+7. Das Ergebnis in der Antwort an den Kunden verwenden (POLICY-043) und im Ticket als interne Notiz festhalten.
 
 # Kritische Hinweise
 
@@ -54,7 +59,7 @@ Klären, ob Mollie die Zahlung zu einer Bestellung registriert hat und ob die vo
 
 # Abschlusskontrolle
 
-- [ ] Bestellung im Mollie-Dashboard gefunden
+- [ ] Zahlungsstand in EOCS bzw. Bestellung im Mollie-Dashboard gefunden
 - [ ] Stand des Zahlungseingangs geprüft
 - [ ] Referenznummer des Kunden mit der Bestellung verglichen
 - [ ] Interne Notiz im Ticket gesetzt

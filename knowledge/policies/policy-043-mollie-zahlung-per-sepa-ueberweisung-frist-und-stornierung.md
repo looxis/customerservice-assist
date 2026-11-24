@@ -14,7 +14,7 @@ categories:
 topics:
   - payment-processing
   - order-release
-summary: "Ein Kunde kann eine Bestellung mit Zahlungsabwicklung über Mollie nicht bezahlen, zum Beispiel weil PayPal nicht funktioniert oder ihm Kontodaten fehlen. Klärt: Die klassische SEPA-Überweisung über Mollie ist eine zulässige Option und kein Wechsel der Zahlungsabwicklung; Kontodaten, Betrag und Zahlungsreferenz stammen nur aus der Mollie-Zahlungsanweisung; je Shop gibt es eine automatische Zahlungserinnerung nach 15 Minuten (looxis.de), keine (Fachhändler) oder einen wiederverwendbaren Zahlungslink (looxis-pro.com, manuelle Bestellungen); eine nicht rechtzeitig bezahlte Bestellung gilt als nicht freigegeben, kann weder manuell freigegeben noch in der Zahlungsart geändert werden und muss neu ausgelöst werden; Fristen allgemein einige Tage, nach Fristablauf eingehende Zahlungen retourniert Mollie; die Frage nach einer Rückkehr zur Lastschrift wird getrennt beantwortet. Gilt auch, wenn der Kunde schon überwiesen hat und fragt, wo seine Zahlung bleibt oder ob die Frist schon abgelaufen ist: Dann ist der Zahlungseingang bei Mollie maßgeblich, den LOOXIS im Mollie-Dashboard prüft."
+summary: "Ein Kunde kann eine Bestellung mit Zahlungsabwicklung über Mollie nicht bezahlen, zum Beispiel weil PayPal nicht funktioniert oder ihm Kontodaten fehlen. Klärt: Die klassische SEPA-Überweisung über Mollie ist eine zulässige Option und kein Wechsel der Zahlungsabwicklung; Kontodaten, Betrag und Zahlungsreferenz stammen nur aus der Mollie-Zahlungsanweisung; je Shop gibt es eine automatische Zahlungserinnerung nach 15 Minuten (looxis.de), keine (Fachhändler) oder einen wiederverwendbaren Zahlungslink (looxis-pro.com, manuelle Bestellungen); eine nicht rechtzeitig bezahlte Bestellung gilt als nicht freigegeben, kann weder manuell freigegeben noch in der Zahlungsart geändert werden und muss neu ausgelöst werden; Fristen allgemein einige Tage, nach Fristablauf eingehende Zahlungen retourniert Mollie; die Frage nach einer Rückkehr zur Lastschrift wird getrennt beantwortet. Gilt auch, wenn der Kunde schon überwiesen hat und fragt, wo seine Zahlung bleibt oder ob die Frist schon abgelaufen ist: Dann ist der Zahlungseingang bei Mollie maßgeblich, den LOOXIS in EOCS oder im Mollie-Dashboard prüft. Schickt der Kunde einen Zahlungsnachweis: PLAYBOOK-060."
 retrieval: binding
 triggers:
   - Paypal
@@ -49,6 +49,7 @@ related_knowledge:
   - POLICY-057
   - PLAYBOOK-041
   - PROCEDURE-011
+  - PLAYBOOK-060
 ---
 
 Gilt für Bestellungen im Online-Shop (looxis-de, fachhaendler, looxis-pro), deren Zahlung über Mollie abgewickelt wird.
@@ -81,7 +82,8 @@ Hat der Kunde per SEPA-Überweisung über Mollie gezahlt und ist der Zahlungsein
 
 - Der Kunde hat für die SEPA-Überweisung mehrere Tage Zeit; maßgeblich ist die Frist in der Mollie-Zahlungsanweisung. Nennt der Kunde eine andere, kürzere Frist, wird sie nicht bestätigt. Die Zahl der Tage wird nicht genannt.
 - LOOXIS hat keinen Einblick in den Banktransfer selbst. Sichtbar ist nur, ob Mollie den Zahlungseingang registriert hat. Der Kundenservice sagt nicht, die Überweisung sei „unterwegs“ oder „angekommen“.
-- Ob Mollie die Zahlung registriert hat und ob die vom Kunden genannte Referenznummer zur Bestellung gehört, prüfen Mitarbeiter im Mollie-Dashboard (PROCEDURE-011). Die Referenznummer wird dem Kunden nur bestätigt, wenn sie dort zur Bestellung passt.
+- Ob Mollie die Zahlung registriert hat, prüfen Mitarbeiter in EOCS auf der Rechnungsseite der Bestellung, ob die vom Kunden genannte Referenznummer zur Bestellung gehört, im Mollie-Dashboard (PROCEDURE-011).
+- Schickt der Kunde einen Zahlungsnachweis oder Überweisungsbeleg, gilt zusätzlich PLAYBOOK-060: Der Nachweis ist nicht nötig und wird nicht der Bestellung hinzugefügt. Die Referenznummer wird dem Kunden nur bestätigt, wenn sie dort zur Bestellung passt.
 - Der Kunde prüft in seiner Überweisung, ob IBAN, Betrag und Zahlungsreferenz genau so übernommen wurden, wie Mollie sie in der Zahlungsanweisung zu dieser Bestellung nennt.
 - Sobald Mollie die Zahlung bestätigt, wird die Bestellung freigegeben (POLICY-057). Bis dahin wird sie nicht produziert und nicht verschickt.
 - Dass die Zahlung weiterhin möglich ist, sagt die Antwort nur, wenn Verlauf, Bestelldaten oder Mollie-Dashboard zeigen, dass die Bestellung offen und nicht storniert ist; sonst als interne Klärung vorsehen.
