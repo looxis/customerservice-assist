@@ -25,6 +25,9 @@ customer_terms:
 - Brotdose mit Holzdeckel
 - Holzdeckel
 - Buchenholzdeckel
+shared_customer_terms:
+- Lunchbox
+- Brotdose
 related_knowledge:
 - PLAYBOOK-011
 - PLAYBOOK-012

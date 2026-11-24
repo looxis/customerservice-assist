@@ -30,6 +30,9 @@ customer_terms:
 - Edelstahlbrotdose
 - Edelstahl-Trinkflasche
 - Edelstahltrinkflasche
+shared_customer_terms:
+- Lunchbox
+- Brotdose
 related_knowledge:
 - PLAYBOOK-058
 - PROCESS-010
