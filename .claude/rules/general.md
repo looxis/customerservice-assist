@@ -32,6 +32,7 @@ Before starting ANY work, check if the project has been initialized:
 The changelog is read by the customer service agents (start page and page „Änderungen“), not by developers.
 - **Only add an entry for something the agent has to actively use:** a new form, button, field, option or a changed way of working.
 - **No entry** for changes under the hood (prompts, automation internals, performance, refactoring, tests, knowledge files) or for obvious design/layout improvements, unless the user explicitly asks for one.
+- **No entry for self-explanatory behaviour changes** the agent notices and handles without being told, e.g. which fields are prefilled or left empty, which section opens or stays collapsed, changed defaults or preselections. Test: if the agent does not have to do anything differently or learn anything new, there is no entry.
 - **As short as possible, precise:** usually one sentence naming the feature and where/when it is used. No technical details, no background, no reasoning.
 - Format: German, newest on top, one heading `## YYYY-MM-DD` per day with bullet points; commit separately as `docs(PROJ-X): …`.
 
