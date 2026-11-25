@@ -215,6 +215,24 @@ describe('finding the latest analysis', function () {
         expect($html)->toMatch('/<details id="analyse-details"[^>]*\sopen/')->and($html)->not->toMatch('/<details id="frueherer-vorschlag"[^>]*\sopen/');
     });
 
+    test('new messages since the analysis start the form without the answers of the earlier proposal', function () {
+        CaseAgent::fake([resultAnswer()]);
+        runAnalysis(['formular' => 'reklamation', 'reklamation_berechtigt' => 'info', 'reklamation_info' => 'Kd. soll Foto zur Prüfung senden']);
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSee("mode: 'reklamation',", false)->assertSee("berechtigt: 'info',", false)->assertSee('Kd. soll Foto zur Prüfung senden');
+
+        addArticles(
+            zammadArticle(['id' => 2, 'sender' => 'Agent', 'from' => 'Kundenservice', 'body' => '<p>Bitte senden Sie ein Foto.</p>', 'created_at' => '2026-10-02T07:12:00.000Z']),
+            zammadArticle(['id' => 3, 'body' => '<p>Foto anbei.</p>', 'created_at' => '2026-10-03T07:12:00.000Z']),
+        );
+
+        $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
+            ->assertSee("mode: 'frei',", false)->assertSee('berechtigt: null,', false)
+            ->assertSeeText('Erstellt mit: Reklamation')
+            ->assertDontSee('Kd. soll Foto zur Prüfung senden');
+    });
+
     test('a new analysis replaces the shown one, the earlier one stays stored', function () {
         CaseAgent::fake([resultAnswer(), resultAnswer(['recommendation' => 'Zweiter Vorschlag.'])]);
         $first = runAnalysis();

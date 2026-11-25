@@ -7,11 +7,14 @@
     $chosenProducts = $old('produkte', $analysis['suggestedProducts']);
     $offers = count($analysis['variants']) > 1;
     $inputs = $analysis['inputs'] ?? [];
+    $newMessages = (bool) ($analysis['result']['new_messages'] ?? false);
+    // New messages since the proposal: the answers of the form start empty, the scope (group, channel, products) stays.
+    $answers = $newMessages ? [] : $inputs;
     $earlierReply = (bool) ($analysis['hasEarlierReply'] ?? false);
     $firstPlaceholder = "Was du über diesen Fall weißt, das nicht im Ticket steht, z. B.:\n· Foto geprüft: Motiv ist verschoben gedruckt\n· Kundin am Telefon: braucht Ersatz bis zum 20.12.\n· Produktion bestätigt: Fehldruck in der Charge";
     $followUpPlaceholder = "Es gab schon Kontakt. Was du über den Stand weißt, das nicht im Ticket steht, z. B.:\n· Entscheidung: Wir erstatten die Preisdifferenz, die Versandkosten nicht, weil der Kunde die Bestellung selbst geteilt hat\n· Stand: Der Fehler war aufwendiger zu beheben und ist erst heute gelöst\n· Bitte in der Antwort: für die verspätete Rückmeldung entschuldigen und den Grund nennen";
     $collapsible = ($analysis['result'] ?? null) !== null;
-    $startOpen = ! $collapsible || session('analysis_error') || $errors->any() || ($analysis['result']['new_messages'] ?? false);
+    $startOpen = ! $collapsible || session('analysis_error') || $errors->any() || $newMessages;
     $usedGroup = collect($analysis['groups'])->firstWhere('key', $inputs['kundengruppe'] ?? $analysis['suggestedGroup'])?->label;
     $usedProducts = collect($analysis['products'])->whereIn('slug', $inputs['produkte'] ?? [])->pluck('title')->all();
     $knownOrders = $analysis['hasOrders'] || $unloadedOrders !== [] || $selected !== [];
@@ -34,7 +37,7 @@
         unset($forms[$closingForm]);
     }
     $defaultForm = $complaint['form'] ?? (($complaint['default'] ?? false) ? 'reklamation' : 'frei');
-    $chosenForm = $oldInput ? old('formular') : ($inputs['formular'] ?? null);
+    $chosenForm = $oldInput ? old('formular') : ($answers['formular'] ?? null);
     // A channel without products (PROJ-94) offers no forms for goods, no orders and no DHL label; the form follows a change of the channel.
     $goodsForms = \App\Analysis\GuidedForms::forGoods();
     $startChannel = (string) old('verkaufskanal', $analysis['suggestedChannel'] ?? '');
@@ -42,7 +45,7 @@
     $formMode = ! $complaintToggle ? 'frei' : (is_string($chosenForm) && isset($forms[$chosenForm]) ? $chosenForm : $defaultForm);
     $formMode = $digital && in_array($formMode, $goodsForms, true) ? 'frei' : $formMode;
     $usedForm = \App\Analysis\GuidedForms::guidedLabel($inputs['formular'] ?? null);
-    $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($inputs[$key] ?? $default);
+    $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($answers[$key] ?? $default);
     $labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
 @endphp
 
@@ -185,13 +188,13 @@
                         @endforeach
                     </div>
                 </fieldset>
-                <x-analysis.support-fields :inputs="$inputs" />
-                <x-analysis.complaint-fields :inputs="$inputs" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
-                <x-analysis.payment-fields :inputs="$inputs" :orders="$labelOrders" />
-                <x-analysis.wismo-update-fields :inputs="$inputs" :orders="$labelOrders" />
-                <x-analysis.reshipment-fields :inputs="$inputs" />
+                <x-analysis.support-fields :inputs="$answers" />
+                <x-analysis.complaint-fields :inputs="$answers" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
+                <x-analysis.payment-fields :inputs="$answers" :orders="$labelOrders" />
+                <x-analysis.wismo-update-fields :inputs="$answers" :orders="$labelOrders" />
+                <x-analysis.reshipment-fields :inputs="$answers" />
                 @if (isset($forms[$closingForm]))
-                    <x-analysis.closing-fields :inputs="$inputs" />
+                    <x-analysis.closing-fields :inputs="$answers" />
                 @endif
             @endif
 
