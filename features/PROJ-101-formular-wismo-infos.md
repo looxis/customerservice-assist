@@ -26,7 +26,7 @@ Tickets der Kategorie `wismo` beantwortet die App automatisch (PROJ-82, PROJ-99)
 - [ ] Produktsuche, Wissensbereich, „Kein Produktbezug“, Freitext, „So schreibst du es“ und DHL-Retourenlabel sind ausgeblendet und werden nicht gesendet. Die Zeile „Erstellt mit“ nennt „Aktualisierte WISMO-Infos“ ohne „kein Produktbezug“.
 
 ### Felder
-- [ ] Liste der Sendungen je geladener Bestellung (Paketdienst und Sendungsnummer, höchstens 3 je Bestellung). Ohne Sendung mit Sendungsnummer erscheint der gelbe Hinweis „Keine Sendung mit Sendungsnummer – bitte die Bestellung laden.“
+- [ ] Liste der Sendungen je geladener Bestellung (Paketdienst und Sendungsnummer, höchstens 10 je Bestellung). Ohne Sendung mit Sendungsnummer erscheint der gelbe Hinweis „Keine Sendung mit Sendungsnummer – bitte die Bestellung laden.“
 - [ ] „Zusätzliche Informationen“: optionales Freitextfeld mit höchstens 1.500 Zeichen.
 
 ### Wirkung auf den Vorschlag
@@ -40,7 +40,7 @@ Tickets der Kategorie `wismo` beantwortet die App automatisch (PROJ-82, PROJ-99)
 - [ ] Die Antworten werden mit dem Vorschlag gespeichert und belegen das Formular beim nächsten Öffnen vor.
 
 ## Edge Cases
-- **Mehrere Bestellungen geladen:** alle Sendungen aller geladenen Bestellungen, höchstens 3 je Bestellung.
+- **Mehrere Bestellungen geladen:** alle Sendungen aller geladenen Bestellungen, höchstens 10 je Bestellung.
 - **Lettermint nicht eingerichtet:** keine Benachrichtigungen, die Regeln greifen auf die allgemeine Formulierung zurück.
 - **„Diskussion beenden“ bei WISMO:** bleibt ab der dritten Kundenantwort wählbar. Vorgewählt ist „Aktualisierte WISMO-Infos“.
 

@@ -27,7 +27,7 @@ use Stringable;
  */
 class ShipmentStatusTool implements Tool
 {
-    private const int MAX_SHIPMENTS_PER_ORDER = 3;
+    private const int MAX_SHIPMENTS_PER_ORDER = 10;
 
     private ?string $answer = null;
 

@@ -96,10 +96,10 @@ it('says so for other carriers', function () {
     expect((string) liveTool([liveOrder([liveShipment('Spedition')])], $tracker)->handle(new Request))->toContain('nicht abrufbar');
 });
 
-it('asks the carrier at most three times per order and only once per analysis', function () {
+it('asks the carrier at most ten times per order and only once per analysis', function () {
     $tracker = $this->mock(ShipmentTracker::class);
-    $tracker->shouldReceive('track')->times(3)->andReturn(TrackingStatus::unknown('DHL', '1', null));
-    $tool = liveTool([liveOrder(array_fill(0, 5, liveShipment()))], $tracker);
+    $tracker->shouldReceive('track')->times(10)->andReturn(TrackingStatus::unknown('DHL', '1', null));
+    $tool = liveTool([liveOrder(array_fill(0, 12, liveShipment()))], $tracker);
 
     $first = (string) $tool->handle(new Request);
 

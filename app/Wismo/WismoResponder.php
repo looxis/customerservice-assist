@@ -53,7 +53,7 @@ class WismoResponder
 
     public const int RETRY_SECONDS = 120;
 
-    public const int MAX_SHIPMENTS = 3;
+    public const int MAX_SHIPMENTS = 10;
 
     /** Seconds the language model may take; the job must end before the queue offers it again (retry_after 90). */
     public const int MODEL_TIMEOUT = 40;

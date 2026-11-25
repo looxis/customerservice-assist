@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class ShipmentSnapshot
 {
-    public const int MAX_SHIPMENTS_PER_ORDER = 3;
+    public const int MAX_SHIPMENTS_PER_ORDER = 10;
 
     /**
      * @param  list<string>  $lines  One line per shipment (and per order for the notifications) for the model.

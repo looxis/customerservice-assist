@@ -3,6 +3,9 @@
 use App\Analysis\Agents\CaseAgent;
 use App\Analysis\GuidedForms;
 use App\Analysis\WismoUpdateDecision;
+use App\Eocs\EocsOrder;
+use App\Eocs\EocsShipment;
+use App\Lettermint\DeliveryNotices;
 use App\Models\Analysis;
 use App\Models\LabelTicket;
 use App\Models\ReturnLabel;
@@ -161,6 +164,18 @@ describe('creating the proposal', function () {
 });
 
 describe('the facts', function () {
+    test('up to ten shipments of one order are asked, more are left out', function () {
+        $shipments = array_map(fn (int $n): EocsShipment => new EocsShipment('DHL', 'Paket', "T{$n}", null, false), range(1, 12));
+        $order = new EocsOrder(1, '7JQ-18SU-DVA4', 'Shop', 'shop', null, 'Versendet', 'green', null, $shipments, [], [], 'https://eocs.test/orders/1');
+        $tracker = test()->mock(ShipmentTracker::class);
+        $tracker->shouldReceive('track')->times(10)->andReturnUsing(fn (EocsShipment $shipment): TrackingStatus => new TrackingStatus('DHL', $shipment->trackingNumber, true, 'In Zustellung'));
+
+        $snapshot = ShipmentSnapshot::take([$order], $tracker, app(DeliveryNotices::class), null, '2140708');
+
+        expect($snapshot->statuses)->toHaveCount(10)
+            ->and(collect($snapshot->statuses)->pluck('trackingNumber')->all())->toBe(array_map(fn (int $n): string => "T{$n}", range(1, 10)));
+    });
+
     test('a delivered shipment recommends closing the ticket', function () {
         $snapshot = new ShipmentSnapshot(['Bestellung 1: zugestellt'], [new TrackingStatus('DHL', '1', true, 'Zugestellt', delivered: true, shipmentCase: ShipmentHistory::DELIVERED)], [], null, false);
 
