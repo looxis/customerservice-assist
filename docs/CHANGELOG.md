@@ -8,6 +8,10 @@ Verbesserungen, außer ausdrücklich gewünscht. Einträge so kurz wie möglich 
 Ausführliche Regeln: .claude/rules/general.md, Abschnitt „Changelog“.
 -->
 
+## 2026-11-25
+
+- Vorschlag erstellen: Hat der Kunde seit dem letzten Vorschlag geschrieben, sind Formular und Felder wieder leer; nur Kanal, Kundengruppe, Produkte und Bestellung bleiben vorbelegt.
+
 ## 2026-11-24
 
 - Geführte Bearbeitung von Tickets rund um Bezahlung eingefügt.
