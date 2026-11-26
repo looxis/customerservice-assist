@@ -54,7 +54,7 @@ Nach der Prüfung die Lösung aus POLICY-037 anwenden: bei bestätigtem Mangel E
 
 # Formulierungshilfe zur Materialerklärung
 
-„Es tut uns leid, dass Sie mit dem essbaren Foto unzufrieden sind. Wir verwenden dünnes essbares Papier aus Pflanzenfasern, das mit Lebensmittelfarben bedruckt wird. Es ist weitgehend geschmacksneutral und soll den Geschmack des Kuchens nicht wesentlich verändern. Die Zusammensetzung finden Sie auf der Verpackung beziehungsweise in der Zutatenliste.“
+„Schade, dass Sie mit dem essbaren Foto nicht zufrieden sind. Wir verwenden dünnes essbares Papier aus Pflanzenfasern, das mit Lebensmittelfarben bedruckt wird. Es ist weitgehend geschmacksneutral und soll den Geschmack des Kuchens nicht wesentlich verändern. Die Zusammensetzung finden Sie auf der Verpackung beziehungsweise in der Zutatenliste.“
 
 Bei konkreter Bitterkeit ergänzen:
 

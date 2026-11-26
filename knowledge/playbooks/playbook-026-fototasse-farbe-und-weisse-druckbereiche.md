@@ -102,7 +102,7 @@ Die Produktgestaltung bereits in der ersten Antwort verständlich erklären und 
 
 Formulierungshilfe für eine bestellte schwarze Fototasse:
 
-„Es tut uns leid, dass Sie sich die Tasse anders vorgestellt haben. Bei der schwarzen Fototasse sind der Henkel und die Innenseite schwarz. Die Außenseite ist als Druckfläche weiß und wird mit Ihrer Gestaltung bedruckt. Diese Farbaufteilung ist in der Produktbeschreibung erläutert und auf den Produktfotos dargestellt.
+„Schade, dass Sie sich die Tasse anders vorgestellt haben. Bei der schwarzen Fototasse sind der Henkel und die Innenseite schwarz. Die Außenseite ist als Druckfläche weiß und wird mit Ihrer Gestaltung bedruckt. Diese Farbaufteilung ist in der Produktbeschreibung erläutert und auf den Produktfotos dargestellt.
 
 Die Auswahl ‚schwarz‘ färbt den äußeren Hintergrund nicht automatisch schwarz. Weiße Stellen in Ihrer Vorlage beziehungsweise nicht mit dem Motiv belegte Flächen bleiben auch auf der fertigen Tasse weiß. Zusätzlich bleibt der Bereich unmittelbar am Henkel technisch bedingt unbedruckt.“
 

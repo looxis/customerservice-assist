@@ -81,7 +81,7 @@ Die Passwortabfrage ist eine Übergangslösung. Wir stellen den Shop auf ein neu
 
 # Kommunikation
 
-Kurz für die Unannehmlichkeiten entschuldigen. Hat der Kunde weiterhin Schwierigkeiten beim Zugriff oder bei der Bestellung, soll er uns kontaktieren oder uns ansprechen.
+Kurz sagen, dass uns der zusätzliche Aufwand leid tut (TONE-002, Stufe 2). Hat der Kunde weiterhin Schwierigkeiten beim Zugriff oder bei der Bestellung, soll er uns kontaktieren oder uns ansprechen.
 
 # No-Gos
 

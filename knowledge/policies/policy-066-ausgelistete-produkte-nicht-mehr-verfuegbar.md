@@ -29,7 +29,7 @@ Gilt für alle Kundenarten und Vertriebskanäle.
 
 # Regel
 
-Die unten aufgeführten Produkte sind ausgelistet und nicht mehr verfügbar. Sie können weder neu bestellt noch nachbestellt werden. Bei einer Anfrage oder einem Bestellwunsch bedauern wir kurz, dass das Produkt nicht mehr erhältlich ist, und nennen den Ersatz aus der Liste. Gibt es keinen gleichwertigen Ersatz, verweisen wir auf das passende Sortiment auf looxis.de, ohne ein bestimmtes Produkt zu erfinden.
+Die unten aufgeführten Produkte sind ausgelistet und nicht mehr verfügbar. Sie können weder neu bestellt noch nachbestellt werden. Bei einer Anfrage oder einem Bestellwunsch sagen wir kurz, dass das Produkt nicht mehr erhältlich ist, und nennen den Ersatz aus der Liste. Gibt es keinen gleichwertigen Ersatz, verweisen wir auf das passende Sortiment auf looxis.de, ohne ein bestimmtes Produkt zu erfinden.
 
 # Ausgelistete Produkte
 

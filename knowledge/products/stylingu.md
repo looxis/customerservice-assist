@@ -56,4 +56,4 @@ Fachhändler erhielten kostenfreie Präsentationsware und kauften teils kostenpf
 
 # Konsequenz für den Kundenservice
 
-Die Reihe ist ausgelistet, es gibt keinen Ersatz. Bei einer Anfrage oder Bestellwunsch kurz bedauern, dass StylingU nicht mehr erhältlich ist, und auf das aktuelle Sortiment auf looxis.de verweisen, ohne ein bestimmtes Produkt zu erfinden. Von Gewährleistung ist nicht auszugehen, da der Verkauf lange zurückliegt.
+Die Reihe ist ausgelistet, es gibt keinen Ersatz. Bei einer Anfrage oder Bestellwunsch kurz sagen, dass StylingU nicht mehr erhältlich ist, und auf das aktuelle Sortiment auf looxis.de verweisen, ohne ein bestimmtes Produkt zu erfinden. Von Gewährleistung ist nicht auszugehen, da der Verkauf lange zurückliegt.

@@ -47,4 +47,4 @@ Regulär erhältlich waren sie ab September 2015. Wegen geringer Nachfrage wurde
 
 # Konsequenz für den Kundenservice
 
-Das Produkt ist ausgelistet, es gibt keinen Ersatz. Bei einer Anfrage oder Bestellwunsch kurz bedauern, dass MiniU nicht mehr erhältlich ist, und auf das aktuelle Sortiment auf looxis.de verweisen, ohne ein bestimmtes Produkt zu erfinden.
+Das Produkt ist ausgelistet, es gibt keinen Ersatz. Bei einer Anfrage oder Bestellwunsch kurz sagen, dass MiniU nicht mehr erhältlich ist, und auf das aktuelle Sortiment auf looxis.de verweisen, ohne ein bestimmtes Produkt zu erfinden.

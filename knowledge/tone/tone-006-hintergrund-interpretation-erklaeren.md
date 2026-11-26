@@ -133,7 +133,7 @@ Ist eine klare grüne Markierung nach PLAYBOOK-010 nicht berücksichtigt worden,
 
 Formulierungshilfe:
 
-„Sie hatten diesen Bereich bei der Bestellung eindeutig grün markiert. Damit war klar vorgegeben, dass er im Motiv erhalten bleiben soll. Diese Vorgabe wurde bei der Aufbereitung nicht korrekt berücksichtigt. Dafür entschuldigen wir uns. Wir fertigen das Glasfoto selbstverständlich kostenfrei neu und übernehmen auch den erneuten Versand.“
+„Das hätte nicht passieren dürfen, dafür möchten wir uns entschuldigen. Sie hatten diesen Bereich bei der Bestellung eindeutig grün markiert. Damit war klar vorgegeben, dass er im Motiv erhalten bleiben soll. Diese Vorgabe wurde bei der Aufbereitung nicht korrekt berücksichtigt. Wir fertigen das Glasfoto selbstverständlich kostenfrei neu und übernehmen auch den erneuten Versand.“
 
 # Vermeiden
 

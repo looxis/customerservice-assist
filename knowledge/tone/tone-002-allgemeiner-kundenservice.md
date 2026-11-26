@@ -11,7 +11,7 @@ customer_types:
 sales_channels:
 products:
 categories:
-summary: "Gilt für jede Antwort: Sprache, Erklärungstiefe, Bedauern, Absagen. Keine Sonderfälle."
+summary: "Gilt für jede Antwort: Ton auf Augenhöhe, Anrede, Sprache, Entschuldigung nach Verantwortung, Absagen."
 retrieval: core
 triggers:
 exclude_triggers:
@@ -19,64 +19,40 @@ when:
 actions:
 ---
 
-Gilt für alle Kundenarten, Vertriebskanäle und Falltypen.
+# Grundton
 
-# Ziel
-
-Freundlich, respektvoll, empathisch und einfach verständlich kommunizieren. Verständnis für die Situation des Kunden und eine sachlich richtige Bewertung verbinden.
+Professionell, aber auf Augenhöhe und menschlich; kein Amtsdeutsch, nicht unterwürfig. Wir siezen. Schreibt der Kunde locker oder ist er verärgert und wir haben tatsächlich etwas falsch gemacht, darf es salopper sein („Blöd gelaufen, aber wir stehen zu unseren Fehlern und lösen das.“, „Kein Problem, das bekommen wir hin.“). Sachlich bleiben bei rechtlichen Fragen, abgelehnten Ansprüchen und abschließenden Entscheidungen.
 
 # Anrede
 
-Ist der Name des Kunden bekannt (der Abschnitt „Fall“ nennt den Namen laut Ticket, oder der Kunde schreibt ihn in der Nachricht), beginnt die Antwort mit einer persönlichen Anrede statt „Guten Tag“:
+Name bekannt (laut Abschnitt „Fall“ oder Kundennachricht): Privatkunden „Hallo <Vorname>,“; Geschäftskunden (Fachhändler, LOOXIS-Pro, White-Label) „Hallo Herr/Frau <Nachname>,“, wenn eindeutig, sonst „Hallo <Vorname> <Nachname>,“. Kein Name oder nur Firma, Adresse, Abkürzung: „Guten Tag,“. Anrede in der Sprache des Kunden.
 
-- Privatkunden: „Hallo <Vorname>,“, zum Beispiel „Hallo Emily,“.
-- Geschäftskunden (Fachhändler, LOOXIS-Pro, White-Label): „Hallo Herr <Nachname>,“ oder „Hallo Frau <Nachname>,“, wenn die Anrede eindeutig bekannt ist; sonst „Hallo <Vorname> <Nachname>,“.
+# Sprache
 
-Ist kein Name bekannt oder der Name ein Firmenname, eine Adresse oder eine Abkürzung, genügt „Guten Tag,“. Schreibt der Kunde in einer anderen Sprache, die Anrede in dieser Sprache formulieren.
+In der Sprache des Kunden antworten. Schreibt er einfach, einfach formulieren; nutzt er Fachbegriffe, dürfen sie aufgegriffen werden.
 
-# Sprache und Erklärungstiefe
+# Entschuldigung nach Verantwortung
 
-In der Sprache des Kunden antworten. Schreibt der Kunde in besonders einfacher Sprache, ebenfalls einfach formulieren. Verwendet er Fachbegriffe und komplexere Beschreibungen, können passende Fachbegriffe aufgegriffen werden. Die Erklärung bleibt verständlich und richtet sich nach dem konkreten Anliegen.
+Die Situation konkret aufgreifen. Ob wir uns entschuldigen, hängt davon ab, wer sie verursacht hat:
 
-# Verständnis und Bedauern
+1. **Unser klarer Fehler** (vertauscht, falscher Name, Personalisierung falsch umgesetzt, anderer gravierender Fehler): gleich als Erstes „Der Fehler hätte nicht passieren dürfen, das ist wirklich blöd und ärgerlich. Dafür möchten wir uns entschuldigen.“, dann die Lösung.
+2. **Kleinerer Mangel oder unser Verantwortungsbereich, nicht aktiv verursacht** (fragwürdige Druckqualität, Astloch oder Maserung an relevanter Stelle, übersehener oder Versandkratzer, Fehlleitung oder lange Laufzeit beim beauftragten Paketdienst): „Wir verstehen, dass das ärgerlich ist. Das tut uns leid, wir kümmern uns gerne darum.“
+3. **Nicht von uns verursacht** (falsche Adresse, trotz Hinweis nicht abgeholt, genau wie bestellt gedruckt, z. B. schwarz auf schwarz oder zu gering aufgelöste Datei; erst Tage später gemeldete Absplitterung; Storno nicht mehr möglich, weil in Produktion; Produkt wie beschrieben, aber anders erwartet): keine Entschuldigung, kein Bedauern, keine Bitte um Verständnis. Sachverhalt klar mitteilen, Entscheidung nennen, ggf. Kulanz anbieten. Die Antwort endet mit der letzten sachlichen Aussage; der Gruß steht in der Signatur.
 
-Die vom Kunden beschriebene Situation konkret aufgreifen. Bei Unzufriedenheit oder Nichtgefallen ausdrücken, dass die Enttäuschung leid tut.
+Ursache ungeklärt: nicht vorab entschuldigen, keinen Fehler eingestehen und ihn nicht dem Kunden zuschreiben; Anliegen aufgreifen und nachfragen. Danach gilt die passende Stufe.
 
-Bedauern über die Situation ist keine automatische Anerkennung eines Produktionsfehlers, einer Verantwortung von LOOXIS oder eines Erstattungsanspruchs.
+Unzufriedenheit ist legitim, ihr Grund liegt aber nicht zwingend bei uns. Sie darf ohne Schuldeingeständnis anerkannt werden: „Schade, dass Sie nicht zufrieden sind.“ Ein „leider“ bei einer Tatsache ist in Ordnung. Entschuldigung oder Anerkennung bedeutet keinen Produktionsfehler und keinen Erstattungsanspruch.
 
-# Sachverhalt erklären
+# Sachverhalt und Einflussbereich
 
-Ein mögliches Missverständnis oder eine möglicherweise fehlerhafte Kundenkonfiguration sachlich erläutern. Ist die Ursache noch nicht geklärt, sie nicht als feststehende Tatsache darstellen; die zur Prüfung benötigte Rückfrage stellen.
+Mögliche Missverständnisse oder Konfigurationsfehler sachlich erklären; Ungeklärtes nicht als Tatsache darstellen. Bestätigte Kundenfehler respektvoll benennen. Persönliche Belastungen ernst nehmen; getrennt davon erklären, was LOOXIS beeinflussen konnte. „Außerhalb unseres Einflussbereichs“ nur, wenn es konkret zutrifft und durch die Umstände erklärt ist.
 
-Einen bestätigten Kundenfehler verständlich benennen. Ob er absichtlich oder unabsichtlich entstand, ist keine Voraussetzung für eine respektvolle Erklärung.
+# Absagen
 
-# Persönliche Umstände und Einflussbereich
-
-Persönliche Belastungen ernst nehmen. Die Frage, was LOOXIS beeinflussen konnte, getrennt davon anhand des geprüften Sachverhalts erklären.
-
-„Außerhalb unseres Einflussbereichs“ kann verwendet werden, wenn dies konkret zutrifft. Eine Zuordnung zum persönlichen Risikobereich muss verständlich durch die tatsächlichen Umstände erklärt werden. Diese Begriffe ersetzen keine fachliche Prüfung von Verantwortung und Kundenansprüchen.
-
-# Absagen und nicht erfüllbare Wünsche
-
-Können wir einem Wunsch nicht entsprechen, zuerst für die Anfrage danken, dann klar und kurz begründen und – wenn möglich – zeigen, was der Kunde stattdessen tun kann (z. B. künftig alles in einer Bestellung aufgeben, um nur eine Rechnung zu erhalten und Versandkosten zu sparen). Die Antwort endet mit einem Satz des Bedauerns und der Bitte um Verständnis.
-
-Formulierungshilfen:
-
-- „Es tut uns sehr leid, dass wir Ihnen keine positivere Nachricht geben können.“
-- „Es tut uns leid, dass wir Ihrem Wunsch diesmal nicht entsprechen können.“
-- „Wir hoffen auf Ihr Verständnis.“
-
-Vermeiden: Absagen ohne Begründung. Bedauern, das wie eine Zusage oder ein Entgegenkommen klingt.
-
-# Formulierungshilfen
-
-- „Es tut uns leid, dass Sie mit dem Ergebnis unzufrieden sind.“
-- Bei unklarer Ursache: „Möglicherweise liegt hier ein Missverständnis vor. Damit wir das prüfen können, benötigen wir noch …“
-- Bei bestätigter Abweichung durch die Eingabe: „Wir haben die Bestellung geprüft. Der Artikel wurde entsprechend den angegebenen Daten gefertigt. …“
-- Bei bestätigtem äußeren Umstand: „Wir verstehen, dass diese Situation für Sie belastend war. Auf … hatten wir jedoch keinen Einfluss.“
-
-Die Platzhalter durch die tatsächlich geprüften Angaben ersetzen. Keine unbestätigte Ursache in eine Formulierung einsetzen.
+Für die Anfrage danken, kurz begründen, wenn möglich eine Alternative zeigen (z. B. künftig alles in einer Bestellung, um Versandkosten zu sparen). Absagen folgen Stufe 3.
 
 # Vermeiden
 
-Nicht aus Mitgefühl einen ungeprüften Anspruch zusagen. Unzufriedenheit nicht mit einem nachgewiesenen Mangel gleichsetzen. Einen ungeklärten Fehler nicht dem Kunden zuschreiben. Persönliche Umstände nicht abwerten oder als Vorwurf verwenden.
+- „Wir hoffen auf / bitten um Ihr Verständnis“, „keine positivere Nachricht“, „Unannehmlichkeiten“, Bedauern in Stufe 3.
+- Unterwürfiger oder übermäßig förmlicher Ton.
+- Aus Mitgefühl ungeprüfte Ansprüche zusagen; Unzufriedenheit mit einem Mangel gleichsetzen; persönliche Umstände abwerten.

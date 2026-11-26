@@ -66,9 +66,9 @@ Eine Erstattung nicht von sich aus anstelle des Ersatzes anbieten. Verlangt ein 
 
 # Formulierungshilfe zur Prüfung
 
-„Es tut uns leid, dass Sie offenbar ein Produkt mit einer anderen Personalisierung erhalten haben. Damit wir die Verwechslung zuordnen können, senden Sie uns bitte ein Foto des Produkts, auf dem die Personalisierung erkennbar ist. Auf der Verpackung müsste außerdem ein etwa 6 × 3 cm großer Barcode-Aufkleber sein. Unter dem Barcode steht eine Nummer wie 123456-1_1. Bitte senden Sie uns ein lesbares Foto dieses Aufklebers oder schreiben Sie die vollständige Nummer exakt mit Bindestrich und Unterstrich ab.“
+„Danke für Ihre Nachricht, da scheint etwas vertauscht worden zu sein. Damit wir die Verwechslung zuordnen können, senden Sie uns bitte ein Foto des Produkts, auf dem die Personalisierung erkennbar ist. Auf der Verpackung müsste außerdem ein etwa 6 × 3 cm großer Barcode-Aufkleber sein. Unter dem Barcode steht eine Nummer wie 123456-1_1. Bitte senden Sie uns ein lesbares Foto dieses Aufklebers oder schreiben Sie die vollständige Nummer exakt mit Bindestrich und Unterstrich ab.“
 
-Die Bitte auf tatsächlich noch fehlende Nachweise kürzen. Nach bestätigter Verwechslung den eigenen Fehler anerkennen, sich entschuldigen und die konkrete Ersatzlösung mitteilen. Interne Produktionsursachen und Routing-Abläufe werden nicht gegenüber dem Kunden erläutert.
+Die Bitte auf tatsächlich noch fehlende Nachweise kürzen. Nach bestätigter Verwechslung gleich als Erstes den eigenen Fehler anerkennen und sich entschuldigen (TONE-002, Stufe 1), zum Beispiel: „Der Fehler hätte nicht passieren dürfen, das ist wirklich blöd und ärgerlich. Dafür möchten wir uns entschuldigen.“ Dann die konkrete Ersatzlösung mitteilen. Interne Produktionsursachen und Routing-Abläufe werden nicht gegenüber dem Kunden erläutert.
 
 # Noch nicht entscheidbar
 

@@ -44,7 +44,7 @@ Gilt für alle Produkte, Kundenarten und Vertriebskanäle bei Abholproblemen an 
 
 # Einordnung
 
-Der Kunde antwortet beispielsweise verärgert auf unsere automatisierte Abholbenachrichtigung, weil er vergeblich zur Packstation gefahren ist oder keinen Code hat. Den konkreten Aufwand kurz bedauern und dann beim Zugang zum Paket helfen.
+Der Kunde antwortet beispielsweise verärgert auf unsere automatisierte Abholbenachrichtigung, weil er vergeblich zur Packstation gefahren ist oder keinen Code hat. Ohne Bedauern oder Entschuldigung (TONE-002, Stufe 3) direkt beim Zugang zum Paket helfen.
 
 Den Einflussbereich nach POLICY-015 erklären. LOOXIS erstellt keinen DHL-Abholcode und kann kein Packstationsfach öffnen. Unsere Abholnachricht ersetzt die DHL-Benachrichtigung nicht. Keine ungeprüfte Schuldzuweisung an Kunde, Zusteller oder LOOXIS.
 
@@ -74,7 +74,7 @@ In diesem Fall auf allen Vertriebskanälen nur textlich auf die Website von DHL 
 
 Formulierungshilfe bei noch unklarem Zustellweg:
 
-„Es tut uns leid, dass Sie vergeblich zur Packstation gefahren sind. Unsere automatische Nachricht informiert über die Abholbereitschaft; den Zugang zum Fach stellt DHL bereit.
+„Unsere automatische Nachricht informiert über die Abholbereitschaft; den Zugang zum Fach stellt DHL bereit.
 
 Wurde das Paket nach einem Zustellversuch dort hinterlegt, finden Sie den benötigten Code normalerweise auf der DHL-Benachrichtigungskarte in Ihrem Briefkasten. Falls Sie ein eigenes DHL-Kundenkonto nutzen und die Sendung dort angezeigt wird, prüfen Sie bitte auch den Bereich ‚Packstation‘ in der Post & DHL App beziehungsweise die digitale Benachrichtigung von DHL.
 

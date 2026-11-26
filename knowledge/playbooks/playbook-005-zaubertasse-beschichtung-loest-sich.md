@@ -64,7 +64,7 @@ Ein erkennbarer eigener Produktfehler ist nach den anwendbaren Reklamationsregel
 
 # Formulierungshilfe bei wiederholtem Fallmuster
 
-„Es tut uns leid, dass sich die Beschichtung erneut löst. Da dies bei mehreren Ihrer Tassen aufgetreten ist, während solche Schäden bei diesem Produkt insgesamt nicht gehäuft auftreten, vermuten wir einen Zusammenhang mit der Nutzung oder Reinigung. Die Beschichtung ist empfindlich und darf ausschließlich von Hand gereinigt werden. Wir möchten Ihnen eine kostenpflichtige Neuanfertigung aus Kulanz anbieten.“
+„Da sich die Beschichtung erneut löst und dies bei mehreren Ihrer Tassen aufgetreten ist, während solche Schäden bei diesem Produkt insgesamt nicht gehäuft auftreten, vermuten wir einen Zusammenhang mit der Nutzung oder Reinigung. Die Beschichtung ist empfindlich und darf ausschließlich von Hand gereinigt werden. Wir möchten Ihnen eine kostenpflichtige Neuanfertigung aus Kulanz anbieten.“
 
 Diese Erklärung nur verwenden, wenn Wiederholungen und die allgemeine Reklamationslage tatsächlich geprüft sind.
 

@@ -42,4 +42,4 @@ Beide Produkte waren nur kurze Zeit erhältlich und wurden parallel zu den essba
 
 # Konsequenz für den Kundenservice
 
-Beide Produkte sind ausgelistet. Bei einer Anfrage oder Bestellwunsch kurz bedauern, dass sie nicht mehr erhältlich sind, und auf die essbaren Fotos als Alternative verweisen, die es weiterhin gibt.
+Beide Produkte sind ausgelistet. Bei einer Anfrage oder Bestellwunsch kurz sagen, dass sie nicht mehr erhältlich sind, und auf die essbaren Fotos als Alternative verweisen, die es weiterhin gibt.
