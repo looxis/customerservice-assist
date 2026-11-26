@@ -8,6 +8,10 @@ Verbesserungen, außer ausdrücklich gewünscht. Einträge so kurz wie möglich 
 Ausführliche Regeln: .claude/rules/general.md, Abschnitt „Changelog“.
 -->
 
+## 2026-11-26
+
+- Neues Formular „Storno / Änderung“ für Storno- und Adressänderungswünsche: Du wählst das Ergebnis (erledigt, nicht möglich, Adresse geändert, schon verschickt), die Antwort folgt daraus.
+
 ## 2026-11-24
 
 - Geführte Bearbeitung von Tickets rund um Bezahlung eingefügt.
