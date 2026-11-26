@@ -14,7 +14,7 @@ categories:
 topics:
   - payment-processing
   - refund
-summary: "Ein Amazon-Kunde fragt nach seiner Zahlungsmethode, wiederholten Zahlungsaufforderungen, dem Zahlungsstatus oder dem Eingang einer Erstattung auf seinem Konto. Klärt die ausschließliche Zuständigkeit Amazons für Zahlungen und Geldtransfers sowie die Grenzen der Auskunft durch LOOXIS."
+summary: "Ein Amazon-Kunde fragt nach seiner Zahlungsmethode, wiederholten Zahlungsaufforderungen, dem Zahlungsstatus oder dem Eingang einer Erstattung auf seinem Konto. Klärt die ausschließliche Zuständigkeit Amazons für Zahlungen und Geldtransfers sowie die Grenzen der Auskunft durch LOOXIS. Gilt nur, wenn der Kunde selbst eine Frage zur Zahlung oder Erstattung stellt, nicht wenn er die Zahlung nur als Grund für einen Storno- oder Änderungswunsch nennt (dann POLICY-057)."
 retrieval: binding
 triggers:
   - Zahlungsmethode
@@ -46,6 +46,7 @@ actions:
   - partial-refund
 related_knowledge:
   - POLICY-009
+  - POLICY-057
 ---
 
 Gilt für Privatkunden im Vertriebskanal Amazon, produktübergreifend.
@@ -65,6 +66,8 @@ Hat LOOXIS eine Erstattung genehmigt oder veranlasst, den tatsächlich belegten 
 Fragen zum eigenen Bestelleingang, zur Produktion und zum Versand bleiben bei LOOXIS. Eine Zahlungsfrage ist kein Anlass, diese eigenen Aufgaben ungeprüft an Amazon zu verweisen.
 
 # Abgrenzung
+
+Diese Policy gilt nur, wenn der Kunde selbst eine Frage zur Zahlung, zum Zahlungsstatus oder zum Eingang einer Erstattung stellt. Nennt er die Zahlung nur als Grund für einen Storno- oder Änderungswunsch (zum Beispiel „ich will nicht für beide Bestellungen bezahlen“), gilt POLICY-057; die Zahlungsabwicklung bei Amazon wird dann nicht erklärt.
 
 Diese Policy erteilt keine Befugnis, eine Erstattung zu genehmigen. Sie beschreibt die Zahlungsabwicklung einer bereits genehmigten oder veranlassten Erstattung.
 
