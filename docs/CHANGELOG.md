@@ -10,6 +10,7 @@ Ausführliche Regeln: .claude/rules/general.md, Abschnitt „Changelog“.
 
 ## 2026-11-26
 
+- Ton der Antwortvorschläge angepasst: kein Bedauern und keine Entschuldigung bei Fehlern, die wir nicht verursacht haben, kein Amtsdeutsch, etwas salopper.
 - Neues Formular „Storno / Änderung“ für Storno- und Adressänderungswünsche: Du wählst das Ergebnis (erledigt, nicht möglich, Adresse geändert, schon verschickt), die Antwort folgt daraus.
 
 ## 2026-11-24
