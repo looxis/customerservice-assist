@@ -10,6 +10,8 @@
     $addressOrder = $orders->first()?->externalNumber;
     $tracked = $orders->flatMap(fn ($order) => collect($order->shipments)->filter(fn ($shipment) => trim((string) $shipment->trackingNumber) !== '')
         ->map(fn ($shipment) => ['order' => $order->externalNumber, 'shipment' => $shipment]))->values();
+    $shippedOrders = $orders->filter(fn ($order) => $order->shipments !== [])
+        ->map(fn ($order) => $order->externalNumber.' verschickt'.(($date = collect($order->shipments)->map->shippedAt->filter()->min()) ? ' am '.$date->setTimezone('Europe/Berlin')->format('d.m.Y') : ''))->values();
 @endphp
 
 {{-- The guided form "Storno / Änderung" (PROJ-102). The Alpine properties stornoErgebnis and stornoArt live in the
@@ -44,7 +46,7 @@
 
     <x-analysis.choice name="storno_ergebnis" legend="Ergebnis" :required="true" model="stornoErgebnis" :value="$pick('storno_ergebnis')" :options="[
         CancellationDecision::DONE => 'Storno / Änderung erledigt (Ausnahme)',
-        CancellationDecision::NOT_POSSIBLE => 'Storno / Änderung nicht möglich, Bestellung bereits in Bearbeitung',
+        CancellationDecision::NOT_POSSIBLE => 'Storno / Änderung nicht möglich, Bestellung in Bearbeitung oder verschickt',
         CancellationDecision::ADDRESS_CHANGED => 'Adressänderung vorgenommen',
         CancellationDecision::ADDRESS_SHIPPED => 'Adressänderung nicht mehr möglich, bereits verschickt',
     ]" />
@@ -56,6 +58,17 @@
     <fieldset x-show="{{ $withKind }}" x-bind:disabled="! ({{ $withKind }})" x-cloak class="min-w-0 space-y-5 border-0 p-0">
         <x-analysis.choice name="storno_art" legend="Storno oder Änderung?" :required="true" model="stornoArt" :value="$pick('storno_art')"
                            :options="[CancellationDecision::CANCELLATION => 'Storno', CancellationDecision::CHANGE => 'Änderung (Motiv, Artikel, Menge)']" />
+
+        <p class="text-sm text-slate-700" x-show="stornoErgebnis === '{{ CancellationDecision::NOT_POSSIBLE }}'" x-cloak>
+            @if ($orders->isEmpty())
+                Keine Bestellung geladen: Der Entwurf sagt nichts dazu, ob die Bestellung schon verschickt ist.
+            @elseif ($shippedOrders->isEmpty())
+                Laut EOCS noch nicht verschickt: Der Entwurf sagt „in Bearbeitung“.
+            @else
+                Laut EOCS: {{ $shippedOrders->implode(', ') }}. Der Entwurf nennt den Versand samt Sendungsnummer.
+            @endif
+            <x-intro><span class="block text-xs text-slate-600">Beim Erstellen fragt die App den Stand erneut bei EOCS ab.</span></x-intro>
+        </p>
 
         <fieldset x-show="stornoErgebnis === '{{ CancellationDecision::DONE }}' && stornoArt === '{{ CancellationDecision::CHANGE }}'" x-bind:disabled="! (stornoErgebnis === '{{ CancellationDecision::DONE }}' && stornoArt === '{{ CancellationDecision::CHANGE }}')" x-cloak class="min-w-0 border-0 p-0">
             <x-input name="storno_aenderung" label="Was wurde geändert?" :value="$pick('storno_aenderung')" maxlength="300" autocomplete="off" hint="z. B. „Motiv gegen das zweite Foto getauscht“ oder „Menge auf 2 Stück erhöht“." />

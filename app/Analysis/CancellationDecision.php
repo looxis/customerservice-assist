@@ -54,7 +54,8 @@ final readonly class CancellationDecision
      * @param  string  $change  Only for a change that was made: what was changed.
      * @param  string  $address  Only for a changed address; reaches the model only as a placeholder.
      * @param  string  $extraInfo  Free-text notes of the employee for the draft.
-     * @param  list<string>|null  $shipments  Tracking lines from EOCS ("number – link"); null when only the stored answers are read.
+     * @param  list<string>|null  $shipments  Shipment lines from EOCS (date, number, link); null when only the stored answers are read.
+     * @param  bool|null  $shipped  Whether a loaded order has a shipment in EOCS when the proposal is made; null without a loaded order.
      */
     public function __construct(
         public string $outcome,
@@ -63,6 +64,7 @@ final readonly class CancellationDecision
         public string $address = '',
         public string $extraInfo = '',
         public ?array $shipments = null,
+        public ?bool $shipped = null,
     ) {}
 
     /**
@@ -124,7 +126,8 @@ final readonly class CancellationDecision
     }
 
     /**
-     * The same answers with the tracking numbers and links of the loaded orders.
+     * The same answers with the shipments of the orders loaded from EOCS when the proposal is made: whether the
+     * order is already shipped, and the tracking numbers and links.
      *
      * @param  list<EocsOrder>  $orders
      */
@@ -134,20 +137,35 @@ final readonly class CancellationDecision
 
         foreach ($orders as $order) {
             foreach ($order->shipments as $shipment) {
-                /** @var EocsShipment $shipment */
-                $number = trim((string) $shipment->trackingNumber);
-
-                if ($number === '') {
-                    continue;
-                }
-
-                $carrier = trim((string) $shipment->carrier);
-                $url = $shipment->trackingUrl();
-                $lines[] = 'Bestellung '.$order->externalNumber.': '.($carrier !== '' ? $carrier.' ' : '').'Sendungsnummer '.$number.($url !== null ? ', Sendungsverfolgung: '.$url : '');
+                $lines[] = self::shipmentLine($order, $shipment);
             }
         }
 
-        return new self($this->outcome, $this->kind, $this->change, $this->address, $this->extraInfo, $lines);
+        return new self($this->outcome, $this->kind, $this->change, $this->address, $this->extraInfo, $lines, $orders === [] ? null : $lines !== []);
+    }
+
+    private static function shipmentLine(EocsOrder $order, EocsShipment $shipment): string
+    {
+        $parts = ['Bestellung '.$order->externalNumber.': versandt'];
+
+        if ($shipment->shippedAt !== null) {
+            $parts[0] .= ' am '.$shipment->shippedAt->setTimezone('Europe/Berlin')->format('d.m.Y');
+        }
+
+        $carrier = trim((string) $shipment->carrier);
+        $number = trim((string) $shipment->trackingNumber);
+
+        if ($number !== '') {
+            $parts[] = ($carrier !== '' ? $carrier.' ' : '').'Sendungsnummer '.$number;
+            $url = $shipment->trackingUrl();
+            if ($url !== null) {
+                $parts[] = 'Sendungsverfolgung: '.$url;
+            }
+        } elseif ($carrier !== '') {
+            $parts[] = 'mit '.$carrier.', ohne Sendungsnummer';
+        }
+
+        return implode(', ', $parts);
     }
 
     /**
@@ -228,11 +246,23 @@ final readonly class CancellationDecision
     {
         $what = $this->kind === self::CHANGE ? 'eine Änderung' : 'eine Stornierung';
 
-        return [
-            "- Die Bestellung ist freigegeben und bereits in Bearbeitung; {$what} ist deshalb nicht mehr möglich. Sage das klar und freundlich.",
-            '- Ist die Bestellung laut Bestelldaten schon verschickt, sage, dass sie bereits versendet ist.',
-            '- Die Regeln zum Vertriebskanal aus dem Wissen gelten weiter (zum Beispiel bei Amazon: keine Erstattung, eine neue Bestellung ist jederzeit möglich; Prüfung eines Abbruchs erst ab dem dort genannten Auftragswert).',
-        ];
+        $lines = match ($this->shipped) {
+            true => [
+                "- Die Bestellung ist laut EOCS (soeben abgefragt) bereits verschickt; {$what} ist deshalb nicht mehr möglich. Sage das klar und freundlich und nenne das Versanddatum.",
+                '- Nenne dem Kunden die Sendungsnummer und den Link zur Sendungsverfolgung (jeweils vollständig), soweit vorhanden:',
+                ...array_map(fn (string $line): string => '  - '.$line, $this->shipments ?? []),
+            ],
+            false => [
+                "- Die Bestellung ist freigegeben und bereits in Bearbeitung, laut EOCS (soeben abgefragt) aber noch nicht verschickt; {$what} ist deshalb nicht mehr möglich. Sage das klar und freundlich. Sage nicht, sie sei schon verschickt.",
+            ],
+            null => [
+                "- Die Bestellung ist freigegeben und bereits in Bearbeitung; {$what} ist deshalb nicht mehr möglich. Sage das klar und freundlich. Ob sie schon verschickt ist, ist nicht bekannt (keine Bestellung aus EOCS geladen); sage dazu nichts.",
+            ],
+        };
+
+        $lines[] = '- Die Regeln zum Vertriebskanal aus dem Wissen gelten weiter (zum Beispiel bei Amazon: keine Erstattung, eine neue Bestellung ist jederzeit möglich; Prüfung eines Abbruchs erst ab dem dort genannten Auftragswert).';
+
+        return $lines;
     }
 
     /**
@@ -255,11 +285,13 @@ final readonly class CancellationDecision
             '- Die Bestellung ist bereits verschickt; die Lieferadresse können wir deshalb nicht mehr ändern. Sage das klar und freundlich.',
         ];
 
-        if ($this->shipments === null || $this->shipments === []) {
+        $tracked = array_values(array_filter($this->shipments ?? [], fn (string $line): bool => str_contains($line, 'Sendungsnummer ')));
+
+        if ($tracked === []) {
             $lines[] = '- Nenne die Sendungsnummer genau als Platzhalter '.self::TRACKING_PLACEHOLDER.'. `recommendation`: Sendungsnummer und Link zur Sendungsverfolgung intern ergänzen, dann senden.';
         } else {
             $lines[] = '- Nenne dem Kunden noch einmal die Sendungsnummer und den Link zur Sendungsverfolgung (jeweils vollständig):';
-            foreach ($this->shipments as $shipment) {
+            foreach ($tracked as $shipment) {
                 $lines[] = '  - '.$shipment;
             }
         }

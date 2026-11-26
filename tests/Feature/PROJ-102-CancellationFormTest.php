@@ -141,15 +141,39 @@ describe('what the model is told', function () {
         cancellationRun(['storno_ergebnis' => 'nicht_moeglich', 'storno_art' => 'storno', 'storno_zusatz' => 'Zweite Bestellung läuft separat.'])->assertSessionHasNoErrors();
 
         CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('Angaben aus dem Formular „Storno / Änderung“')
-            && $prompt->contains('eine Stornierung ist deshalb nicht mehr möglich')
+            && $prompt->contains('laut EOCS (soeben abgefragt) bereits verschickt; eine Stornierung ist deshalb nicht mehr möglich')
+            && $prompt->contains('Bestellung 7JQ-18SU-DVA4: versandt am 12.11.2026, DHL Sendungsnummer 00340434161094042557, Sendungsverfolgung: https://nolp.dhl.de/')
             && $prompt->contains('Gehe nicht auf Zahlungsabwicklung')
             && $prompt->contains('Zweite Bestellung läuft separat.'));
+    });
+
+    test('not possible and not yet shipped: in processing, never shipped', function () {
+        cancellationTicket(false);
+        CaseAgent::fake([cancellationAnswer()]);
+
+        cancellationRun(['storno_ergebnis' => 'nicht_moeglich', 'storno_art' => 'aenderung'])->assertSessionHasNoErrors();
+
+        CaseAgent::assertPrompted(fn (AgentPrompt $prompt): bool => $prompt->contains('laut EOCS (soeben abgefragt) aber noch nicht verschickt; eine Änderung ist deshalb nicht mehr möglich')
+            && $prompt->contains('Sage nicht, sie sei schon verschickt.'));
+    });
+
+    test('not possible without a loaded order says nothing about the shipment', function () {
+        expect((new CancellationDecision('nicht_moeglich', 'storno'))->withShipments([])->facts())->toContain('Ob sie schon verschickt ist, ist nicht bekannt')
+            ->not->toContain('laut EOCS');
+    });
+
+    test('the form shows the shipping state from EOCS', function () {
+        cancellationTicket();
+        cancellationCategory();
+
+        test()->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
+            ->assertSee('Laut EOCS: 7JQ-18SU-DVA4 verschickt am 12.11.2026.');
     });
 
     test('done: cancellation as an exception, a change with what was changed', function () {
         expect((new CancellationDecision('erledigt', 'storno'))->facts())->toContain('Wir haben die Bestellung storniert')->toContain('ausnahmsweise')->toContain('keine Erstattung')->toContain('das Ticket schließen')
             ->and((new CancellationDecision('erledigt', 'aenderung', 'Motiv getauscht'))->facts())->toContain('Motiv getauscht')->not->toContain('storniert')
-            ->and((new CancellationDecision('nicht_moeglich', 'aenderung'))->facts())->toContain('eine Änderung ist deshalb nicht mehr möglich');
+            ->and((new CancellationDecision('nicht_moeglich', 'aenderung'))->facts())->toContain('Änderung ist deshalb nicht mehr möglich');
     });
 
     test('address changed: the address only as a placeholder', function () {

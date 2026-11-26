@@ -28,7 +28,7 @@ Anlass ist Ticket 2140719 vom 2026-11-26. Ein Amazon-Kunde wollte stornieren, we
 - [ ] Produktsuche, Wissensbereich, Freitext und DHL-Retourenlabel sind ausgeblendet und werden nicht gesendet. Die Zeile „Erstellt mit“ nennt „Storno / Änderung“ ohne „kein Produktbezug“.
 
 ### Felder
-- [ ] Pflichtfrage „Ergebnis“, nichts vorgewählt: Storno / Änderung erledigt (Ausnahme) | Storno / Änderung nicht möglich, Bestellung bereits in Bearbeitung | Adressänderung vorgenommen | Adressänderung nicht mehr möglich, bereits verschickt. Ohne Antwort erscheint „Bitte das Ergebnis angeben.“
+- [ ] Pflichtfrage „Ergebnis“, nichts vorgewählt: Storno / Änderung erledigt (Ausnahme) | Storno / Änderung nicht möglich, Bestellung in Bearbeitung oder verschickt | Adressänderung vorgenommen | Adressänderung nicht mehr möglich, bereits verschickt. Ohne Antwort erscheint „Bitte das Ergebnis angeben.“
 - [ ] Bei „erledigt“ und „nicht möglich“ ist „Storno oder Änderung?“ Pflicht. Bei einer erledigten Änderung ist auch „Was wurde geändert?“ Pflicht (höchstens 300 Zeichen).
 - [ ] Bei „Adressänderung vorgenommen“ ist „Neue Adresse“ Pflicht (höchstens 500 Zeichen). Das Feld wird bei der Wahl aus der geladenen Bestellung in EOCS gefüllt, und der Knopf „Adresse aus EOCS laden“ lädt sie erneut.
 - [ ] Bei „bereits verschickt“ stehen die Sendungen der geladenen Bestellungen im Formular. Ohne Sendung erscheint ein gelber Hinweis.
@@ -37,7 +37,7 @@ Anlass ist Ticket 2140719 vom 2026-11-26. Ein Amazon-Kunde wollte stornieren, we
 ### Wirkung auf den Vorschlag
 - [ ] **Storno erledigt:** Der Entwurf bestätigt die Stornierung als Ausnahme. Einen Grund nennt er nur aus den Zusätzlichen Informationen, eine Erstattung oder Frist nur, wenn sie dort steht. Empfehlung: senden und schließen.
 - [ ] **Änderung erledigt:** Der Entwurf bestätigt die genannte Änderung. Empfehlung: senden und schließen.
-- [ ] **Nicht möglich:** Die Bestellung ist freigegeben und in Bearbeitung. Ist sie schon verschickt, sagt der Entwurf das. Die Kanalregeln aus dem Wissen gelten weiter (Amazon, Prüfung ab 150 €).
+- [ ] **Nicht möglich:** Beim Erstellen fragt die App den Stand der Bestellung erneut bei EOCS ab. Hat sie eine Sendung, nennt der Entwurf „bereits verschickt“ mit Versanddatum, Sendungsnummer und Tracking-Link. Ohne Sendung heißt es „in Bearbeitung, noch nicht verschickt“. Ohne geladene Bestellung sagt der Entwurf nichts zum Versand. Das Formular zeigt den Stand aus EOCS schon vorab an. Die Kanalregeln aus dem Wissen gelten weiter (Amazon, Prüfung ab 150 €).
 - [ ] **Adresse geändert:** Der Entwurf bestätigt die neue Adresse über den Platzhalter `[NEUE-LIEFERADRESSE]`. Die Adresse geht nicht an die KI.
 - [ ] **Bereits verschickt:** Der Entwurf nennt Sendungsnummer und Tracking-Link (DHL/UPS) aus EOCS. Er weist darauf hin, dass der Kunde über den Link beim Paketdienst eventuell noch Zustelloptionen anpassen kann und dass das nicht in unserer Hand liegt. Ohne Sendung steht `[SENDUNGSNUMMER]` im Entwurf.
 - [ ] Bei jedem Ergebnis geht der Entwurf nicht auf Zahlungsabwicklung ein, es sei denn, der Kunde fragt ausdrücklich danach oder die Zusätzlichen Informationen sagen etwas dazu.
@@ -54,4 +54,5 @@ Anlass ist Ticket 2140719 vom 2026-11-26. Ein Amazon-Kunde wollte stornieren, we
 | Vorgewählt bei `storno` und `adressaenderung` | Das Formular deckt beide Anliegen ab (Vorgabe des Auftraggebers) | 2026-11-26 |
 | „Erledigt“ und „nicht möglich“ auch für Änderungen an Motiv, Artikel und Menge | Vorgabe des Auftraggebers | 2026-11-26 |
 | Tracking-Link aus EOCS, nicht über das Werkzeug zum Sendungsstatus | Es braucht nur Nummer und Link, keinen Live-Status | 2026-11-26 |
+| Versandstand bei „nicht möglich“ in Code aus EOCS | Die KI soll den Versand nicht selbst aus den Bestelldaten ableiten (Vorgabe des Auftraggebers) | 2026-11-26 |
 | Keine Datenbankänderung | Die Antworten liegen wie bei den anderen Formularen in den Formularangaben des Vorschlags | 2026-11-26 |
