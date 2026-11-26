@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Analysis\AnalysisStore;
+use App\Analysis\CancellationDecision;
 use App\Analysis\Clarification;
 use App\Analysis\ClosingDecision;
 use App\Analysis\ComplaintDecision;
@@ -93,8 +94,8 @@ class AnalyzeTicketRequest extends FormRequest
             $this->merge(['kein_produktbezug' => $this->hasProductChoice() ? '0' : '1']);
         }
 
-        // The forms "Neuversand" (PROJ-93), "Diskussion beenden" (PROJ-98), "Zahlung / Rechnung" (PROJ-100) and "Aktualisierte WISMO-Infos" (PROJ-101) hide the product: whatever the browser still sends is dropped.
-        if (in_array($this->input('formular'), [ReshipmentDecision::FORM, ClosingDecision::FORM, PaymentDecision::FORM, WismoUpdateDecision::FORM], true)) {
+        // The forms "Neuversand" (PROJ-93), "Diskussion beenden" (PROJ-98), "Zahlung / Rechnung" (PROJ-100), "Aktualisierte WISMO-Infos" (PROJ-101) and "Storno / Änderung" (PROJ-102) hide the product: whatever the browser still sends is dropped.
+        if (in_array($this->input('formular'), [ReshipmentDecision::FORM, ClosingDecision::FORM, PaymentDecision::FORM, WismoUpdateDecision::FORM, CancellationDecision::FORM], true)) {
             $this->merge(['produkte' => [], 'produkt_ohne_wissen' => '', 'forge_produkte' => [], 'eocs_produkte' => [], 'forge_sku' => [], 'kein_produktbezug' => '1']);
         }
     }
@@ -134,6 +135,11 @@ class AnalyzeTicketRequest extends FormRequest
             'zahlung_erstattung' => ['nullable', Rule::in(PaymentDecision::YES_NO)],
             'zahlung_zusatz' => ['nullable', 'string', 'max:1500'],
             'wismo_zusatz' => ['nullable', 'string', 'max:1500'],
+            'storno_ergebnis' => ['nullable', Rule::in(CancellationDecision::OUTCOMES)],
+            'storno_art' => ['nullable', Rule::in(CancellationDecision::KINDS)],
+            'storno_aenderung' => ['nullable', 'string', 'max:300'],
+            'storno_adresse' => ['nullable', 'string', 'max:500'],
+            'storno_zusatz' => ['nullable', 'string', 'max:1500'],
             'reklamation_berechtigt' => ['nullable', Rule::in(ComplaintDecision::ANSWERS)],
             'reklamation_info' => ['nullable', 'string', 'max:1000'],
             'reklamation_grund' => ['nullable', 'string', 'max:1000'],
@@ -208,6 +214,10 @@ class AnalyzeTicketRequest extends FormRequest
                 $validator->errors()->add($field, PaymentDecision::MESSAGES[$field]);
             }
 
+            if ($this->input('formular') === CancellationDecision::FORM && ($field = CancellationDecision::missingIn($this->all())) !== null) {
+                $validator->errors()->add($field, CancellationDecision::MESSAGES[$field]);
+            }
+
             if (count($this->relatedNumbers()) > (int) config('analysis.related_tickets.max')) {
                 $validator->errors()->add('related', 'Höchstens '.config('analysis.related_tickets.max').' zusammengehörige Tickets.');
             }
@@ -269,7 +279,7 @@ class AnalyzeTicketRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen', 'neuversand_auftrag' => 'Auftragsnummer des Neuversands', 'neuversand_adresse' => 'Aktualisierte Adresse', 'neuversand_zusatz' => 'Zusätzliche Informationen', 'abschluss_kernaussage' => 'Kernaussage'];
+        return ['kundengruppe' => 'Kundengruppe', 'produkte.*' => 'Produkt', 'variante' => 'Ticketkontext', 'kontext' => 'Zusätzliche Informationen', 'reklamation_grund' => 'Grund', 'kulanz_art' => 'Art des Kulanzangebots', 'reklamation_info' => 'Nötige Informationen', 'reklamationsnummer' => 'Reklamationsnummer', 'support_hinweis' => 'Zusätzliche Hinweise zur Lösung', 'support_info' => 'Benötigte Informationen', 'neuversand_auftrag' => 'Auftragsnummer des Neuversands', 'neuversand_adresse' => 'Aktualisierte Adresse', 'neuversand_zusatz' => 'Zusätzliche Informationen', 'abschluss_kernaussage' => 'Kernaussage', 'storno_aenderung' => 'Was wurde geändert', 'storno_adresse' => 'Neue Adresse', 'storno_zusatz' => 'Zusätzliche Informationen'];
     }
 
     /**
@@ -331,6 +341,14 @@ class AnalyzeTicketRequest extends FormRequest
     }
 
     /**
+     * The answers of the form "Storno / Änderung" (PROJ-102), without the shipments, or null when another form was used.
+     */
+    public function cancellation(): ?CancellationDecision
+    {
+        return CancellationDecision::fromInput($this->validated());
+    }
+
+    /**
      * The DHL return label to attach: with the complaint form only when the complaint is justified and the
      * product is sent back, whatever else was sent.
      */
@@ -339,7 +357,7 @@ class AnalyzeTicketRequest extends FormRequest
         $complaint = $this->complaint();
         $id = $this->validated('return_label');
 
-        if ($this->support() !== null || $this->reshipment() !== null || $this->closing() !== null || $this->payment() !== null || $this->wismoUpdate() !== null) {
+        if ($this->support() !== null || $this->reshipment() !== null || $this->closing() !== null || $this->payment() !== null || $this->wismoUpdate() !== null || $this->cancellation() !== null) {
             return null;
         }
 

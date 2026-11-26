@@ -25,7 +25,7 @@
     ]" />
 
     <x-intro>
-        <p class="text-sm text-slate-700">Ein Stornowunsch gehört nicht hierher, sondern zu „Storno / Änderung der Bestellung“. Kundenzahlungen über Mollie erkennt Mollie automatisch und gibt die Bestellung dann selbst frei: Ein Zahlungsnachweis beschleunigt nichts, und wir fügen ihn nicht der Bestellung hinzu.</p>
+        <p class="text-sm text-slate-700">Ein Stornowunsch gehört nicht hierher, sondern ins Formular „Storno / Änderung“. Kundenzahlungen über Mollie erkennt Mollie automatisch und gibt die Bestellung dann selbst frei: Ein Zahlungsnachweis beschleunigt nichts, und wir fügen ihn nicht der Bestellung hinzu.</p>
     </x-intro>
 
     {{-- Proof of payment: method and state are required. Question: both optional. --}}

@@ -75,14 +75,14 @@ describe('choosing the form', function () {
     });
 
     test('the list of forms names the guided forms before the free text', function () {
-        expect(GuidedForms::options())->toBe(['support' => 'Technischer Support', 'reklamation' => 'Reklamation', 'zahlung' => 'Zahlung / Rechnung', 'wismo_info' => 'Aktualisierte WISMO-Infos', 'neuversand' => 'Neuversand', 'abschluss' => 'Diskussion beenden', 'frei' => 'Freitext'])
+        expect(GuidedForms::options())->toBe(['support' => 'Technischer Support', 'reklamation' => 'Reklamation', 'zahlung' => 'Zahlung / Rechnung', 'wismo_info' => 'Aktualisierte WISMO-Infos', 'storno' => 'Storno / Änderung', 'neuversand' => 'Neuversand', 'abschluss' => 'Diskussion beenden', 'frei' => 'Freitext'])
             ->and(GuidedForms::defaultFor('technischer-support'))->toBe('support')
             ->and(GuidedForms::defaultFor('produkt-frage'))->toBe('frei')
             ->and(GuidedForms::defaultFor(null))->toBe('frei');
     });
 
     test('an unknown form is rejected', function () {
-        supportRun(['formular' => 'storno'])->assertSessionHasErrors('formular');
+        supportRun(['formular' => 'gibt-es-nicht'])->assertSessionHasErrors('formular');
     });
 });
 

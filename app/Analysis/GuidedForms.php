@@ -16,15 +16,18 @@ final class GuidedForms
      *
      * "goods": the form assumes goods and shipping, so a channel without products (PROJ-94) does not offer it.
      *
-     * @var array<string, array{label: string, category: LabelCategory|null, goods: bool}>
+     * "categories": the ticket categories the form is preselected for; one form can serve several (PROJ-102).
+     *
+     * @var array<string, array{label: string, categories: list<LabelCategory>, goods: bool}>
      */
     private const array GUIDED = [
-        SupportDecision::FORM => ['label' => 'Technischer Support', 'category' => LabelCategory::TechnischerSupport, 'goods' => false],
-        ComplaintDecision::FORM => ['label' => 'Reklamation', 'category' => LabelCategory::Reklamation, 'goods' => true],
-        PaymentDecision::FORM => ['label' => 'Zahlung / Rechnung', 'category' => LabelCategory::Zahlung, 'goods' => false],
-        WismoUpdateDecision::FORM => ['label' => 'Aktualisierte WISMO-Infos', 'category' => LabelCategory::Wismo, 'goods' => true],
-        ReshipmentDecision::FORM => ['label' => 'Neuversand', 'category' => null, 'goods' => true],
-        ClosingDecision::FORM => ['label' => 'Diskussion beenden', 'category' => null, 'goods' => false],
+        SupportDecision::FORM => ['label' => 'Technischer Support', 'categories' => [LabelCategory::TechnischerSupport], 'goods' => false],
+        ComplaintDecision::FORM => ['label' => 'Reklamation', 'categories' => [LabelCategory::Reklamation], 'goods' => true],
+        PaymentDecision::FORM => ['label' => 'Zahlung / Rechnung', 'categories' => [LabelCategory::Zahlung], 'goods' => false],
+        WismoUpdateDecision::FORM => ['label' => 'Aktualisierte WISMO-Infos', 'categories' => [LabelCategory::Wismo], 'goods' => true],
+        CancellationDecision::FORM => ['label' => 'Storno / Änderung', 'categories' => [LabelCategory::Storno, LabelCategory::Adressaenderung], 'goods' => true],
+        ReshipmentDecision::FORM => ['label' => 'Neuversand', 'categories' => [], 'goods' => true],
+        ClosingDecision::FORM => ['label' => 'Diskussion beenden', 'categories' => [], 'goods' => false],
     ];
 
     /**
@@ -66,7 +69,7 @@ final class GuidedForms
                 continue;
             }
 
-            if ($form['category'] !== null && $form['category']->value === $category) {
+            if (in_array($category, array_map(fn (LabelCategory $own): string => $own->value, $form['categories']), true)) {
                 return $key;
             }
         }

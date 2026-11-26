@@ -7,6 +7,7 @@ use App\Analysis\AnalysisPanel;
 use App\Analysis\AnalysisProblem;
 use App\Analysis\AnalysisRequest;
 use App\Analysis\AnalysisStore;
+use App\Analysis\CancellationDecision;
 use App\Analysis\CaseAnalyzer;
 use App\Analysis\ClosingDecision;
 use App\Analysis\ComplaintDecision;
@@ -172,7 +173,12 @@ class AnalysisController extends Controller
 
         // A DHL return label ordered in the form (PROJ-64): the model only learns that one goes with the reply.
         $complaint = $request->complaint();
-        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing() ?? $request->payment() ?? $request->wismoUpdate();
+        $guided = $complaint ?? $request->support() ?? $request->reshipment() ?? $request->closing() ?? $request->payment() ?? $request->wismoUpdate() ?? $request->cancellation();
+
+        // "Storno / Änderung" (PROJ-102): tracking numbers and links come from the loaded orders.
+        if ($guided instanceof CancellationDecision) {
+            $guided = $guided->withShipments($orders);
+        }
 
         // "Aktualisierte WISMO-Infos" (PROJ-101): carrier and Lettermint are asked here in code, not by the model.
         if ($guided instanceof WismoUpdateDecision) {
@@ -221,7 +227,7 @@ class AnalysisController extends Controller
                 unknownProduct: $unknownProduct,
                 productPackage: $package,
                 related: $related,
-                placeholders: $guided instanceof ReshipmentDecision ? $guided->placeholders() : [],
+                placeholders: $guided instanceof ReshipmentDecision || $guided instanceof CancellationDecision ? $guided->placeholders() : [],
                 shipmentChecked: $guided instanceof WismoUpdateDecision,
                 noticeRecord: $guided instanceof WismoUpdateDecision ? $guided->snapshot?->noticeRecord : null,
                 claimReferences: array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): array => ['claim' => $claim, 'order' => $number->value], $number->claims), $found) ?: [[]])),
