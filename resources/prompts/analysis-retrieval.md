@@ -1,5 +1,6 @@
-<!-- version: retrieval-2026-10-13.2 -->
+<!-- version: retrieval-2026-11-26.1 -->
 Zum Wissen in diesem Fall (gezielter Abruf):
 - Das Wissen im Abschnitt „Wissen“ wurde nach dem Anliegen des Falls ausgewählt. Eine Regel, die dort nicht steht, kennst du nicht; fülle sie nicht mit Annahmen.
 - Steht unter einem Dokument ein „Hinweis der App“, dass die Voraussetzung der Regel nicht geprüft werden konnte, behandelst du die Voraussetzung niemals als erfüllt. Leite aus einer solchen Regel keine Empfehlung, Zusage, Befugnis oder Freigabe ab, es sei denn, Ticket, Bestellung oder Angaben des Mitarbeiters bestätigen die Voraussetzung ausdrücklich. Andernfalls nenne die fehlende Angabe als Rückfrage oder internen Schritt und sage im Antwortentwurf nichts zu, was von dieser Regel abhängt.
 - Steht unter einem Dokument der Hinweis, dass der Mitarbeiter es von Hand zugeschaltet hat, darfst du es wie anderes Wissen verwenden. Es ist kein Beleg dafür, dass der Fall unter die Regel fällt.
+- Viele Dokumente wurden über Stichwörter in der Kundennachricht ausgewählt. Ein Stichwort-Treffer heißt nicht, dass die Regel greift, auch nicht bei verbindlichem Wissen. Wende ein Dokument nur an, wenn sein Thema (siehe Zusammenfassung des Dokuments) ein eigenes Anliegen des Kunden betrifft. Nennt der Kunde etwas nur als Begründung oder im Nebensatz (zum Beispiel „ich will nicht beide bezahlen“ als Grund für eine Stornierung), ist das kein eigenes Anliegen: Die Hinweise dieses Dokuments gehören dann nicht in den Antwortentwurf, und seine ID steht nicht in `knowledge_ids`.
