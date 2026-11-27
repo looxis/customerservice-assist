@@ -44,6 +44,7 @@
     $digital = (bool) (collect($analysis['channels'] ?? [])->firstWhere('key', $startChannel)['without_products'] ?? false);
     $formMode = ! $complaintToggle ? 'frei' : (is_string($chosenForm) && isset($forms[$chosenForm]) ? $chosenForm : $defaultForm);
     $formMode = $digital && in_array($formMode, $goodsForms, true) ? 'frei' : $formMode;
+    $directHelp = 'Keine geführte Bearbeitung passt, aber du kennst den Sachverhalt? Schreib ins Feld, was du weißt und was entschieden ist. Bleibt es leer, arbeitet die KI nur mit Ticket, Bestellung und Wissen.';
     $usedForm = \App\Analysis\GuidedForms::guidedLabel($inputs['formular'] ?? null);
     $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($answers[$key] ?? $default);
     $labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
@@ -187,7 +188,7 @@
                 @if ($complaintToggle)
                     <section aria-labelledby="guided-processing-heading" class="space-y-5 rounded-lg bg-slate-50/60 p-4 ring-1 ring-slate-200 ring-inset">
                         <fieldset>
-                            <legend id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> Geführte Bearbeitung</legend>
+                            <legend id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> <x-help-tip text="Der Sachverhalt ist klar und passt zu einem der Fälle hier? Dann wähle ihn: Das Formular führt dich mit wenigen Klicks durch Entscheidung und Lösung, die KI schreibt daraus den Antwortentwurf. Vorgewählt ist der Fall, der zur Einordnung des Tickets passt.">Geführte Bearbeitung</x-help-tip></legend>
                             <div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1">
                                 @foreach ($forms as $formKey => $formLabel)
                                     @continue($formKey === \App\Analysis\ComplaintDecision::FREE)
@@ -219,12 +220,15 @@
 
                 <section aria-labelledby="direct-analysis-heading" class="space-y-4 rounded-lg p-4 ring-1 ring-slate-200 ring-inset">
                     @if ($complaintToggle)
-                        <label id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                            <input type="radio" name="formularwahl" value="{{ \App\Analysis\ComplaintDecision::FREE }}" x-model="mode" @checked($formMode === \App\Analysis\ComplaintDecision::FREE) class="size-4 border-slate-300 text-brand focus:ring-brand">
-                            <x-icon name="zap" size="18" class="text-brand" /> {{ $forms[\App\Analysis\ComplaintDecision::FREE] }}
-                        </label>
+                        <div class="flex items-center gap-1">
+                            <label id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                <input type="radio" name="formularwahl" value="{{ \App\Analysis\ComplaintDecision::FREE }}" x-model="mode" @checked($formMode === \App\Analysis\ComplaintDecision::FREE) class="size-4 border-slate-300 text-brand focus:ring-brand">
+                                <x-icon name="zap" size="18" class="text-brand" /> {{ $forms[\App\Analysis\ComplaintDecision::FREE] }}
+                            </label>
+                            <x-help-tip :text="$directHelp" />
+                        </div>
                     @else
-                        <h3 id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> {{ $forms[\App\Analysis\ComplaintDecision::FREE] }}</h3>
+                        <h3 id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> <x-help-tip :text="$directHelp">{{ $forms[\App\Analysis\ComplaintDecision::FREE] }}</x-help-tip></h3>
                     @endif
                     <x-intro>
                         <p class="text-sm text-slate-600">Analyse anhand der verfügbaren Informationen ohne geführtes Formular.</p>

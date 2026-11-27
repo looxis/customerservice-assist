@@ -407,6 +407,7 @@ describe('the form', function () {
             ->assertSeeTextInOrder(['Ticket bearbeiten', 'Verkaufskanal', 'Geführte Sachverhaltsermittlung', 'Geführte Bearbeitung', 'Direkte Analyse', 'Zusätzliche Informationen / eigene Einschätzung', 'Antwortvorschlag erstellen'])
             ->assertSeeInOrder(['guided-processing-heading', 'name="formularwahl" value="support"', 'direct-analysis-heading', 'name="formularwahl" value="frei"'], false)
             ->assertDontSeeText('Freitext')
+            ->assertSeeInOrder(['Unklar, was hinter der Anfrage steckt', 'Der Sachverhalt ist klar und passt zu einem der Fälle hier?', 'Keine geführte Bearbeitung passt, aber du kennst den Sachverhalt?'])
             ->assertDontSeeText('Vorschlag erstellen</h2>', false)
             ->assertSee('fallmuster', false);
     });
