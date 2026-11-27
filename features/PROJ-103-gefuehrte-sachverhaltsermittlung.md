@@ -1,6 +1,6 @@
 # PROJ-103: Geführte Sachverhaltsermittlung
 
-## Status: Planned
+## Status: Architected
 **Created:** 2026-11-27
 **Last Updated:** 2026-11-27
 
@@ -123,6 +123,7 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 - [ ] Angenommen dieser Wert ist nicht verfügbar (z. B. keine Bestellung geladen, EOCS nicht erreichbar), dann bleibt das Kriterium als Frage stehen mit dem Hinweis, dass die Information fehlt; es gilt nie stillschweigend als beantwortet.
 - [ ] Angenommen das Ticket betrifft mehrere Bestellungen, Positionen oder Sendungen mit unterschiedlichem Stand, oder unklar ist, auf welche sich das Anliegen bezieht, wenn das Fallmuster gewählt wird, dann wird das Kriterium nicht automatisch beantwortet; die Frage bleibt stehen, die vorhandenen Werte werden als Hinweis mit ihrem Bezug angezeigt.
 - [ ] Angenommen ein Systemwert widerspricht einem anderen Systemwert oder ist erkennbar veraltet, dann gilt er nicht als bestätigte Antwort; die Frage bleibt stehen.
+- [ ] Angenommen ein Prüfkriterium betrifft eine Information auf Ticketebene (z. B. ob die aktuelle Kundennachricht Fotos enthält), dann braucht es keinen Bestellbezug und wird beantwortet, sobald der Wert bekannt ist, auch bei mehreren Bestellungen.
 - [ ] Angenommen ein Kriterium betrifft Informationen, die erst bei der Analyse abgefragt werden (Sendungsverlauf, Benachrichtigungen), dann steht dort „wird bei der Analyse automatisch geprüft“.
 
 ### Übergabe an die Analyse
@@ -143,6 +144,7 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 - [ ] Angenommen im Formular ist noch keine Bewertung gewählt, wenn der Mitarbeiter „übernehmen“ klickt, dann wird zusätzlich die passende Option gesetzt (Reklamation: „Unsicher, weitere Informationen nötig“; Technischer Support: „Unklar, bitte weitere Informationen erfragen“).
 - [ ] Angenommen im Formular ist bereits eine andere Option gewählt, wenn der Mitarbeiter „übernehmen“ klickt, dann bleibt die gewählte Option unverändert, und der Hinweis sagt, dass die Prüfung zur gewählten Option nicht passt.
 - [ ] Angenommen ein Fallmuster ist gewählt, aber keine Prüfung übernommen, dann wird im Formular nichts gesetzt, anerkannt, abgelehnt oder sonst entschieden.
+- [ ] Angenommen eine Prüfung ist übernommen, wenn der Mitarbeiter danach Produkt, Kundengruppe, Verkaufskanal, Formular (Kategorie) oder die Fallmusterauswahl so ändert, dass die Prüfung nicht mehr gilt, dann wird die Übernahme sichtbar entfernt (mit Grund), und das Pflichtfeld „Nötige Informationen“ ist wieder Pflicht.
 - [ ] Angenommen im Reklamationsformular ist „Unsicher, weitere Informationen nötig“ gewählt, mindestens eine Prüfung ist übernommen und ihre Anleitung liegt im anwendbaren, abgerufenen Wissen vor, wenn das Pflichtfeld „Nötige Informationen“ leer bleibt, dann wird das Formular angenommen, und der Entwurf enthält die Anleitung aus dem Wissen.
 - [ ] Angenommen im Formular „Technischer Support“ ist „Unklar, bitte weitere Informationen erfragen“ gewählt und eine Prüfung ist übernommen, wenn das Feld „Welche Informationen werden benötigt?“ leer bleibt, dann enthält der Entwurf die Anleitung aus dem Wissen; das Feld war und bleibt optional.
 - [ ] Angenommen ein Fallmuster mit Prüfung durch den Kunden ist nur gewählt, aber die Prüfung nicht übernommen, wenn das Pflicht-Freitextfeld leer ist, dann erscheint die bisherige Pflichtfeld-Meldung.
@@ -186,7 +188,7 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 - **Sehr viele Fallmuster im Geltungsbereich:** produktunabhängige bleiben zunächst eingeklappt; die Zahl steht in der Zeile.
 - **Umfang:** gewählte Fallmuster zählen als Pflichtwissen. Wird der Prompt dadurch zu groß, greifen die bestehenden Grenzen und die bestehende Meldung zum Wissensumfang.
 - **Mehrere Fallmuster mit unterschiedlichen Prüfungen durch den Kunden:** jede einzeln übernehmbar; übernommene Prüfungen gehen gemeinsam an die KI, der Entwurf fasst sie verständlich zusammen.
-- **Übernommene Prüfung, danach Fallmuster abgewählt:** die Übernahme entfällt mit; eine dadurch gesetzte Formularoption bleibt stehen, weil sie im Formular sichtbar ist und der Mitarbeiter sie bewusst ändern kann.
+- **Übernommene Prüfung, danach Fallmuster abgewählt oder Geltungsbereich/Kategorie geändert:** die Übernahme wird sichtbar entfernt, das Pflichtfeld greift wieder; eine dadurch gesetzte Formularoption bleibt stehen, weil sie im Formular sichtbar ist und der Mitarbeiter sie bewusst ändern kann.
 - **Mehrere Bestellungen oder Sendungen mit unterschiedlichem Stand:** kein Prüfkriterium wird automatisch beantwortet; die Werte erscheinen als Hinweis mit Bezug.
 - **Verwandtes Dokument außerhalb des Geltungsbereichs:** wird trotz Verknüpfung nicht abgerufen.
 
@@ -246,12 +248,161 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 <!-- Added by /architecture -->
 | Decision | Rationale | Date |
 |----------|-----------|------|
+| Fallmuster-Liste über einen kleinen GET-Endpunkt nach dem Muster der Produktsuche, nicht im Browser berechnet | Eine Quelle der Wahrheit für den Geltungsbereich; keine Nachbildung der Scope-Regeln in JavaScript | 2026-11-27 |
+| Neuer „Fallmuster-Finder“ in gleicher Bauart wie der Finder für Arbeitsabläufe | Bewährtes Muster, nutzt `KnowledgeSelector` für den Geltungsbereich | 2026-11-27 |
+| Zuordnung Ticketkategorie → Wissenskategorie als Tabelle in der Wissens-Konfiguration | Änderbar ohne Code; alle elf Kategorien an einer Stelle | 2026-11-27 |
+| Kategorie: Kategorien des gewählten Formulars, sonst Einordnung des Tickets | Umsetzung der Produktentscheidung; nutzt die vorhandene Formularliste | 2026-11-27 |
+| Außerhalb des Geltungsbereichs werden Fallmuster ausgeblendet statt ausgegraut | Kürzere Liste; nicht wählbare Einträge helfen einer Aushilfe nicht | 2026-11-27 |
+| Bekannte Werte einmal beim Laden der Ticketseite aus den vorhandenen Fallfakten; beim Absenden neu berechnet | Keine neue Beschaffung; Browserwerte gelten nie als Systemwert | 2026-11-27 |
+| Nur Ja/Nein-Werte beantworten Fragen, Zahlen nur als Hinweis; Bestellwerte nur bei genau einer bezogenen Bestellung | Eindeutigkeit vor Bequemlichkeit (Spec: mehrere Bestellungen, Widersprüche) | 2026-11-27 |
+| Keine neue Tabelle: Auswahl und Antworten bei den gespeicherten Eingaben der Analyse | Vorbelegung, Leeren bei neuen Nachrichten und Fortsetzung funktionieren damit schon; gleiche Verschlüsselung und Löschfristen | 2026-11-27 |
+| Gewähltes Fallmuster und Anleitung einer übernommenen Prüfung als Pflichtwissen, verwandte Dokumente als starkes Wissen | Die Anleitung muss sicher im Prompt stehen; verwandtes Wissen soll nie Pflichtwissen verdrängen | 2026-11-27 |
+| `customer_check` verweist auf ein Anleitungsdokument ohne `when`, dessen Geltungsbereich das Fallmuster abdeckt (Prüfung in `knowledge:check`) | Dann reicht beim Absenden die Geltungsbereich-Prüfung, um „Anleitung liegt im anwendbaren Wissen vor“ sicherzustellen | 2026-11-27 |
+| Übernommene Prüfung geht als Mitarbeiterentscheidung zu den Zusatzinformationen, Fallmuster und Beobachtungen in einen eigenen Abschnitt | Setzt den Vorrang expliziter Entscheidungen und „Fallmuster sind Hypothesen“ im Prompt um | 2026-11-27 |
+| Ohne Nutzung ist der Eingang an die KI wortgleich wie bisher | Akzeptanzkriterium „derselbe Eingang wie vor PROJ-103“, per Test absicherbar | 2026-11-27 |
+| Gemeinsamer Zustand für Fallmuster-Bereich und Hinweis „übernehmen“; Fallmuster-Bereich ohne Ticketbezug | Hinweis in der geführten Bearbeitung kennt die Auswahl; spätere Nutzung auf „Frage stellen“ ohne zweite Umsetzung | 2026-11-27 |
+| Keine neuen Pakete, Migrationen oder Umgebungsvariablen | Alles mit vorhandenen Bausteinen umsetzbar | 2026-11-27 |
+| Ungültig gewordene Übernahmen entfernt der Browser sichtbar; der Server prüft beim Absenden erneut | Anzeige und Pflichtfeld bleiben stimmig; der Browser ist nie die einzige Absicherung | 2026-11-27 |
+| Bekannte Werte nach Ebene: Ticketwerte ohne Bestellbezug, Bestellwerte nur bei genau einer bezogenen Bestellung | Nicht jedes Kriterium hat einen Bestellbezug (z. B. Fotos in der aktuellen Nachricht) | 2026-11-27 |
+| Änderung an `docs/KNOWLEDGE_BASE_DESIGN.md` freigegeben, beschränkt auf PROJ-103 | Ausdrückliche Freigabe des Auftraggebers am 2026-11-27 | 2026-11-27 |
 
 ---
 <!-- Sections below are added by subsequent skills -->
 
 ## Tech Design (Solution Architect)
-_To be added by /architecture_
+
+### Überblick
+
+PROJ-103 baut keine zweite Analyse. Es kommen drei Dinge hinzu, alles andere wird weiterverwendet:
+
+1. **Fallmuster im Wissen:** drei optionale Angaben im Frontmatter von Playbooks (Erkennungsmerkmal, Prüfkriterien, Prüfung durch den Kunden), geprüft von `knowledge:check`.
+2. **Ein Baustein im Formular** „Ticket bearbeiten“, der die passenden Fallmuster ohne KI-Aufruf anzeigt und Auswahl, Antworten und übernommene Prüfungen mit dem Formular absendet.
+3. **Ein eigener Abschnitt im Eingang an die KI** („Sachverhaltsermittlung des Mitarbeiters“), getrennt von den geprüften Fakten, plus erzwungener Abruf des Wissens der gewählten Fallmuster.
+
+### A) Aufbau der Oberfläche
+
+```
+Ticket bearbeiten                                   (bisher „Vorschlag erstellen“)
++-- Gemeinsame Angaben (unverändert)
+|   +-- Zusammengehörige Tickets
+|   +-- Verkaufskanal · Kundengruppe · Produkt
++-- Direkte Analyse  [Blitz]                         (Zwischenüberschrift, kein Schalter)
++-- Geführte Sachverhaltsermittlung  [Checkliste]    (eingeklappt)
+|   +-- Kopfzeile: „Unsicher, was zu prüfen ist? 3 Fallmuster zur Zaubertasse, 2 allgemeine“
+|   +-- Fallmuster zum Produkt
+|   |   +-- [ ] Titel · Erkennungsmerkmal
+|   |       +-- Prüfkriterien: ja / nein / nicht beurteilbar   (nach dem Anhaken)
+|   |       +-- „bereits bekannt: …“ / „wird bei der Analyse geprüft“
+|   +-- Allgemeine Fallmuster (eingeklappt, wenn viele)
+|   +-- [ ] Kein Fallmuster passt
+|   +-- Hinweis „nicht mehr gültig: …“ (nach Wechsel von Produkt/Kanal/Formular)
++-- Geführte Bearbeitung  [Aufgabenliste]            (Rahmen, immer sichtbar)
+|   +-- Formularwahl (… · oder: Freitext)
+|   +-- Hinweis aus der Sachverhaltsermittlung       (nur bei Prüfung durch den Kunden)
+|   |   +-- „Funktionstest mit heißem Wasser (PROCESS-004)“ [übernehmen] / [zurücknehmen]
+|   +-- Felder des gewählten Formulars (unverändert)
++-- Knöpfe: Antwortvorschlag erstellen · Direkt antworten · Ticket ohne Antwort schließen
+
+Ergebnis (unter dem Vorschlag)
++-- Block „Sachverhaltsermittlung“: Fallmuster, Beobachtungen, übernommene Prüfungen (Name, Zeit)
++-- Link „Geführte Sachverhaltsermittlung“ → öffnet das Formular mit aufgeklapptem Bereich
+```
+
+- Umbau nur in `resources/views/components/analysis/form.blade.php`; die sieben Formular-Komponenten (`*-fields`) bleiben unverändert und wandern nur in den Rahmen „Geführte Bearbeitung“.
+- Drei Icons (`zap`, `list-checks`, `list-todo`) als neue Einträge in der vorhandenen Icon-Komponente.
+- Neue Komponenten: **Fallmuster-Bereich** und **Hinweis „übernehmen“**. Beide teilen einen gemeinsamen Zustand (Auswahl, Antworten, übernommene Prüfungen), damit der Hinweis in der geführten Bearbeitung sieht, was oben gewählt wurde. Der Fallmuster-Bereich bekommt alles, was er braucht, als Eingabe (Geltungsbereich, bekannte Werte, Vorbelegung) und kennt kein Ticket. So kann ihn „Frage stellen“ später ohne zweite Umsetzung verwenden.
+- Erklärtexte (was ein Fallmuster ist, warum es eine Hypothese ist) nur im Einführungsmodus (PROJ-74).
+
+### B) Woher die Liste kommt
+
+- **Ein kleiner Abruf-Endpunkt** liefert die Fallmuster zu Kundengruppe, Kanal, Produkten und Kategorie, nach dem Vorbild der vorhandenen Produktsuche (gleicher Zugangsschutz, gleiche Drosselung). Die Seite ruft ihn beim Laden und nach jedem Wechsel von Produkt, Kanal, Kundengruppe oder Formular auf. Antwortzeit: nur Dateien aus dem bereits geladenen Wissen, kein KI-Aufruf, keine externe Schnittstelle.
+- Der Endpunkt nutzt dieselbe Geltungsbereich-Prüfung wie der Wissensabruf (eine Quelle der Wahrheit, keine Nachbildung im Browser). Fallmuster außerhalb des Geltungsbereichs werden nicht angezeigt. Für bereits gewählte Fallmuster, die nicht mehr gelten, liefert er den Grund mit („gilt nur für …“, „gilt nicht für diese Kundengruppe“).
+- **Kategorie:** Der Endpunkt erhält das gewählte Formular und die Einordnung des Tickets. Hat das Formular Kategorien (aus der vorhandenen Formularliste), gelten diese, sonst die Einordnung. Die Zuordnung Ticketkategorie → Wissenskategorie steht als Tabelle in der Konfiguration des Wissens (alle elf Kategorien, Tabelle oben). Fallmuster ohne Kategorie erscheinen immer.
+- Neuer Baustein **„Fallmuster-Finder“** neben dem vorhandenen Finder für Arbeitsabläufe, gleiche Bauart: liest das nutzbare Wissen (gültig, nicht abgelaufen), filtert nach Geltungsbereich und Kategorie, sortiert Produkt-Fallmuster vor allgemeine.
+
+### C) Bereits bekannte Werte
+
+- Beim Öffnen der Ticketseite sind Ticket und Bestellungen geladen. Daraus berechnet die App einmal die Fallfakten, die der Wissensabruf ohnehin kennt (Bausteine „Fallfakten“ und `when`-Schlüssel), und gibt sie dem Fallmuster-Bereich mit: je Schlüssel Wert, Quelle und ob er **eindeutig** ist.
+- **Eindeutig** heißt: Der Wert ist bekannt und gehört zu der Ebene, auf die sich die Frage bezieht. **Ticketwerte** (z. B. Anhang in der aktuellen Kundennachricht, Anzahl der Kundennachrichten) brauchen keinen Bestellbezug und gelten unabhängig von der Zahl der Bestellungen. **Bestellwerte** (versandt, zugestellt, Tage seit Versand) gelten nur für genau eine Bestellung, auf die sich das Anliegen bezieht (Bezug „genannt“ oder „einzige Bestellung“).
+- **Bedeutung muss passen:** `known_from` darf nur gesetzt werden, wenn die Frage genau das meint, was der Wert aussagt (z. B. „aktuelle Nachricht hat einen Anhang“, nicht „der Kunde hat irgendwann Fotos geschickt“). `knowledge:check` prüft, dass der Wert existiert; die Bedeutung stellt der Authoring Guide mit Beispielen sicher. Bei mehreren Bestellkandidaten, unklarem Bezug oder fehlendem Wert ist er nicht eindeutig: Die Frage bleibt, die Werte erscheinen als Hinweis mit Bezug.
+- **Widersprüche:** Liefern die Kandidaten unterschiedliche Werte, oder widersprechen sich zusammenhängende Werte derselben Bestellung (z. B. nicht versandt, aber zugestellt), gilt der Wert nicht als Antwort.
+- **Nur Ja/Nein-Werte beantworten eine Frage** (z. B. versandt, zugestellt, Anhang vorhanden). Zahlen (Tage seit Versand) erscheinen als Hinweis neben der Frage.
+- **Erst bei der Analyse geholt** (Sendungsverlauf, Lettermint): Kriterien ohne passenden Schlüssel, die der Autor als „automatisch“ kennzeichnet, zeigen „wird bei der Analyse automatisch geprüft“. Keine neue Abfrage beim Laden.
+- **Aktualität:** Die Werte stammen vom Laden der Seite. Beim Absenden berechnet die App sie neu und verwendet nur die neuen Werte; was der Browser schickt, gilt nie als Systemwert.
+
+### D) Daten (keine neue Tabelle)
+
+Mit jeder Analyse werden bei den gespeicherten Eingaben zusätzlich abgelegt (im bereits verschlüsselten Inhalt, gleiche Aufbewahrung und Löschung):
+
+- gewählte Fallmuster (IDs)
+- Antworten je Prüfkriterium (ja / nein / nicht beurteilbar; Unbeantwortetes fehlt)
+- übernommene Prüfungen durch den Kunden (IDs)
+- „Kein Fallmuster passt“ (ja/nein)
+- wer und wann (wie bei den Klärungen)
+
+Damit funktionieren ohne weitere Arbeit: Vorbelegung beim erneuten Öffnen, Leeren bei neuen Kundennachrichten (Formularantworten beginnen dann leer, PROJ-76), Fortsetzung über eine Entscheidungsfrage (die Eingaben des Ausgangsvorschlags werden übernommen). IDs, die es im Wissen nicht mehr gibt, werden beim Wiederöffnen still weggelassen.
+
+### E) Wissensschema
+
+Drei optionale Frontmatter-Angaben, nur für Playbooks:
+
+| Angabe | Inhalt | Prüfung durch `knowledge:check` |
+|---|---|---|
+| `recognize` | ein bis zwei Sätze, was man beobachten kann | Pflicht, sobald eine der anderen Angaben steht; Länge begrenzt; nur bei `playbook` |
+| `checks` | bis zu fünf Fragen; je Frage Schlüssel, Fragetext, optional `known_from` (Ja/Nein- oder Zahlenwert der App) oder Kennzeichen „automatisch bei der Analyse“ | Schlüssel eindeutig, `known_from` muss ein bekannter Wert sein, sonst **Fehler** |
+| `customer_check` | Name der Prüfung und die ID des Dokuments mit der Anleitung | ID muss existieren; das Anleitungsdokument darf keine `when`-Bedingung haben und muss mindestens den Geltungsbereich des Fallmusters abdecken, sonst **Fehler** |
+
+- Die Bedingung „Anleitungsdokument ohne `when`, Geltungsbereich deckt das Fallmuster ab“ macht die spätere Prüfung beim Absenden einfach und sicher: Gilt das Fallmuster für den Fall, gilt auch die Anleitung.
+- Neue Maßnahme `customer-check` („Kunde um Prüfung bitten“) in der Maßnahmenliste; sie steht dadurch automatisch der KI, den Arbeitsabläufen und der Prüfung zur Verfügung.
+- Knowledge-Übersicht: Kennzeichnung „Fallmuster“ je Dokument.
+- Dokumentation: Authoring Guide (Abschnitt Fallmuster, Grundsatz „nur Beobachtungen und Fragen“), Vorlage für Playbooks, Skill `knowledge`, Knowledge Base Design (nur nach Freigabe, die Datei ist sonst geschützt).
+
+### F) Abruf des Wissens
+
+- **Gewähltes Fallmuster:** Pflichtwissen, Grund „in der Sachverhaltsermittlung gewählt“. Gilt es nicht (mehr) für den Fall, wird es nicht abgerufen.
+- **Anleitung einer übernommenen Prüfung:** ebenfalls Pflichtwissen (sonst stünde die Anleitung nicht sicher im Prompt).
+- **Verwandte Dokumente** (`related_knowledge` des Fallmusters, eine Ebene): nur, wenn sie im Geltungsbereich liegen, nicht abgelaufen sind und ihre Bedingung nicht „nicht erfüllt“ ergibt; dann als **starkes** Wissen, vor den Auslösertreffern. Sie verdrängen also nie Pflichtwissen und fallen bei Platzmangel wie anderes starkes Wissen heraus.
+- Bestehende Grenzen und die Meldung bei zu viel Pflichtwissen bleiben unverändert.
+- Der Router (PROJ-37) sieht die gewählten Fallmuster als bereits abgerufen und schlägt sie nicht noch einmal vor.
+
+### G) Eingang an die KI und Vorrang
+
+Die Teile des Eingangs werden um einen Abschnitt ergänzt, der nur erscheint, wenn die Sachverhaltsermittlung genutzt wurde (ohne Nutzung ist der Eingang **wortgleich** wie bisher):
+
+- **Sachverhaltsermittlung des Mitarbeiters (Hypothesen und Beobachtungen, nicht geprüft):** gewählte Fallmuster als „in Betracht gezogen“, Antworten als Beobachtungen, „nicht beurteilbar“ und Unbeantwortetes als offen, automatisch bekannte Werte mit Quelle, „Kein Fallmuster passt“.
+- **Übernommene Prüfung** ist eine Entscheidung des Mitarbeiters und steht deshalb bei den „Zusätzlichen Informationen vom Mitarbeiter“: „Der Kunde soll die Prüfung ‚…‘ nach PROCESS-004 durchführen.“ Bleibt dabei das Pflichtfeld „Nötige Informationen“ leer, ersetzt dieser Satz im Reklamationsformular die bisherige Zeile mit den nötigen Informationen; im Formular „Technischer Support“ kommt er zu den vorhandenen Zeilen hinzu. Hat der Mitarbeiter etwas eingetragen, stehen beide da, sein Text zuerst.
+- **Prompt-Regeln** (neue Prompt-Version der Analyse): Fallmuster sind Hypothesen; andere Ursachen prüfen; Widersprüche zu Ticket, Systemdaten oder Formularangaben benennen; offen heißt nicht widerlegt; Entscheidungen und Angaben des Mitarbeiters gehen allgemeinen Regeln des Wissens vor, Abweichungen werden sichtbar gemacht, nicht korrigiert; bereits Beantwortetes nicht erneut fragen; die Entscheidungsfrage wählt die Prüfung mit dem größten Erkenntnisgewinn bei geringstem Aufwand und greift, wo vorhanden, die Prüfkriterien der abgerufenen Fallmuster auf; `customer-check` für definierte Prüfungen durch den Kunden.
+- Der Abschnitt geht auch in die Auslöser-Suche ein (wie heute die Zusatzinformationen), damit z. B. eine Beobachtung „Rand dunkel“ passendes Wissen findet.
+
+### H) Prüfung beim Absenden
+
+In der vorhandenen Formular-Prüfung der Analyse:
+
+- Fallmuster-IDs, Prüfkriterien und übernommene Prüfungen werden gegen das Wissen geprüft: nur bekannte IDs, nur Kriterien des jeweiligen Fallmusters, nur die drei Antworten, übernommene Prüfungen nur von gewählten Fallmustern, die im Geltungsbereich liegen.
+- **Pflichtfeld „Nötige Informationen“ (Reklamation, „Unsicher, weitere Informationen nötig“):** darf leer bleiben, wenn mindestens eine gültige Prüfung übernommen ist. Sonst bisherige Meldung; ist eine übernommene Prüfung ungültig (Geltungsbereich), Meldung mit dem Zusatz, dass die Anleitung im Wissen für diesen Fall fehlt.
+- **Ungültig gewordene Übernahme:** Ändert der Mitarbeiter danach Produkt, Kundengruppe, Kanal, Formular oder die Fallmusterauswahl, prüft der Fallmuster-Bereich mit der Antwort des Endpunkts, ob jede übernommene Prüfung noch gilt, entfernt ungültige sichtbar und nennt den Grund. Die Prüfung beim Absenden wiederholt das auf dem Server; nur gültige Übernahmen lockern das Pflichtfeld.
+- Alle übrigen Regeln der sieben Formulare bleiben unverändert.
+
+### I) Ergebnisansicht
+
+- Block „Sachverhaltsermittlung“ beim Ergebnis, getrennt von Systemdaten und Klärungen: gewählte Fallmuster, Beobachtungen, übernommene Prüfungen, Name und Zeit.
+- Quellen: neue Herkunft „In der Sachverhaltsermittlung gewählt“ bzw. „verwandt mit gewähltem Fallmuster“.
+- Link „Geführte Sachverhaltsermittlung“ beim Ergebnis nutzt das vorhandene Ereignis zum Öffnen des Formulars und klappt den Bereich auf.
+
+### J) Abhängigkeiten
+
+Keine neuen Pakete. Keine neue Tabelle, keine Migration, keine neue Umgebungsvariable.
+
+### K) Tests (für `/backend` und `/qa`)
+
+- Fallmuster-Finder: Geltungsbereich, alle elf Kategorien der Zuordnung, Formular vor Einordnung, ohne Produkt, Kanal ohne Produktbezug, Gründe für weggefallene Auswahl.
+- Bekannte Werte: eine Bestellung, mehrere Bestellungen, unklarer Bezug, fehlender Wert, Widerspruch, Zahlenwert nur als Hinweis.
+- Abruf: gewähltes Fallmuster Pflicht, Anleitung Pflicht, verwandte Dokumente mit Geltungsbereich, Bedingung und Platzgrenze.
+- Eingang an die KI: ohne Nutzung wortgleich wie bisher (Vergleich mit dem bisherigen Eingang); mit Nutzung getrennte Abschnitte.
+- Formularprüfung: Pflichtfeld mit und ohne übernommene Prüfung, Prüfung außerhalb des Geltungsbereichs, manipulierte IDs.
+- `knowledge:check`: alle neuen Fehlerfälle.
+- Vorhandene Tests der sieben Formulare laufen unverändert (nur geänderte Bezeichnungen).
+
 
 ## QA Test Results
 _To be added by /qa_
