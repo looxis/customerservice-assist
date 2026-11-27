@@ -62,7 +62,7 @@ Den Kunden bitten:
 1. Die Tasse zunächst auf Raumtemperatur kommen zu lassen, falls sie sehr kalt ist (zum Beispiel nach Lagerung im Freien im Winter).
 2. Wasser mit mindestens 80 °C zu verwenden.
 3. Die Tasse bis ungefähr 1 bis 1,5 cm unterhalb des oberen Tassenrands zu füllen.
-4. Der Keramik und der Thermobeschichtung Zeit zur Erwärmung zu geben. Als Orientierung für einen ersten Test gelten 30 bis 60 Sekunden (vorläufiger Wert, fachlich noch nicht bestätigt).
+4. Der Keramik und der Thermobeschichtung Zeit zur Erwärmung zu geben. Als Orientierung für einen ersten Test gelten 30 bis 60 Sekunden.
 5. Das Ergebnis zu prüfen und, wenn das Problem weiter besteht, ein Foto der Tasse unter diesen Testbedingungen zu senden.
 
 Anschließend intern:
