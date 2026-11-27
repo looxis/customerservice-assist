@@ -21,7 +21,8 @@ describe('the authoring guide', function () {
     test('it explains the retrieval fields, the classes and the rules for triggers', function () use ($guide) {
         expect($guide())->toContain('### Abruf: `summary`, `retrieval`, `triggers`, `exclude_triggers`, `when`, `actions`')
             ->toContain('`core`')->toContain('`triggered`')->toContain('`binding`')
-            ->toContain('Ein Produkt ist **kein Auslöser**')
+            ->toContain('Ein Produkt ist grundsätzlich **kein Auslöser**')
+            ->toContain('**Ausnahme (seit 2026-11-27):** Playbooks und Processes')
             ->toContain('„Logo“ findet „Firmenlogo“ nicht')
             ->toContain('Keine Allerweltswörter')
             ->toContain('Ausschlüsse wirken nie in Fragen')

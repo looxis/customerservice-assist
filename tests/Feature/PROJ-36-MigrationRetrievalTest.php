@@ -262,7 +262,12 @@ test('migration: an unclear damage to the lunchbox is not read as a broken snap 
     $fastener = migrationRetrieve('private-looxis-de', 'Der Schnappverschluss meiner Lunchbox ist gebrochen.', ['lunchbox-wood-lid']);
     $closure = migrationRetrieve('private-looxis-de', 'Der Verschluss ist abgebrochen.', ['lunchbox-wood-lid']);
 
-    expect($unclear)->toContain('PRODUCT-005')->and($unclear)->not->toContain('PLAYBOOK-013')
+    // Since 2026-11-27 the playbooks of the chosen product come along without a trigger (PROJ-36): for an unclear damage
+    // PLAYBOOK-013 may be there as a case pattern, but never found by its trigger.
+    $unclearReason = collect(migrationResult('private-looxis-de', 'Ein Stück meiner Lunchbox ist abgebrochen.', ['lunchbox-wood-lid'])->retrieved)
+        ->first(fn ($item): bool => $item->document->id === 'PLAYBOOK-013')?->reason();
+
+    expect($unclear)->toContain('PRODUCT-005')->and($unclearReason)->toBeIn([null, 'Fallmuster des gewählten Produkts'])
         ->and($fastener)->toContain('PLAYBOOK-013')
         ->and($closure)->toContain('PLAYBOOK-013');
 });

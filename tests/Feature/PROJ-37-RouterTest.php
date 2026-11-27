@@ -267,7 +267,8 @@ describe('the preselection above the limit', function () {
     });
 
     test('a product-specific and a group-specific document both get in without any word in common, in a big base', function () use ($big, $select) {
-        config(['knowledge.router.pool.max_lines' => 30]);
+        // Without the case patterns of the product (PROJ-36, 2026-11-27) the playbook waits for the router, which is what is tested here.
+        config(['knowledge.router.pool.max_lines' => 30, 'knowledge.retrieval.budget.product_patterns' => 0]);
         $files = rtrProducts() + $big(150)
             + rtrDoc(1, ['type' => 'playbook', 'products' => ['3d-glass-photo'], 'title' => 'Beanstandung der Darstellung im Glas', 'summary' => 'Prüfung, wenn das Ergebnis nicht wie erwartet wirkt.', 'triggers' => ['zzzz']], type: 'playbook')
             + rtrDoc(2, ['type' => 'playbook', 'customer_types' => ['b2b-reseller'], 'sales_channels' => ['fachhaendler'], 'title' => 'Rückfrage beim Händler vor einer Endkundenreaktion', 'summary' => 'Klärt, wer unzufrieden ist.', 'triggers' => ['zzzz']], type: 'playbook');
