@@ -363,7 +363,7 @@ Fragen beim Erfassen eines Arbeitsablaufs, eine nach der anderen:
 6. Woran erkennt man am Ende, dass alles richtig erledigt ist?
 7. Wer wird informiert, was wird im Ticket dokumentiert?
 
-### Fallmuster für die geführte Sachverhaltsermittlung (`recognize`, `checks`, `customer_check`)
+### Fallmuster für die Sachverhaltsermittlung (`recognize`, `checks`, `customer_check`)
 
 Ein Playbook kann zusätzlich als **Fallmuster** dienen: Die App zeigt es dem Mitarbeiter vor der Analyse, damit er weiß, worauf er achten und was er prüfen muss, auch wenn er das Fachwissen noch nicht hat (PROJ-103). Das Wissen hat damit zwei Leser: die KI und den Mitarbeiter.
 

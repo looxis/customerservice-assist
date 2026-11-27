@@ -27,7 +27,7 @@
     <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 p-3 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
         <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/patterns:rotate-90" />
         <x-icon name="list-checks" size="18" class="text-brand" />
-        <span class="text-sm font-semibold text-slate-900">Geführte Sachverhaltsermittlung</span>
+        <span class="text-sm font-semibold text-slate-900">Sachverhaltsermittlung</span>
         {{-- The click on the question mark must not open or close the area. --}}
         <span x-on:click.prevent class="inline-flex"><x-help-tip :size="19" text="Unklar, was hinter der Anfrage steckt oder wie der Fall zu lösen ist? Hier findest du bekannte Fallmuster aus dem Wissen: woran man sie erkennt und was zu prüfen ist. So erarbeitest du den Sachverhalt und einen möglichen Lösungsweg und machst danach mit der geführten Bearbeitung oder der direkten Analyse weiter." /></span>
         <span class="text-sm text-slate-600">· Unsicher, was zu prüfen ist?</span>

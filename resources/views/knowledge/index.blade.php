@@ -118,7 +118,7 @@
 
                                     {{-- PROJ-103: offered in the guided fact-finding. --}}
                                     @if ($document->isCasePattern())
-                                        <x-badge tone="info" title="Wird in der geführten Sachverhaltsermittlung angeboten">Fallmuster</x-badge>
+                                        <x-badge tone="info" title="Wird in der Sachverhaltsermittlung angeboten">Fallmuster</x-badge>
                                     @endif
 
                                     @if ($document->id && ($reportedMany[$document->id] ?? false))

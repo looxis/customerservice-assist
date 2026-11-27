@@ -257,7 +257,7 @@
         @if ($isLatest && ! $question)
             <p class="mt-3 text-sm">
                 <button type="button" class="inline-flex items-center gap-1 font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-data x-on:click="$dispatch('open-analysis-form'); $dispatch('open-case-patterns')">
-                    <x-icon name="list-checks" size="16" /> Geführte Sachverhaltsermittlung
+                    <x-icon name="list-checks" size="16" /> Sachverhaltsermittlung
                 </button>
                 <span class="text-slate-600">– Fallmuster und Prüffragen ansehen und einen neuen Antwortvorschlag erstellen</span>
             </p>

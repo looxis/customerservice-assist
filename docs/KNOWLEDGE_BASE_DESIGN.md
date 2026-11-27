@@ -180,7 +180,7 @@ Playbooks beantworten:
 
 Beispiel-ID: `PLAYBOOK-001`
 
-**Fallmuster für die geführte Sachverhaltsermittlung (PROJ-103).** Ein Playbook mit dem Feld `recognize` wird Mitarbeitern vor der Analyse als Fallmuster angeboten: Woran erkenne ich den Fall, was muss ich prüfen? Das Wissen hat damit zwei Adressaten: die KI (Analyse, Bewertung, Antwort) und den Mitarbeiter (Sachverhalt ermitteln, Entscheidung vorbereiten). Ein gewähltes Fallmuster ist eine Hypothese, keine Diagnose; es erzwingt den Abruf des Playbooks, nie dessen Schlussfolgerung. Explizite Entscheidungen des Mitarbeiters haben Vorrang vor allgemeinen Regeln des Wissens. Felder und Regeln: Abschnitt 15.
+**Fallmuster für die Sachverhaltsermittlung (PROJ-103).** Ein Playbook mit dem Feld `recognize` wird Mitarbeitern vor der Analyse als Fallmuster angeboten: Woran erkenne ich den Fall, was muss ich prüfen? Das Wissen hat damit zwei Adressaten: die KI (Analyse, Bewertung, Antwort) und den Mitarbeiter (Sachverhalt ermitteln, Entscheidung vorbereiten). Ein gewähltes Fallmuster ist eine Hypothese, keine Diagnose; es erzwingt den Abruf des Playbooks, nie dessen Schlussfolgerung. Explizite Entscheidungen des Mitarbeiters haben Vorrang vor allgemeinen Regeln des Wissens. Felder und Regeln: Abschnitt 15.
 
 ### 5.6 `tone/`
 
@@ -538,7 +538,7 @@ customer_check:
 
 ### Playbook als Fallmuster (PROJ-103)
 
-Drei optionale Angaben machen ein Playbook zum Fallmuster der geführten Sachverhaltsermittlung. Sie enthalten **nur Beobachtungen und Fragen, keine Regeln**: Regeln, Grenzwerte und Anleitungen stehen weiterhin nur im Text des Dokuments.
+Drei optionale Angaben machen ein Playbook zum Fallmuster der Sachverhaltsermittlung. Sie enthalten **nur Beobachtungen und Fragen, keine Regeln**: Regeln, Grenzwerte und Anleitungen stehen weiterhin nur im Text des Dokuments.
 
 | Angabe | Inhalt | Regeln |
 |---|---|---|
@@ -688,7 +688,7 @@ Empfohlene Auswahl:
 - Produktwissen des erkannten Produkts
 - passende Prozesse
 - passende Playbooks; Playbooks und Prozesse, die auf das gewählte Produkt eingeschränkt sind, kommen auch ohne Auslöser mit (bis zu einer Obergrenze, seit 2026-11-27)
-- in der geführten Sachverhaltsermittlung gewählte Fallmuster als Pflichtwissen (PROJ-103)
+- in der Sachverhaltsermittlung gewählte Fallmuster als Pflichtwissen (PROJ-103)
 
 ### Optional
 - wenige passende kuratierte Beispiele

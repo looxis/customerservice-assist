@@ -102,7 +102,7 @@ Der größte Zeitaufwand entsteht bei Reklamationen (ca. 40 % der Tickets), vor 
 | Geführtes Formular „Technischer Support“ (PROJ-90): bei dieser Kategorie Klick-Entscheidung „Lösung bekannt?“ mit Hinweis zur Lösung oder benötigten Informationen statt Freitext, Produkt optional, Formularwahl je Ticket; erstes von mehreren Formularen je Klassifikations-Kategorie | Approved |
 | Wissen zu technischem Support je Kanal anpassen (PROJ-91) | Roadmap |
 | Kanal ohne Bestellung erkennen für Fachhändler und LOOXIS Pro (PROJ-92) | Roadmap |
-| Geführte Sachverhaltsermittlung (PROJ-103): optionale Hilfe vor der Analyse mit bekannten Fallmustern, Erkennungsmerkmalen und Prüfkriterien aus dem Wissen, kategorieübergreifend; Bereich „Ticket bearbeiten“ mit „Direkte Analyse“, „Geführte Sachverhaltsermittlung“ und „Geführte Bearbeitung“ | In Progress |
+| Sachverhaltsermittlung (PROJ-103): optionale Hilfe vor der Analyse mit bekannten Fallmustern, Erkennungsmerkmalen und Prüfkriterien aus dem Wissen, kategorieübergreifend; Bereich „Ticket bearbeiten“ mit „Direkte Analyse“, „Sachverhaltsermittlung“ und „Geführte Bearbeitung“ | In Progress |
 
 Feature-IDs, Abhängigkeiten und Baureihenfolge stehen in `features/INDEX.md`.
 
