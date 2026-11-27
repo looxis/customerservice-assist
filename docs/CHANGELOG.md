@@ -8,6 +8,10 @@ Verbesserungen, außer ausdrücklich gewünscht. Einträge so kurz wie möglich 
 Ausführliche Regeln: .claude/rules/general.md, Abschnitt „Changelog“.
 -->
 
+## 2026-11-27
+
+- Der Bereich „Vorschlag erstellen“ heißt jetzt „Ticket bearbeiten“ und hat drei Teile: neu die „Sachverhaltsermittlung“ (Details folgen), „Geführte Bearbeitung“ (bisher „Formular“) und „Direkte Analyse“ (bisher „Freitext“). Ein Klick auf das Fragezeichen erklärt, wann du welchen Teil nutzt.
+
 ## 2026-11-26
 
 - Ton der Antwortvorschläge angepasst: kein Bedauern und keine Entschuldigung bei Fehlern, die wir nicht verursacht haben, kein Amtsdeutsch, etwas salopper.
