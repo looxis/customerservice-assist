@@ -18,6 +18,9 @@ class KnowledgeRetriever
 {
     private const array EXAMPLE_TYPES = ['example-good', 'example-bad'];
 
+    /** Document types that describe a case pattern and how to check it. */
+    private const array PATTERN_TYPES = ['playbook', 'process'];
+
     public function __construct(
         private readonly KnowledgeSelector $selector,
         private readonly TriggerMatcher $matcher,
@@ -60,6 +63,7 @@ class KnowledgeRetriever
         $evaluations = [];
         $suppressed = [];
         $unclassified = [];
+        $patternCandidates = [];
         $scope = $this->selector->scope($context)['selected'];
 
         foreach ($scope as $entry) {
@@ -75,6 +79,10 @@ class KnowledgeRetriever
             if (! $outcome instanceof RetrievedDocument) {
                 $notRetrieved[(string) $document->id] = ['document' => $document, 'code' => $outcome['code'], 'detail' => $outcome['detail']];
 
+                if ($outcome['code'] === RetrievalResult::NO_TRIGGER && $this->isProductPattern($document, $class, $context)) {
+                    $patternCandidates[] = $document;
+                }
+
                 continue;
             }
 
@@ -88,6 +96,8 @@ class KnowledgeRetriever
                 $weak[] = $outcome;
             }
         }
+
+        $patterns = $this->productPatterns($patternCandidates, $manualIds, (int) $settings['budget']['product_patterns'], $notRetrieved);
 
         foreach ($scope as $entry) {
             $id = (string) $entry->document->id;
@@ -140,13 +150,13 @@ class KnowledgeRetriever
         $chosen = $mandatory;
         $room = max(0, min($target, $available) - $mandatoryCharacters);
 
-        foreach ([[...$this->byScore($strong), ...$routerStrong], [...$this->byScore($weak), ...$routerWeak], $this->capExamples($examples, $context, $notRetrieved)] as $tier) {
+        foreach ([[...$this->byScore($strong), ...$patterns, ...$routerStrong], [...$this->byScore($weak), ...$routerWeak], $this->capExamples($examples, $context, $notRetrieved)] as $tier) {
             foreach ($tier as $index => $item) {
                 $length = $item->document->length();
 
                 if ($length > $room) {
-                    if ($item->origin === RetrievedDocument::ORIGIN_ROUTER) {
-                        // A router addition that does not fit is skipped; smaller ones and the rest of the room stay usable.
+                    if (in_array($item->origin, [RetrievedDocument::ORIGIN_ROUTER, RetrievedDocument::ORIGIN_PATTERN], true)) {
+                        // A router addition or a product pattern that does not fit is skipped; smaller ones and the rest of the room stay usable.
                         $notRetrieved[(string) $item->document->id] = ['document' => $item->document, 'code' => RetrievalResult::OUT_OF_SPACE, 'detail' => 'wegen Umfang nicht mitgesendet ('.implode('; ', $item->reasons).')'];
 
                         continue;
@@ -234,6 +244,54 @@ class KnowledgeRetriever
         }
 
         return $this->missed($match, $evaluation);
+    }
+
+    /**
+     * A playbook or process that is narrowed to a chosen product: the customer rarely names the cause in our words
+     * ("Köpfe abgeschnitten" for a mug that is not warm yet), so its triggers alone must not decide.
+     */
+    private function isProductPattern(KnowledgeDocument $document, string $class, CaseContext $context): bool
+    {
+        return $class === 'triggered'
+            && in_array($document->type, self::PATTERN_TYPES, true)
+            && array_intersect($document->boundProducts(), $context->products) !== [];
+    }
+
+    /**
+     * The case patterns of the chosen products that no trigger found. They come along as strong knowledge as long as
+     * all of them together stay within their own limit. Above it none is taken: choosing among many is the router's
+     * job, and the documents stay in its pool.
+     *
+     * @param  list<KnowledgeDocument>  $candidates
+     * @param  list<string>  $manualIds
+     * @param  array<string, array{document: KnowledgeDocument, code: string, detail: string}>  $notRetrieved
+     * @return list<RetrievedDocument>
+     */
+    private function productPatterns(array $candidates, array $manualIds, int $limit, array &$notRetrieved): array
+    {
+        $candidates = array_values(array_filter($candidates, fn (KnowledgeDocument $document): bool => ! in_array((string) $document->id, $manualIds, true)));
+        $total = array_sum(array_map(fn (KnowledgeDocument $document): int => $document->length(), $candidates));
+
+        if ($candidates === []) {
+            return [];
+        }
+
+        if ($total > $limit) {
+            foreach ($candidates as $document) {
+                $notRetrieved[(string) $document->id]['detail'] = 'kein Auslöser im Anliegen; die Fallmuster des Produkts umfassen zusammen '.$this->number($total).' Zeichen und werden über '.$this->number($limit).' Zeichen nicht automatisch mitgesendet';
+            }
+
+            return [];
+        }
+
+        $patterns = [];
+
+        foreach ($candidates as $document) {
+            unset($notRetrieved[(string) $document->id]);
+            $patterns[] = new RetrievedDocument($document, 'triggered', RetrievedDocument::STRONG, 0, ['Fallmuster des gewählten Produkts'], origin: RetrievedDocument::ORIGIN_PATTERN);
+        }
+
+        return $patterns;
     }
 
     /**

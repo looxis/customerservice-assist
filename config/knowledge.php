@@ -343,7 +343,7 @@ return [
 
         // Version of the retrieval rules; raise it whenever the logic changes. Stored with every
         // analysis together with a short hash of the settings that were in force.
-        'version' => '2026-10-13.1',
+        'version' => '2026-11-27.1',
 
         // Provisional values; the final ones are set after the migration (PROJ-36).
         'budget' => [
@@ -354,6 +354,17 @@ return [
             // Mandatory knowledge bound to one product.
             // Raised from 6.000 because PRODUCT-003 (3D glass photos) has 8.643 characters; lower it again once the file is split.
             'core_per_product' => 9000,
+            // Playbooks and processes narrowed to a chosen product come along without a trigger hit as long as all of
+            // them together stay within this many characters; above it they are left to the triggers and the router.
+            'product_patterns' => 15000,
+        ],
+
+        // Parts of a ticket title that a system writes, not the customer: the name of the Amazon contact channel and
+        // Amazon's catch-all complaint category. They are removed before triggers and router read the title, so
+        // "Payments" no longer finds payment rules and "Beschädigter … Artikel" no longer finds damage rules.
+        'title_noise' => [
+            'Amazon Payments-Kunde',
+            'Beschädigter defekter oder falscher Artikel erhalten',
         ],
 
         'min_trigger_length' => 4,

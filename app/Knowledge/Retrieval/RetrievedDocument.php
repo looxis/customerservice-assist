@@ -17,7 +17,7 @@ final readonly class RetrievedDocument
 
     public const string EXAMPLE = 'example';
 
-    /** Where a document came from (PROJ-37): basic knowledge, triggers or condition, the router, by hand, the action safeguard. */
+    /** Where a document came from (PROJ-37): basic knowledge, triggers or condition, the router, by hand, the action safeguard, a case pattern of the chosen product. */
     public const string ORIGIN_CORE = 'core';
 
     public const string ORIGIN_TRIGGER = 'trigger';
@@ -27,6 +27,8 @@ final readonly class RetrievedDocument
     public const string ORIGIN_MANUAL = 'manual';
 
     public const string ORIGIN_SAFEGUARD = 'safeguard';
+
+    public const string ORIGIN_PATTERN = 'pattern';
 
     /**
      * @param  string  $strength  mandatory (core, binding, by hand), strong or weak (triggered) or example.

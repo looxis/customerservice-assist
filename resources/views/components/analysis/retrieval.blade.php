@@ -7,7 +7,7 @@
             $leftOut = collect($retrieval['not_retrieved'])->where('code', 'out_of_space');
             $switchable = collect($retrieval['not_retrieved']);
             $router = $retrieval['router'] ?? null;
-            $originLabels = ['core' => 'Grundwissen', 'trigger' => 'Durch Auslöser oder Bedingung ausgewählt', 'router' => 'Vom KI-Router ergänzt', 'manual' => 'Manuell zugeschaltet', 'safeguard' => 'Nachgeladen wegen Maßnahme'];
+            $originLabels = ['core' => 'Grundwissen', 'trigger' => 'Durch Auslöser oder Bedingung ausgewählt', 'router' => 'Vom KI-Router ergänzt', 'manual' => 'Manuell zugeschaltet', 'safeguard' => 'Nachgeladen wegen Maßnahme', 'pattern' => 'Fallmuster des gewählten Produkts'];
             $routerCut = ($router['cut']['a_shortened'] ?? 0) > 0 || ($router['cut']['b_removed'] ?? 0) > 0;
         @endphp
 

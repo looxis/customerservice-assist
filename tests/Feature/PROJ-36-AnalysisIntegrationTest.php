@@ -555,8 +555,8 @@ describe('the retrieval in the result view', function () {
         retrAnalyze();
         $id = retrStored()->uuid;
 
-        test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertDontSeeText('Bewertete Bedingungen')->assertDontSeeText('Abrufregeln 2026-10-13.1');
-        test()->withCookie('staff_name', 'Etienne')->get("/tickets/2137942?analyse={$id}")->assertSeeText('Bewertete Bedingungen (nur Admins)')->assertSeeText('Abrufregeln 2026-10-13.1');
+        test()->withCookie('staff_name', 'Nele')->get("/tickets/2137942?analyse={$id}")->assertDontSeeText('Bewertete Bedingungen')->assertDontSeeText('Abrufregeln 2026-11-27.1');
+        test()->withCookie('staff_name', 'Etienne')->get("/tickets/2137942?analyse={$id}")->assertSeeText('Bewertete Bedingungen (nur Admins)')->assertSeeText('Abrufregeln 2026-11-27.1');
     });
 
     test('an analysis from before the retrieval shows no such section', function () {

@@ -118,13 +118,15 @@ class CaseFactsBuilder
             }
         }
 
-        if (trim($ticket->title) !== '') {
+        $title = $this->title($ticket->title);
+
+        if ($title !== '') {
             if (count($customer) <= self::YOUNG_TICKET) {
-                array_unshift($a, $ticket->title);
-                array_unshift($pa, [$ticket->title, null]);
+                array_unshift($a, $title);
+                array_unshift($pa, [$title, null]);
             } else {
-                $c[] = $ticket->title;
-                $pc[] = [$ticket->title, null];
+                $c[] = $title;
+                $pc[] = [$title, null];
             }
         }
 
@@ -134,6 +136,19 @@ class CaseFactsBuilder
         }
 
         return [['A' => $a, 'B' => $b, 'C' => $c], ['A' => $pa, 'B' => $pb, 'C' => $pc]];
+    }
+
+    /**
+     * The ticket title without the parts a system wrote (`title_noise`). What the customer or the contact form
+     * says about the concern stays, and so does the order number.
+     */
+    private function title(string $title): string
+    {
+        foreach ((array) config('knowledge.retrieval.title_noise', []) as $noise) {
+            $title = str_ireplace((string) $noise, ' ', $title);
+        }
+
+        return trim((string) preg_replace('/\s+/u', ' ', $title));
     }
 
     /**

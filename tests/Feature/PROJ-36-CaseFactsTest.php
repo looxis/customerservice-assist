@@ -190,6 +190,21 @@ describe('text tiers', function () {
             ->and(implode(' ', [...$tiers['A'], ...$tiers['B'], ...$tiers['C']]))->not->toContain('Antwort')->not->toContain('Notiz');
     });
 
+    test('the parts of a title that a system wrote are left out, the order number and the rest stay', function () {
+        $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Leider ist der Druck nicht vollständig, das Datum kann man unten nicht lesen.', 1)], 'Frage von Amazon Payments-Kunde: Beschädigter defekter oder falscher Artikel erhalten - (Bestellung: 303-1515998-5299562)');
+
+        $tiers = factsBuilder()->build($ticket, factsGroup(), [], [])->tiers;
+
+        expect($tiers['A'][0])->toBe('Frage von : - (Bestellung: 303-1515998-5299562)')
+            ->and(implode(' ', $tiers['A']))->not->toContain('Payments')->not->toContain('Beschädigter');
+    });
+
+    test('a title the customer wrote himself stays as it is', function () {
+        $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Bitte um Hilfe, ich habe eine Frage zu meiner Bestellung und zur Lieferung.', 1)], 'Tasse beschädigt angekommen');
+
+        expect(factsBuilder()->build($ticket, factsGroup(), [], [])->tiers['A'][0])->toBe('Tasse beschädigt angekommen');
+    });
+
     test('a very short last message also counts the one before it', function () {
         $ticket = factsTicket([
             factsArticle(ArticleKind::Customer, 'Die Tasse hat einen Riss am Henkel, das Motiv ist auch verschoben und ich möchte Ersatz.', 1),

@@ -130,7 +130,7 @@ describe('triggered documents', function () {
             ->and(retrMissed(retrRun($files, retrFacts(values: ['ticket_closed' => null])), 'POLICY-001')['code'])->toBe(RetrievalResult::CONDITION_UNKNOWN);
     });
 
-    test('the product is a scope, not a trigger: a product document needs a hit, the product file itself can be core', function () {
+    test('the product is a scope: its playbooks come along with the chosen product, with or without a hit, and never without it', function () {
         $files = [
             'products/magic-mug.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Zaubertasse', 'retrieval' => 'core', 'summary' => 'Grundlagen.']),
             'playbooks/playbook-001-x.md' => knowledgeDoc(['id' => 'PLAYBOOK-001', 'type' => 'playbook', 'title' => 'Thermoeffekt', 'products' => ['magic-mug'], 'categories' => ['complaint'], 'retrieval' => 'triggered', 'summary' => 'x', 'triggers' => ['Thermoeffekt']]),
@@ -139,7 +139,9 @@ describe('triggered documents', function () {
 
         $result = retrRun($files, retrFacts(['Der Thermoeffekt funktioniert nicht']), retrContext('reseller', ['magic-mug']));
 
-        expect(retrIds($result))->toBe(['PRODUCT-001', 'PLAYBOOK-001'])->and(retrMissed($result, 'PLAYBOOK-002')['code'])->toBe(RetrievalResult::NO_TRIGGER);
+        expect(retrIds($result))->toBe(['PRODUCT-001', 'PLAYBOOK-001', 'PLAYBOOK-002'])
+            ->and($result->retrieved[1]->reason())->toBe('Auslöser „Thermoeffekt“ (aktuelles Anliegen)')
+            ->and($result->retrieved[2]->reason())->toBe('Fallmuster des gewählten Produkts');
         expect(retrIds(retrRun($files, retrFacts(['Der Thermoeffekt funktioniert nicht']))))->toBe([]);
     });
 });
@@ -299,6 +301,124 @@ describe('the budget', function () {
             + ['tone/tone-001-x.md' => knowledgeDoc(['id' => 'TONE-001', 'type' => 'tone', 'title' => 'Ton', 'summary' => 'x', 'retrieval' => 'core'])];
 
         expect(retrIds(retrRun($files, retrFacts(['stark']))))->toBe(['POLICY-001', 'POLICY-002', 'TONE-001']);
+    });
+});
+
+/**
+ * A product with playbooks and processes that are narrowed to it; none of them has a trigger the test texts hit.
+ *
+ * @param  array<string, array<string, mixed>>  $documents  File name => frontmatter overrides.
+ */
+function retrPatterns(array $documents, int $bodyLength = 200): array
+{
+    $files = ['products/magic-mug.md' => knowledgeDoc(['id' => 'PRODUCT-001', 'type' => 'product', 'title' => 'Zaubertasse', 'retrieval' => 'core', 'summary' => 'Grundlagen.'])];
+
+    foreach ($documents as $file => $fields) {
+        $files[$file] = knowledgeDoc(['title' => 'Fallmuster', 'products' => ['magic-mug'], 'retrieval' => 'triggered', 'summary' => 'Wann gebraucht.', 'triggers' => ['Thermoeffekt'], ...$fields], str_repeat('a', $bodyLength));
+    }
+
+    return $files;
+}
+
+describe('case patterns of the chosen product', function () {
+    test('playbooks and processes of the chosen product come along without a trigger hit, as strong knowledge', function () {
+        $files = retrPatterns([
+            'playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook'],
+            'processes/process-001-x.md' => ['id' => 'PROCESS-001', 'type' => 'process'],
+        ]);
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext(products: ['magic-mug']));
+        $playbook = collect($result->retrieved)->first(fn (RetrievedDocument $item): bool => $item->document->id === 'PLAYBOOK-001');
+
+        expect(retrIds($result))->toBe(['PRODUCT-001', 'PROCESS-001', 'PLAYBOOK-001'])
+            ->and(retrStrength($result, 'PLAYBOOK-001'))->toBe('strong')
+            ->and(retrStrength($result, 'PROCESS-001'))->toBe('strong')
+            ->and($playbook->reason())->toBe('Fallmuster des gewählten Produkts')
+            ->and($playbook->origin)->toBe(RetrievedDocument::ORIGIN_PATTERN);
+    });
+
+    test('a trigger hit keeps its own reason', function () {
+        $files = retrPatterns(['playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook']]);
+
+        $result = retrRun($files, retrFacts(['Der Thermoeffekt geht nicht']), retrContext(products: ['magic-mug']));
+
+        expect($result->retrieved[1]->reason())->toBe('Auslöser „Thermoeffekt“ (aktuelles Anliegen)')->and($result->retrieved[1]->origin)->toBe(RetrievedDocument::ORIGIN_TRIGGER);
+    });
+
+    test('without the product chosen, the pattern waits for its trigger', function () {
+        $files = [
+            ...retrPatterns([]),
+            'playbooks/playbook-001-x.md' => knowledgeDoc(['id' => 'PLAYBOOK-001', 'type' => 'playbook', 'title' => 'Allgemein', 'retrieval' => 'triggered', 'summary' => 'Wann gebraucht.', 'triggers' => ['Thermoeffekt']]),
+        ];
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext(products: ['magic-mug']));
+
+        expect(retrIds($result))->toBe(['PRODUCT-001'])->and(retrMissed($result, 'PLAYBOOK-001')['code'])->toBe(RetrievalResult::NO_TRIGGER);
+    });
+
+    test('other document types of the product still need a trigger', function () {
+        $files = retrPatterns(['policies/policy-001-x.md' => ['id' => 'POLICY-001', 'type' => 'policy']]);
+
+        expect(retrIds(retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext(products: ['magic-mug']))))->toBe(['PRODUCT-001']);
+    });
+
+    test('a pattern outside the customer group stays out', function () {
+        $files = retrPatterns(['playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook', 'customer_types' => ['b2c']]]);
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext('reseller', ['magic-mug']));
+
+        expect(retrIds($result))->toBe(['PRODUCT-001'])->and(retrMissed($result, 'PLAYBOOK-001'))->toBeNull();
+    });
+
+    test('a pattern whose condition is not fulfilled stays out', function () {
+        $files = retrPatterns(['playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook', 'when' => ['ticket_closed' => true]]]);
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten'], values: ['ticket_closed' => false]), retrContext(products: ['magic-mug']));
+
+        expect(retrIds($result))->toBe(['PRODUCT-001'])->and(retrMissed($result, 'PLAYBOOK-001')['code'])->toBe(RetrievalResult::CONDITION_FALSE);
+    });
+
+    test('a pattern suppressed by an exclusion word stays out', function () {
+        $files = retrPatterns(['playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook', 'exclude_triggers' => ['Spülmaschine']]]);
+
+        $result = retrRun($files, retrFacts(['Der Thermoeffekt ging nach der Spülmaschine verloren.']), retrContext(products: ['magic-mug']));
+
+        expect(retrIds($result))->toBe(['PRODUCT-001'])->and(retrMissed($result, 'PLAYBOOK-001')['code'])->toBe(RetrievalResult::SUPPRESSED);
+    });
+
+    test('above the limit no pattern is taken automatically and the log says why', function () {
+        config()->set('knowledge.retrieval.budget.product_patterns', 500);
+        $files = retrPatterns([
+            'playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook'],
+            'playbooks/playbook-002-x.md' => ['id' => 'PLAYBOOK-002', 'type' => 'playbook'],
+        ], 300);
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext(products: ['magic-mug']));
+
+        expect(retrIds($result))->toBe(['PRODUCT-001'])
+            ->and(retrMissed($result, 'PLAYBOOK-001')['code'])->toBe(RetrievalResult::NO_TRIGGER)
+            ->and(retrMissed($result, 'PLAYBOOK-001')['detail'])->toContain('600 Zeichen')->toContain('500 Zeichen');
+    });
+
+    test('a pattern that does not fit into the budget is skipped, the smaller one still comes along', function () {
+        config()->set('knowledge.retrieval.budget.target', 700);
+        $files = [
+            ...retrPatterns(['playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook']], 680),
+            'playbooks/playbook-002-x.md' => knowledgeDoc(['id' => 'PLAYBOOK-002', 'type' => 'playbook', 'title' => 'Klein', 'products' => ['magic-mug'], 'retrieval' => 'triggered', 'summary' => 'Wann gebraucht.', 'triggers' => ['Thermoeffekt']], str_repeat('b', 50)),
+        ];
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext(products: ['magic-mug']));
+
+        expect(retrIds($result))->toContain('PLAYBOOK-002')->not->toContain('PLAYBOOK-001')
+            ->and(retrMissed($result, 'PLAYBOOK-001')['code'])->toBe(RetrievalResult::OUT_OF_SPACE);
+    });
+
+    test('a pattern switched on by hand is mandatory and not counted twice', function () {
+        $files = retrPatterns(['playbooks/playbook-001-x.md' => ['id' => 'PLAYBOOK-001', 'type' => 'playbook']]);
+
+        $result = retrRun($files, retrFacts(['Die Köpfe sind abgeschnitten']), retrContext(products: ['magic-mug']), manual: ['PLAYBOOK-001']);
+
+        expect(retrIds($result))->toBe(['PRODUCT-001', 'PLAYBOOK-001'])->and(retrStrength($result, 'PLAYBOOK-001'))->toBe('mandatory');
     });
 });
 
