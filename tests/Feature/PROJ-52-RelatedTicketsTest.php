@@ -141,7 +141,7 @@ describe('the offers on the ticket page', function () {
     test('a problem with Zammad shows a hint and the form still works', function () {
         zammadWorld(theCase(), ['links_down' => true]);
 
-        test()->get('/tickets/2139944')->assertOk()->assertSeeText('Die in Zammad verknüpften Tickets konnten nicht gelesen werden.')->assertSeeText('Vorschlag erstellen');
+        test()->get('/tickets/2139944')->assertOk()->assertSeeText('Die in Zammad verknüpften Tickets konnten nicht gelesen werden.')->assertSeeText('Antwortvorschlag erstellen');
     });
 
     test('nothing is offered for a ticket without relations', function () {

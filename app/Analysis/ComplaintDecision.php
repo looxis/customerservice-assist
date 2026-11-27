@@ -117,7 +117,10 @@ final readonly class ComplaintDecision
 
         if ($this->justified === 'info') {
             $lines[] = '- Die Reklamation kann noch nicht entschieden werden: Es sind weitere Informationen nötig. Sage weder zu noch ab, kündige keine Neuproduktion und keinen Versand an.';
-            $lines[] = '- Für die Entscheidung werden diese Informationen benötigt (frage den Kunden gezielt danach): '.$this->missingInfo;
+            // PROJ-103: without own text the instructions of a customer check taken over in the guided fact-finding apply.
+            $lines[] = $this->missingInfo === ''
+                ? '- Was der Kunde tun oder mitteilen soll, ergibt sich aus der übernommenen Prüfung durch den Kunden (siehe unten); gib deren Anleitung aus dem Wissen weiter.'
+                : '- Für die Entscheidung werden diese Informationen benötigt (frage den Kunden gezielt danach): '.$this->missingInfo;
 
             return implode("\n", $lines);
         }

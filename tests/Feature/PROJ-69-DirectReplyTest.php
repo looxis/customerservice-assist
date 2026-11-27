@@ -48,7 +48,7 @@ function manualId(mixed $response): string
 describe('the buttons', function () {
     test('both places show "Direkt antworten" next to the close button', function () {
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
-            ->assertSeeTextInOrder(['Aktualisieren', 'Direkt antworten', 'Ohne Antwort schließen', 'Vorschlag erstellen', 'oder', 'Direkt antworten', 'Ticket ohne Antwort schließen'])
+            ->assertSeeTextInOrder(['Aktualisieren', 'Direkt antworten', 'Ohne Antwort schließen', 'Ticket bearbeiten', 'Antwortvorschlag erstellen', 'oder', 'Direkt antworten', 'Ticket ohne Antwort schließen'])
             ->getContent();
 
         expect(substr_count($html, route('tickets.manual-reply', ['number' => '2137942'])))->toBe(2);

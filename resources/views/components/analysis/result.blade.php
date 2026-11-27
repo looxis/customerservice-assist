@@ -226,6 +226,43 @@
             </div>
         @endif
 
+        {{-- Guided fact-finding (PROJ-103): what the employee looked at, apart from system data and clarifications. --}}
+        @php($findings = $result['findings'] ?? null)
+        @if (is_array($findings) && (($findings['patterns'] ?? []) !== [] || ($findings['none'] ?? false)))
+            <div class="mt-4 rounded-lg bg-slate-50 p-4 text-sm ring-1 ring-slate-200 ring-inset">
+                <p class="flex items-center gap-2 font-semibold text-slate-900"><x-icon name="list-checks" size="16" class="text-brand" /> Sachverhaltsermittlung <span class="font-normal text-slate-600">({{ $findings['by'] ?? '' }}, {{ isset($findings['at']) ? $time($findings['at']) : '' }})</span></p>
+                @if ($findings['none'] ?? false)
+                    <p class="mt-2 text-slate-700">Kein Fallmuster passt.</p>
+                @endif
+                <ul class="mt-2 space-y-2">
+                    @foreach ($findings['patterns'] ?? [] as $pattern)
+                        <li>
+                            <span class="font-medium text-slate-900">{{ $pattern['title'] }}</span> <span class="text-slate-600">({{ $pattern['id'] }}, in Betracht gezogen)</span>
+                            @if (($pattern['answers'] ?? []) !== [])
+                                <ul class="mt-1 list-disc space-y-0.5 pl-5 text-slate-700">
+                                    @foreach ($pattern['answers'] as $answer)
+                                        <li>{{ $answer['question'] }} → <span class="font-medium">{{ $answer['answer'] }}</span> <span class="text-slate-600">({{ $answer['source'] }})</span></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                            @if ($pattern['adopted'] ?? null)
+                                <p class="mt-1"><x-badge compact tone="success">übernommen</x-badge> Prüfung durch den Kunden: {{ $pattern['adopted']['name'] }} ({{ $pattern['adopted']['knowledge'] }})</p>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if ($isLatest && ! $question)
+            <p class="mt-3 text-sm">
+                <button type="button" class="inline-flex items-center gap-1 font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-data x-on:click="$dispatch('open-analysis-form'); $dispatch('open-case-patterns')">
+                    <x-icon name="list-checks" size="16" /> Geführte Sachverhaltsermittlung
+                </button>
+                <span class="text-slate-600">– Fallmuster und Prüffragen ansehen und einen neuen Antwortvorschlag erstellen</span>
+            </p>
+        @endif
+
         <div class="mt-4">
             <x-analysis.procedures :result="$result" :number="$number" :stand="$stand" :question="$question" :orders="$orders" :lookups="$lookups" />
         </div>

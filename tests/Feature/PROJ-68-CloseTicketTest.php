@@ -36,11 +36,11 @@ function closeTicket(array $fields = [], string $staff = 'Nele'): mixed
 }
 
 describe('the buttons', function () {
-    test('an open ticket shows the button in the header and next to "Vorschlag erstellen", with one dialog', function () {
+    test('an open ticket shows the button in the header and next to "Antwortvorschlag erstellen", with one dialog', function () {
         closableTicket();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertOk()
-            ->assertSeeTextInOrder(['In Zammad öffnen', 'Aktualisieren', 'Ohne Antwort schließen', 'Vorschlag erstellen', 'oder', 'Ticket ohne Antwort schließen'])
+            ->assertSeeTextInOrder(['In Zammad öffnen', 'Aktualisieren', 'Ohne Antwort schließen', 'Ticket bearbeiten', 'Antwortvorschlag erstellen', 'oder', 'Ticket ohne Antwort schließen'])
             ->assertSeeText('Ticket#2137942 ohne Antwort schließen?')
             ->getContent();
 

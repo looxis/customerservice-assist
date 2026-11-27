@@ -5,7 +5,7 @@ namespace App\Analysis;
 use App\Labeling\LabelCategory;
 
 /**
- * The forms of "Vorschlag erstellen" (PROJ-90): one guided form per ticket category that has one, and the free
+ * The forms of "Ticket bearbeiten", shown as "Geführte Bearbeitung" (PROJ-90, PROJ-103): one guided form per ticket category that has one, and the free
  * text for everything else. A further category becomes one more entry here plus its fields.
  */
 final class GuidedForms
@@ -75,6 +75,19 @@ final class GuidedForms
         }
 
         return ComplaintDecision::FREE;
+    }
+
+    /**
+     * The ticket categories a guided form stands for (PROJ-103); empty for the free text, an unknown key and the forms
+     * without a category (Neuversand, Diskussion beenden).
+     *
+     * @return list<string>
+     */
+    public static function categoriesOf(mixed $key): array
+    {
+        $form = is_string($key) ? (self::GUIDED[$key] ?? null) : null;
+
+        return $form === null ? [] : array_map(fn (LabelCategory $category): string => $category->value, $form['categories']);
     }
 
     /**

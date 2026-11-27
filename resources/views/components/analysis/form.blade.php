@@ -1,4 +1,4 @@
-@props(['number', 'analysis', 'selected' => [], 'canClose' => false, 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false, 'lookups' => [], 'complaint' => []])
+@props(['number', 'analysis', 'selected' => [], 'canClose' => false, 'testMode' => false, 'unloadedOrders' => [], 'advanced' => false, 'lookups' => [], 'complaint' => [], 'known' => []])
 
 @php
     $old = fn (string $key, mixed $default = null) => old($key, $default);
@@ -47,6 +47,10 @@
     $usedForm = \App\Analysis\GuidedForms::guidedLabel($inputs['formular'] ?? null);
     $pickedAnswer = fn (string $key, ?string $default = null) => $oldInput ? old($key, $default) : ($answers[$key] ?? $default);
     $labelOrders = collect($lookups)->flatMap(fn ($lookup) => $lookup->orders)->values();
+    // Guided fact-finding (PROJ-103): what was chosen before, after a failed check the values just sent.
+    $findings = $oldInput
+        ? ['fallmuster' => (array) old('fallmuster', []), 'pruefung' => (array) old('pruefung', []), 'kundenpruefung' => (array) old('kundenpruefung', []), 'kein_fallmuster' => (bool) old('kein_fallmuster')]
+        : array_intersect_key($answers, array_flip(['fallmuster', 'pruefung', 'kundenpruefung', 'kein_fallmuster']));
 @endphp
 
 {{-- Analysis form (PROJ-9). Posts normally; Alpine only for variant preview, counter and the double-submit lock. --}}
@@ -56,17 +60,17 @@
             <details id="analyse-details" class="group/form" @if ($startOpen) open @endif x-data x-on:open-analysis-form.window="$el.open = true; $nextTick(() => $el.scrollIntoView({ block: 'start' }))">
                 <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 focus-visible:outline-2 focus-visible:outline-brand [&::-webkit-details-marker]:hidden">
                     <x-icon name="chevron-right" size="16" class="text-slate-400 transition group-open/form:rotate-90" />
-                    <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
+                    <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Ticket bearbeiten</h2>
                     <span class="text-sm text-slate-600">
                         Erstellt mit: {{ implode(' · ', array_filter([$usedForm, $analysis['usedChannelLabel'] ?? null, $usedGroup, in_array($inputs['formular'] ?? null, [\App\Analysis\ReshipmentDecision::FORM, $closingForm, \App\Analysis\PaymentDecision::FORM, \App\Analysis\WismoUpdateDecision::FORM, \App\Analysis\CancellationDecision::FORM], true) ? null : ($usedProducts === [] ? 'kein Produktbezug' : implode(', ', $usedProducts)), $usedVariant])) }}
-                        – <span class="font-semibold text-brand">Eingaben ändern und neuen Vorschlag erstellen</span>
+                        – <span class="font-semibold text-brand">Eingaben ändern und neuen Antwortvorschlag erstellen</span>
                         @if ($complaintToggle && ! $digital)
                             · <button type="button" class="font-semibold text-brand hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-brand" x-on:click.prevent.stop="$dispatch('open-analysis-form', { mode: 'reklamation' })">Als Reklamation abwickeln</button>
                         @endif
                     </span>
                 </summary>
         @else
-            <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Vorschlag erstellen</h2>
+            <h2 id="analysis-heading" class="text-base font-semibold text-slate-900">Ticket bearbeiten</h2>
         @endif
 
         @if (session('analysis_error'))
@@ -98,7 +102,7 @@
               x-on:return-label-ready="labelNote = ''"
               x-on:open-analysis-form.window="if ($event.detail?.mode && ! (digital && goodsForms.includes($event.detail.mode))) { mode = $event.detail.mode }"
               x-on:channel-changed="digital = $event.detail.withoutProducts; if (digital) { labelOn = false; if (goodsForms.includes(mode)) { mode = 'frei' } }"
-              x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]:not(:disabled)')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Vorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
+              x-on:submit="if (busy) { $event.preventDefault(); return } if (labelOn && ! $el.querySelector('input[name=return_label]:not(:disabled)')) { $event.preventDefault(); labelNote = 'Bitte zuerst das DHL-Retourenlabel erzeugen oder die Option abwählen.'; $nextTick(() => $el.querySelector('#dhl-option')?.scrollIntoView({ block: 'center' })); return } busy = true; $dispatch('loading-start', { title: 'Antwortvorschlag wird erstellt …', text: 'Das dauert in der Regel 10 bis 30 Sekunden.' })"
               x-on:pageshow.window="busy = false">
             @csrf
             @if ($analysis['stand']) <input type="hidden" name="stand" value="{{ $analysis['stand'] }}"> @endif
@@ -174,30 +178,46 @@
             </details>
             @endif
 
-            <input type="hidden" name="formular" x-bind:value="mode" value="{{ $formMode }}">
-            @if ($complaintToggle)
-                {{-- Which form the proposal is made with: preselected from the category of the ticket. --}}
-                <fieldset>
-                    <legend class="block text-sm font-medium text-slate-900">Formular</legend>
-                    <div class="mt-1 flex flex-wrap gap-x-6 gap-y-1">
-                        @foreach ($forms as $formKey => $formLabel)
-                            <label class="flex min-h-9 items-center gap-2 text-sm text-slate-900" @if (in_array($formKey, $goodsForms, true)) x-show="! digital" @if ($digital) x-cloak @endif @endif>
-                                <input type="radio" name="formularwahl" value="{{ $formKey }}" x-model="mode" @checked($formMode === $formKey) class="size-4 border-slate-300 text-brand focus:ring-brand">
-                                {{ $formLabel }}
-                            </label>
-                        @endforeach
-                    </div>
-                </fieldset>
-                <x-analysis.support-fields :inputs="$answers" />
-                <x-analysis.complaint-fields :inputs="$answers" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
-                <x-analysis.payment-fields :inputs="$answers" :orders="$labelOrders" />
-                <x-analysis.wismo-update-fields :inputs="$answers" :orders="$labelOrders" />
-                <x-analysis.cancellation-fields :inputs="$answers" :orders="$labelOrders" />
-                <x-analysis.reshipment-fields :inputs="$answers" />
-                @if (isset($forms[$closingForm]))
-                    <x-analysis.closing-fields :inputs="$answers" />
+            {{-- PROJ-103: three functions in one area, no modes. The direct analysis is the usual way; the guided fact-finding is optional and closed; the guided processing holds the forms as before. --}}
+            <div class="space-y-4">
+                <h3 class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> Direkte Analyse</h3>
+
+                <x-analysis.case-patterns :known="$known" :category="$complaint['category'] ?? null" :initial="$findings" />
+
+                <input type="hidden" name="formular" x-bind:value="mode" value="{{ $formMode }}">
+                @if ($complaintToggle)
+                    <section aria-labelledby="guided-processing-heading" class="space-y-5 rounded-lg bg-slate-50/60 p-4 ring-1 ring-slate-200 ring-inset">
+                        <h3 id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> Geführte Bearbeitung</h3>
+                        {{-- Which form the proposal is made with: preselected from the category of the ticket. The free text is no guided processing and stands apart. --}}
+                        <fieldset>
+                            <legend class="block text-sm font-medium text-slate-900">Formular</legend>
+                            <div class="mt-1 flex flex-wrap items-center gap-x-6 gap-y-1">
+                                @foreach ($forms as $formKey => $formLabel)
+                                    @if ($formKey === \App\Analysis\ComplaintDecision::FREE)
+                                        <span class="text-sm text-slate-500" aria-hidden="true">oder:</span>
+                                    @endif
+                                    <label class="flex min-h-9 items-center gap-2 text-sm text-slate-900" @if (in_array($formKey, $goodsForms, true)) x-show="! digital" @if ($digital) x-cloak @endif @endif>
+                                        <input type="radio" name="formularwahl" value="{{ $formKey }}" x-model="mode" @checked($formMode === $formKey) class="size-4 border-slate-300 text-brand focus:ring-brand">
+                                        {{ $formLabel }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+                        <x-analysis.customer-check-hint />
+                        <x-analysis.support-fields :inputs="$answers" />
+                        <x-analysis.complaint-fields :inputs="$answers" :complaint="$complaint" :label-orders="$labelOrders" :number="$number" />
+                        <x-analysis.payment-fields :inputs="$answers" :orders="$labelOrders" />
+                        <x-analysis.wismo-update-fields :inputs="$answers" :orders="$labelOrders" />
+                        <x-analysis.cancellation-fields :inputs="$answers" :orders="$labelOrders" />
+                        <x-analysis.reshipment-fields :inputs="$answers" />
+                        @if (isset($forms[$closingForm]))
+                            <x-analysis.closing-fields :inputs="$answers" />
+                        @endif
+                    </section>
+                @else
+                    <x-analysis.customer-check-hint />
                 @endif
-            @endif
+            </div>
 
             @if ($testMode)
                 <x-alert type="warning">
@@ -260,7 +280,7 @@
             @endif
 
             <div class="flex flex-wrap items-center justify-end gap-3">
-                <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Vorschlag erstellen</x-button>
+                <x-button type="submit" class="min-h-11" x-bind:disabled="busy"><x-icon name="sparkle" size="16" /> Antwortvorschlag erstellen</x-button>
                 @if ($canClose)
                     <span class="text-sm text-slate-600">oder</span>
                     <x-button type="submit" form="direkt-antworten-formular" variant="secondary" class="min-h-11" title="Ohne Vorschlag direkt eine Antwort schreiben und senden (kein KI-Aufruf)."><x-icon name="edit" size="16" /> Direkt antworten</x-button>

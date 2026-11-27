@@ -116,6 +116,11 @@
                                         <x-badge tone="warning">{{ $warningCount }} {{ $warningCount === 1 ? 'Warnung' : 'Warnungen' }}</x-badge>
                                     @endif
 
+                                    {{-- PROJ-103: offered in the guided fact-finding. --}}
+                                    @if ($document->isCasePattern())
+                                        <x-badge tone="info" title="Wird in der geführten Sachverhaltsermittlung angeboten">Fallmuster</x-badge>
+                                    @endif
+
                                     @if ($document->id && ($reportedMany[$document->id] ?? false))
                                         <x-badge tone="warning">Mehrfach zur Prüfung gemeldet</x-badge>
                                     @endif

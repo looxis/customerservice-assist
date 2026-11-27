@@ -4,6 +4,7 @@ namespace App\Knowledge\Retrieval;
 
 use App\Knowledge\CaseContext;
 use App\Knowledge\KnowledgeDocument;
+use App\Knowledge\KnowledgeSelectionEntry;
 use App\Knowledge\KnowledgeSelector;
 use App\Knowledge\Retrieval\Router\RouterAddition;
 
@@ -45,10 +46,12 @@ class KnowledgeRetriever
      * @param  list<string>  $manualIds  Documents the employee switched on by hand.
      * @param  int|null  $available  Characters that are left for knowledge in the whole prompt; null = no limit (preview).
      * @param  list<RouterAddition>  $additions  Documents the router adds (PROJ-37). They run through the same budget as strong or weak hits, behind the hits of their tier.
+     * @param  list<string>  $chosenPatterns  Case patterns chosen in the guided fact-finding (PROJ-103): mandatory, their `related_knowledge` strong.
+     * @param  list<string>  $instructionIds  Instructions of customer checks taken over (PROJ-103): mandatory.
      *
      * @throws KnowledgeTooLarge when the mandatory knowledge alone does not fit into $available.
      */
-    public function retrieve(CaseContext $context, CaseFacts $facts, array $manualIds = [], ?int $available = null, array $additions = []): RetrievalResult
+    public function retrieve(CaseContext $context, CaseFacts $facts, array $manualIds = [], ?int $available = null, array $additions = [], array $chosenPatterns = [], array $instructionIds = []): RetrievalResult
     {
         $settings = config('knowledge.retrieval');
         $evaluator = new WhenEvaluator($settings['when_keys']);
@@ -111,6 +114,13 @@ class KnowledgeRetriever
             }
         }
 
+        $related = $this->chosen($scope, $chosenPatterns, $instructionIds, $facts, $evaluator, $mandatory, $notRetrieved);
+        $taken = fn (RetrievedDocument $item): bool => ! isset($mandatory[(string) $item->document->id]) && ! isset($related[(string) $item->document->id]);
+        $strong = array_values(array_filter($strong, $taken));
+        $weak = array_values(array_filter($weak, $taken));
+        $examples = array_values(array_filter($examples, $taken));
+        $patterns = array_values(array_filter($patterns, $taken));
+
         $routerStrong = [];
         $routerWeak = [];
 
@@ -150,12 +160,12 @@ class KnowledgeRetriever
         $chosen = $mandatory;
         $room = max(0, min($target, $available) - $mandatoryCharacters);
 
-        foreach ([[...$this->byScore($strong), ...$patterns, ...$routerStrong], [...$this->byScore($weak), ...$routerWeak], $this->capExamples($examples, $context, $notRetrieved)] as $tier) {
+        foreach ([[...array_values($related), ...$this->byScore($strong), ...$patterns, ...$routerStrong], [...$this->byScore($weak), ...$routerWeak], $this->capExamples($examples, $context, $notRetrieved)] as $tier) {
             foreach ($tier as $index => $item) {
                 $length = $item->document->length();
 
                 if ($length > $room) {
-                    if (in_array($item->origin, [RetrievedDocument::ORIGIN_ROUTER, RetrievedDocument::ORIGIN_PATTERN], true)) {
+                    if (in_array($item->origin, [RetrievedDocument::ORIGIN_ROUTER, RetrievedDocument::ORIGIN_PATTERN, RetrievedDocument::ORIGIN_RELATED], true)) {
                         // A router addition or a product pattern that does not fit is skipped; smaller ones and the rest of the room stay usable.
                         $notRetrieved[(string) $item->document->id] = ['document' => $item->document, 'code' => RetrievalResult::OUT_OF_SPACE, 'detail' => 'wegen Umfang nicht mitgesendet ('.implode('; ', $item->reasons).')'];
 
@@ -244,6 +254,71 @@ class KnowledgeRetriever
         }
 
         return $this->missed($match, $evaluation);
+    }
+
+    /**
+     * The guided fact-finding (PROJ-103): chosen patterns and the instructions of customer checks taken over become
+     * mandatory; the documents named in `related_knowledge` of a chosen pattern come along as strong knowledge, first
+     * in their tier. Everything only within the scope of the case: a link alone never makes a document apply, and a
+     * related document whose condition is not fulfilled or cannot be checked stays out.
+     *
+     * @param  list<KnowledgeSelectionEntry>  $scope
+     * @param  list<string>  $chosenPatterns
+     * @param  list<string>  $instructionIds
+     * @param  array<string, RetrievedDocument>  $mandatory
+     * @param  array<string, array{document: KnowledgeDocument, code: string, detail: string}>  $notRetrieved
+     * @return array<string, RetrievedDocument> The related documents by ID.
+     */
+    private function chosen(array $scope, array $chosenPatterns, array $instructionIds, CaseFacts $facts, WhenEvaluator $evaluator, array &$mandatory, array &$notRetrieved): array
+    {
+        if ($chosenPatterns === [] && $instructionIds === []) {
+            return [];
+        }
+
+        $inScope = [];
+
+        foreach ($scope as $entry) {
+            $inScope[(string) $entry->document->id] = $entry->document;
+        }
+
+        $relatedTo = [];
+
+        foreach ($chosenPatterns as $id) {
+            if (isset($inScope[$id])) {
+                foreach ($inScope[$id]->relatedKnowledge() as $relatedId) {
+                    $relatedTo[$relatedId] ??= $id;
+                }
+            }
+        }
+
+        foreach ([...$chosenPatterns, ...$instructionIds] as $id) {
+            if (! isset($inScope[$id]) || isset($mandatory[$id])) {
+                continue;
+            }
+
+            $reason = in_array($id, $chosenPatterns, true) ? 'in der Sachverhaltsermittlung als Fallmuster gewählt' : 'Anleitung der übernommenen Prüfung durch den Kunden';
+            $mandatory[$id] = new RetrievedDocument($inScope[$id], $inScope[$id]->retrieval() ?? 'triggered', RetrievedDocument::MANDATORY, 0, [$reason], origin: RetrievedDocument::ORIGIN_CHOSEN);
+            unset($notRetrieved[$id]);
+        }
+
+        $related = [];
+
+        foreach ($relatedTo as $id => $patternId) {
+            $document = $inScope[$id] ?? null;
+
+            if ($document === null || isset($mandatory[$id]) || in_array($document->type, self::EXAMPLE_TYPES, true)) {
+                continue;
+            }
+
+            if ($document->when() !== [] && $evaluator->evaluate($document->when(), $facts)->result !== Tri::Yes) {
+                continue;
+            }
+
+            $related[$id] = new RetrievedDocument($document, $document->retrieval() ?? 'triggered', RetrievedDocument::STRONG, 0, ["verwandt mit dem gewählten Fallmuster {$patternId}"], origin: RetrievedDocument::ORIGIN_RELATED);
+            unset($notRetrieved[$id]);
+        }
+
+        return $related;
     }
 
     /**

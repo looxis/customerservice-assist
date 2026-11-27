@@ -1,6 +1,6 @@
 # PROJ-103: Geführte Sachverhaltsermittlung
 
-## Status: Architected
+## Status: In Progress
 **Created:** 2026-11-27
 **Last Updated:** 2026-11-27
 
@@ -403,6 +403,29 @@ Keine neuen Pakete. Keine neue Tabelle, keine Migration, keine neue Umgebungsvar
 - `knowledge:check`: alle neuen Fehlerfälle.
 - Vorhandene Tests der sieben Formulare laufen unverändert (nur geänderte Bezeichnungen).
 
+
+## Implementation Notes (Frontend + Backend, 2026-11-27)
+
+**Gebaut**
+- Oberfläche (`resources/views/components/analysis/form.blade.php`): „Ticket bearbeiten“, Zwischenüberschrift „Direkte Analyse“ (`zap`), eingeklappter Bereich „Geführte Sachverhaltsermittlung“ (`list-checks`), Rahmen „Geführte Bearbeitung“ (`list-todo`) um Formularwahl und die unveränderten `*-fields`; „Freitext“ steht hinter „oder:“; Knopf und Ladeanzeige „Antwortvorschlag erstellen“. Ohne Formularwahl entfällt der Rahmen wie bisher.
+- Neue Komponenten `analysis/case-patterns` (Liste, Prüffragen, „Kein Fallmuster passt“, Hinweise bei weggefallener Auswahl, Fehler- und Ladezustand) und `analysis/customer-check-hint` („übernehmen“/„zurücknehmen“, setzt nur eine noch leere Option, Hinweis bei Widerspruch). Gemeinsamer Zustand im Alpine-Store `caseFindings` (`resources/js/case-patterns.js`); die Geltungsbereich-Felder melden Wechsel per `scope-changed`. Der Fallmuster-Bereich kennt kein Ticket (wiederverwendbar für „Frage stellen“).
+- Endpunkt `GET /fallmuster` (`CasePatternController`, `CasePatternRequest`, Route `case-patterns`, Zugang wie die Produktsuche) mit `CasePatternFinder` (Geltungsbereich über `KnowledgeSelector`, Kategorie über `GuidedForms::categoriesOf()` und `knowledge.pattern_categories`).
+- Bekannte Werte: `KnownCaseValues` aus den Fallfakten; beim Laden der Ticketseite und beim Absenden neu berechnet.
+- Analyse: `CaseFindings` (Hypothesen, Beobachtungen, Systemwerte, übernommene Prüfungen), `AnalyzeTicketRequest::findings()` und `hasValidCustomerCheck()`, Abschnitt „Sachverhaltsermittlung des Mitarbeiters“ im Prompt nach den Zusatzinformationen (nur bei Nutzung), Entscheidungssatz der übernommenen Prüfung bei den Zusatzinformationen, Speicherung unter `findings` und bei den Eingaben (`fallmuster`, `pruefung`, `kundenpruefung`, `kein_fallmuster`).
+- Abruf: neue Parameter in `KnowledgeRetriever::retrieve()`; gewählte Fallmuster und Anleitungen Pflichtwissen (Herkunft `chosen`), verwandte Dokumente starkes Wissen (Herkunft `related`) nur im Geltungsbereich und bei erfüllter Bedingung.
+- Prompt `analysis-2026-11-27.1`: Fallmuster als Hypothesen, Vorrang der Mitarbeiterentscheidungen, `customer-check`, Entscheidungsfrage nach Erkenntnisgewinn.
+- Wissen: Leser in `KnowledgeDocument` (`recognize()`, `checks()`, `customerCheck()`, `isCasePattern()`), Prüfung in `KnowledgeValidator` (`casePatternFields`, `customerCheckTargets`), Maßnahme `customer-check`, Kennzeichen „Fallmuster“ in der Knowledge-Übersicht, Authoring Guide, Knowledge Base Design (freigegeben), Vorlage, Skill `knowledge`.
+- Tests: `tests/Feature/PROJ-103-GuidedFactFindingTest.php` (29 Tests); Bezeichnungen in bestehenden Tests nachgezogen.
+
+**Abweichungen**
+- Pflichtfeld bei „Unsicher, weitere Informationen nötig“: Im Browser wird `required` an die Zahl übernommener Prüfungen gebunden; der Server prüft gültige Übernahme (Fallmuster gewählt, im Geltungsbereich, mit `customer_check`). Die Kategorie wirkt nur auf die angezeigte Liste, nicht auf die Prüfung beim Absenden.
+- Maßnahme `customer-check` steht am Ende der Maßnahmenliste (die Reihenfolge der übrigen ist durch Tests festgeschrieben).
+- Auch ohne Formularwahl wird der Hinweis „übernehmen“ angezeigt (unter dem Fallmuster-Bereich).
+- Der Bereich öffnet sich nach einem Vorschlag mit Fallmustern von selbst; nach neuen Kundennachrichten beginnt er leer.
+
+**Noch offen vor `/qa`**
+- Die sieben Fallmuster im Wissen (Erkennungsmerkmale, Prüffragen, Kundenprüfung) gemeinsam mit dem Autor über den Skill `knowledge`.
+- Changelog-Eintrag, sobald die Fallmuster vorhanden sind.
 
 ## QA Test Results
 _To be added by /qa_

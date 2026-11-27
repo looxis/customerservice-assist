@@ -30,6 +30,7 @@ final readonly class AnalysisRequest
      * @param  array<string, string>  $placeholders  Values the employee typed that never go to the model, only their placeholder (PROJ-93: the new delivery address).
      * @param  bool  $shipmentChecked  The shipment state was already asked in code (PROJ-101); the model gets no carrier tool.
      * @param  list<array{order: string, status: string, notices: list<array<string, mixed>>}>|null  $noticeRecord  Notification mails found in code, for the result view (PROJ-97, PROJ-101).
+     * @param  CaseFindings|null  $findings  The guided fact-finding (PROJ-103): hypotheses and observations, apart from the checked facts.
      */
     public function __construct(
         public Ticket $ticket,
@@ -55,6 +56,7 @@ final readonly class AnalysisRequest
         public array $placeholders = [],
         public bool $shipmentChecked = false,
         public ?array $noticeRecord = null,
+        public ?CaseFindings $findings = null,
     ) {}
 
     public function isQuestion(): bool
@@ -75,6 +77,6 @@ final readonly class AnalysisRequest
      */
     public function factsText(): string
     {
-        return trim($this->employeeContext."\n".$this->decisionsText());
+        return trim($this->employeeContext."\n".$this->decisionsText().($this->findings === null ? '' : "\n".$this->findings->triggerText()));
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Analysis\AnalysisStore;
 use App\Analysis\CancellationDecision;
+use App\Analysis\CaseFindings;
 use App\Analysis\Clarification;
 use App\Analysis\ClosingDecision;
 use App\Analysis\ComplaintDecision;
@@ -15,8 +16,10 @@ use App\Analysis\SupportDecision;
 use App\Analysis\WismoUpdateDecision;
 use App\Http\Requests\Concerns\ChecksProductChoice;
 use App\Http\Requests\Concerns\ChoosesSalesChannel;
+use App\Knowledge\CasePatternFinder;
 use App\Knowledge\CustomerGroup;
 use App\Knowledge\KnowledgeSelector;
+use App\Knowledge\SalesChannels;
 use App\Orders\OrderFormats;
 use App\Zammad\RelatedTicket;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -171,6 +174,15 @@ class AnalyzeTicketRequest extends FormRequest
             'klaerung_analyse' => ['nullable', 'string', 'max:64'],
             'klaerung_option' => ['nullable', 'string', 'max:100'],
             'klaerung_text' => ['nullable', 'string', 'max:'.config('analysis.max_context_length')],
+            // Guided fact-finding (PROJ-103): chosen patterns, answers to their questions, customer checks taken over.
+            'fallmuster' => ['sometimes', 'array', 'max:10'],
+            'fallmuster.*' => ['string', 'regex:/^[A-Z]+(?:-[A-Z]+)*-\d{3}$/'],
+            'pruefung' => ['sometimes', 'array', 'max:10'],
+            'pruefung.*' => ['array', 'max:10'],
+            'pruefung.*.*' => ['string', Rule::in(array_keys(CaseFindings::ANSWERS))],
+            'kundenpruefung' => ['sometimes', 'array', 'max:10'],
+            'kundenpruefung.*' => ['string', 'regex:/^[A-Z]+(?:-[A-Z]+)*-\d{3}$/'],
+            'kein_fallmuster' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -187,8 +199,11 @@ class AnalyzeTicketRequest extends FormRequest
                     $validator->errors()->add('reklamation_berechtigt', 'Bitte angeben, ob die Reklamation berechtigt ist.');
                 } elseif ($this->input('reklamation_berechtigt') === 'nein' && trim((string) $this->input('reklamation_grund', '')) === '') {
                     $validator->errors()->add('reklamation_grund', 'Bitte den Grund eingeben, warum die Reklamation nicht berechtigt ist.');
-                } elseif ($this->input('reklamation_berechtigt') === 'info' && trim((string) $this->input('reklamation_info', '')) === '') {
-                    $validator->errors()->add('reklamation_info', 'Bitte angeben, welche Informationen für die Entscheidung nötig sind.');
+                } elseif ($this->input('reklamation_berechtigt') === 'info' && trim((string) $this->input('reklamation_info', '')) === '' && ! $this->hasValidCustomerCheck()) {
+                    // PROJ-103: a customer check taken over in the guided fact-finding brings its instructions from the knowledge.
+                    $validator->errors()->add('reklamation_info', $this->filled('kundenpruefung')
+                        ? 'Bitte angeben, welche Informationen für die Entscheidung nötig sind. Die übernommene Prüfung gilt für diesen Fall nicht, ihre Anleitung fehlt im Wissen.'
+                        : 'Bitte angeben, welche Informationen für die Entscheidung nötig sind.');
                 }
             }
 
@@ -237,6 +252,61 @@ class AnalyzeTicketRequest extends FormRequest
                 $validator->errors()->add('klaerung_option', 'Diese Option gibt es nicht.');
             }
         }];
+    }
+
+    /**
+     * Whether at least one customer check taken over in the guided fact-finding (PROJ-103) counts: its pattern is
+     * chosen, fits customer group, channel and products, and names instructions. `knowledge:check` makes sure the
+     * instructions apply wherever the pattern applies and have no condition, so then they are in the prompt.
+     */
+    public function hasValidCustomerCheck(): bool
+    {
+        $chosen = array_filter((array) $this->input('fallmuster', []), 'is_string');
+        $finder = app(CasePatternFinder::class);
+        $group = $this->scopeGroup();
+        $products = array_values(array_filter((array) $this->input('produkte', []), 'is_string'));
+
+        foreach (array_filter((array) $this->input('kundenpruefung', []), 'is_string') as $id) {
+            $pattern = in_array($id, $chosen, true) ? $finder->pattern($id) : null;
+
+            if ($pattern !== null && $pattern->customerCheck() !== null && $group !== null && $finder->exclusionReason($pattern, $group, $products, null) === null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The guided fact-finding of this request (PROJ-103), checked against the knowledge.
+     *
+     * @param  array<string, array{value: mixed, sure: bool, type: string, source: string}>  $known  From KnownCaseValues.
+     */
+    public function findings(array $known, string $by): ?CaseFindings
+    {
+        $group = $this->scopeGroup();
+
+        if ($group === null) {
+            return null;
+        }
+
+        $findings = CaseFindings::fromInput($this->validated(), app(CasePatternFinder::class), $group, array_values($this->validated('produkte', [])), $known, $by);
+
+        return $findings->isEmpty() && $findings->dropped === [] ? null : $findings;
+    }
+
+    /**
+     * The customer group with the chosen channel, as it decides about the scope of the knowledge.
+     */
+    private function scopeGroup(): ?CustomerGroup
+    {
+        $key = (string) $this->input('kundengruppe', '');
+        $group = app(KnowledgeSelector::class)->customerGroup($key);
+        // Also used inside the validation hook, so read the input, not the validated data.
+        $channel = $this->input(SalesChannels::FIELD);
+        $channel = is_string($channel) && $channel !== '' ? $channel : app(SalesChannels::class)->ofGroup($key);
+
+        return $group === null ? null : app(SalesChannels::class)->applyTo($group, $channel);
     }
 
     /**

@@ -30,6 +30,12 @@ final readonly class RetrievedDocument
 
     public const string ORIGIN_PATTERN = 'pattern';
 
+    /** Guided fact-finding (PROJ-103): chosen by the employee, or the instructions of a customer check taken over. */
+    public const string ORIGIN_CHOSEN = 'chosen';
+
+    /** Guided fact-finding (PROJ-103): named in `related_knowledge` of a chosen pattern. */
+    public const string ORIGIN_RELATED = 'related';
+
     /**
      * @param  string  $strength  mandatory (core, binding, by hand), strong or weak (triggered) or example.
      * @param  list<string>  $reasons

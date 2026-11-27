@@ -29,7 +29,9 @@
     {{-- Undecided: what the customer still has to tell us. --}}
     <fieldset x-show="berechtigt === 'info'" x-bind:disabled="berechtigt !== 'info'" x-cloak class="min-w-0 space-y-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
         <legend class="sr-only">Reklamation noch nicht entscheidbar</legend>
-        <x-textarea name="reklamation_info" id="reklamation_info" label="Nötige Informationen" rows="3" maxlength="1000" :required="true" placeholder="Welche Informationen sind nötig, um eine Entscheidung über die Reklamation treffen zu können?" :value="$pick('reklamation_info', '')" />
+        <x-textarea name="reklamation_info" id="reklamation_info" label="Nötige Informationen" rows="3" maxlength="1000" :required="true" x-bind:required="$store.caseFindings.adopted.length === 0" placeholder="Welche Informationen sind nötig, um eine Entscheidung über die Reklamation treffen zu können?" :value="$pick('reklamation_info', '')" />
+        {{-- PROJ-103: with a customer check taken over in the guided fact-finding the instructions come from the knowledge. --}}
+        <p x-show="$store.caseFindings.adopted.length > 0" x-cloak class="-mt-2 text-xs text-slate-600">Optional, weil eine Prüfung durch den Kunden übernommen ist: Die Anleitung kommt aus dem Wissen. Was du hier einträgst, steht an erster Stelle.</p>
     </fieldset>
 
     {{-- Justified or replaced without admitting a duty (unsicher): return, claim number, shipping and the follow-up ToDo. --}}

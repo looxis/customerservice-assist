@@ -180,6 +180,8 @@ Playbooks beantworten:
 
 Beispiel-ID: `PLAYBOOK-001`
 
+**Fallmuster für die geführte Sachverhaltsermittlung (PROJ-103).** Ein Playbook mit dem Feld `recognize` wird Mitarbeitern vor der Analyse als Fallmuster angeboten: Woran erkenne ich den Fall, was muss ich prüfen? Das Wissen hat damit zwei Adressaten: die KI (Analyse, Bewertung, Antwort) und den Mitarbeiter (Sachverhalt ermitteln, Entscheidung vorbereiten). Ein gewähltes Fallmuster ist eine Hypothese, keine Diagnose; es erzwingt den Abruf des Playbooks, nie dessen Schlussfolgerung. Explizite Entscheidungen des Mitarbeiters haben Vorrang vor allgemeinen Regeln des Wissens. Felder und Regeln: Abschnitt 15.
+
 ### 5.6 `tone/`
 
 Kommunikations- und Tonalitätsregeln.
@@ -490,6 +492,11 @@ risk_level:
 
 owner:
 last_reviewed:
+
+# Optional, nur wenn das Playbook als Fallmuster angeboten werden soll (PROJ-103):
+recognize:
+checks:
+customer_check:
 ---
 
 # Fallmuster
@@ -528,6 +535,18 @@ last_reviewed:
 
 # Beispiel
 ```
+
+### Playbook als Fallmuster (PROJ-103)
+
+Drei optionale Angaben machen ein Playbook zum Fallmuster der geführten Sachverhaltsermittlung. Sie enthalten **nur Beobachtungen und Fragen, keine Regeln**: Regeln, Grenzwerte und Anleitungen stehen weiterhin nur im Text des Dokuments.
+
+| Angabe | Inhalt | Regeln |
+|---|---|---|
+| `recognize` | Ein bis zwei Sätze aus Sicht eines unerfahrenen Mitarbeiters: was man auf Fotos oder im Text beobachten kann, ohne die Ursache zu kennen. Gut: „Teile des Motivs fehlen am oberen oder unteren Rand; auf dem Foto sind dort noch dunkle Bereiche zu sehen.“ Nicht: „Thermoeffekt funktioniert nicht.“ | Pflicht für ein Fallmuster; 20 bis 400 Zeichen; nur bei `playbook` |
+| `checks` | Bis zu fünf Prüffragen, je mit `key` (Slug) und `question`; Antwort ja, nein oder nicht beurteilbar. Optional `known_from` (ein `when`-Schlüssel vom Typ Ja/Nein oder Zahl, dessen Wert die App kennt) oder `auto: true` (die Analyse prüft es selbst, z. B. Sendungsverlauf) | `known_from` nur, wenn die Frage genau das meint, was der Wert aussagt; nie `known_from` und `auto` zugleich |
+| `customer_check` | Eine Prüfung, die der Kunde durchführen kann: `name` und `knowledge` (ID des Dokuments mit der Anleitung) | Das Anleitungsdokument existiert, hat keine `when`-Bedingung und deckt den Geltungsbereich des Fallmusters ab |
+
+Welche Fallmuster angeboten werden, ergibt sich aus dem Geltungsbereich (`customer_types`, `sales_channels`, `products`, `exclude_products`) und `categories`; die Zuordnung der Ticketkategorien zu den Wissenskategorien steht in `config/knowledge.php` (`pattern_categories`). Fallmuster ohne Kategorie erscheinen bei jedem Ticket, Fallmuster ohne Produkt auch ohne gewähltes Produkt. Ein gewähltes Fallmuster wird Pflichtwissen; die in `related_knowledge` genannten Dokumente kommen als starkes Wissen mit, aber nur, wenn sie selbst für den Fall gelten. Die Maßnahme für eine Prüfung durch den Kunden heißt `customer-check`.
 
 ## 16. Tone – empfohlene Struktur
 
@@ -668,7 +687,8 @@ Empfohlene Auswahl:
 ### Fallabhängig
 - Produktwissen des erkannten Produkts
 - passende Prozesse
-- passende Playbooks
+- passende Playbooks; Playbooks und Prozesse, die auf das gewählte Produkt eingeschränkt sind, kommen auch ohne Auslöser mit (bis zu einer Obergrenze, seit 2026-11-27)
+- in der geführten Sachverhaltsermittlung gewählte Fallmuster als Pflichtwissen (PROJ-103)
 
 ### Optional
 - wenige passende kuratierte Beispiele

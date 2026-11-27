@@ -124,6 +124,66 @@ final readonly class KnowledgeDocument
         return $this->list('actions');
     }
 
+    /**
+     * What an employee without expertise can observe in this case pattern (PROJ-103); null when the document is no
+     * case pattern.
+     */
+    public function recognize(): ?string
+    {
+        return $this->string('recognize');
+    }
+
+    /**
+     * Whether the document is offered in the guided fact-finding (PROJ-103): a playbook with a recognition text.
+     */
+    public function isCasePattern(): bool
+    {
+        return $this->type === 'playbook' && $this->recognize() !== null;
+    }
+
+    /**
+     * The check questions of a case pattern (PROJ-103), each answered "ja", "nein" or "nicht beurteilbar".
+     * `known_from` names a `when` key whose value the app may already know; `auto` marks a question the analysis
+     * answers on its own (shipment history, notification mails). Malformed entries are left out; the check reports them.
+     *
+     * @return list<array{key: string, question: string, known_from: string|null, auto: bool}>
+     */
+    public function checks(): array
+    {
+        $checks = [];
+
+        foreach ((array) ($this->frontmatter['checks'] ?? []) as $check) {
+            if (! is_array($check) || ! is_string($check['key'] ?? null) || ! is_string($check['question'] ?? null) || trim($check['key']) === '' || trim($check['question']) === '') {
+                continue;
+            }
+
+            $checks[] = [
+                'key' => trim($check['key']),
+                'question' => trim($check['question']),
+                'known_from' => is_string($check['known_from'] ?? null) && trim($check['known_from']) !== '' ? trim($check['known_from']) : null,
+                'auto' => ($check['auto'] ?? false) === true,
+            ];
+        }
+
+        return $checks;
+    }
+
+    /**
+     * The check the customer can carry out himself (PROJ-103): its name and the document that holds the instructions.
+     *
+     * @return array{name: string, knowledge: string}|null
+     */
+    public function customerCheck(): ?array
+    {
+        $check = $this->frontmatter['customer_check'] ?? null;
+
+        if (! is_array($check) || ! is_string($check['name'] ?? null) || ! is_string($check['knowledge'] ?? null) || trim($check['name']) === '' || trim($check['knowledge']) === '') {
+            return null;
+        }
+
+        return ['name' => trim($check['name']), 'knowledge' => trim($check['knowledge'])];
+    }
+
     /** @return list<string> */
     public function orderKeywords(): array
     {

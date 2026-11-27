@@ -12,6 +12,7 @@ use App\Analysis\CaseAnalyzer;
 use App\Analysis\ClosingDecision;
 use App\Analysis\ComplaintDecision;
 use App\Analysis\ContextVariant;
+use App\Analysis\KnownCaseValues;
 use App\Analysis\RelatedContextBuilder;
 use App\Analysis\RelatedSection;
 use App\Analysis\ReplyDelivery;
@@ -193,6 +194,13 @@ class AnalysisController extends Controller
         if ($guided instanceof ClosingDecision && ! ClosingDecision::available(TicketLabelState::categoryOf($ticket), $ticket)) {
             return $back('Das Formular „Diskussion beenden“ gibt es nur für WISMO, Reklamation, Adressänderung und Storno / Änderung der Bestellung und erst ab der '.ClosingDecision::MIN_CUSTOMER_REPLIES.'. Kundenantwort. Bitte ein anderes Formular wählen.');
         }
+        // Guided fact-finding (PROJ-103): the values the app knows are computed again here; the browser never supplies them.
+        $findings = $request->findings(app(KnownCaseValues::class)->build($ticket, $orders, $mentioned), (string) $staff->current($request));
+
+        if ($findings !== null && $findings->dropped !== []) {
+            $inputNotes[] = 'Nicht berücksichtigt, weil es für diesen Fall nicht gilt: Fallmuster '.implode(', ', $findings->dropped).'.';
+        }
+
         $returnLabelId = $request->returnLabelId();
         $returnLabel = $returnLabelId === null ? null : ReturnLabel::query()->find($returnLabelId);
 
@@ -216,10 +224,10 @@ class AnalysisController extends Controller
                 products: array_values($request->validated('produkte', [])),
                 orders: $orders,
                 manualOrder: $orders === [] ? $request->manualOrder() : [],
-                employeeContext: trim(implode("\n", array_filter([$guided === null ? (string) $request->validated('kontext', '') : '', $guided?->facts() ?? '', $returnLabel === null ? '' : ReturnInstructions::fact()]))),
+                employeeContext: trim(implode("\n", array_filter([$guided === null ? (string) $request->validated('kontext', '') : '', $guided?->facts() ?? '', $findings?->decisionText() ?? '', $returnLabel === null ? '' : ReturnInstructions::fact()]))),
                 variant: $variant,
                 summary: $summary,
-                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), SalesChannels::FIELD => $channel, 'kontext' => $guided === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null, ...($guided?->storedInput() ?? []), 'variante' => $variant->value],
+                formInput: [...$request->safe()->only(['kundengruppe', 'produkte', 'kein_produktbezug', 'produkt_ohne_wissen', 'forge_produkte', 'eocs_produkte', 'forge_sku', 'related', 'related_set', 'related_source', 'related_manual', ...array_keys(AnalyzeTicketRequest::MANUAL_ORDER_FIELDS)]), SalesChannels::FIELD => $channel, 'kontext' => $guided === null ? (string) $request->validated('kontext', '') : '', 'return_label' => $returnLabelId, 'formular' => $request->validated('formular') === ComplaintDecision::FREE ? ComplaintDecision::FREE : null, ...($guided?->storedInput() ?? []), ...($findings?->storedInput() ?? []), 'variante' => $variant->value],
                 mentionedOrders: $mentioned,
                 notes: $inputNotes,
                 extraKnowledge: array_values(array_unique($request->validated('zusatzwissen', []))),
@@ -230,6 +238,7 @@ class AnalysisController extends Controller
                 placeholders: $guided instanceof ReshipmentDecision || $guided instanceof CancellationDecision ? $guided->placeholders() : [],
                 shipmentChecked: $guided instanceof WismoUpdateDecision,
                 noticeRecord: $guided instanceof WismoUpdateDecision ? $guided->snapshot?->noticeRecord : null,
+                findings: $findings === null || $findings->isEmpty() ? null : $findings,
                 claimReferences: array_values(array_merge(...array_map(fn (OrderNumber $number): array => array_map(fn (int $claim): array => ['claim' => $claim, 'order' => $number->value], $number->claims), $found) ?: [[]])),
             ));
         } catch (AnalysisException $exception) {

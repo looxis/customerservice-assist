@@ -43,7 +43,7 @@ describe('ticket page', function () {
         fakeZammad([zammadArticle(['id' => 1, 'body' => '<p>Mein Motiv ist zu klein.</p>'])]);
 
         $html = $this->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Kundennachricht', 'Mein Motiv ist zu klein.', 'Ticket#2137942', 'Vorschlag erstellen', 'Verlauf'])
+            ->assertSeeTextInOrder(['Kundennachricht', 'Mein Motiv ist zu klein.', 'Ticket#2137942', 'Ticket bearbeiten', 'Verlauf'])
             ->assertDontSeeText('Der ganze Verlauf')
             ->assertDontSeeText('Ticket aus Zammad')
             ->getContent();

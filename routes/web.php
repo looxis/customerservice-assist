@@ -5,6 +5,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AdvancedModeController;
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\AnalysisOverviewController;
+use App\Http\Controllers\CasePatternController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\ClaimReplyRunController;
 use App\Http\Controllers\DhlReturnController;
@@ -76,6 +77,7 @@ Route::middleware('staff.selected')->group(function (): void {
 });
 
 Route::get('/produktsuche', ProductSearchController::class)->middleware(['staff.selected', 'throttle:60,1'])->name('products.search');
+Route::get('/fallmuster', CasePatternController::class)->middleware(['staff.selected', 'throttle:120,1'])->name('case-patterns');
 Route::get('/produktvarianten', ProductVariantsController::class)->middleware(['staff.selected', 'throttle:60,1'])->name('products.variants');
 
 Route::post('/name', StaffSelectionController::class)->name('staff.select');

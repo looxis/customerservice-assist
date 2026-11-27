@@ -160,6 +160,7 @@ class CaseAnalyzer
             'inputs' => $request->formInput,
             ...($request->isQuestion() ? ['question' => ['text' => $request->questionText, 'reply_wanted' => $request->replyWanted]] : []),
             'decisions' => $request->decisions,
+            ...($request->findings === null ? [] : ['findings' => $request->findings->toStored()]),
             'reply_edit' => null,
             'sent_input' => $input,
             'raw_response' => $answer['data'],
@@ -298,11 +299,11 @@ class CaseAnalyzer
         $without = mb_strlen($prompt->text) + mb_strlen($this->compose($parts, "# Wissen\n"));
         $available = (int) config('analysis.limits.context_characters') - (int) config('analysis.limits.answer_reserve_characters') - $without;
         $available = max(0, $available);
-        $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available);
+        $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available, [], $request->findings?->patternIds() ?? [], $request->findings?->instructionIds() ?? []);
         $router = $this->router->run($context, $facts, $result, $request->extraKnowledge, $request->ticket, $pseudonymizer, $request->factsText());
 
         if ($router->additions !== []) {
-            $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available, $router->additions);
+            $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, $available, $router->additions, $request->findings?->patternIds() ?? [], $request->findings?->instructionIds() ?? []);
         }
 
         // Product information (PROJ-38) only gets what is left after the mandatory knowledge and a reserve
@@ -311,7 +312,7 @@ class CaseAnalyzer
             $products->fit(max(0, min((int) config('analysis.product_info.max_total'), $available - $result->mandatoryCharacters - (int) config('analysis.product_info.reserve'))));
 
             if ($products->characters() > 0) {
-                $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, max(0, $available - $products->characters()), $router->additions);
+                $result = $this->retriever->retrieve($context, $facts, $request->extraKnowledge, max(0, $available - $products->characters()), $router->additions, $request->findings?->patternIds() ?? [], $request->findings?->instructionIds() ?? []);
             }
         }
 
@@ -612,6 +613,8 @@ class CaseAnalyzer
             'related' => $request->related?->text ?? '',
             'employee' => "# Zusätzliche Informationen vom Mitarbeiter (geprüfte Fakten, Entscheidungen und Wünsche an die Antwort)\n".(trim($request->employeeContext) === '' ? '–' : trim($request->employeeContext))
                 .($request->decisions === [] ? '' : "\n\n# Interne Klärungen (geprüfte Fakten, bereits geklärt)\n".$request->decisionsText()),
+            // Guided fact-finding (PROJ-103): only when used, so a request without it is word for word as before.
+            'findings' => $request->findings?->promptSection() ?? '',
             'ticket' => $request->isQuestion()
                 ? "# Anfrage des Mitarbeiters (kein Ticket)\n".trim((string) $request->questionText)."\n\nAntwortentwurf an den Kunden: ".($request->replyWanted ? 'gewünscht' : 'nicht gewünscht')
                 : "# Ticket\n".(new TicketContext($request->ticket))->text($request->variant, $request->summary?->text),
@@ -677,7 +680,7 @@ class CaseAnalyzer
      */
     private function compose(array $parts, string $knowledge): string
     {
-        return implode("\n\n", array_filter([$parts['case'], $parts['orders'], $parts['employee'], $parts['related'] ?? '', $parts['ticket'], $parts['products'] ?? '', $knowledge, $parts['rules']], fn (string $part): bool => $part !== ''));
+        return implode("\n\n", array_filter([$parts['case'], $parts['orders'], $parts['employee'], $parts['findings'] ?? '', $parts['related'] ?? '', $parts['ticket'], $parts['products'] ?? '', $knowledge, $parts['rules']], fn (string $part): bool => $part !== ''));
     }
 
     /**

@@ -5,6 +5,7 @@ import returnLabel from './return-label';
 import quote from './quote';
 import applyTodoPreset from './todo-preset';
 import ticketLock from './ticket-lock';
+import casePatterns, { caseFindingsStore } from './case-patterns';
 
 window.Alpine = Alpine;
 
@@ -114,6 +115,8 @@ Alpine.data('imageViewer', imageViewer);
 Alpine.data('returnLabel', returnLabel);
 Alpine.data('quote', quote);
 Alpine.data('ticketLock', ticketLock);
+Alpine.data('casePatterns', casePatterns);
+Alpine.store('caseFindings', caseFindingsStore);
 Alpine.magic('todoPreset', () => applyTodoPreset);
 
 // Records (key, name, …) of the knowledge values on the settings page (PROJ-50).

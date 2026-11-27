@@ -442,12 +442,12 @@ describe('the standing instructions and the versions', function () {
         retrAnalyze();
         $third = retrStored();
 
-        expect($first->prompt_version)->toBe('analysis-2026-11-26.1+retrieval-2026-11-26.1')
-            ->and($first->retrieval_version)->toMatch('/^2026-10-13\.1\/[0-9a-f]{8}$/')
+        expect($first->prompt_version)->toBe('analysis-2026-11-27.1+retrieval-2026-11-26.1')
+            ->and($first->retrieval_version)->toMatch('/^2026-11-27\.1\/[0-9a-f]{8}$/')
             ->and($second->retrieval_version)->not->toBe($first->retrieval_version)
             ->and($first->content['retrieval']['configuration'])->toMatchArray(['version' => $first->retrieval_version])
             ->and($first->content['retrieval']['configuration']['budget']['target'])->toBe(40000)
-            ->and($third->prompt_version)->toBe('analysis-2026-11-26.1')->and($third->retrieval_version)->toBeNull();
+            ->and($third->prompt_version)->toBe('analysis-2026-11-27.1')->and($third->retrieval_version)->toBeNull();
     });
 });
 
@@ -545,7 +545,7 @@ describe('the retrieval in the result view', function () {
 
         expect($html)->toContain('Wissensabruf')->toContain('Grundwissen')->toContain('Voraussetzung ungeklärt')->toContain('Geprüft, nicht abgerufen (2)')
             ->toContain('kein Auslöser im Anliegen')->toContain('Unterdrückte Treffer')->toContain('Auslöser „Logo“ durch „unser Logo“')
-            ->toContain('Zuschalten und neuen Vorschlag erstellen')->toContain('name="zusatzwissen[]" value="POLICY-002"')->toContain('name="zusatzwissen[]" value="POLICY-017"')
+            ->toContain('Zuschalten und neuen Antwortvorschlag erstellen')->toContain('name="zusatzwissen[]" value="POLICY-002"')->toContain('name="zusatzwissen[]" value="POLICY-017"')
             ->toContain('name="kundengruppe" value="reseller"');
     });
 

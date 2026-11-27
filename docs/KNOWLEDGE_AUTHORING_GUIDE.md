@@ -363,6 +363,37 @@ Fragen beim Erfassen eines Arbeitsablaufs, eine nach der anderen:
 6. Woran erkennt man am Ende, dass alles richtig erledigt ist?
 7. Wer wird informiert, was wird im Ticket dokumentiert?
 
+### Fallmuster für die geführte Sachverhaltsermittlung (`recognize`, `checks`, `customer_check`)
+
+Ein Playbook kann zusätzlich als **Fallmuster** dienen: Die App zeigt es dem Mitarbeiter vor der Analyse, damit er weiß, worauf er achten und was er prüfen muss, auch wenn er das Fachwissen noch nicht hat (PROJ-103). Das Wissen hat damit zwei Leser: die KI und den Mitarbeiter.
+
+**Grundsatz: nur Beobachtungen und Fragen, keine Regeln.** Regeln, Grenzwerte und Anleitungen stehen weiter nur im Text des Playbooks bzw. im verlinkten Prozess; die Felder verweisen darauf und wiederholen nichts.
+
+- `recognize` (Pflicht für ein Fallmuster, 20 bis 400 Zeichen): ein bis zwei Sätze **aus Sicht eines fachlich unerfahrenen Mitarbeiters**, was er auf Fotos oder im Text sehen kann, ohne die Ursache zu kennen.
+  - Gut: „Teile des Motivs fehlen am oberen oder unteren Rand; auf dem Foto sind dort noch dunkle Bereiche zu sehen.“
+  - Schlecht: „Thermoeffekt funktioniert nicht ordnungsgemäß.“ (nennt die Ursache, nicht die Beobachtung)
+- `checks` (optional, höchstens fünf): Prüffragen, die ein Mitarbeiter mit ja, nein oder „nicht beurteilbar“ beantworten kann. Je Frage `key` (Slug) und `question`.
+  - `known_from: <when-Schlüssel>`: Die App kennt den Wert schon (z. B. `current_message_has_attachment`, `shipped`, `days_since_shipped`). Nur setzen, wenn die Frage **genau** das meint, was der Wert aussagt: „Enthält die aktuelle Nachricht Fotos?“ passt zu `current_message_has_attachment`, „Hat der Kunde irgendwann Fotos geschickt?“ nicht. Ja/Nein-Werte beantworten die Frage, Zahlen erscheinen als Hinweis. Bei mehreren Bestellungen oder widersprüchlichen Werten bleibt die Frage stehen.
+  - `auto: true`: Die Analyse prüft es selbst (Sendungsverlauf, Benachrichtigungsmails); die Frage wird nur angezeigt.
+- `customer_check` (optional): eine Prüfung, die der Kunde selbst durchführen kann, mit `name` und `knowledge` (ID des Dokuments mit der Anleitung, z. B. `PROCESS-004`). Das Anleitungsdokument darf keine `when`-Bedingung haben und muss mindestens dort gelten, wo das Fallmuster gilt. Übernimmt der Mitarbeiter die Prüfung, holt die App die Anleitung verbindlich in den Prompt; die Maßnahme heißt `customer-check`.
+
+Beispiel:
+
+```yaml
+recognize: Teile des Motivs fehlen am oberen oder unteren Rand; auf dem Foto sind dort noch dunkle Bereiche zu sehen.
+checks:
+  - key: gefuellt
+    question: Ist die Tasse auf dem Foto bis knapp unter den Rand gefüllt?
+  - key: fotos
+    question: Enthält die aktuelle Nachricht Fotos?
+    known_from: current_message_has_attachment
+customer_check:
+  name: Funktionstest mit heißem Wasser
+  knowledge: PROCESS-004
+```
+
+Welche Fallmuster erscheinen, entscheiden Geltungsbereich und `categories` (Zuordnung der Ticketkategorien: `config/knowledge.php`, `pattern_categories`). Ein Fallmuster ohne `categories` erscheint bei jedem Ticket, eines ohne `products` auch ohne gewähltes Produkt. Ein gewähltes Fallmuster ist für die KI eine **Hypothese**: Sie prüft andere Ursachen weiter. Entscheidungen des Mitarbeiters haben Vorrang vor allgemeinen Regeln des Wissens.
+
 ### Angebote und Auftragsbestätigungen (`quote-request`)
 
 Kunden bitten per E-Mail um ein Angebot oder erteilen einen Auftrag, den sie im Shop nicht aufgeben können. Die App hilft in zwei Schritten: Sie stellt Rückfragen, solange die Anfrage nicht eindeutig ist, und formuliert danach das Angebot oder die Auftragsbestätigung. **Sie kalkuliert nicht.** Preise, Rabatte, Versandkosten und Liefertermine nennt sie nur, wenn sie im Wissen stehen oder der Mitarbeiter sie im Feld „Zusätzliche Informationen" einträgt; sonst setzt sie Platzhalter wie `[PREIS]`, `[VERSANDKOSTEN]`, `[LIEFERTERMIN]`, `[GUELTIG-BIS]`, die der Mitarbeiter vor dem Kopieren ausfüllt. Eine Angebotsnummer gibt es nicht; die Zuordnung läuft über die Ticketnummer.

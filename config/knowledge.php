@@ -96,6 +96,24 @@ return [
 
     'categories' => ['complaint', 'product-question', 'order-process-question', 'quote-request'],
 
+    // Guided fact-finding (PROJ-103): which knowledge categories the case patterns of a ticket category come from.
+    // Every one of the eleven ticket categories is listed. "*" offers every pattern, an empty list only the patterns
+    // without a category (those are always offered). A ticket without a category offers every pattern too.
+    'pattern_categories' => [
+        'reklamation' => ['complaint'],
+        'produkt-frage' => ['product-question'],
+        'wismo' => ['order-process-question'],
+        'bestellung' => ['order-process-question'],
+        'storno' => ['order-process-question'],
+        'adressaenderung' => ['order-process-question'],
+        'zahlung' => ['order-process-question'],
+        // Shop login, configurator and upload belong to the ordering process.
+        'technischer-support' => ['order-process-question'],
+        'angebotsanfrage' => ['quote-request'],
+        'sonstiges' => '*',
+        'spam' => [],
+    ],
+
     // What the categories mean, for the language model and the result view.
     'category_labels' => [
         'complaint' => 'Reklamation',
@@ -135,6 +153,8 @@ return [
         'account-verification' => 'Kundenkonto verifizieren',
         'account-creation' => 'Kundenkonto anlegen',
         'payment-check' => 'Zahlungseingang prüfen',
+        // PROJ-103: the customer carries out a check described in the knowledge (function test, new upload, other browser).
+        'customer-check' => 'Kunde um Prüfung bitten',
     ],
 
     /*

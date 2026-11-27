@@ -4,7 +4,7 @@
     {{-- A channel without products (PROJ-94): its business is not in EOCS, so no order is searched or loaded. --}}
     <section class="mt-6 border-t border-slate-100 pt-4" aria-labelledby="orders-heading">
         <h3 id="orders-heading" class="text-sm font-semibold text-slate-900">Bestellungen</h3>
-        <p class="mt-3 text-sm text-slate-600">Verkaufskanal „{{ $withoutOrdersChannel }}“: keine Bestellungen in EOCS, die App sucht und lädt hier nichts. Geht es doch um eine LOOXIS-Bestellung, im Formular „Vorschlag erstellen“ einen anderen Verkaufskanal wählen und den Vorschlag erstellen.</p>
+        <p class="mt-3 text-sm text-slate-600">Verkaufskanal „{{ $withoutOrdersChannel }}“: keine Bestellungen in EOCS, die App sucht und lädt hier nichts. Geht es doch um eine LOOXIS-Bestellung, unter „Ticket bearbeiten“ einen anderen Verkaufskanal wählen und den Antwortvorschlag erstellen.</p>
     </section>
 @else
 

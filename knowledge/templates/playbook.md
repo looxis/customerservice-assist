@@ -32,6 +32,12 @@ trial_until:
 trial_goal:
 
 related_knowledge:
+
+# Nur wenn das Playbook als Fallmuster angeboten werden soll (PROJ-103, Authoring Guide „Fallmuster“):
+# recognize ist dann Pflicht; checks und customer_check sind optional. Nur Beobachtungen und Fragen, keine Regeln.
+recognize:
+checks:
+customer_check:
 ---
 
 Gilt für alle Kundenarten und Vertriebskanäle.

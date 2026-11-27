@@ -55,6 +55,15 @@ export default (config) => ({
             this.forgeSelected.forEach((key) => this.forgeSuggestAreas(this.forgeProduct(key)));
         }
 
+        // Guided fact-finding (PROJ-103): the case patterns follow group, channel and products.
+        const announce = () => this.$dispatch('scope-changed', {
+            group: this.group,
+            channel: this.channel,
+            products: this.noProducts || this.none ? [] : [...this.selected],
+        });
+        ['group', 'channel', 'selected', 'none'].forEach((property) => this.$watch(property, announce));
+        this.$nextTick(announce);
+
         const form = this.$el.closest('form');
 
         // Before the handlers of the form: a declined question must stop the loading overlay too.

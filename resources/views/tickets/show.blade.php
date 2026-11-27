@@ -96,7 +96,7 @@
             @endif
 
             @unless ($locked)
-            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :can-close="$canCloseTicket" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []" :complaint="$complaintForm ?? []"
+            <x-analysis.form :number="$number" :analysis="$analysis" :selected="$selected ?? []" :can-close="$canCloseTicket" :test-mode="$testMode ?? false" :advanced="$advancedModeActive ?? false" :lookups="$lookups ?? []" :complaint="$complaintForm ?? []" :known="$knownValues ?? []"
                              :unloaded-orders="collect($suggestions ?? [])->reject(fn ($order) => $order->isEocsId() || in_array($order->value, $selected ?? [], true))->pluck('value')->values()->all()" />
             @endunless
         @endisset

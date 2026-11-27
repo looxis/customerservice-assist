@@ -76,7 +76,7 @@ describe('layout', function () {
         runAnalysis();
 
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Vorschlag', 'Was ist zu tun?', 'Freundlich absagen.', 'Du darfst das selbst entscheiden.', 'Antwortentwurf (Deutsch)', 'Kopieren', 'Begründung', 'Quellen (2)', 'Kurzfassung', 'Confidence HOCH – Gründe (1)', 'Details zum Vorschlag', 'Vorschlag erstellen', 'Erstellt mit:', 'Verlauf'])
+            ->assertSeeTextInOrder(['Vorschlag', 'Was ist zu tun?', 'Freundlich absagen.', 'Du darfst das selbst entscheiden.', 'Antwortentwurf (Deutsch)', 'Kopieren', 'Begründung', 'Quellen (2)', 'Kurzfassung', 'Confidence HOCH – Gründe (1)', 'Details zum Vorschlag', 'Ticket bearbeiten', 'Erstellt mit:', 'Verlauf'])
             ->getContent();
 
         expect($html)->toMatch('/<details id="analyse-details"[^>]*x-data/')
@@ -270,7 +270,7 @@ describe('ticket header', function () {
     test('the header has no customer group, the zammad group only in the advanced mode, and the group of the proposal stands in the form summary', function () {
         $this->withCookie('advanced_mode', '0');
         $html = $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')->assertDontSeeText('noch nicht gewählt')->assertDontSeeText('Zammad-Gruppe')->getContent();
-        expect(str($html)->before('Vorschlag erstellen')->toString())->not->toContain('Kundengruppe');
+        expect(str($html)->before('Ticket bearbeiten')->toString())->not->toContain('Kundengruppe');
 
         $this->withCookie('staff_name', 'Nele')->withCookie('advanced_mode', '1')->get('/tickets/2137942')->assertSeeTextInOrder(['Zammad-Gruppe', 'Kundenservice']);
 

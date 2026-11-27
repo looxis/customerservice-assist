@@ -105,7 +105,7 @@ describe('analysis form', function () {
         analysisTicket();
 
         $this->get('/tickets/2137942')
-            ->assertSeeTextInOrder(['Vorschlag erstellen', 'Kundengruppe', 'Produkt(e)', 'Kein Produktbezug', 'Zusätzliche Informationen / eigene Einschätzung', 'Vorschlag erstellen'])
+            ->assertSeeTextInOrder(['Ticket bearbeiten', 'Kundengruppe', 'Produkt(e)', 'Kein Produktbezug', 'Direkte Analyse', 'Geführte Sachverhaltsermittlung', 'Zusätzliche Informationen / eigene Einschätzung', 'Antwortvorschlag erstellen'])
             ->assertSee('action="'.route('tickets.analysis.run', ['number' => '2137942']).'"', false);
     });
 

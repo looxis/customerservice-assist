@@ -6,6 +6,7 @@ use App\Analysis\AnalysisPanel;
 use App\Analysis\AnalysisStore;
 use App\Analysis\ClosingDecision;
 use App\Analysis\GuidedForms;
+use App\Analysis\KnownCaseValues;
 use App\Analysis\ReplyDelivery;
 use App\Analysis\TicketActivityLog;
 use App\Analysis\Translator;
@@ -149,6 +150,8 @@ class TicketController extends Controller
             'relatedThreads' => $this->relatedThreads($analysis, $ticket, $zammad),
             'labelState' => $labelState,
             'complaintForm' => $this->complaintForm($labelState, $this->claimReferences($suggestions), $lookups, $channels->withoutProducts(is_string($analysis['suggestedChannel'] ?? null) ? $analysis['suggestedChannel'] : null), $ticket),
+            // Guided fact-finding (PROJ-103): what the check questions need not ask, from the ticket and the loaded orders.
+            'knownValues' => app(KnownCaseValues::class)->build($ticket, collect($lookups)->flatMap(fn (OrderLookup $lookup): array => $lookup->orders)->values()->all()),
         ]);
     }
 
@@ -189,7 +192,7 @@ class TicketController extends Controller
             }
         }
 
-        return ['default' => $default, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null, $withoutProducts), 'toggle' => true, 'claimNumber' => $claims[0] ?? null, 'closing' => $ticket !== null && ClosingDecision::available(is_string($category) ? $category : null, $ticket)];
+        return ['default' => $default, 'category' => is_string($category) ? $category : null, 'form' => GuidedForms::defaultFor(is_string($category) ? $category : null, $withoutProducts), 'toggle' => true, 'claimNumber' => $claims[0] ?? null, 'closing' => $ticket !== null && ClosingDecision::available(is_string($category) ? $category : null, $ticket)];
     }
 
     /**

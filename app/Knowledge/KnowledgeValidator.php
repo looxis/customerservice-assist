@@ -15,7 +15,19 @@ class KnowledgeValidator
         'products', 'exclude_products', 'categories', 'topics', 'customer_types', 'sales_channels', 'related_knowledge',
         'priority', 'risk_level', 'owner', 'reviewed_by', 'last_reviewed', 'trial_until', 'trial_goal',
         'summary', 'retrieval', 'triggers', 'exclude_triggers', 'when', 'actions',
+        'recognize', 'checks', 'customer_check',
     ];
+
+    /** Guided fact-finding (PROJ-103): limits of the case pattern fields. */
+    private const int RECOGNIZE_MIN = 20;
+
+    private const int RECOGNIZE_MAX = 400;
+
+    private const int MAX_CHECKS = 5;
+
+    private const int QUESTION_MAX = 200;
+
+    private const int CHECK_NAME_MAX = 80;
 
     private const array PERMISSION_FIELDS = ['action', 'agent_allowed', 'max_value_eur', 'approval_role'];
 
@@ -69,6 +81,7 @@ class KnowledgeValidator
                 ...$this->slugs($document),
                 ...$this->excludedProducts($document),
                 ...$this->trialFields($document),
+                ...$this->casePatternFields($document),
                 ...$this->unknownFields($document),
                 ...$this->personalData($document),
             );
@@ -78,10 +91,202 @@ class KnowledgeValidator
             $issues,
             ...$this->duplicateIds($parsed),
             ...$this->references($parsed),
+            ...$this->customerCheckTargets($parsed),
             ...$this->productFiles($parsed),
             ...$this->duplicateOrderKeywords($parsed),
             ...$this->duplicateCustomerTerms($parsed),
         );
+
+        return $issues;
+    }
+
+    /**
+     * The case pattern fields of the guided fact-finding (PROJ-103): only playbooks, a recognition text first, check
+     * questions that the app can show, a customer check that names its instructions.
+     *
+     * @return list<KnowledgeIssue>
+     */
+    private function casePatternFields(KnowledgeDocument $document): array
+    {
+        $fm = $document->frontmatter;
+        $has = fn (string $field): bool => array_key_exists($field, $fm) && $fm[$field] !== null && $fm[$field] !== '' && $fm[$field] !== [];
+
+        if (! $has('recognize') && ! $has('checks') && ! $has('customer_check')) {
+            return [];
+        }
+
+        $issues = [];
+        $error = fn (string $message): KnowledgeIssue => KnowledgeIssue::error($document->path, $message);
+
+        if ($document->type !== 'playbook') {
+            $issues[] = $error('`recognize`, `checks` und `customer_check` (Fallmuster, PROJ-103) gibt es nur bei Playbooks.');
+        }
+
+        $recognize = $fm['recognize'] ?? null;
+
+        if (! $has('recognize')) {
+            $issues[] = $error('`checks` oder `customer_check` ohne `recognize`: Ein Fallmuster braucht zuerst ein Erkennungsmerkmal.');
+        } elseif (! is_string($recognize)) {
+            $issues[] = $error('`recognize` muss ein Text sein.');
+        } elseif (mb_strlen(trim($recognize)) < self::RECOGNIZE_MIN || mb_strlen(trim($recognize)) > self::RECOGNIZE_MAX) {
+            $issues[] = $error('`recognize` muss zwischen '.self::RECOGNIZE_MIN.' und '.self::RECOGNIZE_MAX.' Zeichen lang sein (ein bis zwei Sätze, was man beobachten kann).');
+        }
+
+        if ($has('checks')) {
+            array_push($issues, ...$this->checkQuestions($document, $fm['checks']));
+        }
+
+        if ($has('customer_check')) {
+            $check = $fm['customer_check'];
+
+            if (! is_array($check) || ! is_string($check['name'] ?? null) || trim($check['name']) === '' || ! is_string($check['knowledge'] ?? null)) {
+                $issues[] = $error('`customer_check` braucht `name` (Name der Prüfung) und `knowledge` (ID des Dokuments mit der Anleitung).');
+            } else {
+                if (mb_strlen(trim($check['name'])) > self::CHECK_NAME_MAX) {
+                    $issues[] = $error('`customer_check.name` darf höchstens '.self::CHECK_NAME_MAX.' Zeichen haben.');
+                }
+
+                if (preg_match('/^[A-Z]+(?:-[A-Z]+)*-\d{3}$/', trim($check['knowledge'])) !== 1) {
+                    $issues[] = $error('`customer_check.knowledge` muss eine Dokument-ID sein, z. B. PROCESS-004.');
+                }
+
+                foreach (array_diff(array_keys($check), ['name', 'knowledge']) as $field) {
+                    $issues[] = $error("Unbekanntes Feld `{$field}` in `customer_check`.");
+                }
+            }
+        }
+
+        return $issues;
+    }
+
+    /**
+     * @return list<KnowledgeIssue>
+     */
+    private function checkQuestions(KnowledgeDocument $document, mixed $checks): array
+    {
+        $error = fn (string $message): KnowledgeIssue => KnowledgeIssue::error($document->path, $message);
+
+        if (! is_array($checks) || ! array_is_list($checks)) {
+            return [$error('`checks` muss eine Liste von Fragen sein (je Frage `key` und `question`).')];
+        }
+
+        if (count($checks) > self::MAX_CHECKS) {
+            return [$error('Höchstens '.self::MAX_CHECKS.' Fragen in `checks`.')];
+        }
+
+        $issues = [];
+        $keys = [];
+        $whenKeys = (array) ($this->config['retrieval']['when_keys'] ?? []);
+
+        foreach ($checks as $index => $check) {
+            $number = $index + 1;
+
+            if (! is_array($check) || ! is_string($check['key'] ?? null) || ! is_string($check['question'] ?? null)) {
+                $issues[] = $error("Frage {$number} in `checks` braucht `key` und `question`.");
+
+                continue;
+            }
+
+            if (preg_match(self::SLUG, $check['key']) !== 1) {
+                $issues[] = $error("Frage {$number} in `checks`: `key` muss ein Slug sein (klein, mit Bindestrichen).");
+            } elseif (in_array($check['key'], $keys, true)) {
+                $issues[] = $error("Frage {$number} in `checks`: `key` „{$check['key']}“ kommt doppelt vor.");
+            }
+
+            $keys[] = $check['key'];
+
+            if (trim($check['question']) === '' || mb_strlen($check['question']) > self::QUESTION_MAX) {
+                $issues[] = $error("Frage {$number} in `checks`: `question` muss 1 bis ".self::QUESTION_MAX.' Zeichen haben.');
+            }
+
+            $knownFrom = $check['known_from'] ?? null;
+
+            if ($knownFrom !== null) {
+                $definition = is_string($knownFrom) ? ($whenKeys[$knownFrom] ?? null) : null;
+
+                if ($definition === null) {
+                    $issues[] = $error("Frage {$number} in `checks`: `known_from` „".(is_scalar($knownFrom) ? $knownFrom : '?').'“ ist kein bekannter Wert der App. Erlaubt sind die `when`-Schlüssel vom Typ Ja/Nein oder Zahl.');
+                } elseif (! in_array($definition['type'], ['bool', 'number'], true)) {
+                    $issues[] = $error("Frage {$number} in `checks`: `known_from` „{$knownFrom}“ ist weder ein Ja/Nein-Wert noch eine Zahl.");
+                }
+            }
+
+            if (array_key_exists('auto', $check) && ! is_bool($check['auto'])) {
+                $issues[] = $error("Frage {$number} in `checks`: `auto` muss true oder false sein.");
+            } elseif (($check['auto'] ?? false) === true && $knownFrom !== null) {
+                $issues[] = $error("Frage {$number} in `checks`: entweder `known_from` oder `auto`, nicht beides.");
+            }
+
+            foreach (array_diff(array_keys($check), ['key', 'question', 'known_from', 'auto']) as $field) {
+                $issues[] = $error("Frage {$number} in `checks`: unbekanntes Feld `{$field}`.");
+            }
+        }
+
+        return $issues;
+    }
+
+    /**
+     * The instructions of a customer check (PROJ-103) must apply wherever the pattern applies and must not depend on a
+     * condition: then the scope check when the form is sent is enough to know they are in the prompt.
+     *
+     * @param  list<KnowledgeDocument>  $documents
+     * @return list<KnowledgeIssue>
+     */
+    private function customerCheckTargets(array $documents): array
+    {
+        $byId = [];
+
+        foreach ($documents as $document) {
+            if ($document->id !== null) {
+                $byId[$document->id] ??= $document;
+            }
+        }
+
+        $issues = [];
+
+        foreach ($documents as $document) {
+            $check = $document->customerCheck();
+
+            if ($check === null) {
+                continue;
+            }
+
+            $target = $byId[$check['knowledge']] ?? null;
+            $error = fn (string $message): KnowledgeIssue => KnowledgeIssue::error($document->path, $message);
+
+            if ($target === null) {
+                $issues[] = $error("`customer_check` verweist auf `{$check['knowledge']}`, aber dieses Dokument gibt es nicht.");
+
+                continue;
+            }
+
+            if ($target->status === 'deprecated') {
+                $issues[] = $error("`customer_check` verweist auf `{$check['knowledge']}`, das als deprecated markiert ist.");
+            }
+
+            if ($target->when() !== []) {
+                $issues[] = $error("`customer_check` verweist auf `{$check['knowledge']}`, das eine `when`-Bedingung hat. Die Anleitung muss ohne Bedingung gelten.");
+            }
+
+            foreach (['customer_types' => $document->customerTypes(), 'sales_channels' => $document->salesChannels()] as $field => $own) {
+                $theirs = $target->list($field);
+
+                if ($theirs !== [] && ($own === [] || array_diff($own, $theirs) !== [])) {
+                    $issues[] = $error("`customer_check`: `{$check['knowledge']}` gilt nur für `{$field}` ".implode(', ', $theirs).', das Fallmuster aber weiter. Der Geltungsbereich der Anleitung muss das Fallmuster abdecken.');
+                }
+            }
+
+            $ownProducts = $document->boundProducts();
+            $theirProducts = $target->boundProducts();
+
+            if ($theirProducts !== [] && ($ownProducts === [] || array_diff($ownProducts, $theirProducts) !== [])) {
+                $issues[] = $error("`customer_check`: `{$check['knowledge']}` gilt nur für Produkt ".implode(', ', $theirProducts).', das Fallmuster aber weiter.');
+            }
+
+            if (array_intersect($ownProducts, $target->excludedProducts()) !== []) {
+                $issues[] = $error("`customer_check`: `{$check['knowledge']}` schließt ein Produkt des Fallmusters aus (`exclude_products`).");
+            }
+        }
 
         return $issues;
     }
