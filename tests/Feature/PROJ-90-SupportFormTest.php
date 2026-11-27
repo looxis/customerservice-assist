@@ -70,12 +70,12 @@ describe('choosing the form', function () {
 
     test('every ticket offers the three forms instead of the switch button', function () {
         supportPage()->assertOk()
-            ->assertSeeInOrder(['name="formularwahl" value="support"', 'Technischer Support', 'name="formularwahl" value="reklamation"', 'Reklamation', 'name="formularwahl" value="frei"', 'Freitext'], false)
+            ->assertSeeInOrder(['name="formularwahl" value="support"', 'Technischer Support', 'name="formularwahl" value="reklamation"', 'Reklamation', 'name="formularwahl" value="frei"', 'Direkte Analyse'], false)
             ->assertDontSee('Reklamationsformular verwenden');
     });
 
     test('the list of forms names the guided forms before the free text', function () {
-        expect(GuidedForms::options())->toBe(['support' => 'Technischer Support', 'reklamation' => 'Reklamation', 'zahlung' => 'Zahlung / Rechnung', 'wismo_info' => 'Aktualisierte WISMO-Infos', 'storno' => 'Storno / Änderung', 'neuversand' => 'Neuversand', 'abschluss' => 'Diskussion beenden', 'frei' => 'Freitext'])
+        expect(GuidedForms::options())->toBe(['support' => 'Technischer Support', 'reklamation' => 'Reklamation', 'zahlung' => 'Zahlung / Rechnung', 'wismo_info' => 'Aktualisierte WISMO-Infos', 'storno' => 'Storno / Änderung', 'neuversand' => 'Neuversand', 'abschluss' => 'Diskussion beenden', 'frei' => 'Direkte Analyse'])
             ->and(GuidedForms::defaultFor('technischer-support'))->toBe('support')
             ->and(GuidedForms::defaultFor('produkt-frage'))->toBe('frei')
             ->and(GuidedForms::defaultFor(null))->toBe('frei');

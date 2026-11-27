@@ -404,7 +404,9 @@ describe('the form', function () {
     test('the area is called "Ticket bearbeiten" with the three functions in order and the new button', function () {
         $this->withCookie('staff_name', 'Nele')->get('/tickets/2137942')
             ->assertOk()
-            ->assertSeeTextInOrder(['Ticket bearbeiten', 'Verkaufskanal', 'Direkte Analyse', 'Geführte Sachverhaltsermittlung', 'Geführte Bearbeitung', 'Formular', 'Freitext', 'Antwortvorschlag erstellen'])
+            ->assertSeeTextInOrder(['Ticket bearbeiten', 'Verkaufskanal', 'Geführte Sachverhaltsermittlung', 'Geführte Bearbeitung', 'Direkte Analyse', 'Zusätzliche Informationen / eigene Einschätzung', 'Antwortvorschlag erstellen'])
+            ->assertSeeInOrder(['guided-processing-heading', 'name="formularwahl" value="support"', 'direct-analysis-heading', 'name="formularwahl" value="frei"'], false)
+            ->assertDontSeeText('Freitext')
             ->assertDontSeeText('Vorschlag erstellen</h2>', false)
             ->assertSee('fallmuster', false);
     });

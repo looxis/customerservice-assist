@@ -16,15 +16,17 @@ Die Stufe 1 (besserer Wissensabruf, überarbeitetes Wissen zur Zaubertasse) ist 
 
 ## Die drei Funktionen im Bereich „Ticket bearbeiten“
 
-Es sind drei Funktionen, keine drei Modi; niemand muss zwischen ihnen wählen.
+Die geführte Sachverhaltsermittlung ist eine optionale Hilfe oberhalb der Bearbeitungswege und steht beiden Wegen zur Verfügung. Bearbeitet wird entweder geführt (mit einem Formular) oder direkt; das ist die bisherige Formularwahl, nur anders dargestellt.
 
 | Funktion | Beantwortet | Icon (Lucide) | Stand |
 |---|---|---|---|
-| **Direkte Analyse** | Analyse und Antwortvorschlag | `zap` | bisheriger Standardweg, unverändert |
-| **Geführte Sachverhaltsermittlung** | Welche Fallmuster kommen infrage? Was kann ich beobachten? Was ist schon bekannt? Was muss ich prüfen? | `list-checks` | neu, optional, eingeklappt |
-| **Geführte Bearbeitung** | Welche Entscheidung, welche Lösung, welche Maßnahme? | `list-todo` | bisher „Formular“, unverändert, immer sichtbar |
+| **Geführte Sachverhaltsermittlung** | Welche Fallmuster kommen infrage? Was kann ich beobachten? Was ist schon bekannt? Was muss ich prüfen? | `list-checks` | neu, optional, eingeklappt, oberhalb der Bearbeitungswege |
+| **Geführte Bearbeitung** | Welche Entscheidung, welche Lösung, welche Maßnahme? | `list-todo` | die kategoriespezifischen Formulare, unverändert, immer sichtbar; ohne eigene Beschriftung „Formular“ |
+| **Direkte Analyse** | Analyse und Antwortvorschlag ohne geführtes Formular | `zap` | bisher Formularoption „Freitext“ (technischer Wert `frei` unverändert), eigener kleiner Bereich unter der geführten Bearbeitung, mit dem optionalen Feld „Zusätzliche Informationen / eigene Einschätzung“, gleich ob es ausgefüllt wird oder leer bleibt |
 
-Alle drei münden in dieselbe Analyse und dieselbe Antworterstellung.
+Beide Bearbeitungswege münden in dieselbe Analyse und dieselbe Antworterstellung.
+
+**Korrektur 2026-11-27 (nach der ersten Umsetzung):** „Direkte Analyse“ ist keine übergeordnete Zwischenüberschrift über den anderen Funktionen, sondern die umbenannte Formularoption „Freitext“. Die Zwischenüberschrift mit Blitz-Icon entfällt; Formularwahl, technische Werte, Validierung und Analyse bleiben unverändert.
 
 ## Begriffe
 
@@ -94,13 +96,15 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 
 ### Bezeichnungen und Aufbau
 - [ ] Angenommen ein Ticket ist geöffnet, wenn der Mitarbeiter den bisherigen Bereich „Vorschlag erstellen“ sieht, dann heißt er „Ticket bearbeiten“, auch in der eingeklappten Kopfzeile nach einem Vorschlag.
-- [ ] Angenommen der Bereich ist offen, wenn der Mitarbeiter ihn von oben nach unten liest, dann stehen dort in dieser Reihenfolge: gemeinsame Angaben (zusammengehörige Tickets, Verkaufskanal, Kundengruppe, Produkt), „Direkte Analyse“ mit Blitz-Icon, eingeklappt „Geführte Sachverhaltsermittlung“ mit Checklisten-Icon, abgegrenzt „Geführte Bearbeitung“ mit Aufgabenlisten-Icon, die Knöpfe.
+- [ ] Angenommen der Bereich ist offen, wenn der Mitarbeiter ihn von oben nach unten liest, dann stehen dort in dieser Reihenfolge: gemeinsame Angaben (zusammengehörige Tickets, Verkaufskanal, Kundengruppe, Produkt), eingeklappt „Geführte Sachverhaltsermittlung“ mit Checklisten-Icon, abgegrenzt „Geführte Bearbeitung“ mit Aufgabenlisten-Icon, getrennt davon (Trenner „oder“) ein eigener kleiner Bereich „Direkte Analyse“ mit Blitz-Icon, die Knöpfe. Eine übergeordnete Zwischenüberschrift „Direkte Analyse“ gibt es nicht.
 - [ ] Angenommen der Bereich ist offen, wenn der Mitarbeiter den Knopf zum Erstellen sucht, dann heißt er „Antwortvorschlag erstellen“; die Ladeanzeige nennt denselben Begriff.
-- [ ] Angenommen ein Ticket mit Formularwahl, wenn der Mitarbeiter den Bereich „Geführte Bearbeitung“ ansieht, dann enthält er die bisherige Formularwahl und die Felder des gewählten Formulars; „Freitext“ bleibt wählbar und ist erkennbar keine geführte Bearbeitung.
+- [ ] Angenommen ein Ticket mit Formularwahl, wenn der Mitarbeiter den Bereich „Geführte Bearbeitung“ ansieht, dann enthält er die kategoriespezifischen Formulare zur Wahl (ohne eigene Beschriftung „Formular“) und die Felder des gewählten Formulars.
+- [ ] Angenommen ein Ticket mit Formularwahl, wenn der Mitarbeiter „Direkte Analyse“ wählt (bisher „Freitext“, Wert `frei`), dann steht diese Wahl im eigenen Bereich unter der geführten Bearbeitung, und darin erscheint das optionale Feld „Zusätzliche Informationen / eigene Einschätzung“ wie bisher beim Freitext.
+- [ ] Angenommen ein Ticket ohne Formularwahl, dann zeigt der Bereich „Direkte Analyse“ das optionale Feld ohne Auswahlknopf.
 - [ ] Angenommen die Seite „Frage stellen“, wenn sie geöffnet wird, dann sind ihre Bezeichnungen unverändert.
 
 ### Bestehende Arbeitsweise bleibt
-- [ ] Angenommen ein Mitarbeiter öffnet die geführte Sachverhaltsermittlung nicht, wenn er wie bisher ein Formular ausfüllt oder Freitext eingibt und den Antwortvorschlag erstellt, dann braucht er keinen zusätzlichen Klick und keine zusätzliche Angabe, und an die KI geht derselbe Eingang wie vor PROJ-103.
+- [ ] Angenommen ein Mitarbeiter öffnet die geführte Sachverhaltsermittlung nicht, wenn er wie bisher ein Formular ausfüllt oder die direkte Analyse (bisher „Freitext“) nutzt und den Antwortvorschlag erstellt, dann braucht er keinen zusätzlichen Klick und keine zusätzliche Angabe, und an die KI geht derselbe Eingang wie vor PROJ-103.
 - [ ] Angenommen eines der sieben geführten Formulare ist gewählt, wenn der Mitarbeiter es ausfüllt, dann verhalten sich alle Felder, Folgefragen und Fehlermeldungen wie bisher.
 - [ ] Angenommen „Direkt antworten“ oder „Ticket ohne Antwort schließen“, wenn der Mitarbeiter sie nutzt, dann funktionieren sie unverändert.
 
@@ -109,7 +113,7 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 - [ ] Angenommen es gibt im Geltungsbereich kein Fallmuster, wenn die Seite geladen ist, dann steht die Zeile ausgegraut mit „keine Fallmuster hinterlegt“ an derselben Stelle.
 - [ ] Angenommen der Mitarbeiter klappt den Bereich auf, dann sieht er zuerst die Fallmuster zum gewählten Produkt, darunter die produktunabhängigen, je mit Titel und Erkennungsmerkmal.
 - [ ] Angenommen ein Fallmuster gilt laut Wissen nicht für die gewählte Kundengruppe oder den Kanal, wenn die Liste erscheint, dann ist es nicht wählbar.
-- [ ] Angenommen ein geführtes Formular mit Kategorie ist gewählt (z. B. „Aktualisierte WISMO-Infos“), wenn die Liste erscheint, dann zeigt sie die Fallmuster der zugeordneten Wissenskategorie und die ohne Kategorie; bei Freitext, „Neuversand“ und „Diskussion beenden“ gilt die Einordnung des Tickets.
+- [ ] Angenommen ein geführtes Formular mit Kategorie ist gewählt (z. B. „Aktualisierte WISMO-Infos“), wenn die Liste erscheint, dann zeigt sie die Fallmuster der zugeordneten Wissenskategorie und die ohne Kategorie; bei der direkten Analyse, „Neuversand“ und „Diskussion beenden“ gilt die Einordnung des Tickets.
 - [ ] Angenommen ein Ticket jeder der elf Kategorien, wenn die Liste erscheint, dann folgt sie der Zuordnungstabelle; bei „Sonstiges“ erscheinen alle Fallmuster, bei „Spam“ nur die ohne Kategorie, bei einem Ticket ohne Einordnung ebenfalls alle.
 - [ ] Angenommen der Mitarbeiter wechselt das Formular, das Produkt, den Kanal oder die Kundengruppe, dann passt sich die Liste an; ein bereits gewähltes Fallmuster, das nicht mehr gilt, wird sichtbar abgewählt mit Angabe des Grunds.
 - [ ] Angenommen kein Produkt ist gewählt oder der Fall hat keinen Produktbezug, wenn der Bereich aufgeklappt wird, dann zeigt er die produktunabhängigen Fallmuster.
@@ -216,9 +220,10 @@ Bewusst in Kauf genommen: Über die gemeinsame Kategorie `order-process-question
 ### Product Decisions
 | Decision | Rationale | Date |
 |----------|-----------|------|
-| Drei Funktionen im Bereich „Ticket bearbeiten“, keine Modi und keine Auswahlkacheln | Mitarbeiter sind an den Ablauf gewöhnt; niemand soll je Ticket einen Weg wählen müssen | 2026-11-27 |
+| Drei Funktionen im Bereich „Ticket bearbeiten“, keine neuen Modi und keine Auswahlkacheln; gewählt wird nur wie bisher das Formular | Mitarbeiter sind an den Ablauf gewöhnt; die Sachverhaltsermittlung braucht keine eigene Wahl | 2026-11-27 |
 | Sachverhaltsermittlung ist optional, eingeklappt und rein additiv | Der schnelle Weg zum Antwortvorschlag bleibt ohne Mehrklick erhalten | 2026-11-27 |
-| „Formular“ heißt „Geführte Bearbeitung“ und bleibt immer sichtbar | Die Formulare sind bereits eine geführte Funktion (Entscheidung, Lösung, Maßnahme) und ergänzen die Sachverhaltsermittlung | 2026-11-27 |
+| „Formular“ heißt „Geführte Bearbeitung“ und bleibt immer sichtbar; die Beschriftung „Formular“ entfällt | Die Formulare sind bereits eine geführte Funktion (Entscheidung, Lösung, Maßnahme) und ergänzen die Sachverhaltsermittlung; die Bereichsüberschrift erklärt die Wahl | 2026-11-27 |
+| „Direkte Analyse“ ist die umbenannte Formularoption „Freitext“ (`zap`, Wert `frei`), in einem eigenen Bereich unter der geführten Bearbeitung, keine übergeordnete Zwischenüberschrift | Korrektur des Auftraggebers nach der ersten Umsetzung: die direkte Analyse ist ein Bearbeitungsweg neben der geführten Bearbeitung, gleich ob das Freitextfeld ausgefüllt wird; die Sachverhaltsermittlung dient beiden Wegen | 2026-11-27 |
 | Bezeichnungen „Ticket bearbeiten“, „Direkte Analyse“, „Antwortvorschlag erstellen“; Icons `zap`, `list-checks`, `list-todo` | Vorgabe des Auftraggebers | 2026-11-27 |
 | Kategorieübergreifend: Fallmuster entstehen durch Wissenspflege, nicht als Teil eines Formulars | Die Zaubertasse ist nur der Anlass; das Dilemma betrifft jede Ticketkategorie | 2026-11-27 |
 | Fallmuster sind Playbooks mit Erkennungsmerkmal; kein neuer Dokumenttyp | Playbooks sind laut Definition „woran man den Fall erkennt, wie man ihn prüft“; Prozesse kommen als verwandtes Wissen mit | 2026-11-27 |
@@ -286,8 +291,7 @@ Ticket bearbeiten                                   (bisher „Vorschlag erstell
 +-- Gemeinsame Angaben (unverändert)
 |   +-- Zusammengehörige Tickets
 |   +-- Verkaufskanal · Kundengruppe · Produkt
-+-- Direkte Analyse  [Blitz]                         (Zwischenüberschrift, kein Schalter)
-+-- Geführte Sachverhaltsermittlung  [Checkliste]    (eingeklappt)
++-- Geführte Sachverhaltsermittlung  [Checkliste]    (eingeklappt, für beide Bearbeitungswege)
 |   +-- Kopfzeile: „Unsicher, was zu prüfen ist? 3 Fallmuster zur Zaubertasse, 2 allgemeine“
 |   +-- Fallmuster zum Produkt
 |   |   +-- [ ] Titel · Erkennungsmerkmal
@@ -297,10 +301,14 @@ Ticket bearbeiten                                   (bisher „Vorschlag erstell
 |   +-- [ ] Kein Fallmuster passt
 |   +-- Hinweis „nicht mehr gültig: …“ (nach Wechsel von Produkt/Kanal/Formular)
 +-- Geführte Bearbeitung  [Aufgabenliste]            (Rahmen, immer sichtbar)
-|   +-- Formularwahl (… · oder: Freitext)
+|   +-- Formularwahl (Technischer Support · Reklamation · …, ohne Beschriftung „Formular“)
 |   +-- Hinweis aus der Sachverhaltsermittlung       (nur bei Prüfung durch den Kunden)
 |   |   +-- „Funktionstest mit heißem Wasser (PROCESS-004)“ [übernehmen] / [zurücknehmen]
 |   +-- Felder des gewählten Formulars (unverändert)
++-- ——— oder ———
++-- ( ) Direkte Analyse  [Blitz]                     (eigener kleiner Bereich; bisher „Freitext“, Wert `frei`)
+|   +-- Zusätzliche Informationen / eigene Einschätzung (optional, nur bei gewählter direkter Analyse)
+|   +-- DHL-Retourenlabel (wie bisher beim Freitext)
 +-- Knöpfe: Antwortvorschlag erstellen · Direkt antworten · Ticket ohne Antwort schließen
 
 Ergebnis (unter dem Vorschlag)
@@ -407,7 +415,7 @@ Keine neuen Pakete. Keine neue Tabelle, keine Migration, keine neue Umgebungsvar
 ## Implementation Notes (Frontend + Backend, 2026-11-27)
 
 **Gebaut**
-- Oberfläche (`resources/views/components/analysis/form.blade.php`): „Ticket bearbeiten“, Zwischenüberschrift „Direkte Analyse“ (`zap`), eingeklappter Bereich „Geführte Sachverhaltsermittlung“ (`list-checks`), Rahmen „Geführte Bearbeitung“ (`list-todo`) um Formularwahl und die unveränderten `*-fields`; „Freitext“ steht hinter „oder:“; Knopf und Ladeanzeige „Antwortvorschlag erstellen“. Ohne Formularwahl entfällt der Rahmen wie bisher.
+- Oberfläche (`resources/views/components/analysis/form.blade.php`): „Ticket bearbeiten“, eingeklappter Bereich „Geführte Sachverhaltsermittlung“ (`list-checks`), Rahmen „Geführte Bearbeitung“ (`list-todo`) um die Formularwahl ohne Beschriftung „Formular“ und die unveränderten `*-fields`, Trenner „oder“, eigener Bereich „Direkte Analyse“ (`zap`) mit dem Auswahlknopf für den Wert `frei` (Bezeichnung in `GuidedForms::options()`, bisher „Freitext“), dem optionalen Feld „Zusätzliche Informationen / eigene Einschätzung“, der DHL-Option und der Schreibhilfe; Knopf und Ladeanzeige „Antwortvorschlag erstellen“. Ohne Formularwahl entfallen Rahmen und Trenner wie bisher, der Bereich „Direkte Analyse“ zeigt dann nur Überschrift und Feld. Korrektur 2026-11-27: die zunächst gebaute übergeordnete Zwischenüberschrift „Direkte Analyse“ ist entfallen.
 - Neue Komponenten `analysis/case-patterns` (Liste, Prüffragen, „Kein Fallmuster passt“, Hinweise bei weggefallener Auswahl, Fehler- und Ladezustand) und `analysis/customer-check-hint` („übernehmen“/„zurücknehmen“, setzt nur eine noch leere Option, Hinweis bei Widerspruch). Gemeinsamer Zustand im Alpine-Store `caseFindings` (`resources/js/case-patterns.js`); die Geltungsbereich-Felder melden Wechsel per `scope-changed`. Der Fallmuster-Bereich kennt kein Ticket (wiederverwendbar für „Frage stellen“).
 - Endpunkt `GET /fallmuster` (`CasePatternController`, `CasePatternRequest`, Route `case-patterns`, Zugang wie die Produktsuche) mit `CasePatternFinder` (Geltungsbereich über `KnowledgeSelector`, Kategorie über `GuidedForms::categoriesOf()` und `knowledge.pattern_categories`).
 - Bekannte Werte: `KnownCaseValues` aus den Fallfakten; beim Laden der Ticketseite und beim Absenden neu berechnet.

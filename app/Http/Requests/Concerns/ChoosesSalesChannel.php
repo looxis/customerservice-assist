@@ -67,7 +67,7 @@ trait ChoosesSalesChannel
     protected function checkFormForChannel(Validator $validator): void
     {
         if ($this->channelWithoutProducts() && in_array($this->input('formular'), GuidedForms::forGoods(), true)) {
-            $validator->errors()->add('formular', 'Für den Verkaufskanal „'.app(SalesChannels::class)->label((string) $this->input(SalesChannels::FIELD)).'“ gibt es keine Formulare für Ware und Versand. Bitte „Freitext“ oder „Technischer Support“ wählen.');
+            $validator->errors()->add('formular', 'Für den Verkaufskanal „'.app(SalesChannels::class)->label((string) $this->input(SalesChannels::FIELD)).'“ gibt es keine Formulare für Ware und Versand. Bitte „Direkte Analyse“ oder „Technischer Support“ wählen.');
         }
     }
 

@@ -178,24 +178,19 @@
             </details>
             @endif
 
-            {{-- PROJ-103: three functions in one area, no modes. The direct analysis is the usual way; the guided fact-finding is optional and closed; the guided processing holds the forms as before. --}}
+            {{-- PROJ-103: the guided fact-finding is optional and closed, it serves both ways below. Then the guided processing
+                 with the guided forms and, apart from it, the direct analysis (the form value "frei") with its optional text. --}}
             <div class="space-y-4">
-                <h3 class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> Direkte Analyse</h3>
-
                 <x-analysis.case-patterns :known="$known" :category="$complaint['category'] ?? null" :initial="$findings" />
 
                 <input type="hidden" name="formular" x-bind:value="mode" value="{{ $formMode }}">
                 @if ($complaintToggle)
                     <section aria-labelledby="guided-processing-heading" class="space-y-5 rounded-lg bg-slate-50/60 p-4 ring-1 ring-slate-200 ring-inset">
-                        <h3 id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> Geführte Bearbeitung</h3>
-                        {{-- Which form the proposal is made with: preselected from the category of the ticket. The free text is no guided processing and stands apart. --}}
                         <fieldset>
-                            <legend class="block text-sm font-medium text-slate-900">Formular</legend>
-                            <div class="mt-1 flex flex-wrap items-center gap-x-6 gap-y-1">
+                            <legend id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> Geführte Bearbeitung</legend>
+                            <div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1">
                                 @foreach ($forms as $formKey => $formLabel)
-                                    @if ($formKey === \App\Analysis\ComplaintDecision::FREE)
-                                        <span class="text-sm text-slate-500" aria-hidden="true">oder:</span>
-                                    @endif
+                                    @continue($formKey === \App\Analysis\ComplaintDecision::FREE)
                                     <label class="flex min-h-9 items-center gap-2 text-sm text-slate-900" @if (in_array($formKey, $goodsForms, true)) x-show="! digital" @if ($digital) x-cloak @endif @endif>
                                         <input type="radio" name="formularwahl" value="{{ $formKey }}" x-model="mode" @checked($formMode === $formKey) class="size-4 border-slate-300 text-brand focus:ring-brand">
                                         {{ $formLabel }}
@@ -214,9 +209,67 @@
                             <x-analysis.closing-fields :inputs="$answers" />
                         @endif
                     </section>
+
+                    <div class="flex items-center gap-3 text-sm text-slate-500" aria-hidden="true">
+                        <span class="h-px flex-1 bg-slate-200"></span> oder <span class="h-px flex-1 bg-slate-200"></span>
+                    </div>
                 @else
                     <x-analysis.customer-check-hint />
                 @endif
+
+                <section aria-labelledby="direct-analysis-heading" class="space-y-4 rounded-lg p-4 ring-1 ring-slate-200 ring-inset">
+                    @if ($complaintToggle)
+                        <label id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                            <input type="radio" name="formularwahl" value="{{ \App\Analysis\ComplaintDecision::FREE }}" x-model="mode" @checked($formMode === \App\Analysis\ComplaintDecision::FREE) class="size-4 border-slate-300 text-brand focus:ring-brand">
+                            <x-icon name="zap" size="18" class="text-brand" /> {{ $forms[\App\Analysis\ComplaintDecision::FREE] }}
+                        </label>
+                    @else
+                        <h3 id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> {{ $forms[\App\Analysis\ComplaintDecision::FREE] }}</h3>
+                    @endif
+                    <x-intro>
+                        <p class="text-sm text-slate-600">Analyse anhand der verfügbaren Informationen ohne geführtes Formular.</p>
+                    </x-intro>
+
+                    <fieldset x-show="mode === 'frei'" x-bind:disabled="mode !== 'frei'" @if ($formMode !== 'frei') x-cloak @endif class="min-w-0 space-y-5 border-0 p-0">
+                    <legend class="sr-only">Zusätzliche Informationen</legend>
+                    <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" :hint="$introMode ? 'Optional. Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.' : null">
+                        <textarea name="kontext" id="kontext" rows="5" placeholder="{{ $earlierReply ? $followUpPlaceholder : $firstPlaceholder }}" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
+                                  class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', '') }}</textarea>
+                        <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>
+                    </x-field>
+
+                    @if ($labelOrders->isNotEmpty())
+                        {{-- DHL return label before the proposal (PROJ-64): the model learns that a label goes with the reply, the app adds the steps. --}}
+                        <div id="dhl-option" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4" x-show="! digital" @if ($digital) x-cloak @endif>
+                            <label class="flex items-start gap-2 text-sm font-medium text-slate-900">
+                                <input type="checkbox" x-model="labelOn" class="mt-0.5 rounded text-brand focus:ring-brand">
+                                <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>
+                            </label>
+                            <x-intro>
+                                <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Möglich für Rücksendungen aus {{ \App\Returns\ReturnCountry::sentence() }}.</p>
+                            </x-intro>
+                            <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 pl-6 text-sm font-medium text-danger-700" x-text="labelNote"></p>
+                            <div x-show="labelOn" x-cloak class="mt-3 space-y-4">
+                                @foreach ($labelOrders as $labelOrder)
+                                    <x-dhl.return-label :order="$labelOrder" :ticket-number="$number" mode="attach" :field="true" :configured="app(\App\Dhl\DhlClient::class)->isConfigured()" />
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <x-intro>
+                    <details class="-mt-2 text-sm text-slate-700">
+                        <summary class="cursor-pointer font-medium text-slate-700 hover:text-slate-900">So schreibst du es</summary>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            <li><span class="font-medium">Fakten</span> in einfachen Sätzen: „Foto geprüft: Das Motiv ist verschoben gedruckt.“</li>
+                            <li><span class="font-medium">Entscheidungen</span> mit „Wir …“: „Wir erstatten die Differenz, die Versandkosten nicht, weil …“</li>
+                            <li><span class="font-medium">Wünsche an die Antwort</span> mit „Bitte erkläre …“ oder „Bitte entschuldige dich für …“: „Bitte erkläre, warum es länger gedauert hat.“</li>
+                            <li>Keine allgemeinen Regeln („das machen wir immer so“): Die gehören in die Wissensdatenbank.</li>
+                        </ul>
+                    </details>
+                    </x-intro>
+                    </fieldset>
+                </section>
             </div>
 
             @if ($testMode)
@@ -224,46 +277,6 @@
                     <span class="font-semibold">Testmodus:</span> Hier keine Regeln oder Antworten eintragen („das geht nicht“, „das machen wir immer so“) – sonst bleiben Lücken in der Wissensdatenbank unentdeckt. Fakten zum Fall (z. B. Ergebnis einer Fotoprüfung) sind erlaubt.
                 </x-alert>
             @endif
-
-            <fieldset x-show="mode === 'frei'" x-bind:disabled="mode !== 'frei'" @if ($formMode !== 'frei') x-cloak @endif class="min-w-0 space-y-5 border-0 p-0">
-            <legend class="sr-only">Zusätzliche Informationen</legend>
-            <x-field id="kontext" label="Zusätzliche Informationen / eigene Einschätzung" :hint="$introMode ? 'Optional. Fakten, Entscheidungen und Wünsche an die Antwort gelten für die KI als geprüft. Allgemeine Regeln („das machen wir immer so“) gehören nicht hierher, sondern in die Wissensdatenbank – bitte nach der Analyse mit „Wissenslücke melden“ melden.' : null">
-                <textarea name="kontext" id="kontext" rows="5" placeholder="{{ $earlierReply ? $followUpPlaceholder : $firstPlaceholder }}" maxlength="{{ config('analysis.max_context_length') }}" x-on:input="length = $el.value.length"
-                          class="block w-full rounded-md border-0 bg-white px-3 py-2 text-slate-900 shadow-1 ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm">{{ $old('kontext', '') }}</textarea>
-                <p class="mt-1 text-right text-xs text-slate-600"><span x-text="length">0</span> / {{ number_format(config('analysis.max_context_length'), 0, ',', '.') }}</p>
-            </x-field>
-
-            @if ($labelOrders->isNotEmpty())
-                {{-- DHL return label before the proposal (PROJ-64): the model learns that a label goes with the reply, the app adds the steps. --}}
-                <div id="dhl-option" class="rounded-lg border border-slate-200 bg-slate-50/60 p-4" x-show="! digital" @if ($digital) x-cloak @endif>
-                    <label class="flex items-start gap-2 text-sm font-medium text-slate-900">
-                        <input type="checkbox" x-model="labelOn" class="mt-0.5 rounded text-brand focus:ring-brand">
-                        <span>DHL-Retourenlabel erzeugen und im Antwortvorschlag berücksichtigen</span>
-                    </label>
-                    <x-intro>
-                        <p class="mt-1 pl-6 text-xs text-slate-600">Das Label wird jetzt bei DHL bestellt, hängt als PDF an der Antwort, und die Schritte für den Kunden stehen unter dem Entwurf. Möglich für Rücksendungen aus {{ \App\Returns\ReturnCountry::sentence() }}.</p>
-                    </x-intro>
-                    <p x-show="labelNote !== ''" x-cloak role="alert" class="mt-2 pl-6 text-sm font-medium text-danger-700" x-text="labelNote"></p>
-                    <div x-show="labelOn" x-cloak class="mt-3 space-y-4">
-                        @foreach ($labelOrders as $labelOrder)
-                            <x-dhl.return-label :order="$labelOrder" :ticket-number="$number" mode="attach" :field="true" :configured="app(\App\Dhl\DhlClient::class)->isConfigured()" />
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <x-intro>
-            <details class="-mt-2 text-sm text-slate-700">
-                <summary class="cursor-pointer font-medium text-slate-700 hover:text-slate-900">So schreibst du es</summary>
-                <ul class="mt-2 list-disc space-y-1 pl-5">
-                    <li><span class="font-medium">Fakten</span> in einfachen Sätzen: „Foto geprüft: Das Motiv ist verschoben gedruckt.“</li>
-                    <li><span class="font-medium">Entscheidungen</span> mit „Wir …“: „Wir erstatten die Differenz, die Versandkosten nicht, weil …“</li>
-                    <li><span class="font-medium">Wünsche an die Antwort</span> mit „Bitte erkläre …“ oder „Bitte entschuldige dich für …“: „Bitte erkläre, warum es länger gedauert hat.“</li>
-                    <li>Keine allgemeinen Regeln („das machen wir immer so“): Die gehören in die Wissensdatenbank.</li>
-                </ul>
-            </details>
-            </x-intro>
-            </fieldset>
 
             @error('kundengruppe') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror
             @error('produkte.*') <p class="text-sm text-danger-700">{{ $message }}</p> @enderror

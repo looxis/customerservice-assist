@@ -37,7 +37,7 @@ final class GuidedForms
      */
     public static function options(): array
     {
-        return [...array_map(fn (array $form): string => $form['label'], self::GUIDED), ComplaintDecision::FREE => 'Freitext'];
+        return [...array_map(fn (array $form): string => $form['label'], self::GUIDED), ComplaintDecision::FREE => 'Direkte Analyse'];
     }
 
     /**
