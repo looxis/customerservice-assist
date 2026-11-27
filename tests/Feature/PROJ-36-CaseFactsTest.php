@@ -199,6 +199,12 @@ describe('text tiers', function () {
             ->and(implode(' ', $tiers['A']))->not->toContain('Payments')->not->toContain('Beschädigter');
     });
 
+    test('the system parts are found with a non-breaking space or a decomposed umlaut', function () {
+        $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Leider ist der Druck nicht vollständig, das Datum kann man unten nicht lesen.', 1)], "Frage von Amazon\u{00A0}Payments-Kunde: Bescha\u{0308}digter defekter  oder falscher Artikel erhalten - Anna");
+
+        expect(factsBuilder()->build($ticket, factsGroup(), [], [])->tiers['A'][0])->toBe('Frage von : - Anna');
+    });
+
     test('a title the customer wrote himself stays as it is', function () {
         $ticket = factsTicket([factsArticle(ArticleKind::Customer, 'Bitte um Hilfe, ich habe eine Frage zu meiner Bestellung und zur Lieferung.', 1)], 'Tasse beschädigt angekommen');
 

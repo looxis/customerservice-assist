@@ -144,11 +144,18 @@ class CaseFactsBuilder
      */
     private function title(string $title): string
     {
+        // Mail systems write umlauts composed or decomposed and vary the spaces; both must not hide the phrase.
+        $title = \Normalizer::normalize($title, \Normalizer::FORM_C) ?: $title;
+
         foreach ((array) config('knowledge.retrieval.title_noise', []) as $noise) {
-            $title = str_ireplace((string) $noise, ' ', $title);
+            $words = preg_split('/\s+/u', (string) (\Normalizer::normalize((string) $noise, \Normalizer::FORM_C) ?: $noise), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            if ($words !== []) {
+                $title = (string) preg_replace('/'.implode('[\s\x{00A0}]+', array_map(fn (string $word): string => preg_quote($word, '/'), $words)).'/iu', ' ', $title);
+            }
         }
 
-        return trim((string) preg_replace('/\s+/u', ' ', $title));
+        return trim((string) preg_replace('/[\s\x{00A0}]+/u', ' ', $title));
     }
 
     /**
