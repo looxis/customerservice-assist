@@ -484,3 +484,14 @@ Grundlage: die gespeicherten Token-Zahlen von 28 abgeschlossenen Analysen mit `g
 - **Reale Größen vorher/nachher:** bisher 51.000 bis 126.000 Zeichen je Analyse (13.000 bis 30.000 Token, im Mittel 23 Sekunden); mit Abruf nach den Messungen 5.500 bis 32.000 Zeichen Wissen.
 - **Nicht aus dem Code prüfbar:** das Kontextfenster von `gpt-5.5` selbst. Die Grenzen sind per `ANALYSIS_CONTEXT_CHARACTERS` und `ANALYSIS_ANSWER_RESERVE_CHARACTERS` einstellbar; bitte das Fenster einmal in der OpenAI-Dokumentation gegenprüfen.
 - Folge: Zielumfang 40.000, Pflichtbudgets 15.000 und 9.000 je Produkt bleiben, die harte Grenze bleibt wie konfiguriert. Offen bleibt nur die Beobachtung am echten Betrieb nach dem Einschalten (Spalten `knowledge_characters`, `input_tokens` in der Analysen-Übersicht).
+
+## Nachtrag 2026-11-27: Fallmuster des gewählten Produkts, Systemteile im Tickettitel
+
+Anlass Ticket 2140698 (Zaubertasse, Kunde meldet „Köpfe abgeschnitten, Datum nicht lesbar“; PLAYBOOK-004 und PROCESS-004 wurden mangels Auslöser nicht abgerufen).
+
+- **Fallmuster des Produkts:** Dokumente vom Typ `playbook` oder `process` mit `retrieval: triggered`, die auf ein gewähltes Produkt eingeschränkt sind, kommen ohne Auslösertreffer als starkes Wissen mit (Grund „Fallmuster des gewählten Produkts“, Herkunft `pattern`). Das weicht bewusst von der früheren Regel „das Produkt ist kein Auslöser“ ab. Geltungsbereich, Ausschlusswörter und `when` gelten unverändert; bei nicht prüfbarer Bedingung bleibt es beim bisherigen Verhalten.
+- **Obergrenze:** `knowledge.retrieval.budget.product_patterns` (15.000 Zeichen). Liegen die Fallmuster der gewählten Produkte zusammen darüber, wird keines automatisch mitgesendet; sie bleiben bei Auslösern und Router, das Protokoll nennt den Grund. Abweichung vom Plan: keine Teilauswahl bis zur Grenze, weil sie willkürlich wäre. Derzeit über der Grenze: 3D-Glasfoto (28.492 Zeichen).
+- **Tickettitel:** `knowledge.retrieval.title_noise` entfernt „Amazon Payments-Kunde“ und Amazons Sammelkategorie „Beschädigter defekter oder falscher Artikel erhalten“ aus dem Titel, bevor Auslöser und Router ihn lesen. Abweichung vom Plan: Der übrige Amazon-Betreff bleibt (z. B. „Rechnungsanforderung von Amazon-Kunde“), weil er oft das einzige Signal für das Anliegen ist; die Bestellnummer bleibt für die Zuordnung der Bestellung erhalten.
+- Abrufregeln-Version `2026-11-27.1`. Tests in `PROJ-36-RetrievalTest.php` („case patterns of the chosen product“) und `PROJ-36-CaseFactsTest.php`.
+- Gegenprobe am Ticket 2140698 ohne Freitext: Die Entscheidungsfrage nennt jetzt „Testbedingungen unklar“, „Bereich reagiert nicht“, „Beschichtung durchsichtig, Motiv fehlt“ und „entspricht der Konfiguration“. Mit Freitext zu falschem Druck bzw. Defekt nach korrektem Test lautet der Vorschlag Neuproduktion, mit „halb gefüllt, oberer Rand dunkel“ Bitte um Funktionstest.
+
