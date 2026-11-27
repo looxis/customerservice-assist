@@ -55,7 +55,7 @@ Wird anschließend eine Fehlfunktion gemeldet, mit PLAYBOOK-004 weiterprüfen.
 
 „Kein Grund zur Sorge, das ist so gewollt: Sie haben eine Zaubertasse mit Thermoeffekt bestellt: Im kalten Zustand ist sie außen schwarz. Sobald heißes Wasser die Tasse erwärmt, wird Ihr Motiv sichtbar. Genau dieser Effekt ist die Besonderheit des angebotenen Produkts.
 
-Für die Prüfung füllen Sie die Tasse bitte mit mindestens 80 °C heißem Wasser bis ungefähr 1 bis 1,5 cm unterhalb des Tassenrands. Warten Sie anschließend kurz. Der Druck wird beim Erwärmen üblicherweise schrittweise von unten nach oben sichtbar.“
+Für die Prüfung füllen Sie die Tasse bitte mit mindestens 80 °C heißem Wasser bis ungefähr 1 bis 1,5 cm unterhalb des Tassenrands. Warten Sie anschließend, bis sich die Tasse erwärmt hat. Der Druck wird dabei schrittweise sichtbar; der obere und der untere Rand brauchen am längsten.“
 
 # Noch nicht entscheidbar
 

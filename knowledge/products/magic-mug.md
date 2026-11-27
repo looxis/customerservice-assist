@@ -48,7 +48,7 @@ Diese Datei ist der Wissensbereich, dem die Regeln zur Zaubertasse zugeordnet si
 # Typische Anfragen
 
 - „Ich habe eine schwarze Tasse erhalten“: PLAYBOOK-003.
-- „Der Thermoeffekt funktioniert nicht“: PLAYBOOK-004; Test nach PROCESS-004.
+- „Der Thermoeffekt funktioniert nicht“ oder „Der Druck ist unvollständig, Teile des Motivs fehlen, der Rand bleibt dunkel“: PLAYBOOK-004; Test nach PROCESS-004.
 - „Die Beschichtung löst sich“: PLAYBOOK-005.
 
 # Konsequenz für den Kundenservice
