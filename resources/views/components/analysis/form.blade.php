@@ -188,7 +188,7 @@
                 @if ($complaintToggle)
                     <section aria-labelledby="guided-processing-heading" class="space-y-5 rounded-lg bg-slate-50/60 p-4 ring-1 ring-slate-200 ring-inset">
                         <fieldset>
-                            <legend id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> <x-help-tip text="Der Sachverhalt ist klar und passt zu einem der Fälle hier? Dann wähle ihn: Das Formular führt dich mit wenigen Klicks durch Entscheidung und Lösung, die KI schreibt daraus den Antwortentwurf. Vorgewählt ist der Fall, der zur Einordnung des Tickets passt.">Geführte Bearbeitung</x-help-tip></legend>
+                            <legend id="guided-processing-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="list-todo" size="18" class="text-brand" /> <x-help-tip :size="19" text="Der Sachverhalt ist klar und passt zu einem der Fälle hier? Dann wähle ihn: Das Formular führt dich mit wenigen Klicks durch Entscheidung und Lösung, die KI schreibt daraus den Antwortentwurf. Vorgewählt ist der Fall, der zur Einordnung des Tickets passt.">Geführte Bearbeitung</x-help-tip></legend>
                             <div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1">
                                 @foreach ($forms as $formKey => $formLabel)
                                     @continue($formKey === \App\Analysis\ComplaintDecision::FREE)
@@ -225,10 +225,10 @@
                                 <input type="radio" name="formularwahl" value="{{ \App\Analysis\ComplaintDecision::FREE }}" x-model="mode" @checked($formMode === \App\Analysis\ComplaintDecision::FREE) class="size-4 border-slate-300 text-brand focus:ring-brand">
                                 <x-icon name="zap" size="18" class="text-brand" /> {{ $forms[\App\Analysis\ComplaintDecision::FREE] }}
                             </label>
-                            <x-help-tip :text="$directHelp" />
+                            <x-help-tip :size="19" :text="$directHelp" />
                         </div>
                     @else
-                        <h3 id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> <x-help-tip :text="$directHelp">{{ $forms[\App\Analysis\ComplaintDecision::FREE] }}</x-help-tip></h3>
+                        <h3 id="direct-analysis-heading" class="flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="zap" size="18" class="text-brand" /> <x-help-tip :size="19" :text="$directHelp">{{ $forms[\App\Analysis\ComplaintDecision::FREE] }}</x-help-tip></h3>
                     @endif
                     <x-intro>
                         <p class="text-sm text-slate-600">Analyse anhand der verfügbaren Informationen ohne geführtes Formular.</p>

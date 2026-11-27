@@ -29,7 +29,7 @@
         <x-icon name="list-checks" size="18" class="text-brand" />
         <span class="text-sm font-semibold text-slate-900">Geführte Sachverhaltsermittlung</span>
         {{-- The click on the question mark must not open or close the area. --}}
-        <span x-on:click.prevent class="inline-flex"><x-help-tip text="Unklar, was hinter der Anfrage steckt oder wie der Fall zu lösen ist? Hier findest du bekannte Fallmuster aus dem Wissen: woran man sie erkennt und was zu prüfen ist. So erarbeitest du den Sachverhalt und einen möglichen Lösungsweg und machst danach mit der geführten Bearbeitung oder der direkten Analyse weiter." /></span>
+        <span x-on:click.prevent class="inline-flex"><x-help-tip :size="19" text="Unklar, was hinter der Anfrage steckt oder wie der Fall zu lösen ist? Hier findest du bekannte Fallmuster aus dem Wissen: woran man sie erkennt und was zu prüfen ist. So erarbeitest du den Sachverhalt und einen möglichen Lösungsweg und machst danach mit der geführten Bearbeitung oder der direkten Analyse weiter." /></span>
         <span class="text-sm text-slate-600">· Unsicher, was zu prüfen ist?</span>
         <span class="text-sm" x-bind:class="empty ? 'italic text-slate-600' : 'font-medium text-slate-700'" x-text="summary"></span>
         <template x-if="$store.caseFindings.selected.length > 0">
